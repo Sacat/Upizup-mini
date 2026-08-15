@@ -70,7 +70,7 @@ namespace UpIzUpMini.Character
                 // 0 = idle, 1 = walk, 2 = run. Blend tree in Mini011PhaseBSetup's
                 // generated controller expects this normalized range.
                 float target = CurrentSpeed <= 0f ? 0f : (IsRunning ? 2f : 1f);
-                _animSpeedBlend = Mathf.MoveTowards(_animSpeedBlend, target, 6f * Time.deltaTime);
+                _animSpeedBlend = Mathf.MoveTowards(_animSpeedBlend, target, 12f * Time.deltaTime);
                 animator.SetFloat(speedParam, _animSpeedBlend);
             }
         }

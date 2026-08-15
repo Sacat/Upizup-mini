@@ -35,11 +35,34 @@ stay as a scope reference but MINI-011 is being tracked as one corrective
 initiative broken into internal Phases A-D with hard visual gates between
 them, per the brief's own instructions.
 
-Status: **Phase A (audit + asset/visual plan) complete.** See
-`Docs/MINI-011-VISUAL-PLAN.md` and `Docs/ASSET-REGISTER.md`. Stopped at the
-Phase A gate for user go/no-go before Phase B (environment/terrain/camera
-rebuild) is claimed, per the brief's explicit instruction not to proceed
-until the plan is reviewed.
+Status: **Phase A and Phase B complete, bugfixed once from user testing.**
+See `Docs/MINI-011-VISUAL-PLAN.md`, `Docs/ASSET-REGISTER.md`, and the
+Phase B / Phase B bugfix entries in `PROJECT-HANDOFF.md`. `GrandBayProof`
+now has a sculpted terrain, road, ~30-40 houses (real Shanty Town
+structures + hand-built modular houses), vegetation, sea, and Humanoid
+player/NPC with basic locomotion animation. Full story now recorded in
+`Docs/STORY.md`.
+
+**Phase C scope (next, not started)** — from the user's own request list
+after testing Phase B:
+
+- Police, shopkeeper, and crop-buyer NPCs, visible and interactable near
+  the Lalay road (per `Docs/STORY.md` Mission 1/2's mentor/market-woman
+  and Mission 2's shopkeeper/friendly police).
+- HUD: health meter, heat meter (police), stamina meter.
+- Numbered crop-selection: keys 1/2/3/4 change which crop is planted.
+- Multiple farm plots (6+ per the corrective brief) with light-brown
+  (unplanted) vs dark-brown (planted/watered) soil states.
+- Crop growth: visible scale-up through growth stages; tomato fruit
+  colour green while growing, red when ripe.
+- Upgrade `OnGUI` prompts/dialogue to Canvas + TextMeshPro (already
+  planned; `com.unity.ugui` is installed).
+- Tab/Q character switching, with Strong built as a real second
+  controllable character (not just the NPC placeholder) — `CharacterSwitchManager` per the corrective brief, shared money/inventory/heat, independent health/stamina/position.
+- Re-confirm the running/animation fix from the Phase B bugfix pass.
+
+Car/driving is explicitly deferred by the user to a later phase (noted,
+not scheduled yet).
 
 ## Ready
 

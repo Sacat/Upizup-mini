@@ -75,8 +75,13 @@ namespace UpIzUpMini.EditorTools
 
         private static RuntimeAnimatorController BuildAnimatorController()
         {
-            var existing = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
-            if (existing != null) return existing;
+            // Always rebuild fresh rather than reusing a cached asset -
+            // during iteration a stale controller from an earlier run could
+            // silently mask fixes to this method.
+            if (AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath) != null)
+            {
+                AssetDatabase.DeleteAsset(ControllerPath);
+            }
 
             EnsureFolder("Assets/UpIzUpMini/Art");
             var controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
@@ -300,18 +305,24 @@ namespace UpIzUpMini.EditorTools
         // for the taller two-storey buildings, flanking the road.
         // ---------------------------------------------------------------
 
-        private static readonly int[] ShantyVariants = { 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 18, 20 };
+        // Only variants 1-14 have a standalone Materials/shantyN.mat in the
+        // source pack (confirmed by inspecting the pack's Materials folder).
+        // 15/16/18/19/20 have no matching material and import white/pink -
+        // that was the "white shanty house" bug. Excluded.
+        private static readonly int[] ShantyVariants = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
+        private const float ShantyScale = 2.1f; // source meshes import undersized relative to a ~2m-tall human
 
         private static void BuildHouses(Terrain terrain, List<Vector3> roadPoints)
         {
             var parent = new GameObject("LalayHouses");
             int variantIndex = 0;
 
-            // Dense placement: sample points every ~11m along the road
+            // Dense placement: sample points every ~7m along the road
             // polyline (not just at the coarse mesh-segment vertices), so
             // houses read as a packed village row rather than scattered
-            // dots, per the brief's "close to both sides of the road".
-            List<Vector3> placementPoints = ResamplePolyline(roadPoints, 11f);
+            // dots, per the brief's "more house density" / "close to both
+            // sides of the road".
+            List<Vector3> placementPoints = ResamplePolyline(roadPoints, 7f);
 
             for (int i = 1; i < placementPoints.Count - 1; i++)
             {
@@ -321,12 +332,12 @@ namespace UpIzUpMini.EditorTools
 
                 foreach (int side in new[] { -1, 1 })
                 {
-                    float lateral = 5.5f + Random(i * 7 + side, 0f, 2.5f);
+                    float lateral = 6.5f + Random(i * 7 + side, 0f, 3f);
                     Vector3 basePos = roadPos + right * side * lateral;
                     basePos.y = SampleHeight(terrain, basePos.x, basePos.z);
 
-                    bool tallBuilding = (i + (side > 0 ? 1 : 0)) % 6 == 0;
-                    bool skipForYardGap = (i + side) % 5 == 0; // occasional gap between houses
+                    bool tallBuilding = (i + (side > 0 ? 1 : 0)) % 7 == 0;
+                    bool skipForYardGap = (i + side) % 9 == 0; // occasional gap between houses
                     Quaternion rot = Quaternion.LookRotation(-right * side, Vector3.up)
                                       * Quaternion.Euler(0f, Random(i * 3 + side, -12f, 12f), 0f);
 
@@ -349,6 +360,7 @@ namespace UpIzUpMini.EditorTools
                             instance.name = $"Shanty_{variant}_{i}_{side}";
                             instance.transform.position = basePos;
                             instance.transform.rotation = rot;
+                            instance.transform.localScale = Vector3.one * ShantyScale;
                         }
                     }
                     else
@@ -456,8 +468,11 @@ namespace UpIzUpMini.EditorTools
                 var slope = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 slope.name = side < 0 ? "RoofSlopeA" : "RoofSlopeB";
                 slope.transform.SetParent(parent, false);
-                slope.transform.localScale = new Vector3(slopeLen, 0.1f, depth + 0.4f);
-                slope.transform.localRotation = Quaternion.Euler(0f, 0f, side * pitchDeg);
+                slope.transform.localScale = new Vector3(slopeLen, 0.14f, depth + 0.4f);
+                // Ridge must be the HIGH edge and the eave (outer edge) the
+                // LOW edge - rotating by +side*pitch put the ridge edge
+                // down (an inverted "valley" roof); -side*pitch is correct.
+                slope.transform.localRotation = Quaternion.Euler(0f, 0f, -side * pitchDeg);
                 float xOff = side * (width / 4f);
                 slope.transform.localPosition = new Vector3(xOff, wallHeight + ridgeRise / 2f, 0f);
                 slope.GetComponent<Renderer>().sharedMaterial = roofMat;
@@ -662,8 +677,12 @@ namespace UpIzUpMini.EditorTools
             controller.height = 2f;
             controller.radius = 0.4f;
 
+            // Smart (this controllable character) is the darker-skinned of
+            // the two boys per user direction; Strong (NPC placeholder
+            // until Phase C's switching system exists) is lighter.
             var visual = InstantiateCharacter(
-                "Assets/Floreswa/Models/male01_1.fbx", playerGo.transform, animController);
+                "Assets/Floreswa/Models/male01_1.fbx", playerGo.transform, animController,
+                new Color(0.35f, 0.22f, 0.13f));
 
             var playerController = playerGo.AddComponent<PlayerController>();
             var pcSo = new SerializedObject(playerController);
@@ -687,11 +706,13 @@ namespace UpIzUpMini.EditorTools
             npcGo.transform.position = pos;
             npcGo.transform.rotation = Quaternion.LookRotation(-right, Vector3.up);
 
-            InstantiateCharacter("Assets/Floreswa/Models/male02_1.fbx", npcGo.transform, null);
+            InstantiateCharacter("Assets/Floreswa/Models/male02_1.fbx", npcGo.transform, null,
+                new Color(0.72f, 0.56f, 0.42f));
             npcGo.AddComponent<NPCInteractable>();
         }
 
-        private static GameObject InstantiateCharacter(string fbxPath, Transform parent, RuntimeAnimatorController animController)
+        private static GameObject InstantiateCharacter(
+            string fbxPath, Transform parent, RuntimeAnimatorController animController, Color? skinTint = null)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
@@ -704,7 +725,38 @@ namespace UpIzUpMini.EditorTools
             if (animController != null) animator.runtimeAnimatorController = animController;
             animator.applyRootMotion = false;
 
+            if (skinTint.HasValue)
+            {
+                ApplySkinTint(instance, skinTint.Value);
+            }
+
             return instance;
+        }
+
+        /// <summary>
+        /// Low Poly Character Pack renderers carry a material slot literally
+        /// named "skin" (confirmed by inspection). Clone it per-instance
+        /// (materials are shared assets by default - editing sharedMaterial
+        /// directly would recolour every character using this prefab) so
+        /// Smart and the NPC/Strong can read as visually distinct people,
+        /// per the corrective brief's "clearly different... body
+        /// silhouettes" requirement and the user's explicit skin-tone ask.
+        /// </summary>
+        private static void ApplySkinTint(GameObject instance, Color tint)
+        {
+            foreach (var renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = renderer.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] != null && mats[i].name.ToLowerInvariant().Contains("skin"))
+                    {
+                        var clone = new Material(mats[i]) { color = tint };
+                        mats[i] = clone;
+                    }
+                }
+                renderer.sharedMaterials = mats;
+            }
         }
 
         private static void BuildCamera(Transform player)

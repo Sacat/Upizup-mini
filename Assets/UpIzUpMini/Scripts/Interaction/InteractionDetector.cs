@@ -68,27 +68,36 @@ namespace UpIzUpMini.Interaction
 
         private void EnsureStyles()
         {
+            // OnGUI font sizes are in raw screen pixels, not scaled with
+            // resolution - on a high-res/mobile display a fixed 16px prompt
+            // reads as tiny. Scale against a 1080-tall reference so it stays
+            // readable across resolutions (also serves the project's
+            // mobile/tablet-first requirement, not just this desktop bug).
+            float scale = Mathf.Max(1f, Screen.height / 1080f);
+            int promptFontSize = Mathf.RoundToInt(30 * scale);
+            int feedbackFontSize = Mathf.RoundToInt(26 * scale);
+
             if (_promptStyle == null)
             {
                 _promptStyle = new GUIStyle(GUI.skin.box)
                 {
-                    fontSize = 16,
                     fontStyle = FontStyle.Bold,
                     alignment = TextAnchor.MiddleCenter,
                     normal = { textColor = Color.white }
                 };
             }
+            _promptStyle.fontSize = promptFontSize;
 
             if (_feedbackStyle == null)
             {
                 _feedbackStyle = new GUIStyle(GUI.skin.box)
                 {
-                    fontSize = 15,
                     alignment = TextAnchor.MiddleCenter,
                     wordWrap = true,
                     normal = { textColor = Color.white }
                 };
             }
+            _feedbackStyle.fontSize = feedbackFontSize;
         }
 
         private void OnGUI()
@@ -97,6 +106,7 @@ namespace UpIzUpMini.Interaction
             if (cam == null) return;
 
             EnsureStyles();
+            float scale = Mathf.Max(1f, Screen.height / 1080f);
 
             if (_current != null)
             {
@@ -108,14 +118,18 @@ namespace UpIzUpMini.Interaction
                 if (screenPoint.z > 0f)
                 {
                     var guiPoint = new Vector2(screenPoint.x, Screen.height - screenPoint.y);
-                    var rect = new Rect(guiPoint.x - 60f, guiPoint.y - 15f, 120f, 30f);
+                    float w = 220f * scale;
+                    float h = 56f * scale;
+                    var rect = new Rect(guiPoint.x - w / 2f, guiPoint.y - h / 2f, w, h);
                     GUI.Box(rect, _current.PromptLabel, _promptStyle);
                 }
             }
 
             if (_feedbackTimer > 0f && !string.IsNullOrEmpty(_feedback))
             {
-                var rect = new Rect(Screen.width / 2f - 220f, Screen.height - 90f, 440f, 60f);
+                float w = 700f * scale;
+                float h = 110f * scale;
+                var rect = new Rect(Screen.width / 2f - w / 2f, Screen.height - h - 30f * scale, w, h);
                 GUI.Box(rect, _feedback, _feedbackStyle);
             }
         }

@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-011 Phase B built and playtestable: real terrain/road/houses/vegetation/sea in `GrandBayProof.unity`, Humanoid player+NPC with basic locomotion animation. Windows build produced (`Builds/GrandBayProof/UpIzUpMini.exe`), zero errors in a headless run. Awaiting user hands-on feedback before Phase C (people/prompts/mission/HUD).
+- Status: MINI-011 Phase B built, user-tested, and bugfixed once (roofs, density, shanty scale/texture, prompt text size, skin tones, animator staleness). Windows build produced (`Builds/GrandBayProof/UpIzUpMini.exe`), zero errors in a headless run. Awaiting a second round of user feedback; Phase C (NPCs, HUD meters, crop selection/growth, Tab switching + Strong) is clearly scoped in `TASKS.md` but not started.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000` (`MINI-001` implemented pending confirmation; `MINI-011` Phase A complete, Phase B not started)
@@ -184,6 +184,29 @@ After verification, append a change entry, update the verification results, and 
   - Two-storey/tall building variant only rotates through one procedural shape; more visual variety would help before this is called "done."
   - Have not personally watched it move/animate in real time — the rendered snapshots are static frames from batch mode; the headless run confirms no errors but not animation quality. That's the ask for this build.
 - Next action: user tests the launched build (movement, camera, animation quality, whether it reads as "Grand Bay" enough) and gives feedback before Phase C (people/prompts/mission/HUD) is claimed.
+
+### MINI-011 — Phase B bugfix pass (from user's hands-on test)
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User tested the Phase B build and reported, with visual inspection requested for all: upside-down roofs, prompt text too small, house density still too low, Shanty Town models too small, one white/untextured shanty house, character can't run, and asked for Smart-darker/Strong-lighter skin tones. Also supplied the full game plot (saved to `Docs/STORY.md`) and a future-extensibility note about shops/accessories/vehicles/property (saved to memory, not implemented now).
+- Implementation (each fix verified by rendering the actual scene again, not assumed):
+  - **Roofs upside-down:** `BuildGableRoof`'s slope rotation had the wrong sign — the ridge (should be the high edge) was ending up low, producing a valley/trough silhouette instead of a peak. Fixed (`-side * pitchDeg` instead of `side * pitchDeg`) and confirmed via render: roofs now show a correct peaked gable.
+  - **White/untextured shanty house:** traced to `ShantyVariants` including 16/18/20, which have no matching `Materials/shantyN.mat` in the source pack (only 1-14 do — confirmed by inspecting the pack's Materials folder). Restricted the variant list to 1-14.
+  - **Shanty models too small:** applied a `2.1x` uniform scale on instantiation (source meshes import undersized relative to the ~2m-tall Humanoid characters).
+  - **Not enough house density:** tightened road-polyline resampling for house placement from ~11m to ~7m spacing, widened the road-clearance-adjusted lateral band, reduced how often a gap/tall-building slot is skipped. Confirmed via a second wide-overview render: continuous house frontage along the road, not scattered dots.
+  - **Prompt/text too small:** `InteractionDetector`'s `OnGUI` styles used a fixed pixel font size, which reads tiny on a high-resolution display and would be worse on a phone/tablet. Rewrote to scale against a 1080-tall reference resolution — this also directly serves the mobile-first requirement, not just this bug report.
+  - **Character can't run:** found and fixed a real staleness bug: `BuildAnimatorController` cached the generated controller across rebuilds via `if (existing != null) return existing`, so later script edits to the blend tree wouldn't necessarily take effect. Changed to always delete and rebuild fresh. Also increased the animation blend response rate. Root cause of the *original* complaint is not fully certain (no missing-clip warnings were logged on the first-ever build either), so this needs a second confirmation from the user — noted as still open below.
+  - **Character skin tone:** found the character pack's material slot is literally named `skin` (confirmed by probing the prefab's renderers, not guessed). Cloned it per-instance (editing the shared material would have recoloured every character using that prefab) — the controllable character (Smart) is darker, the NPC placeholder (standing in for Strong until Phase C's switching system exists) is lighter.
+  - Saved `Docs/STORY.md` (full plot, verbatim) and a memory note on future shop/accessory/vehicle/property extensibility — informs how the economy data model gets designed in a later phase, not implemented now.
+- Files changed: `Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs`, `Assets/UpIzUpMini/Scripts/Character/PlayerController.cs`, `Assets/UpIzUpMini/Scripts/Interaction/InteractionDetector.cs`, `Assets/UpIzUpMini/Editor/Mini011MaterialProbe.cs` (new, kept as a small reusable diagnostic), `Docs/STORY.md` (new), `Assets/UpIzUpMini/Scenes/GrandBayProof.unity` (rebuilt).
+- Verification commands/results: `Logs/bugfix-compile.log` (clean), `Logs/bugfix-buildscene.log` (clean), `Logs/snapshot-mid3.log` + `Logs/Snapshots/grandbay-overview-mid.png` and `grandbay-overview-wide.png` (visually confirm roofs/density/scale/no-white-house fixes), `Logs/bugfix-build-exe.log` (Windows build succeeded), `Logs/bugfix-player-run.log` (zero errors across ~8s headless run).
+- Known issues / still open:
+  - **Running fix is not independently confirmed** — the caching bug was real and is fixed, but I don't have certainty that was the *entire* original cause. Needs the user's re-test.
+  - Tab/character-switching was not tested by the user yet and doesn't exist as a real system yet (only one controllable character) — Phase C.
+  - Police, shopkeeper, and crop-buyer NPCs; health/heat/stamina meters; numbered (1-4) crop-selection; before/after soil colour states across multiple plots; crop growth-stage scaling and green-to-red fruit colour — none of this exists yet. This is the clearly-scoped Phase C list now (see `TASKS.md`).
+  - Car/driving explicitly deferred by the user to a later phase.
+- Next action: user re-tests this build; then Phase C (NPCs, HUD meters, crop selection/growth, Tab switching + Strong as a real second character) gets claimed.
 
 ## Required change-entry format
 
