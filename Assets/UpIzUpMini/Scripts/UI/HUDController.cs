@@ -6,11 +6,16 @@ using UpIzUpMini.Economy;
 namespace UpIzUpMini.UI
 {
     /// <summary>
-    /// Persistent gameplay HUD: health/stamina (active character),
-    /// heat/money (shared), active character name, and the current
-    /// 1-4 crop selection. Reads the relevant managers each frame rather
-    /// than subscribing per-field - simplest correct approach for a HUD
-    /// this small.
+    /// Gameplay HUD: health (green), stamina (yellow) and heat (red) for
+    /// the active character, plus money and crop selection.
+    ///
+    /// Heat is the escalating meter - it starts empty, fills as the player
+    /// draws attention, deepens in colour as it climbs, and blinks once
+    /// maxed until it cools back down.
+    ///
+    /// The character name flashes up and fades whenever the player switches
+    /// between Franki and Sacat, so it is obvious who is being controlled
+    /// without leaving a label on screen permanently.
     /// </summary>
     public class HUDController : MonoBehaviour
     {
@@ -21,6 +26,45 @@ namespace UpIzUpMini.UI
         [SerializeField] private Text characterNameLabel;
         [SerializeField] private Text cropSelectionLabel;
 
+        [Header("Bar colours")]
+        [SerializeField] private Color healthColor = new Color(0.20f, 0.80f, 0.25f);
+        [SerializeField] private Color staminaColor = new Color(0.95f, 0.85f, 0.15f);
+        [SerializeField] private Color heatLowColor = new Color(0.85f, 0.45f, 0.10f);
+        [SerializeField] private Color heatMaxColor = new Color(0.95f, 0.10f, 0.10f);
+
+        [Header("Name flash")]
+        [SerializeField] private float nameHoldSeconds = 1.8f;
+        [SerializeField] private float nameFadeSeconds = 1.0f;
+
+        private float _nameShownAt = -999f;
+        private string _lastName;
+
+        private void Start()
+        {
+            if (healthFill != null) healthFill.color = healthColor;
+            if (staminaFill != null) staminaFill.color = staminaColor;
+
+            if (CharacterSwitchManager.Instance != null)
+            {
+                CharacterSwitchManager.Instance.OnActiveChanged += HandleActiveChanged;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (CharacterSwitchManager.Instance != null)
+            {
+                CharacterSwitchManager.Instance.OnActiveChanged -= HandleActiveChanged;
+            }
+        }
+
+        private void HandleActiveChanged(CharacterSlot slot)
+        {
+            if (slot == null) return;
+            _lastName = slot.displayName;
+            _nameShownAt = Time.time;
+        }
+
         private void Update()
         {
             var slot = CharacterSwitchManager.Instance != null ? CharacterSwitchManager.Instance.Active : null;
@@ -28,25 +72,45 @@ namespace UpIzUpMini.UI
 
             if (healthFill != null)
             {
-                healthFill.fillAmount = vitals != null ? vitals.Health / vitals.MaxHealth : 1f;
+                healthFill.fillAmount = vitals != null && vitals.MaxHealth > 0f
+                    ? vitals.Health / vitals.MaxHealth : 1f;
+                healthFill.color = healthColor;
             }
+
             if (staminaFill != null)
             {
-                staminaFill.fillAmount = vitals != null ? vitals.Stamina / vitals.MaxStamina : 1f;
+                // Tracks the active character's stamina, so it visibly
+                // drains while running and refills when they ease off.
+                staminaFill.fillAmount = vitals != null && vitals.MaxStamina > 0f
+                    ? vitals.Stamina / vitals.MaxStamina : 1f;
+                staminaFill.color = staminaColor;
             }
+
             if (heatFill != null)
             {
-                heatFill.fillAmount = EconomyManager.Instance != null
+                float heat01 = EconomyManager.Instance != null
                     ? EconomyManager.Instance.Heat / EconomyManager.MaxHeat : 0f;
+                heatFill.fillAmount = heat01;
+
+                Color c = Color.Lerp(heatLowColor, heatMaxColor, heat01);
+
+                // Blink while maxed out, until it cools off.
+                if (heat01 >= 0.99f)
+                {
+                    float blink = Mathf.PingPong(Time.unscaledTime * 4f, 1f);
+                    c = Color.Lerp(heatMaxColor, Color.white, blink * 0.6f);
+                }
+
+                heatFill.color = c;
             }
+
             if (moneyLabel != null && EconomyManager.Instance != null)
             {
                 moneyLabel.text = $"${EconomyManager.Instance.Money}";
             }
-            if (characterNameLabel != null)
-            {
-                characterNameLabel.text = slot != null ? slot.displayName : string.Empty;
-            }
+
+            UpdateNameFlash(slot);
+
             if (cropSelectionLabel != null && CropSelectionController.Instance != null)
             {
                 var crop = CropSelectionController.Instance.Selected;
@@ -63,6 +127,31 @@ namespace UpIzUpMini.UI
                         $"seeds {seeds}   held {held}";
                 }
             }
+        }
+
+        private void UpdateNameFlash(CharacterSlot slot)
+        {
+            if (characterNameLabel == null) return;
+
+            // Show on first run too, not only on a switch.
+            if (_lastName == null && slot != null)
+            {
+                _lastName = slot.displayName;
+                _nameShownAt = Time.time;
+            }
+
+            characterNameLabel.text = _lastName ?? string.Empty;
+
+            float age = Time.time - _nameShownAt;
+            float alpha =
+                age < nameHoldSeconds ? 1f :
+                age < nameHoldSeconds + nameFadeSeconds
+                    ? 1f - (age - nameHoldSeconds) / nameFadeSeconds
+                    : 0f;
+
+            var c = characterNameLabel.color;
+            c.a = alpha;
+            characterNameLabel.color = c;
         }
     }
 }

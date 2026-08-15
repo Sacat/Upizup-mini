@@ -34,6 +34,9 @@ namespace UpIzUpMini.Farming
 
         [SerializeField] private int seedsPerClone = 2;
         [SerializeField] private float cloneCooldownSeconds = 60f;
+        [Tooltip("Condition lost by the parent plant each time cuttings are taken.")]
+        [SerializeField] private float cloneQualityLoss = 0.2f;
+        [SerializeField] private float minCloneQuality = 0.3f;
 
         [Header("Freshness")]
         [Tooltip("Seconds after ripening before the crop is worth the minimum.")]
@@ -45,6 +48,7 @@ namespace UpIzUpMini.Farming
         private float _ripeSince = -1f;
         private int _lastHarvestYield;
         private float _lastFreshness = 1f;
+        private float _cloneQuality = 1f;
 
         /// <summary>
         /// R clones a mature plant: takes cuttings for extra seed without
@@ -55,6 +59,9 @@ namespace UpIzUpMini.Farming
                                 && _crop != null
                                 && Time.time >= _cloneReadyAt;
 
+        /// <summary>True while cuttings are still recovering.</summary>
+        public bool IsCloning => _cloneReadyAt > 0f && Time.time < _cloneReadyAt;
+
         public string CloneLabel
         {
             get
@@ -62,7 +69,7 @@ namespace UpIzUpMini.Farming
                 if (_state != PlotState.Ripe || _crop == null) return null;
                 if (CanClone) return "[ R ] Clone for seed";
                 int wait = Mathf.CeilToInt(_cloneReadyAt - Time.time);
-                return $"Cuttings again in {wait}s";
+                return $"Cloning... {wait}s   (cannot harvest)";
             }
         }
 
@@ -77,7 +84,8 @@ namespace UpIzUpMini.Farming
                 if (_ripeSince < 0f) return 1f;
                 float overdue = Time.time - _ripeSince;
                 float t = Mathf.Clamp01(overdue / Mathf.Max(1f, spoilSeconds));
-                return Mathf.Lerp(1f, minFreshness, t);
+                // Cloning damage compounds with age.
+                return Mathf.Lerp(1f, minFreshness, t) * _cloneQuality;
             }
         }
 
@@ -94,7 +102,14 @@ namespace UpIzUpMini.Farming
 
             EconomyManager.Instance?.AddSeeds(_crop.cropId, seedsPerClone);
             _cloneReadyAt = Time.time + cloneCooldownSeconds;
-            _lastFeedback = $"Took cuttings - {seedsPerClone} more {_crop.displayName} seed.";
+
+            // Taking cuttings costs the parent plant condition, so cloning
+            // repeatedly trades crop quality for seed.
+            _cloneQuality = Mathf.Max(minCloneQuality, _cloneQuality - cloneQualityLoss);
+
+            _lastFeedback =
+                $"Took cuttings - {seedsPerClone} more {_crop.displayName} seed. " +
+                $"Plant quality now {Mathf.RoundToInt(_cloneQuality * 100f)}%.";
             return _lastFeedback;
         }
 
@@ -178,6 +193,13 @@ namespace UpIzUpMini.Farming
                     break;
 
                 case PlotState.Ripe:
+                    if (IsCloning)
+                    {
+                        int wait = Mathf.CeilToInt(_cloneReadyAt - Time.time);
+                        _lastFeedback = $"Cuttings still taking - cannot harvest for {wait}s.";
+                        return;
+                    }
+
                     if (EconomyManager.Instance != null && _crop != null)
                     {
                         // Leaving a ripe plant standing costs yield.
@@ -248,6 +270,7 @@ namespace UpIzUpMini.Farming
             _growTimer = 0f;
             _ripeSince = -1f;
             _cloneReadyAt = 0f;
+            _cloneQuality = 1f;
             SetSoilColor(DrySoilColor);
             if (tomatoVisual != null) tomatoVisual.SetVisible(false);
             if (weedVisual != null) weedVisual.SetVisible(false);

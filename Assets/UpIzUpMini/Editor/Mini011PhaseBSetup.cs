@@ -542,6 +542,28 @@ namespace UpIzUpMini.EditorTools
             deck.transform.localScale = new Vector3(deckLength, 0.25f, 4.2f);
             deck.GetComponent<Renderer>().sharedMaterial = plankMat;
 
+            // Railings down both sides so the player can't walk off the
+            // deck into the sea.
+            foreach (int railSide in new[] { -1, 1 })
+            {
+                var rail = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                rail.name = $"JettyRail_{(railSide < 0 ? "A" : "B")}";
+                rail.transform.SetParent(jettyParent.transform);
+                rail.transform.position = new Vector3(
+                    deckStartX - deckLength / 2f, deckY + 0.75f, shoreZ + railSide * 2.05f);
+                rail.transform.localScale = new Vector3(deckLength, 1.4f, 0.16f);
+                rail.GetComponent<Renderer>().sharedMaterial = postMat;
+            }
+
+            // End rail at the seaward tip.
+            var endRail = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            endRail.name = "JettyRail_End";
+            endRail.transform.SetParent(jettyParent.transform);
+            endRail.transform.position = new Vector3(
+                deckStartX - deckLength, deckY + 0.75f, shoreZ);
+            endRail.transform.localScale = new Vector3(0.16f, 1.4f, 4.2f);
+            endRail.GetComponent<Renderer>().sharedMaterial = postMat;
+
             for (int i = 0; i < 7; i++)
             {
                 float px = deckStartX - 2f - i * 3.8f;
@@ -591,8 +613,11 @@ namespace UpIzUpMini.EditorTools
         private static List<Vector3> BuildRoad(Terrain terrain)
         {
             var points = new List<Vector3>();
-            int segments = 8;
-            float totalLength = 220f;
+            // 16 segments (17 points). With only 8 the higher shop
+            // indices all clamped to the same point, piling four shops on
+            // one spot and putting the food stall on the Montine turnoff.
+            int segments = 16;
+            float totalLength = 260f;
             float startZ = 20f;
 
             for (int i = 0; i <= segments; i++)
@@ -626,7 +651,8 @@ namespace UpIzUpMini.EditorTools
                 seg.transform.SetParent(roadParent.transform);
                 seg.transform.position = mid;
                 seg.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
-                seg.transform.localScale = new Vector3(6f, 0.08f, length + 0.5f);
+                // Overlap generously so no gap shows where segments meet at bends.
+                seg.transform.localScale = new Vector3(6f, 0.08f, length + 1.6f);
                 seg.GetComponent<Renderer>().sharedMaterial = roadMat;
                 Object.DestroyImmediate(seg.GetComponent<Collider>());
             }
@@ -688,7 +714,7 @@ namespace UpIzUpMini.EditorTools
                     // Keep the Montine turnoff clear - a house was sitting
                     // across the junction where the farm track leaves the
                     // Lalay road, blocking the route.
-                    if (Vector3.Distance(basePos, montineTurnoff) < 14f) continue;
+                    if (Vector3.Distance(basePos, montineTurnoff) < 16f) continue;
                     Quaternion rot = Quaternion.LookRotation(-right * side, Vector3.up)
                                       * Quaternion.Euler(0f, Random(i * 3 + side, -12f, 12f), 0f);
 
@@ -1280,13 +1306,83 @@ namespace UpIzUpMini.EditorTools
             parent.transform.position = pos;
             parent.transform.rotation = rot;
 
-            BuildProceduralHouse(parent.transform, pos, rot, storeys: 1, name: "FarmSafehouse_Building");
+            BuildOpenSafehouse(parent.transform, pos, rot);
 
-            // Rest point: restores health/stamina, drops heat and saves.
+            // Rest point sits on the bed itself.
             var restGo = new GameObject("FarmSafehouse_Rest");
             restGo.transform.SetParent(parent.transform);
-            restGo.transform.position = pos + rot * new Vector3(0f, 0f, 3.2f);
+            restGo.transform.position = pos + rot * new Vector3(0f, 0.6f, 0f);
             restGo.AddComponent<SafehouseInteractable>();
+        }
+
+        /// <summary>
+        /// An open-fronted shelter with a bed - deliberately no door, so
+        /// the player can simply walk in and rest (user direction).
+        /// </summary>
+        private static void BuildOpenSafehouse(Transform parent, Vector3 pos, Quaternion rot)
+        {
+            var house = new GameObject("FarmSafehouse_Building");
+            house.transform.SetParent(parent);
+            house.transform.position = pos;
+            house.transform.rotation = rot;
+
+            Material wallMat = GetOrCreateMaterial("SafehouseWall", new Color(0.84f, 0.78f, 0.62f));
+            Material roofMat = GetOrCreateMaterial("SafehouseRoof", new Color(0.45f, 0.22f, 0.16f));
+            Material bedMat = GetOrCreateMaterial("SafehouseBed", new Color(0.85f, 0.85f, 0.88f));
+            Material frameMat = GetOrCreateMaterial("SafehouseFrame", new Color(0.35f, 0.24f, 0.15f));
+
+            float w = 5.2f, d = 4.6f, h = 2.9f;
+
+            // Three walls, front left open.
+            void Wall(string name, Vector3 localPos, Vector3 scale)
+            {
+                var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                go.name = name;
+                go.transform.SetParent(house.transform, false);
+                go.transform.localPosition = localPos;
+                go.transform.localScale = scale;
+                go.GetComponent<Renderer>().sharedMaterial = wallMat;
+            }
+
+            Wall("BackWall", new Vector3(0f, h / 2f, -d / 2f), new Vector3(w, h, 0.25f));
+            Wall("SideWallL", new Vector3(-w / 2f, h / 2f, 0f), new Vector3(0.25f, h, d));
+            Wall("SideWallR", new Vector3(w / 2f, h / 2f, 0f), new Vector3(0.25f, h, d));
+
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            floor.name = "Floor";
+            floor.transform.SetParent(house.transform, false);
+            floor.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            floor.transform.localScale = new Vector3(w, 0.1f, d);
+            floor.GetComponent<Renderer>().sharedMaterial = frameMat;
+
+            var roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roof.name = "Roof";
+            roof.transform.SetParent(house.transform, false);
+            roof.transform.localPosition = new Vector3(0f, h + 0.1f, 0f);
+            roof.transform.localScale = new Vector3(w + 0.6f, 0.2f, d + 0.6f);
+            roof.GetComponent<Renderer>().sharedMaterial = roofMat;
+
+            // Bed.
+            var bedFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bedFrame.name = "BedFrame";
+            bedFrame.transform.SetParent(house.transform, false);
+            bedFrame.transform.localPosition = new Vector3(0f, 0.3f, -0.9f);
+            bedFrame.transform.localScale = new Vector3(1.4f, 0.4f, 2.4f);
+            bedFrame.GetComponent<Renderer>().sharedMaterial = frameMat;
+
+            var mattress = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            mattress.name = "Mattress";
+            mattress.transform.SetParent(house.transform, false);
+            mattress.transform.localPosition = new Vector3(0f, 0.55f, -0.9f);
+            mattress.transform.localScale = new Vector3(1.3f, 0.2f, 2.3f);
+            mattress.GetComponent<Renderer>().sharedMaterial = bedMat;
+
+            var pillow = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            pillow.name = "Pillow";
+            pillow.transform.SetParent(house.transform, false);
+            pillow.transform.localPosition = new Vector3(0f, 0.7f, -1.8f);
+            pillow.transform.localScale = new Vector3(1f, 0.16f, 0.5f);
+            pillow.GetComponent<Renderer>().sharedMaterial = bedMat;
         }
 
         // ---------------------------------------------------------------
@@ -1371,7 +1467,7 @@ namespace UpIzUpMini.EditorTools
                 cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: false);
 
             // Police patrols the Lalay road and speeds up when heat is high.
-            BuildNpc(terrain, roadPoints, index: 4, sideMul: -1f, goName: "NPC_Police",
+            BuildNpc(terrain, roadPoints, index: 3, sideMul: -1f, goName: "NPC_Police",
                 modelPath: "Assets/Floreswa/Models/male01_2.fbx", role: NpcRole.Police,
                 cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: true);
 
@@ -1385,35 +1481,35 @@ namespace UpIzUpMini.EditorTools
                 modelPath: "Assets/Floreswa/Models/male03_2.fbx", role: NpcRole.Buyer,
                 cropsForBuyer: allCrops, animController: animController, patrols: false, reactsToHeat: false);
 
-            BuildNpc(terrain, roadPoints, index: 9, sideMul: 1f, goName: "NPC_ApparelShop",
+            BuildNpc(terrain, roadPoints, index: 12, sideMul: 1f, goName: "NPC_ApparelShop",
                 modelPath: "Assets/Floreswa/Models/male01_3.fbx", role: NpcRole.ApparelShop,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
             BuildMarketArea(terrain, roadPoints, index: 6, title: "FARM SHOP", secondTitle: "PRODUCE BUYER");
-            BuildMarketArea(terrain, roadPoints, index: 9, title: "CLOTHES", secondTitle: null);
+            BuildMarketArea(terrain, roadPoints, index: 12, title: "CLOTHES", secondTitle: null);
 
             // Land office and car dealer are their own locations further
             // along the road, separate from the farm/clothes shops.
-            BuildNpc(terrain, roadPoints, index: 11, sideMul: -1f, goName: "NPC_LandOffice",
+            BuildNpc(terrain, roadPoints, index: 14, sideMul: -1f, goName: "NPC_LandOffice",
                 modelPath: "Assets/Floreswa/Models/male03_3.fbx", role: NpcRole.LandOffice,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
-            BuildNpc(terrain, roadPoints, index: 13, sideMul: 1f, goName: "NPC_CarDealer",
+            BuildNpc(terrain, roadPoints, index: 15, sideMul: 1f, goName: "NPC_CarDealer",
                 modelPath: "Assets/Floreswa/Models/male01_3.fbx", role: NpcRole.CarDealer,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
-            BuildNpc(terrain, roadPoints, index: 4, sideMul: 1f, goName: "NPC_FoodShop",
+            BuildNpc(terrain, roadPoints, index: 5, sideMul: 1f, goName: "NPC_FoodShop",
                 modelPath: "Assets/Floreswa/Models/male02_1.fbx", role: NpcRole.FoodShop,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
-            BuildNpc(terrain, roadPoints, index: 8, sideMul: 1f, goName: "NPC_Pharmacy",
+            BuildNpc(terrain, roadPoints, index: 11, sideMul: 1f, goName: "NPC_Pharmacy",
                 modelPath: "Assets/Floreswa/Models/male03_2.fbx", role: NpcRole.Pharmacy,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
-            BuildMarketArea(terrain, roadPoints, index: 4, title: "FOOD", secondTitle: null);
-            BuildMarketArea(terrain, roadPoints, index: 8, title: "PHARMACY", secondTitle: null);
-            BuildMarketArea(terrain, roadPoints, index: 11, title: "LAND AND SURVEYS", secondTitle: null);
-            BuildMarketArea(terrain, roadPoints, index: 13, title: "CAR DEALER", secondTitle: null);
+            BuildMarketArea(terrain, roadPoints, index: 5, title: "FOOD", secondTitle: null);
+            BuildMarketArea(terrain, roadPoints, index: 11, title: "PHARMACY", secondTitle: null);
+            BuildMarketArea(terrain, roadPoints, index: 14, title: "LAND AND SURVEYS", secondTitle: null);
+            BuildMarketArea(terrain, roadPoints, index: 15, title: "CAR DEALER", secondTitle: null);
 
             BuildBossNpc(terrain, roadPoints, allCrops, animController);
             BuildBoatMan(terrain, allCrops, animController);
@@ -1974,9 +2070,9 @@ namespace UpIzUpMini.EditorTools
             Terrain terrain, List<Vector3> roadPoints, Vector3 farmCenter, Transform firstPlot)
         {
             Vector3 marketPos = roadPoints[Mathf.Clamp(6, 1, roadPoints.Count - 2)];
-            Vector3 apparelPos = roadPoints[Mathf.Clamp(9, 1, roadPoints.Count - 2)];
+            Vector3 apparelPos = roadPoints[Mathf.Clamp(12, 1, roadPoints.Count - 2)];
             Vector3 plotPos = firstPlot != null ? firstPlot.position : farmCenter;
-            Vector3 policePos = roadPoints[Mathf.Clamp(4, 1, roadPoints.Count - 2)];
+            Vector3 policePos = roadPoints[Mathf.Clamp(3, 1, roadPoints.Count - 2)];
             Vector3 expansionPos = _expansionPlotPos != Vector3.zero ? _expansionPlotPos : farmCenter;
             Vector3 bossPos = _bossPos != Vector3.zero ? _bossPos : farmCenter;
 
@@ -2328,9 +2424,9 @@ namespace UpIzUpMini.EditorTools
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             canvasGo.AddComponent<GraphicRaycaster>();
 
-            Image healthFill = CreateMeter(canvasGo.transform, "Health", new Vector2(20f, -20f), new Color(0.8f, 0.15f, 0.15f), font, out _);
-            Image staminaFill = CreateMeter(canvasGo.transform, "Stamina", new Vector2(20f, -50f), new Color(0.2f, 0.55f, 0.85f), font, out _);
-            Image heatFill = CreateMeter(canvasGo.transform, "Heat", new Vector2(20f, -80f), new Color(0.9f, 0.55f, 0.1f), font, out _);
+            Image healthFill = CreateMeter(canvasGo.transform, "Health", new Vector2(20f, -20f), new Color(0.20f, 0.80f, 0.25f), font, out _);
+            Image staminaFill = CreateMeter(canvasGo.transform, "Energy", new Vector2(20f, -50f), new Color(0.95f, 0.85f, 0.15f), font, out _);
+            Image heatFill = CreateMeter(canvasGo.transform, "Heat", new Vector2(20f, -80f), new Color(0.90f, 0.15f, 0.12f), font, out _);
 
             // Money/crop sit against bright sky, so they get a dark backing
             // panel - white-on-sky was unreadable at some camera angles.

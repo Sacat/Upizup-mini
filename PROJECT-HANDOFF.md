@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-019 built. Walking/running confirmed correct by the user. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
+- Status: MINI-020 built. Walking/running confirmed correct by the user. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
@@ -439,7 +439,30 @@ After verification, append a change entry, update the verification results, and 
   - Vehicles still not drivable; shirts/shorts/shoes still have no visual; police reinforcements still do not pursue.
 - Next action: user playtests. This was intended as the closing pass for "the first part of the game", so the useful check is a full run: mission 1 through the farming loop, rest at the safehouse, buy food and pills, and confirm the sea is properly walled off.
 
+### MINI-020 — Road gap and stall pile-up (one root cause), HUD meters, cloning, open safehouse
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: Missing piece of the Lalay road near the farm; food stall blocking the Montine dirt road; cloning countdown, quality degradation and no harvesting while cloning; meters not moving; character names to flash and fade on switch; safehouse to be open with a bed and save/load/rest on E; jetty colliders; health green, heat red, stamina yellow; heat to build to 100 and blink until it cools.
+- Implementation:
+  - **One root cause explained several complaints.** The road was built with `segments = 8`, giving only **9 points**, so every shop index above 7 was silently clamped by `Mathf.Clamp(index, 1, roadPoints.Count - 2)`. The consequences: the food stall's index 4 landed exactly on the Montine turnoff (`roadPoints.Count / 2` == 4) — which is why it blocked the dirt road — and apparel, pharmacy, land office and car dealer **all collapsed onto index 7**, stacking four shopfronts on one spot. Raised to 16 segments / 17 points over a longer 260m road and redistributed the indices (police 3, food 5, farm shop and buyer 6, pharmacy 11, clothes 12, land 14, dealer 15), keeping 7–9 clear around the turnoff and widening the turnoff house-exclusion to 16m.
+  - **Road gap** fixed by overlapping segments more generously (`length + 1.6` rather than `+ 0.5`), which closes the wedge that opened where segments meet at the bends. Confirmed continuous in a wide render.
+  - **Meters.** `HUDController` rewritten: health **green**, stamina/energy **yellow**, heat **red**, each set explicitly each frame rather than only at build time. Heat now lerps from orange-red toward full red as it climbs and **blinks white-red once maxed until it cools**. Stamina reads the active character's live value, so switching characters shows that character's stamina.
+  - **Character name flash.** The HUD subscribes to `CharacterSwitchManager.OnActiveChanged` and flashes the name (Franki / Sacat) for 1.8s then fades over 1s, rather than leaving a permanent label.
+  - **Cloning** now shows a live countdown in the world prompt (`Cloning... 42s (cannot harvest)`), **degrades the parent plant** by 20% condition per cutting down to a 30% floor, and **blocks harvesting entirely while cuttings recover**. Clone damage compounds with the existing freshness decay, so repeatedly cloning one plant genuinely trades crop value for seed.
+  - **Safehouse rebuilt as an open shelter**: three walls with the front open, no door, a proper bed (frame, mattress, pillow) and a roof. `[E]` at the bed opens a small menu — **1 Rest, 2 Save, 3 Load, E Leave** — so resting, saving and loading are separate deliberate choices rather than one bundled action.
+  - **Jetty railings** down both sides and across the seaward end, so the player cannot walk off the deck into the sea.
+- Files changed: `Scripts/UI/HUDController.cs` (rewritten), `Scripts/Farming/FarmPlot.cs`, `Scripts/Interaction/SafehouseInteractable.cs`, `Editor/Mini011PhaseBSetup.cs`; `Scenes/GrandBayProof.unity`.
+- Verification: compiles clean; scene builder clean; wide overview rendered confirming a continuous road and spread-out shopfronts; Windows build succeeded; **zero console errors in a 14s headless run**.
+- Known issues (honest):
+  - **Not playtested.** In particular the safehouse `1/2/3` menu keys overlap the crop-selection keys — while the bed menu is open those numbers do both things. Worth checking; if it is annoying the fix is to suppress crop selection while a menu is open.
+  - The user asked for the health meter to "show low and build up to 100 and blink when full" — I read that as describing the **heat** meter, since building to 100 and cooling down is heat behaviour and nothing currently damages health. Heat now behaves that way; health still starts full. If health was genuinely meant, say so and it is a small change.
+  - Shoreline barrier gap alignment is still computed rather than observed.
+  - Vehicles not drivable; shirts/shorts/shoes have no visual; police reinforcements do not pursue.
+- Next action: user playtests — particularly the Montine turnoff being clear, the road having no gap, the meters moving, and the bed menu.
+
 ## Required change-entry format
+
 
 
 

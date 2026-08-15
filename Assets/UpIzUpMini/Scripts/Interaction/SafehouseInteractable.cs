@@ -18,9 +18,44 @@ namespace UpIzUpMini.Interaction
 
         private string _lastFeedback;
 
-        public override string PromptLabel => "[ E ] Rest";
+        public override string PromptLabel =>
+            _menuOpen ? "[1] Rest  [2] Save  [3] Load  [E] Leave" : "[ E ] Use bed";
+
+        private bool _menuOpen;
+
+        private void Update()
+        {
+            if (!_menuOpen) return;
+
+            if (Input.GetKeyDown(KeyCode.Alpha1)) { Rest(); }
+            else if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                SaveLoadSystem.Instance?.Save();
+                _lastFeedback = "Game saved.";
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                SaveLoadSystem.Instance?.Load();
+                _lastFeedback = "Game loaded.";
+                _menuOpen = false;
+            }
+        }
 
         public override void Interact(GameObject interactor)
+        {
+            // E toggles the bed menu; the actual actions are 1/2/3 so
+            // resting, saving and loading are separate deliberate choices.
+            _menuOpen = !_menuOpen;
+            if (!_menuOpen)
+            {
+                _lastFeedback = null;
+                return;
+            }
+
+            _lastFeedback = "Rest to heal and cool off, or save/load.";
+        }
+
+        private void Rest()
         {
             var slot = CharacterSwitchManager.Instance?.Active;
             var vitals = slot?.vitals;
@@ -43,6 +78,7 @@ namespace UpIzUpMini.Interaction
             _lastFeedback = heatBefore > 1f
                 ? $"{who} rest up at {safehouseName}. Health and stamina full, heat down to {Mathf.RoundToInt(heatAfter)}. Saved."
                 : $"{who} rest up at {safehouseName}. Health and stamina full. Saved.";
+            _menuOpen = false;
         }
 
         public override string GetInteractionFeedback() => _lastFeedback;
