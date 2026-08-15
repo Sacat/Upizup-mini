@@ -25,6 +25,8 @@ namespace UpIzUpMini.UI
         [SerializeField] private Text moneyLabel;
         [SerializeField] private Text characterNameLabel;
         [SerializeField] private Text cropSelectionLabel;
+        [SerializeField] private Text inventoryLabel;
+        [SerializeField] private CropDefinition[] knownCrops;
 
         [Header("Meter percentage labels")]
         [SerializeField] private Text healthPercent;
@@ -135,8 +137,22 @@ namespace UpIzUpMini.UI
                     int held = EconomyManager.Instance != null ? EconomyManager.Instance.GetCount(crop.cropId) : 0;
                     cropSelectionLabel.text =
                         $"[{CropSelectionController.Instance.SelectedIndex + 1}] {crop.displayName}\n" +
-                        $"seeds {seeds}   held {held}";
+                        $"Seeds [{seeds}]   Held [{held}]";
                 }
+            }
+
+            if (inventoryLabel != null && EconomyManager.Instance != null)
+            {
+                var lines = new System.Text.StringBuilder("INVENTORY");
+                if (knownCrops != null)
+                {
+                    foreach (var crop in knownCrops)
+                    {
+                        if (crop == null) continue;
+                        lines.Append($"\n{crop.displayName}: {EconomyManager.Instance.GetCount(crop.cropId)}  Seeds: {EconomyManager.Instance.GetSeeds(crop.cropId)}");
+                    }
+                }
+                inventoryLabel.text = lines.ToString();
             }
         }
 
@@ -153,12 +169,7 @@ namespace UpIzUpMini.UI
 
             characterNameLabel.text = _lastName ?? string.Empty;
 
-            float age = Time.time - _nameShownAt;
-            float alpha =
-                age < nameHoldSeconds ? 1f :
-                age < nameHoldSeconds + nameFadeSeconds
-                    ? 1f - (age - nameHoldSeconds) / nameFadeSeconds
-                    : 0f;
+            float alpha = 1f;
 
             var c = characterNameLabel.color;
             c.a = alpha;

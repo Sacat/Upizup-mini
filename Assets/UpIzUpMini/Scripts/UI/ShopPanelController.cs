@@ -24,6 +24,7 @@ namespace UpIzUpMini.UI
         [SerializeField] private GameObject panel;
         [SerializeField] private Text bodyText;
         [SerializeField] private ShopItemDefinition[] stock;
+        [SerializeField] private bool resaleMode;
 
         private string _message;
         private float _messageTime;
@@ -74,10 +75,13 @@ namespace UpIzUpMini.UI
                 {
                     // TryPurchase reports success or the reason it failed,
                     // so it must only be called once per keypress.
-                    bool bought = EconomyManager.Instance.TryPurchase(stock[i], out string msg);
+                    string msg;
+                    bool bought = resaleMode
+                        ? EconomyManager.Instance.TryResell(stock[i], out msg)
+                        : EconomyManager.Instance.TryPurchase(stock[i], out msg);
                     _message = msg;
 
-                    if (bought && stock[i] != null)
+                    if (bought && stock[i] != null && !resaleMode)
                     {
                         if (stock[i].category == ShopCategory.Seed)
                         {
@@ -99,7 +103,7 @@ namespace UpIzUpMini.UI
             if (bodyText == null) return;
 
             var sb = new StringBuilder();
-            sb.AppendLine($"<b>{shopTitle}</b>   (number key to buy, E or Esc to leave)");
+            sb.AppendLine($"<b>{shopTitle}</b>   (number key to {(resaleMode ? "sell" : "buy")}, E or Esc to leave)");
             sb.AppendLine();
             sb.AppendLine($"Money: ${(EconomyManager.Instance != null ? EconomyManager.Instance.Money : 0)}");
             sb.AppendLine();
@@ -114,7 +118,8 @@ namespace UpIzUpMini.UI
                                && EconomyManager.Instance.OwnsItem(item.itemId)
                     ? "  [owned]" : string.Empty;
 
-                sb.AppendLine($"[{i + 1}]  {item.displayName,-26} ${item.price}{owned}");
+                int shownPrice = resaleMode ? Mathf.Max(1, Mathf.RoundToInt(item.price * 0.55f)) : item.price;
+                sb.AppendLine($"[{i + 1}]  {item.displayName,-26} ${shownPrice}{owned}");
             }
 
             if (!string.IsNullOrEmpty(_message) && Time.unscaledTime - _messageTime < 4f)

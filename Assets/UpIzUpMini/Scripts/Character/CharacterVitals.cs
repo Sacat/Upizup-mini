@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace UpIzUpMini.Character
@@ -24,6 +25,8 @@ namespace UpIzUpMini.Character
         public float Stamina { get; private set; }
         public float MaxHealth => maxHealth;
         public float MaxStamina => maxStamina;
+        public bool IsDead => Health <= 0f;
+        public event Action<CharacterVitals> OnDied;
 
         private bool _running;
 
@@ -87,7 +90,9 @@ namespace UpIzUpMini.Character
 
         public void Damage(float amount)
         {
+            if (amount <= 0f || IsDead) return;
             Health = Mathf.Max(0f, Health - amount);
+            if (IsDead) OnDied?.Invoke(this);
         }
 
         /// <summary>

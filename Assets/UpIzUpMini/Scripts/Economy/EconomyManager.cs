@@ -64,6 +64,20 @@ namespace UpIzUpMini.Economy
 
         public bool OwnsItem(string itemId) => _owned.Contains(itemId);
 
+        public bool TryResell(ShopItemDefinition item, out string message)
+        {
+            if (item == null || !_owned.Remove(item.itemId))
+            {
+                message = item == null ? "Nothing selected." : $"You doe own {item.displayName}.";
+                return false;
+            }
+            int payout = Mathf.Max(1, Mathf.RoundToInt(item.price * 0.55f));
+            Money += payout;
+            message = $"Black market take {item.displayName} for ${payout}.";
+            OnChanged?.Invoke();
+            return true;
+        }
+
         public bool TryPurchase(ShopItemDefinition item, out string message)
         {
             if (item == null) { message = "Nothing to buy."; return false; }
@@ -131,23 +145,26 @@ namespace UpIzUpMini.Economy
         }
 
         public bool TrySellAll(IReadOnlyList<CropDefinition> knownCrops, out int totalEarned)
+            => TrySellCrops(knownCrops, false, false, 1f, out totalEarned, out _);
+
+        public bool TrySellCrops(IReadOnlyList<CropDefinition> knownCrops, bool illegalOnly,
+            bool legalOnly, float priceMultiplier, out int totalEarned, out bool soldIllegal)
         {
             totalEarned = 0;
+            soldIllegal = false;
             bool soldAnything = false;
 
             foreach (var crop in knownCrops)
             {
                 int count = GetCount(crop.cropId);
                 if (count <= 0) continue;
+                if (illegalOnly && !crop.isIllegal) continue;
+                if (legalOnly && crop.isIllegal) continue;
 
-                totalEarned += count * crop.sellPrice;
+                totalEarned += Mathf.RoundToInt(count * crop.sellPrice * priceMultiplier);
                 _inventory[crop.cropId] = 0;
                 soldAnything = true;
-
-                if (crop.isIllegal)
-                {
-                    AddHeat(12f);
-                }
+                soldIllegal |= crop.isIllegal;
             }
 
             if (soldAnything)

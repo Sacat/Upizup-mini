@@ -161,10 +161,22 @@ namespace UpIzUpMini.Farming
 
         public override void Interact(GameObject interactor)
         {
+            InteractInternal(interactor, null);
+        }
+
+        public void FarmhandInteract(GameObject interactor, CropDefinition assignedCrop)
+        {
+            InteractInternal(interactor, assignedCrop);
+        }
+
+        private void InteractInternal(GameObject interactor, CropDefinition assignedCrop)
+        {
             switch (_state)
             {
                 case PlotState.Empty:
-                    var crop = CropSelectionController.Instance != null ? CropSelectionController.Instance.Selected : null;
+                    var crop = assignedCrop != null
+                        ? assignedCrop
+                        : (CropSelectionController.Instance != null ? CropSelectionController.Instance.Selected : null);
                     if (crop == null) return;
 
                     // Planting costs a seed - buy more from the shopkeeper,

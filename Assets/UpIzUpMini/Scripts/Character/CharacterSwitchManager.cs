@@ -30,6 +30,7 @@ namespace UpIzUpMini.Character
 
         [SerializeField] private CharacterSlot[] slots = new CharacterSlot[2];
         [SerializeField] private ThirdPersonFollowCamera followCamera;
+        [SerializeField] private Vector3 safehouseSpawn;
 
         public int ActiveIndex { get; private set; }
         public CharacterSlot Active => slots[ActiveIndex];
@@ -44,7 +45,39 @@ namespace UpIzUpMini.Character
 
         private void Start()
         {
+            foreach (var slot in slots)
+            {
+                if (slot?.vitals != null) slot.vitals.OnDied += HandleDeath;
+            }
             ApplyActive(ActiveIndex);
+        }
+
+        private void OnDestroy()
+        {
+            foreach (var slot in slots)
+            {
+                if (slot?.vitals != null) slot.vitals.OnDied -= HandleDeath;
+            }
+        }
+
+        private void HandleDeath(CharacterVitals deadVitals)
+        {
+            var dead = Array.Find(slots, s => s != null && s.vitals == deadVitals);
+            Missions.MissionSystem.Instance?.FailCurrentMission(
+                $"{dead?.displayName ?? "Player"} dead. Mission failed.");
+            Economy.EconomyManager.Instance?.AddHeat(-Economy.EconomyManager.MaxHeat);
+
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var slot = slots[i];
+                if (slot?.root == null) continue;
+                var cc = slot.root.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
+                slot.root.transform.position = safehouseSpawn + new Vector3(i * 1.25f, 0.15f, 0f);
+                if (cc != null) cc.enabled = true;
+                slot.vitals?.Restore();
+                slot.root.GetComponent<FarmhandController>()?.SetWorking(false);
+            }
         }
 
         private void Update()

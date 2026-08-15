@@ -17,6 +17,7 @@ namespace UpIzUpMini.Missions
         ReachArea,     // walk into a world position
         BuyItem,       // purchase a specific shop item (e.g. land)
         EscapeHeat,    // let police heat cool back below a threshold
+        AssignFarmhand,// leave the inactive protagonist tending a crop
     }
 
     [Serializable]
@@ -187,6 +188,24 @@ namespace UpIzUpMini.Missions
         }
 
         private bool _sawHighHeat;
+
+        public bool IsCurrentObjective(ObjectiveKind kind, string targetId = null)
+        {
+            var objective = CurrentObjective;
+            if (objective == null || objective.kind != kind) return false;
+            return string.IsNullOrEmpty(targetId) || string.IsNullOrEmpty(objective.targetId)
+                   || string.Equals(objective.targetId, targetId, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public void FailCurrentMission(string reason)
+        {
+            var mission = Current;
+            if (mission == null) return;
+            foreach (var objective in mission.objectives) objective.progress = 0;
+            _objectiveIndex = 0;
+            _sawHighHeat = false;
+            ShowBanner($"MISSION FAILED\n{reason}\nReturn to the safehouse.");
+        }
 
         private void ShowBanner(string text)
         {

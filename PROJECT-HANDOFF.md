@@ -507,6 +507,20 @@ After verification, append a change entry, update the verification results, and 
   - Vehicles still not drivable.
 - Next action: user playtests — particularly whether officers now round buildings instead of grinding into them, and whether the chase reads as a chase.
 
+### MINI-023 - Police balance, safehouse respawn, inventory, buyers, companion orders
+
+- Date: 2026-08-15
+- Owner: Codex
+- Request: Slower police with stamina; death/safehouse respawn; Sacat/Franki names; seed/crop inventory; Boss K/vagrant weed buyers; clothing resale; 50/30 heat rules; contraband-only proximity heat; safehouse spawn; companion farming orders; more missions.
+- Acceptance criteria: Requested mechanics are represented in the generated scene and compile/build cleanly; balance and presentation require hands-on playtesting.
+- Implementation: Police chase at 4.35 m/s with stamina, exhaustion and recovery. Death fails/restarts the current mission, clears heat, restores both boys and returns them to Montine safehouse. HUD permanently names Sacat/Franki and lists held crop/seed counts. Boss K pays 1.35x for weed, vagrant 0.65x, produce buyer remains a fallback, and black market resells clothes at 55%. Mission weed sales add 50 heat and other illegal sales add 30. Proximity heat only rises with illegal crop/seed inventory. Close-range E and G assign the selected crop to the inactive farmhand. Added M6 Two Man Operation and M7 Street Route.
+- Files changed: Character, Economy, Farming, Interaction, Missions and UI scripts; `Editor/Mini011PhaseBSetup.cs`; generated scene; coordination docs.
+- Scene/prefab changes: Rebuilt GrandBayProof with Sacat first, both protagonists at safehouse, Vagrant and Black Market NPCs, resale UI, inventory HUD and seven missions.
+- Verification commands: Unity compile (`Logs/MINI-023-Compile.log`); scene builder (`Logs/MINI-023-BuildScene.log`); Windows build (`Logs/MINI-023-WindowsBuild.log`); built-player run (`Logs/MINI-023-PlayerSmoke.log`); `git diff --check`.
+- Verification results: Compile succeeded with warnings only; scene builder saved; Windows build Success/return code 0; built player initialized without error/exception matches; diff check clean apart from line-ending notices.
+- Known issues: Not hands-on playtested. Police stamina/rates and buyer multipliers are first-pass. Companion direct steering can still snag. Respawn is immediate, without a fade. Always-visible inventory may need a compact mobile toggle.
+- Next action: Play M4 through M7 and report chase feel, death/respawn, buyers, E companion order and HUD readability.
+
 ## Required change-entry format
 
 

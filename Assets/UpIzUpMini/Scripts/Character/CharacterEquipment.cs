@@ -53,6 +53,13 @@ namespace UpIzUpMini.Character
 
             _initialised = true;
 
+            // Restore authored garments first so sold clothing disappears,
+            // then apply whatever is still owned.
+            foreach (var pair in _originalMaterials)
+            {
+                if (pair.Key != null) pair.Key.sharedMaterials = pair.Value;
+            }
+
             Apply("cap_mike", HumanBodyBones.Head, economy.OwnsItem("cap_mike"),
                 () => BuildCap(new Color(0.85f, 0.15f, 0.15f)));
 

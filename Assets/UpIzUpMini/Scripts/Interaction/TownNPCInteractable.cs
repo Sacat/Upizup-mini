@@ -11,7 +11,7 @@ namespace UpIzUpMini.Interaction
     public enum NpcRole
     {
         Villager, Police, FarmShop, Buyer, ApparelShop, Boss,
-        LandOffice, CarDealer, BoatMan, FoodShop, Pharmacy
+        LandOffice, CarDealer, BoatMan, FoodShop, Pharmacy, Vagrant, BlackMarket
     }
 
     /// <summary>
@@ -80,6 +80,8 @@ namespace UpIzUpMini.Interaction
             NpcRole.FarmShop => "[ E ] Farm Shop",
             NpcRole.ApparelShop => "[ E ] Clothes Shop",
             NpcRole.Boss => "[ E ] Talk to Boss K",
+            NpcRole.Vagrant => "[ E ] Sell weed quietly",
+            NpcRole.BlackMarket => "[ E ] Black Market",
             NpcRole.LandOffice => "[ E ] Land and Surveys",
             NpcRole.CarDealer => "[ E ] Vehicles",
             NpcRole.FoodShop => "[ E ] Food",
@@ -93,16 +95,16 @@ namespace UpIzUpMini.Interaction
             switch (role)
             {
                 case NpcRole.Buyer:
-                    if (EconomyManager.Instance != null && sellableCrops != null
-                        && EconomyManager.Instance.TrySellAll(sellableCrops, out int earned))
-                    {
-                        _lastFeedback = $"Yea mn, sold for ${earned}.";
-                        Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.SellCrop);
-                    }
-                    else
-                    {
-                        _lastFeedback = NextLine(buyerLines, "Nothing to sell right now, nuh.");
-                    }
+                    SellCrops(false, false, 1f, "ProduceBuyer");
+                    break;
+
+                case NpcRole.Vagrant:
+                    SellCrops(true, false, 0.65f, "Vagrant");
+                    break;
+
+                case NpcRole.BlackMarket:
+                    _lastFeedback = "I buying clean clothes cheap. Choose what you selling, mn.";
+                    shop?.Open();
                     break;
 
                 case NpcRole.Police:
@@ -141,7 +143,9 @@ namespace UpIzUpMini.Interaction
                     }
                     else
                     {
-                        _lastFeedback = bossFollowUpLine;
+                        int weedHeld = EconomyManager.Instance.GetCount(bossSeedCrop.cropId);
+                        if (weedHeld > 0) SellCrops(true, false, 1.35f, "BossK");
+                        else _lastFeedback = bossFollowUpLine;
                     }
                     break;
 
@@ -163,5 +167,23 @@ namespace UpIzUpMini.Interaction
         }
 
         public override string GetInteractionFeedback() => _lastFeedback;
+
+        private void SellCrops(bool illegalOnly, bool legalOnly, float multiplier, string buyerId)
+        {
+            if (EconomyManager.Instance != null && sellableCrops != null
+                && EconomyManager.Instance.TrySellCrops(sellableCrops, illegalOnly, legalOnly,
+                    multiplier, out int earned, out bool soldIllegal))
+            {
+                if (soldIllegal)
+                {
+                    bool missionSale = Missions.MissionSystem.Instance != null
+                        && Missions.MissionSystem.Instance.IsCurrentObjective(Missions.ObjectiveKind.SellCrop, buyerId);
+                    EconomyManager.Instance.AddHeat(missionSale ? 50f : 30f);
+                }
+                _lastFeedback = $"Yea mn, sold for ${earned}.";
+                Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.SellCrop, buyerId);
+            }
+            else _lastFeedback = NextLine(buyerLines, "Nothing for me right now, nuh.");
+        }
     }
 }

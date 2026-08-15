@@ -25,9 +25,15 @@ namespace UpIzUpMini.Interaction
 
         [Header("Pursuit")]
         [SerializeField] private float chaseHeatThreshold = 45f;
-        [SerializeField] private float chaseSpeed = 5.335f;
+        [SerializeField] private float chaseSpeed = 4.35f;
         [SerializeField] private float giveUpDistance = 45f;
         [SerializeField] private float stopDistance = 2.0f;
+
+        [Header("Police stamina")]
+        [SerializeField] private float maxStamina = 100f;
+        [SerializeField] private float chaseDrainPerSecond = 24f;
+        [SerializeField] private float recoveryPerSecond = 28f;
+        [SerializeField] private float minimumResumeStamina = 55f;
 
         [Header("Obstacle avoidance")]
         [SerializeField] private float whiskerLength = 2.4f;
@@ -42,12 +48,16 @@ namespace UpIzUpMini.Interaction
         private bool _headingToB = true;
         private float _pauseTimer;
         private float _animBlend;
+        private float _stamina;
+        private bool _exhausted;
 
         public bool IsChasing { get; private set; }
+        public float Stamina => _stamina;
 
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
+            _stamina = maxStamina;
             if (animator == null) animator = GetComponentInChildren<Animator>();
         }
 
@@ -67,15 +77,37 @@ namespace UpIzUpMini.Interaction
                 : float.MaxValue;
 
             // Chase while heat is up and the player is still in reach.
-            IsChasing = player != null
+            bool wantsChase = player != null
                         && heat >= chaseHeatThreshold
                         && distToPlayer <= giveUpDistance;
+
+            if (_exhausted)
+            {
+                _stamina = Mathf.Min(maxStamina, _stamina + recoveryPerSecond * Time.deltaTime);
+                if (_stamina >= minimumResumeStamina) _exhausted = false;
+                else
+                {
+                    IsChasing = false;
+                    Animate(0f);
+                    return;
+                }
+            }
+
+            IsChasing = wantsChase;
 
             Vector3 destination;
             float speed;
 
             if (IsChasing)
             {
+                _stamina = Mathf.Max(0f, _stamina - chaseDrainPerSecond * Time.deltaTime);
+                if (_stamina <= 0f)
+                {
+                    _exhausted = true;
+                    IsChasing = false;
+                    Animate(0f);
+                    return;
+                }
                 destination = player.transform.position;
                 speed = chaseSpeed;
 
@@ -89,6 +121,7 @@ namespace UpIzUpMini.Interaction
             }
             else
             {
+                _stamina = Mathf.Min(maxStamina, _stamina + recoveryPerSecond * 0.6f * Time.deltaTime);
                 if (_pauseTimer > 0f)
                 {
                     _pauseTimer -= Time.deltaTime;

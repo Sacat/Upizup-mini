@@ -70,10 +70,14 @@ namespace UpIzUpMini.Interaction
                         var hand = slots[other].root.GetComponent<Character.FarmhandController>();
                         if (hand != null)
                         {
-                            hand.ToggleWorking();
+                            var crop = Economy.CropSelectionController.Instance != null
+                                ? Economy.CropSelectionController.Instance.Selected : null;
+                            hand.ToggleWorking(crop);
                             _feedback = hand.IsWorking
-                                ? $"{slots[other].displayName} staying to work the farm."
+                                ? $"{slots[other].displayName} staying to plant and tend {crop?.displayName ?? "the selected crop"}."
                                 : $"{slots[other].displayName} following again.";
+                            if (hand.IsWorking)
+                                Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.AssignFarmhand, crop?.cropId);
                             _feedbackTimer = feedbackDuration;
                         }
                     }

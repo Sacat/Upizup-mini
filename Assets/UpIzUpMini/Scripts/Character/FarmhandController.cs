@@ -1,5 +1,6 @@
 using UnityEngine;
 using UpIzUpMini.Farming;
+using UpIzUpMini.Economy;
 
 namespace UpIzUpMini.Character
 {
@@ -29,6 +30,7 @@ namespace UpIzUpMini.Character
 
         /// <summary>True while stationed at the farm instead of following.</summary>
         public bool IsWorking { get; private set; }
+        public CropDefinition AssignedCrop { get; private set; }
 
         private void Awake()
         {
@@ -37,15 +39,16 @@ namespace UpIzUpMini.Character
             if (animator == null) animator = GetComponentInChildren<Animator>();
         }
 
-        public void SetWorking(bool working)
+        public void SetWorking(bool working, CropDefinition crop = null)
         {
             IsWorking = working;
+            if (working && crop != null) AssignedCrop = crop;
             // Working and following are mutually exclusive.
             if (_follow != null) _follow.FollowingEnabled = !working;
             if (!working) _target = null;
         }
 
-        public void ToggleWorking() => SetWorking(!IsWorking);
+        public void ToggleWorking(CropDefinition crop = null) => SetWorking(!IsWorking, crop);
 
         private void Update()
         {
@@ -82,7 +85,7 @@ namespace UpIzUpMini.Character
             if (_cooldown <= 0f)
             {
                 // Plant / water / harvest, whichever the plot needs next.
-                _target.Interact(gameObject);
+                _target.FarmhandInteract(gameObject, AssignedCrop);
                 _cooldown = actionCooldown;
             }
         }

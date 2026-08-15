@@ -74,7 +74,7 @@ namespace UpIzUpMini.EditorTools
             CropDefinition[] crops = BuildEconomyAndCrops();
             BuildTownNPCs(terrain, roadPoints, locomotionController);
 
-            Vector3 startPos = roadPoints[0];
+            Vector3 startPos = _safehouseSpawn != Vector3.zero ? _safehouseSpawn : roadPoints[0];
             startPos.y = SampleHeight(terrain, startPos.x, startPos.z);
 
             // Franki and Sacat use the larger project's own character
@@ -86,10 +86,9 @@ namespace UpIzUpMini.EditorTools
             // sparse auto-avatar is what produced the distorted legs.
             // Their own materials are used, so no skin tint / facial-hair
             // hiding is applied here.
-            // Deril is the smart one, Franki the strong one (user
-            // direction - supersedes the earlier Franki/Sacat naming).
+            // Sacat is player one (smart) and Franki player two (strong).
             CharacterSlot smart = BuildControllableCharacter(
-                "Deril", "Deril", "Assets/UpIzUpMini/Art/Characters/Mainchar.fbx",
+                "Sacat", "Sacat", "Assets/UpIzUpMini/Art/Characters/Mainchar.fbx",
                 null, startPos, locomotionController, startActive: true);
             CharacterSlot strong = BuildControllableCharacter(
                 "Franki", "Franki", "Assets/UpIzUpMini/Art/Characters/Strong.fbx",
@@ -107,6 +106,7 @@ namespace UpIzUpMini.EditorTools
             WriteSlot(slotsProp.GetArrayElementAtIndex(0), smart);
             WriteSlot(slotsProp.GetArrayElementAtIndex(1), strong);
             switchSo.FindProperty("followCamera").objectReferenceValue = camera;
+            switchSo.FindProperty("safehouseSpawn").vector3Value = startPos;
             switchSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Windowed by default so the game can be minimised/resized.
@@ -169,7 +169,7 @@ namespace UpIzUpMini.EditorTools
             }
             stSo.ApplyModifiedPropertiesWithoutUndo();
 
-            BuildHUD();
+            BuildHUD(crops);
             BuildPauseMenu();
 
             EnsureFolder("Assets/UpIzUpMini/Scenes");
@@ -464,6 +464,7 @@ namespace UpIzUpMini.EditorTools
         // Recorded when the farm is built so later passes (vegetation) can
         // keep clear of the plantation.
         private static Vector3 _farmCenter;
+        private static Vector3 _safehouseSpawn;
         private static float _farmClearRadius = 22f;
         private static Vector3 _expansionPlotPos;
         private static Vector3 _bossPos;
@@ -1319,6 +1320,7 @@ namespace UpIzUpMini.EditorTools
             var parent = new GameObject("FarmSafehouse");
             parent.transform.position = pos;
             parent.transform.rotation = rot;
+            _safehouseSpawn = pos + rot * new Vector3(0f, 0.2f, 3.4f);
 
             BuildOpenSafehouse(parent.transform, pos, rot);
 
@@ -1449,7 +1451,11 @@ namespace UpIzUpMini.EditorTools
             pcSo.ApplyModifiedPropertiesWithoutUndo();
             playerController.IsControlled = startActive;
 
-            go.AddComponent<FarmhandController>();
+            var farmhand = go.AddComponent<FarmhandController>();
+            var companion = go.AddComponent<CompanionInteractable>();
+            var companionSo = new SerializedObject(companion);
+            companionSo.FindProperty("farmhand").objectReferenceValue = farmhand;
+            companionSo.ApplyModifiedPropertiesWithoutUndo();
 
             var followController = go.AddComponent<FollowController>();
             var fcSo = new SerializedObject(followController);
@@ -1526,6 +1532,14 @@ namespace UpIzUpMini.EditorTools
 
             BuildNpc(terrain, roadPoints, index: 11, sideMul: 1f, goName: "NPC_Pharmacy",
                 modelPath: "Assets/Floreswa/Models/male03_2.fbx", role: NpcRole.Pharmacy,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+
+            BuildNpc(terrain, roadPoints, index: 9, sideMul: -1f, goName: "NPC_Vagrant",
+                modelPath: "Assets/Floreswa/Models/male03_1.fbx", role: NpcRole.Vagrant,
+                cropsForBuyer: allCrops, animController: animController, patrols: false, reactsToHeat: false);
+
+            BuildNpc(terrain, roadPoints, index: 13, sideMul: -1f, goName: "NPC_BlackMarket",
+                modelPath: "Assets/Floreswa/Models/male02_3.fbx", role: NpcRole.BlackMarket,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
             BuildMarketArea(terrain, roadPoints, index: 5, title: "FOOD", secondTitle: null);
@@ -1614,6 +1628,10 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("role").enumValueIndex = (int)NpcRole.Boss;
             so.FindProperty("npcName").stringValue = "BossK";
             so.FindProperty("bossSeedCrop").objectReferenceValue = bushers;
+            var cropsProp = so.FindProperty("sellableCrops");
+            cropsProp.arraySize = allCrops.Length;
+            for (int i = 0; i < allCrops.Length; i++)
+                cropsProp.GetArrayElementAtIndex(i).objectReferenceValue = allCrops[i];
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -2336,8 +2354,9 @@ namespace UpIzUpMini.EditorTools
                         new MissionObjective
                         {
                             kind = ObjectiveKind.SellCrop,
-                            instruction = "Sell it in Lalay - but know dis raise police heat",
-                            markerPosition = marketPos,
+                            targetId = "BossK",
+                            instruction = "Take the Bushers back to Boss K - this mission sale adds 50% heat",
+                            markerPosition = bossPos,
                         },
                     }
                 },
@@ -2361,6 +2380,61 @@ namespace UpIzUpMini.EditorTools
                             targetId = "Police",
                             instruction = "Walk past the officer clean - talk to him with low heat",
                             markerPosition = policePos,
+                        },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M6",
+                    title = "Two Man Operation",
+                    briefing = "Allu cannot do every run alone. Put the next man to work up Montine.",
+                    rewardMoney = 100,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.AssignFarmhand,
+                            targetId = "bushers",
+                            instruction = "Select Bushers [4], then press G to leave the other boy farming",
+                            markerPosition = farmCenter,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.HarvestCrop,
+                            targetId = "bushers",
+                            requiredCount = 3,
+                            instruction = "Collect the Bushers crop after your partner tends the farm",
+                            markerPosition = plotPos,
+                        },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M7",
+                    title = "Street Route",
+                    briefing = "Boss K pay best, but a vagrant in Lalay buying small amounts with less questions.",
+                    rewardMoney = 140,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.TalkTo,
+                            targetId = "Vagrant",
+                            instruction = "Find the vagrant along the Lalay road",
+                            markerPosition = roadPoints[Mathf.Clamp(9, 1, roadPoints.Count - 2)],
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.SellCrop,
+                            targetId = "Vagrant",
+                            instruction = "Sell the Bushers to the vagrant - off-mission sales add 30% heat",
+                            markerPosition = roadPoints[Mathf.Clamp(9, 1, roadPoints.Count - 2)],
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.EscapeHeat,
+                            instruction = "Leave the road and lose the heat before returning home",
+                            markerPosition = farmCenter,
                         },
                     }
                 },
@@ -2521,7 +2595,7 @@ namespace UpIzUpMini.EditorTools
         // HUD
         // ---------------------------------------------------------------
 
-        private static void BuildHUD()
+        private static void BuildHUD(CropDefinition[] crops)
         {
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -2544,7 +2618,7 @@ namespace UpIzUpMini.EditorTools
             var infoRect = infoPanel.AddComponent<RectTransform>();
             infoRect.anchorMin = infoRect.anchorMax = new Vector2(1f, 1f);
             infoRect.pivot = new Vector2(1f, 1f);
-            infoRect.sizeDelta = new Vector2(280f, 100f);
+            infoRect.sizeDelta = new Vector2(330f, 235f);
             infoRect.anchoredPosition = new Vector2(-20f, -20f);
             infoPanel.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.55f);
 
@@ -2555,6 +2629,11 @@ namespace UpIzUpMini.EditorTools
             Text cropLabel = CreateLabel(infoPanel.transform, string.Empty, 24, new Vector2(0f, -68f), font);
             cropLabel.rectTransform.anchorMin = cropLabel.rectTransform.anchorMax = new Vector2(0.5f, 1f);
             cropLabel.rectTransform.sizeDelta = new Vector2(260f, 36f);
+
+            Text inventoryLabel = CreateLabel(infoPanel.transform, string.Empty, 18, new Vector2(0f, -145f), font);
+            inventoryLabel.rectTransform.anchorMin = inventoryLabel.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+            inventoryLabel.rectTransform.sizeDelta = new Vector2(310f, 145f);
+            inventoryLabel.alignment = TextAnchor.UpperLeft;
 
             Text nameLabel = CreateLabel(canvasGo.transform, "Smart", 26, new Vector2(130f, -112f), font);
             nameLabel.rectTransform.anchorMin = nameLabel.rectTransform.anchorMax = new Vector2(0f, 1f);
@@ -2568,6 +2647,10 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("moneyLabel").objectReferenceValue = moneyLabel;
             so.FindProperty("characterNameLabel").objectReferenceValue = nameLabel;
             so.FindProperty("cropSelectionLabel").objectReferenceValue = cropLabel;
+            so.FindProperty("inventoryLabel").objectReferenceValue = inventoryLabel;
+            var known = so.FindProperty("knownCrops");
+            known.arraySize = crops.Length;
+            for (int i = 0; i < crops.Length; i++) known.GetArrayElementAtIndex(i).objectReferenceValue = crops[i];
             so.FindProperty("healthPercent").objectReferenceValue = healthPct;
             so.FindProperty("staminaPercent").objectReferenceValue = staminaPct;
             so.FindProperty("heatPercent").objectReferenceValue = heatPct;
@@ -2599,6 +2682,7 @@ namespace UpIzUpMini.EditorTools
             var dealerShop = BuildShopPanel(canvasGo, "DealerShopPanel", "CAR DEALER", dealerStock, font);
             var foodShop = BuildShopPanel(canvasGo, "FoodShopPanel", "FOOD SHOP", foodStock, font);
             var pharmacyShop = BuildShopPanel(canvasGo, "PharmacyPanel", "PHARMACY", pharmacyStock, font);
+            var blackMarket = BuildShopPanel(canvasGo, "BlackMarketPanel", "BLACK MARKET - SELL CLOTHES", apparelStock, font, true);
 
             // Hand each shopkeeper NPC its own shop panel.
             foreach (var npc in Object.FindObjectsByType<TownNPCInteractable>(FindObjectsSortMode.None))
@@ -2613,6 +2697,7 @@ namespace UpIzUpMini.EditorTools
                     (int)NpcRole.CarDealer => dealerShop,
                     (int)NpcRole.FoodShop => foodShop,
                     (int)NpcRole.Pharmacy => pharmacyShop,
+                    (int)NpcRole.BlackMarket => blackMarket,
                     _ => null
                 };
                 if (target == null) continue;
@@ -2698,7 +2783,8 @@ namespace UpIzUpMini.EditorTools
         }
 
         private static ShopPanelController BuildShopPanel(
-            GameObject canvasGo, string panelName, string title, ShopItemDefinition[] stock, Font font)
+            GameObject canvasGo, string panelName, string title, ShopItemDefinition[] stock, Font font,
+            bool resaleMode = false)
         {
             var panel = CreateModalPanel(canvasGo.transform, panelName, new Vector2(900f, 640f));
             var text = CreateModalText(panel.transform, font, 26);
@@ -2708,6 +2794,7 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("shopTitle").stringValue = title;
             so.FindProperty("panel").objectReferenceValue = panel;
             so.FindProperty("bodyText").objectReferenceValue = text;
+            so.FindProperty("resaleMode").boolValue = resaleMode;
             var stockProp = so.FindProperty("stock");
             stockProp.arraySize = stock.Length;
             for (int i = 0; i < stock.Length; i++)

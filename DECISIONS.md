@@ -31,4 +31,7 @@ One of the two boys can be sent by sea to Guadeloupe to sell produce or weed for
 ## D-008 — Mobile/multi-platform is a first-class constraint, not a later pass
 
 The game must target all platforms with mobile phones/tablets prioritized, and WebGL browser play is a stated goal to keep in mind. This goes beyond AGENTS.md's existing mobile-performance guidance (URP, LODs, pooling): touch/tablet ergonomics and flexible aspect ratios should factor into camera, HUD, and input design decisions as they're made, not retrofitted after a keyboard-and-mouse-only pass.
+## D-009 - Illegal-sale heat and buyer hierarchy
+
+Boss K is the premium Grand Bay weed buyer, the vagrant is a lower-paying alternative, and the produce buyer remains a fallback. A weed sale for the active mission adds 50 heat; another illegal sale adds 30. Police proximity cannot create heat when the shared inventory contains neither weed nor weed seed.
 

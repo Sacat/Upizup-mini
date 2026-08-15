@@ -67,16 +67,16 @@ namespace UpIzUpMini.Interaction
 
             PlayerCarryingContraband = IsCarryingContraband();
 
-            if (DistanceToNearestOfficer <= noticeRadius)
+            if (DistanceToNearestOfficer <= noticeRadius && PlayerCarryingContraband)
             {
                 // 0 at the edge of notice, 1 at contact.
                 float closeness = 1f - Mathf.Clamp01(DistanceToNearestOfficer / noticeRadius);
                 float gain = baseGainAtContact * closeness;
-                if (PlayerCarryingContraband) gain *= carryingWeedMultiplier;
+                gain *= carryingWeedMultiplier;
 
                 EconomyManager.Instance.AddHeat(gain * Time.deltaTime);
 
-                if (DistanceToNearestOfficer <= closeRadius)
+                if (DistanceToNearestOfficer <= closeRadius && EconomyManager.Instance.Heat > 0f)
                 {
                     slot.vitals?.Damage(healthDrainPerSecond * Time.deltaTime);
                 }
