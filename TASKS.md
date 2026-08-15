@@ -20,6 +20,27 @@ Acceptance criteria:
 - No flat top-down tilemap presentation.
 - Scene runs without console errors and passes a batch-mode compile.
 
+## In progress
+
+### MINI-011 — Grand Bay production vertical slice (corrective rebuild)
+
+Goal: Replace MINI-001's primitive-geometry proof scene with a real visual
+and gameplay vertical slice — Shanty Town-style village art, hand-authored
+Grand Bay-shaped terrain, two switchable named boys (Smart/Strong), NPCs,
+police, a complete tomato mission loop, and a working HUD. Full brief
+recorded verbatim in the MINI-011 change entry in `PROJECT-HANDOFF.md`
+(too long to duplicate here). This single request effectively supersedes
+the separate scope of `MINI-004` through `MINI-009` below — those entries
+stay as a scope reference but MINI-011 is being tracked as one corrective
+initiative broken into internal Phases A-D with hard visual gates between
+them, per the brief's own instructions.
+
+Status: **Phase A (audit + asset/visual plan) complete.** See
+`Docs/MINI-011-VISUAL-PLAN.md` and `Docs/ASSET-REGISTER.md`. Stopped at the
+Phase A gate for user go/no-go before Phase B (environment/terrain/camera
+rebuild) is claimed, per the brief's explicit instruction not to proceed
+until the plan is reviewed.
+
 ## Ready
 
 ### MINI-002 — Map-anchor data

@@ -5,10 +5,10 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-001 vertical-slice scene implemented and statically validated; pending one manual Play-mode check before it counts as fully verified (see MINI-001 known issues).
+- Status: MINI-001 vertical-slice scene implemented and statically validated, pending user Play-mode confirmation. MINI-011 (corrective rebuild) Phase A audit/plan complete, paused at its own gate for user go/no-go before Phase B production work starts.
 - Current owner: None
 - Active task: None
-- Last verified change: `MINI-000` (`MINI-001` implemented, pending user Play-mode confirmation)
+- Last verified change: `MINI-000` (`MINI-001` implemented pending confirmation; `MINI-011` Phase A pending go-ahead)
 - Last known good commit: `9f80953`
 
 ## Ownership protocol
@@ -94,6 +94,28 @@ After verification, append a change entry, update the verification results, and 
   - Headless Play-mode automated verification is blocked in this environment by the Search-module bug described above; retry once Unity/Editor is patched or the Search index has been built once via the interactive Editor.
 - Build follow-up (same day): Added `Mini001Build.cs` and produced a Windows standalone player at `Builds/GrandBayProof/UpIzUpMini.exe` (mirrors the reference project's `Builds/PlayableAlpha/UpIzUp.exe` convention; `Builds/` is gitignored, not committed). Ran it headlessly (`-batchmode -nographics`, 6 seconds, log at `Logs/mini001-player-run.log`) — this sidesteps the Editor Search-module bug entirely since standalone players don't go through Editor Play mode. Result: **zero console errors**, confirming `Awake`/`Update`/`LateUpdate`/gravity/`CharacterController`/interaction range-scan all ran cleanly every frame. This is real evidence, not a substitute for looking at it: `-nographics` means nothing was rendered, and the player never walked into range of the NPC or farm plot, so the `OnGUI` prompt-box rendering path specifically was not exercised by this run.
 - Next action: User (or next agent) either double-clicks `Builds/GrandBayProof/UpIzUpMini.exe` directly, or opens `GrandBayProof.unity` in the Editor and presses Play, to do one real visual check: walk with WASD/arrows (Shift to run), approach the NPC and press E, approach the farm plot and press E, confirm the `[ E ] Talk`/`[ E ] Plant` prompts and dialogue line look right, and check the Console/log for errors during that walk. Once confirmed, update this entry's "Known issues" to drop the play-test caveat and set MINI-001 to fully verified before starting `MINI-002`/`MINI-003`.
+
+### MINI-011 — Grand Bay production vertical slice (corrective rebuild), Phase A
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: A large corrective-rebuild brief from the user (full text preserved in session transcript, not duplicated here) rejecting MINI-001's primitive geometry and asking for: Shanty Town-style village art, hand-authored Grand Bay-shaped terrain, Smart/Strong as two named switchable protagonists, ambient NPCs/vendor/buyer/police, a complete tomato Mission 1 loop with HUD, and five named Unity Asset Store packages, organized into Phases A-D with hard visual gates. This single request's scope subsumes `MINI-004` through `MINI-009`.
+- Acceptance criteria: see the full brief (session transcript) and `TASKS.md` MINI-011 summary; not restated here given length.
+- Implementation (Phase A only):
+  - Audited `E:\Assets` (read-only reference library) instead of the five named Asset Store URLs, none of which exist locally and none of which I can acquire myself (no Unity account/Asset Store login capability, and downloading/accepting terms on the user's behalf is outside what I can do without explicit per-action permission). User chose to use already-owned local packs instead.
+  - Found `Arteria3d Shanty Town` + `Shanty Town 2` (corrugated-roof shanty architecture, props, and 9 bundled rigged characters + a soldier) as a much stronger single-style match than the fantasy/medieval packs also present locally (Adventurer/Fighter/Warriors & Commoner), plus `Arteria3d Tropical Island Foliage Pack` and `Tropical Nature Pack` for vegetation.
+  - Confirmed the user-supplied heightmap (`heightmapper-*.png/.raw` in `E:\Assets\GrandBayReference\Maps\`) is independently documented, in that reference pack's own `Terrain_File_Assessment.md`, as not a valid Unity heightmap (wrong dimensions, unknown byte layout, no recorded geographic bounds/licence) — not usable as a direct import regardless of this task. User chose to hand-author an approximate terrain instead of blocking on sourcing real elevation data.
+  - Wrote `Docs/MINI-011-VISUAL-PLAN.md` (art direction, asset picks, scene blockout, terrain approach, performance budget, risks) and `Docs/ASSET-REGISTER.md` (candidate packs with explicit licence-verification caveats — none of this is Asset Store-entitlement-verified by me).
+  - Did not touch any scene, script, or ProjectSettings file this pass — Phase A is documentation/audit only, per the brief's own instruction to stop at the visual-plan gate before production work.
+- Files changed: `Docs/MINI-011-VISUAL-PLAN.md` (new), `Docs/ASSET-REGISTER.md` (new), `TASKS.md`, `PROJECT-HANDOFF.md`.
+- Scene/prefab changes: None.
+- Verification commands: None applicable — no code/scene changes this pass.
+- Verification results: N/A.
+- Known issues:
+  - Every asset pack named in `Docs/ASSET-REGISTER.md` has unverified Asset Store licence/entitlement status from my side — user should confirm before Phase B imports them.
+  - Shanty Town 2's characters are an old multi-format export with frame-range (not per-clip) animations; Humanoid-avatar/retargeting compatibility for the Smart/Strong switching requirement is unconfirmed and is the first thing to test in Phase B.
+  - I have no tool capable of capturing Unity Editor Game-view or desktop screenshots, so every screenshot-based "Gate" in the brief cannot be self-verified by me; builds + user visual confirmation will substitute, as already established on MINI-001.
+- Next action: awaiting user go/no-go on the Phase A plan before Phase B (environment/terrain/camera rebuild, starting with the character-rig compatibility test) is claimed.
 
 ## Required change-entry format
 
