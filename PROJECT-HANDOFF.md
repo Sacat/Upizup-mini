@@ -5,10 +5,10 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-001 vertical-slice scene implemented and statically validated, pending user Play-mode confirmation. MINI-011 (corrective rebuild) Phase A audit/plan complete, paused at its own gate for user go/no-go before Phase B production work starts.
+- Status: MINI-001 vertical-slice scene implemented and statically validated, pending user Play-mode confirmation. MINI-011 (corrective rebuild) Phase A audit/plan complete; 8 free Asset Store packages acquired to the user's account; blocked on the Editor-side Package Manager download+import step before Phase B production work starts.
 - Current owner: None
 - Active task: None
-- Last verified change: `MINI-000` (`MINI-001` implemented pending confirmation; `MINI-011` Phase A pending go-ahead)
+- Last verified change: `MINI-000` (`MINI-001` implemented pending confirmation; `MINI-011` Phase A pending Editor-side asset import)
 - Last known good commit: `9f80953`
 
 ## Ownership protocol
@@ -116,6 +116,18 @@ After verification, append a change entry, update the verification results, and 
   - Shanty Town 2's characters are an old multi-format export with frame-range (not per-clip) animations; Humanoid-avatar/retargeting compatibility for the Smart/Strong switching requirement is unconfirmed and is the first thing to test in Phase B.
   - I have no tool capable of capturing Unity Editor Game-view or desktop screenshots, so every screenshot-based "Gate" in the brief cannot be self-verified by me; builds + user visual confirmation will substitute, as already established on MINI-001.
 - Next action: awaiting user go/no-go on the Phase A plan before Phase B (environment/terrain/camera rebuild, starting with the character-rig compatibility test) is claimed.
+
+### MINI-011 — Unity Asset Store acquisition pass (Phase A continued)
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User granted explicit browser permission and asked to acquire the five specific free Asset Store packages from the corrective-rebuild brief.
+- Implementation: Used Claude in Chrome (user's real logged-in browser, user selected which of two connected browsers and signed into their Unity ID themselves — I never entered credentials) to open each of the five package pages and click "Add to My Assets," accepting the Standard Unity Asset Store EULA per item with the user's explicit in-chat permission. Verified all five landed in the account via `assetstore.unity.com/account/assets` (purchase date Aug 15, 2026). While there, discovered three more relevant packages already added to the account on Aug 14, 2026 (before this session) — `Demo City By Versatile Studio (Mobile Friendly)`, `Human Basic Motions FREE`, `Human Melee Animations FREE` — plus several older owned packages (Unity's own `Starter Assets - ThirdPerson | URP`, `Robot Kyle | URP`, `Vehicle Physics Pro - Community Edition`, `Rocks FREE pack`, `Grass Flowers Pack Free`). Updated `Docs/ASSET-REGISTER.md` and `Docs/MINI-011-VISUAL-PLAN.md` to reflect this — the asset plan now favors Demo City + Low Poly Character Pack + Human Basic Motions FREE over the local Arteria3d Shanty Town fallback, which removes the legacy-rig/animation-format risk flagged in the prior entry.
+- Files changed: `Docs/ASSET-REGISTER.md`, `Docs/MINI-011-VISUAL-PLAN.md`, `PROJECT-HANDOFF.md`.
+- Scene/prefab changes: None. No files were added to `Assets/` in the Mini project.
+- Verification commands/results: Confirmed via `assetstore.unity.com/account/assets` page text — all 5 requested packages plus the 3 bonus packages listed with Aug 2026 purchase dates.
+- Known issues: Acquisition (adding to the Unity account) is complete, but pulling any of these into the actual Mini project's `Assets/` folder requires the Unity Editor's Package Manager "My Assets" download+import flow — a native GUI action. I tried the Asset Store website's "Open in Unity" deep-link button once (for Low Poly Character Pack) to see if it completes the download automatically; I have no way to confirm what it did, since it hands off to Unity Hub (already running on this machine before the click) and I have no tool that can see or drive native desktop application windows. This is the concrete next blocker before Phase B geometry work.
+- Next action: user completes the Editor-side download+import (Package Manager → My Assets → Download/Import for each of the 8 packages), or confirms another way to get them into `Assets/`; then Phase B can be claimed starting with a Humanoid-avatar rig test on Low Poly Character Pack.
 
 ## Required change-entry format
 

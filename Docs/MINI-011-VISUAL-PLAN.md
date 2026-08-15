@@ -35,16 +35,40 @@ This confirms the brief's diagnosis is accurate — MINI-001 proved the
 camera/control/interaction *logic*, not the visual target, and was
 documented as such at the time.
 
-## Asset direction
+## Asset direction (updated after Unity Asset Store acquisition pass)
+
+Superseded the local-library-only plan below once the user granted browser
+access and the five requested free Asset Store packages were added to
+their account, plus three already-owned packages discovered in the same
+pass (`Demo City By Versatile Studio (Mobile Friendly)`, `Human Basic
+Motions FREE`, `Human Melee Animations FREE` — added Aug 14, apparently
+staged ahead of this task). Full detail in `Docs/ASSET-REGISTER.md`.
+
+Current plan: **Demo City (Mobile Friendly)** as the primary building
+source (test against the corrugated-roof shanty look before committing),
+**Low Poly Character Pack** for Smart/Strong and NPCs, **Human Basic
+Motions FREE** for locomotion (modern, actively-maintained, Mecanim-ready —
+this removes the biggest risk from the original plan, since it replaces
+Shanty Town 2's unconfirmed legacy character rigs), and **Low Poly
+Environment - Nature Free** + **Low Poly Tropical Beach** for vegetation.
+`Cartoon Farm Crops` and `POLYGON Starter Pack` get tested per the user's
+own caution before committing (old materials / style-match risk
+respectively).
+
+Acquisition (adding to the account) is done. Actually pulling these into
+`Assets/` still requires the Unity Editor's Package Manager "My Assets"
+download+import — a native GUI action with no CLI/scripting path I could
+find, and no tool available to me that can drive or observe the Unity
+Editor or Unity Hub windows. This is the next concrete blocker.
+
+### Original local-library plan (superseded, kept as fallback)
 
 Single coherent style: **Arteria3d Shanty Town + Shanty Town 2** as the
 primary building/prop/character kit (corrugated roofs, barrels, crates,
 clotheslines, gravel yards — a direct match for Caribbean village
 architecture), with **Arteria3d Tropical Island Foliage** (and
-`Tropical Nature Pack` as a secondary test) for vegetation dressing. Full
-detail and licence caveats in `Docs/ASSET-REGISTER.md` — none of this is
-imported yet, and licence entitlement is unverified pending your
-confirmation.
+`Tropical Nature Pack` as a secondary test) for vegetation dressing. Kept
+as a fallback if the Asset Store plan above doesn't pan out visually.
 
 Palette: warm sun (soft yellow-white directional light), corrugated roofs
 in weathered white/silver, rust-red, and faded blue/green (matching the
