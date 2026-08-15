@@ -56,25 +56,28 @@ namespace UpIzUpMini.EditorTools
 
             List<Vector3> roadPoints = BuildRoad(terrain);
             BuildHouses(terrain, roadPoints);
-            BuildVegetation(terrain, roadPoints);
+            // Farm is built before vegetation so trees can be kept clear of
+            // the plots (previously a tree grew through the plantation).
             BuildFarmPathAndClearing(terrain, roadPoints, out Transform farmPlot);
+            BuildVegetation(terrain, roadPoints);
 
-            BuildEconomyAndCrops();
-            BuildTownNPCs(terrain, roadPoints);
+            BuildBeachAndJetty(terrain);
+
+            CropDefinition[] crops = BuildEconomyAndCrops();
+            BuildTownNPCs(terrain, roadPoints, locomotionController);
 
             Vector3 startPos = roadPoints[0];
             startPos.y = SampleHeight(terrain, startPos.x, startPos.z);
 
-            // Smart (darker-skinned per user direction) starts controllable;
-            // Strong (lighter-skinned) starts as a following companion.
-            // Docs/STORY.md: "the player can switch between Smart and
-            // Strong... retain separate health, stamina, position."
+            // Smart is the darker-skinned of the two; Strong is lighter but
+            // still a brown-skinned Dominican teen - the previous value read
+            // as white. Both have facial hair hidden (they're 18).
             CharacterSlot smart = BuildControllableCharacter(
                 "Smart", "Smart", "Assets/Floreswa/Models/male01_1.fbx",
-                new Color(0.35f, 0.22f, 0.13f), startPos, locomotionController, startActive: true);
+                new Color(0.33f, 0.20f, 0.12f), startPos, locomotionController, startActive: true);
             CharacterSlot strong = BuildControllableCharacter(
                 "Strong", "Strong", "Assets/Floreswa/Models/male02_1.fbx",
-                new Color(0.72f, 0.56f, 0.42f), startPos + new Vector3(1.4f, 0f, -1.2f),
+                new Color(0.52f, 0.35f, 0.22f), startPos + new Vector3(1.4f, 0f, -1.2f),
                 locomotionController, startActive: false);
             strong.followController.FollowTarget = smart.root.transform;
 
@@ -89,6 +92,17 @@ namespace UpIzUpMini.EditorTools
             WriteSlot(slotsProp.GetArrayElementAtIndex(1), strong);
             switchSo.FindProperty("followCamera").objectReferenceValue = camera;
             switchSo.ApplyModifiedPropertiesWithoutUndo();
+
+            var saveGo = new GameObject("SaveLoadSystem");
+            var saveSystem = saveGo.AddComponent<SaveLoadSystem>();
+            var saveSo = new SerializedObject(saveSystem);
+            var knownProp = saveSo.FindProperty("knownCrops");
+            knownProp.arraySize = crops.Length;
+            for (int i = 0; i < crops.Length; i++)
+            {
+                knownProp.GetArrayElementAtIndex(i).objectReferenceValue = crops[i];
+            }
+            saveSo.ApplyModifiedPropertiesWithoutUndo();
 
             BuildHUD();
             BuildPauseMenu();
@@ -270,23 +284,166 @@ namespace UpIzUpMini.EditorTools
             return terrain.SampleHeight(new Vector3(worldX, 0f, worldZ));
         }
 
+        /// <summary>
+        /// Levels a circular area of terrain to the height at its centre,
+        /// blending back out to the original hillside over `falloff`
+        /// metres. Used to terrace the hillside farm so flat plot geometry
+        /// sits correctly on it.
+        /// </summary>
+        private static void FlattenTerrainArea(Terrain terrain, Vector3 worldCenter, float radius, float falloff)
+        {
+            TerrainData data = terrain.terrainData;
+            int res = data.heightmapResolution;
+            float[,] heights = data.GetHeights(0, 0, res, res);
+
+            float targetNormalized = data.GetHeight(
+                Mathf.RoundToInt(worldCenter.x / data.size.x * (res - 1)),
+                Mathf.RoundToInt(worldCenter.z / data.size.z * (res - 1))) / data.size.y;
+
+            float metresPerSample = data.size.x / (res - 1);
+            int sampleRadius = Mathf.CeilToInt((radius + falloff) / metresPerSample);
+            int cx = Mathf.RoundToInt(worldCenter.x / data.size.x * (res - 1));
+            int cz = Mathf.RoundToInt(worldCenter.z / data.size.z * (res - 1));
+
+            for (int z = cz - sampleRadius; z <= cz + sampleRadius; z++)
+            {
+                if (z < 0 || z >= res) continue;
+                for (int x = cx - sampleRadius; x <= cx + sampleRadius; x++)
+                {
+                    if (x < 0 || x >= res) continue;
+
+                    float dist = Vector2.Distance(new Vector2(x, z), new Vector2(cx, cz)) * metresPerSample;
+                    if (dist > radius + falloff) continue;
+
+                    float blend = dist <= radius
+                        ? 1f
+                        : 1f - Mathf.SmoothStep(0f, 1f, (dist - radius) / falloff);
+
+                    // heights is indexed [z, x].
+                    heights[z, x] = Mathf.Lerp(heights[z, x], targetNormalized, blend);
+                }
+            }
+
+            data.SetHeights(0, 0, heights);
+        }
+
         // ---------------------------------------------------------------
         // Sea (visual only for now - see DECISIONS.md D-007, Guadeloupe
         // sea-trade is an abstraction in this Mini, not a sailed route yet)
         // ---------------------------------------------------------------
+
+        private const float SeaLevelY = 1.2f;
+
+        // Recorded when the farm is built so later passes (vegetation) can
+        // keep clear of the plantation.
+        private static Vector3 _farmCenter;
+        private static float _farmClearRadius = 22f;
 
         private static void BuildSea()
         {
             var seaGo = GameObject.CreatePrimitive(PrimitiveType.Plane);
             seaGo.name = "Sea";
             Object.DestroyImmediate(seaGo.GetComponent<Collider>());
-            seaGo.transform.position = new Vector3(-40f, 1.2f, TerrainSize / 2f);
+            seaGo.transform.position = new Vector3(-40f, SeaLevelY, TerrainSize / 2f);
             seaGo.transform.localScale = new Vector3(20f, 1f, 40f);
             var mat = GetOrCreateMaterial("Sea", new Color(0.15f, 0.42f, 0.55f));
             var color = mat.color;
             color.a = 0.9f;
             mat.color = color;
             seaGo.GetComponent<Renderer>().sharedMaterial = mat;
+        }
+
+        /// <summary>
+        /// Sandy beach strip, a timber jetty running out over the water,
+        /// and a small moored boat. The boat is scene dressing for now -
+        /// the Guadeloupe run is an abstracted dispatch per DECISIONS.md
+        /// D-007, not a sailed route.
+        /// </summary>
+        private static void BuildBeachAndJetty(Terrain terrain)
+        {
+            var parent = new GameObject("CoastAndJetty");
+
+            Material sandMat = GetOrCreateMaterial("BeachSand", new Color(0.85f, 0.78f, 0.58f));
+            Material plankMat = GetOrCreateMaterial("JettyTimber", new Color(0.44f, 0.32f, 0.2f));
+            Material postMat = GetOrCreateMaterial("JettyPost", new Color(0.33f, 0.24f, 0.15f));
+            Material hullMat = GetOrCreateMaterial("BoatHull", new Color(0.85f, 0.85f, 0.82f));
+            Material hullTrimMat = GetOrCreateMaterial("BoatTrim", new Color(0.15f, 0.35f, 0.6f));
+
+            // Find where the shoreline sits: walk inland until terrain
+            // rises above sea level, so the beach is placed on the actual
+            // waterline rather than a guessed X.
+            float shoreZ = TerrainSize * 0.5f;
+            float shoreX = 10f;
+            for (float x = 2f; x < RoadX; x += 1f)
+            {
+                if (SampleHeight(terrain, x, shoreZ) > SeaLevelY)
+                {
+                    shoreX = x;
+                    break;
+                }
+            }
+
+            var sand = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            sand.name = "BeachSand";
+            sand.transform.SetParent(parent.transform);
+            sand.transform.position = new Vector3(shoreX + 5f, SeaLevelY + 0.05f, shoreZ);
+            sand.transform.localScale = new Vector3(26f, 0.3f, 70f);
+            sand.GetComponent<Renderer>().sharedMaterial = sandMat;
+
+            // Jetty deck runs from the sand out over the water (-X).
+            var jettyParent = new GameObject("Jetty");
+            jettyParent.transform.SetParent(parent.transform);
+
+            float deckY = SeaLevelY + 1.1f;
+            float deckStartX = shoreX + 2f;
+            float deckLength = 26f;
+
+            var deck = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            deck.name = "JettyDeck";
+            deck.transform.SetParent(jettyParent.transform);
+            deck.transform.position = new Vector3(deckStartX - deckLength / 2f, deckY, shoreZ);
+            deck.transform.localScale = new Vector3(deckLength, 0.25f, 4.2f);
+            deck.GetComponent<Renderer>().sharedMaterial = plankMat;
+
+            for (int i = 0; i < 7; i++)
+            {
+                float px = deckStartX - 2f - i * 3.8f;
+                foreach (int side in new[] { -1, 1 })
+                {
+                    var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    post.name = $"JettyPost_{i}_{side}";
+                    post.transform.SetParent(jettyParent.transform);
+                    post.transform.position = new Vector3(px, SeaLevelY - 0.6f, shoreZ + side * 1.8f);
+                    post.transform.localScale = new Vector3(0.28f, 1.4f, 0.28f);
+                    post.GetComponent<Renderer>().sharedMaterial = postMat;
+                }
+            }
+
+            // Small moored boat alongside the jetty's far end.
+            var boat = new GameObject("MooredBoat");
+            boat.transform.SetParent(parent.transform);
+            boat.transform.position = new Vector3(deckStartX - deckLength + 3f, SeaLevelY + 0.25f, shoreZ + 4.2f);
+            boat.transform.rotation = Quaternion.Euler(0f, 12f, 0f);
+
+            var hull = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            hull.name = "Hull";
+            hull.transform.SetParent(boat.transform, false);
+            hull.transform.localScale = new Vector3(4.6f, 0.75f, 1.7f);
+            hull.GetComponent<Renderer>().sharedMaterial = hullMat;
+
+            var trim = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            trim.name = "Trim";
+            trim.transform.SetParent(boat.transform, false);
+            trim.transform.localPosition = new Vector3(0f, 0.42f, 0f);
+            trim.transform.localScale = new Vector3(4.4f, 0.18f, 1.55f);
+            trim.GetComponent<Renderer>().sharedMaterial = hullTrimMat;
+
+            var cabin = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cabin.name = "Cabin";
+            cabin.transform.SetParent(boat.transform, false);
+            cabin.transform.localPosition = new Vector3(-1.1f, 0.7f, 0f);
+            cabin.transform.localScale = new Vector3(1.3f, 0.85f, 1.25f);
+            cabin.GetComponent<Renderer>().sharedMaterial = hullTrimMat;
         }
 
         // ---------------------------------------------------------------
@@ -311,9 +468,13 @@ namespace UpIzUpMini.EditorTools
             }
 
             var roadParent = new GameObject("LalayRoad");
+            // Black asphalt per user direction - the Shanty Town road
+            // texture is a pale gravel track, so it's tinted down heavily
+            // rather than used at full brightness.
             var roadMat = GetOrCreateTexturedMaterial(
                 "RoadSurface", "Assets/ArteriaShantyTown/ShantyTown1/terraintextures/road.jpg",
                 new Color(0.5f, 0.48f, 0.46f));
+            roadMat.color = new Color(0.13f, 0.13f, 0.14f);
 
             for (int i = 0; i < points.Count - 1; i++)
             {
@@ -353,6 +514,11 @@ namespace UpIzUpMini.EditorTools
             var parent = new GameObject("LalayHouses");
             int variantIndex = 0;
 
+            // Leave the market frontage clear so the shop/buyer stalls
+            // aren't buried inside a house (BuildMarketArea uses index 6).
+            int marketIndex = Mathf.Clamp(6, 1, roadPoints.Count - 2);
+            Vector3 marketPos = roadPoints[marketIndex];
+
             // Dense placement: sample points every ~7m along the road
             // polyline (not just at the coarse mesh-segment vertices), so
             // houses read as a packed village row rather than scattered
@@ -374,6 +540,9 @@ namespace UpIzUpMini.EditorTools
 
                     bool tallBuilding = (i + (side > 0 ? 1 : 0)) % 7 == 0;
                     bool skipForYardGap = (i + side) % 9 == 0; // occasional gap between houses
+
+                    // Keep the market frontage open on both sides.
+                    if (Vector3.Distance(basePos, marketPos) < 11f) continue;
                     Quaternion rot = Quaternion.LookRotation(-right * side, Vector3.up)
                                       * Quaternion.Euler(0f, Random(i * 3 + side, -12f, 12f), 0f);
 
@@ -589,6 +758,13 @@ namespace UpIzUpMini.EditorTools
 
         private static void PlacePrefab(string path, Transform parent, Terrain terrain, float x, float z, int seed)
         {
+            // Keep vegetation out of the plantation - a tree growing up
+            // through the farm plots looked wrong.
+            if (Vector2.Distance(new Vector2(x, z), new Vector2(_farmCenter.x, _farmCenter.z)) < _farmClearRadius)
+            {
+                return;
+            }
+
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefab == null) return;
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
@@ -671,8 +847,17 @@ namespace UpIzUpMini.EditorTools
             Vector3 dir = (roadPoints[roadPoints.Count / 2 + 1] - roadPoints[roadPoints.Count / 2 - 1]).normalized;
             Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
 
-            Vector3 farmCenter = turnoff + right * -1f * 70f + dir * 20f;
+            // Montine is in the hills, so the farm sits inland/uphill
+            // (+X is the rising hill side of this terrain - see
+            // BuildTerrain) rather than on the flat coastal side.
+            Vector3 farmCenter = turnoff + right * 1f * 78f + dir * 24f;
+
+            // Carve a level terrace for the farm. Without this the plots
+            // would sit on the raw hillside and float/intersect, since each
+            // plot is a flat box sampled at its own height.
+            FlattenTerrainArea(terrain, farmCenter, radius: 26f, falloff: 14f);
             farmCenter.y = SampleHeight(terrain, farmCenter.x, farmCenter.z);
+            _farmCenter = farmCenter;
 
             var pathParent = new GameObject("MontineFarmPath");
             Material dirtMat = GetOrCreateTexturedMaterial(
@@ -681,13 +866,18 @@ namespace UpIzUpMini.EditorTools
             Material clearingMat = GetOrCreateMaterial("FarmClearing", new Color(0.36f, 0.42f, 0.2f));
             Material soilMat = GetOrCreateMaterial("FarmSoil", new Color(0.33f, 0.22f, 0.11f));
 
+            // Stop the track at the edge of the plantation rather than
+            // running it straight through the middle of the plots.
+            Vector3 pathEnd = Vector3.Lerp(turnoff, farmCenter,
+                1f - (10f / Mathf.Max(1f, Vector3.Distance(turnoff, farmCenter))));
+
             int steps = 6;
             for (int i = 0; i < steps; i++)
             {
                 float t0 = i / (float)steps;
                 float t1 = (i + 1) / (float)steps;
-                Vector3 a = Vector3.Lerp(turnoff, farmCenter, t0);
-                Vector3 b = Vector3.Lerp(turnoff, farmCenter, t1);
+                Vector3 a = Vector3.Lerp(turnoff, pathEnd, t0);
+                Vector3 b = Vector3.Lerp(turnoff, pathEnd, t1);
                 a.y = SampleHeight(terrain, a.x, a.z) + 0.04f;
                 b.y = SampleHeight(terrain, b.x, b.z) + 0.04f;
                 Vector3 mid = (a + b) * 0.5f;
@@ -702,61 +892,155 @@ namespace UpIzUpMini.EditorTools
                 Object.DestroyImmediate(seg.GetComponent<Collider>());
             }
 
+            // Tilled ground under the plantation, aligned to the plot grid
+            // and rotated to match it.
             var clearing = GameObject.CreatePrimitive(PrimitiveType.Cube);
             clearing.name = "FarmClearing";
             clearing.transform.SetParent(pathParent.transform);
-            clearing.transform.position = farmCenter + Vector3.up * 0.02f;
-            clearing.transform.localScale = new Vector3(16f, 0.04f, 14f);
+            clearing.transform.position = farmCenter + Vector3.up * 0.015f;
+            clearing.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            clearing.transform.localScale = new Vector3(19f, 0.03f, 13f);
             clearing.GetComponent<Renderer>().sharedMaterial = clearingMat;
             Object.DestroyImmediate(clearing.GetComponent<Collider>());
 
-            // 6 plots in a 3x2 grid, per the brief's "six usable planting
-            // spots" minimum - a single plot is explicitly not enough.
-            Material soilEmptyMat = GetOrCreateMaterial("FarmSoilEmpty", new Color(0.62f, 0.5f, 0.35f));
-            Vector3 gridRight = right;
-            Vector3 gridForward = dir;
+            // 8 plots in a tidy 4x2 grid aligned to the farm's own axes, so
+            // the plantation reads as a laid-out smallholding rather than
+            // scattered patches.
+            Material soilEmptyMat = GetOrCreateMaterial("FarmSoilEmpty", new Color(0.52f, 0.32f, 0.16f));
             Transform firstPlot = null;
 
-            for (int row = 0; row < 2; row++)
+            const int cols = 4;
+            const int rows = 2;
+            const float spacingX = 3.6f;
+            const float spacingZ = 4.0f;
+            var farmParent = new GameObject("MontineFarm");
+            farmParent.transform.position = farmCenter;
+
+            for (int row = 0; row < rows; row++)
             {
-                for (int col = 0; col < 3; col++)
+                for (int col = 0; col < cols; col++)
                 {
                     Vector3 plotPos = farmCenter
-                        + gridRight * ((col - 1) * 3.4f)
-                        + gridForward * (row * 3.4f - 1.5f);
+                        + right * ((col - (cols - 1) * 0.5f) * spacingX)
+                        + dir * ((row - (rows - 1) * 0.5f) * spacingZ);
                     plotPos.y = SampleHeight(terrain, plotPos.x, plotPos.z) + 0.03f;
 
                     var plot = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    plot.name = $"FarmPlot_{row}_{col}";
-                    plot.transform.SetParent(pathParent.transform);
+                    plot.name = $"FarmPlot_{row}{col}";
+                    plot.transform.SetParent(farmParent.transform);
                     plot.transform.position = plotPos;
-                    plot.transform.localScale = new Vector3(2.6f, 0.05f, 2.6f);
+                    plot.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+                    plot.transform.localScale = new Vector3(2.8f, 0.06f, 3.0f);
                     var plotRenderer = plot.GetComponent<Renderer>();
                     plotRenderer.sharedMaterial = soilEmptyMat;
                     plot.GetComponent<Collider>().enabled = false;
 
-                    var cropVisual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    cropVisual.name = "CropVisual";
-                    cropVisual.transform.SetParent(plot.transform, false);
-                    cropVisual.transform.localPosition = new Vector3(0f, 0.35f, 0f);
-                    cropVisual.transform.localScale = Vector3.one * 0.15f;
-                    Object.DestroyImmediate(cropVisual.GetComponent<Collider>());
-                    var cropMat = new Material(Shader.Find("Standard")) { color = Color.green };
-                    cropVisual.GetComponent<Renderer>().sharedMaterial = cropMat;
-                    cropVisual.SetActive(false);
+                    var tomatoVisual = BuildCropVisual(plot.transform, "TomatoVisual",
+                        "Assets/UpIzUpMini/Art/CropMeshes/TomatoPlant_LOD.asset", 1.7f, fruitCount: 4);
+                    var weedVisual = BuildCropVisual(plot.transform, "WeedVisual",
+                        "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f, fruitCount: 0);
 
                     var plotInteractable = plot.AddComponent<FarmPlot>();
                     var so = new SerializedObject(plotInteractable);
                     so.FindProperty("soilRenderer").objectReferenceValue = plotRenderer;
-                    so.FindProperty("cropVisualRoot").objectReferenceValue = cropVisual.transform;
-                    so.FindProperty("cropRenderer").objectReferenceValue = cropVisual.GetComponent<Renderer>();
+                    so.FindProperty("tomatoVisual").objectReferenceValue = tomatoVisual;
+                    so.FindProperty("weedVisual").objectReferenceValue = weedVisual;
                     so.ApplyModifiedPropertiesWithoutUndo();
 
                     if (firstPlot == null) firstPlot = plot.transform;
                 }
             }
 
+            BuildFarmSafehouse(terrain, farmCenter, right, dir);
+
             farmPlot = firstPlot;
+        }
+
+        /// <summary>
+        /// Builds a crop visual from a decimated real plant mesh plus
+        /// separate ripening fruit spheres. The plot cube is non-uniformly
+        /// scaled, so the visual root counter-scales to keep the plant's
+        /// proportions correct.
+        /// </summary>
+        private static CropStageVisual BuildCropVisual(
+            Transform plot, string name, string meshPath, float plantHeightMetres, int fruitCount)
+        {
+            var root = new GameObject(name);
+            root.transform.SetParent(plot, false);
+            root.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+            Vector3 plotScale = plot.localScale;
+            root.transform.localScale = new Vector3(1f / plotScale.x, 1f / plotScale.y, 1f / plotScale.z);
+
+            var plantRoot = new GameObject("Plant");
+            plantRoot.transform.SetParent(root.transform, false);
+
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+            Renderer plantRenderer = null;
+            if (mesh != null)
+            {
+                var meshGo = new GameObject("PlantMesh");
+                meshGo.transform.SetParent(plantRoot.transform, false);
+                meshGo.AddComponent<MeshFilter>().sharedMesh = mesh;
+                plantRenderer = meshGo.AddComponent<MeshRenderer>();
+                plantRenderer.sharedMaterial = GetOrCreateMaterial("CropFoliage", new Color(0.22f, 0.42f, 0.16f));
+
+                // Source scans are authored ~2cm tall; normalize to a real
+                // plant height so they aren't invisible specks.
+                float normalize = plantHeightMetres / Mathf.Max(0.0001f, mesh.bounds.size.y);
+                meshGo.transform.localScale = Vector3.one * normalize;
+            }
+            else
+            {
+                Debug.LogWarning($"Mini011PhaseBSetup: crop mesh missing at {meshPath}");
+            }
+
+            var fruits = new List<Renderer>();
+            for (int i = 0; i < fruitCount; i++)
+            {
+                float angle = (i / (float)Mathf.Max(1, fruitCount)) * Mathf.PI * 2f;
+                var fruit = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                fruit.name = $"Fruit_{i}";
+                fruit.transform.SetParent(plantRoot.transform, false);
+                fruit.transform.localPosition = new Vector3(
+                    Mathf.Cos(angle) * plantHeightMetres * 0.22f,
+                    plantHeightMetres * (0.35f + 0.13f * i),
+                    Mathf.Sin(angle) * plantHeightMetres * 0.22f);
+                fruit.transform.localScale = Vector3.one * (plantHeightMetres * 0.15f);
+                Object.DestroyImmediate(fruit.GetComponent<Collider>());
+                var fr = fruit.GetComponent<Renderer>();
+                fr.sharedMaterial = GetOrCreateMaterial("CropFruit", Color.green);
+                fruits.Add(fr);
+            }
+
+            var visual = root.AddComponent<CropStageVisual>();
+            var so = new SerializedObject(visual);
+            so.FindProperty("plantRoot").objectReferenceValue = plantRoot.transform;
+            so.FindProperty("plantRenderer").objectReferenceValue = plantRenderer;
+            var fruitsProp = so.FindProperty("fruitRenderers");
+            fruitsProp.arraySize = fruits.Count;
+            for (int i = 0; i < fruits.Count; i++)
+            {
+                fruitsProp.GetArrayElementAtIndex(i).objectReferenceValue = fruits[i];
+            }
+            so.FindProperty("fullScale").floatValue = 1f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            root.SetActive(false);
+            return visual;
+        }
+
+        /// <summary>Simple enterable-looking safehouse beside the hillside farm.</summary>
+        private static void BuildFarmSafehouse(Terrain terrain, Vector3 farmCenter, Vector3 right, Vector3 dir)
+        {
+            Vector3 pos = farmCenter + right * 14f - dir * 8f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+
+            var rot = Quaternion.LookRotation(-right, Vector3.up);
+            var parent = new GameObject("FarmSafehouse");
+            parent.transform.position = pos;
+            parent.transform.rotation = rot;
+
+            BuildProceduralHouse(parent.transform, pos, rot, storeys: 1, name: "FarmSafehouse_Building");
         }
 
         // ---------------------------------------------------------------
@@ -785,10 +1069,14 @@ namespace UpIzUpMini.EditorTools
             controller.height = 2f;
             controller.radius = 0.4f;
 
-            var visual = InstantiateCharacter(modelPath, go.transform, animController, skinTint);
+            // Smart and Strong are 18 - facial hair is hidden so they don't
+            // read as older men (Docs/STORY.md).
+            var visual = InstantiateCharacter(modelPath, go.transform, animController, skinTint,
+                hideFacialHair: true);
             var animator = visual.GetComponentInChildren<Animator>();
 
             var vitals = go.AddComponent<CharacterVitals>();
+            go.AddComponent<SwimmingController>().SetWaterLevel(SeaLevelY);
 
             var playerController = go.AddComponent<PlayerController>();
             var pcSo = new SerializedObject(playerController);
@@ -817,39 +1105,53 @@ namespace UpIzUpMini.EditorTools
             };
         }
 
-        private static void BuildTownNPCs(Terrain terrain, List<Vector3> roadPoints)
+        private static void BuildTownNPCs(
+            Terrain terrain, List<Vector3> roadPoints, RuntimeAnimatorController animController)
         {
             CropDefinition[] allCrops = LoadAllCropDefinitions();
 
             BuildNpc(terrain, roadPoints, index: 2, sideMul: 1f, goName: "NPC_Villager",
-                modelPath: "Assets/Floreswa/Models/male03_1.fbx", role: NpcRole.Villager, cropsForBuyer: null);
+                modelPath: "Assets/Floreswa/Models/male03_1.fbx", role: NpcRole.Villager,
+                cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: false);
 
+            // Police patrols the Lalay road and speeds up when heat is high.
             BuildNpc(terrain, roadPoints, index: 4, sideMul: -1f, goName: "NPC_Police",
-                modelPath: "Assets/Floreswa/Models/male01_2.fbx", role: NpcRole.Police, cropsForBuyer: null);
+                modelPath: "Assets/Floreswa/Models/male01_2.fbx", role: NpcRole.Police,
+                cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: true);
 
+            // Shopkeeper and buyer stand at the market area, so they stay
+            // put next to their stalls.
             BuildNpc(terrain, roadPoints, index: 6, sideMul: 1f, goName: "NPC_Shopkeeper",
-                modelPath: "Assets/Floreswa/Models/male02_2.fbx", role: NpcRole.Shopkeeper, cropsForBuyer: null);
+                modelPath: "Assets/Floreswa/Models/male02_2.fbx", role: NpcRole.Shopkeeper,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
-            BuildNpc(terrain, roadPoints, index: 8, sideMul: -1f, goName: "NPC_Buyer",
-                modelPath: "Assets/Floreswa/Models/male03_2.fbx", role: NpcRole.Buyer, cropsForBuyer: allCrops);
+            BuildNpc(terrain, roadPoints, index: 6, sideMul: -1f, goName: "NPC_Buyer",
+                modelPath: "Assets/Floreswa/Models/male03_2.fbx", role: NpcRole.Buyer,
+                cropsForBuyer: allCrops, animController: animController, patrols: false, reactsToHeat: false);
+
+            BuildMarketArea(terrain, roadPoints, index: 6);
         }
 
         private static void BuildNpc(
             Terrain terrain, List<Vector3> roadPoints, int index, float sideMul, string goName,
-            string modelPath, NpcRole role, CropDefinition[] cropsForBuyer)
+            string modelPath, NpcRole role, CropDefinition[] cropsForBuyer,
+            RuntimeAnimatorController animController, bool patrols, bool reactsToHeat)
         {
             index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
             Vector3 pos = roadPoints[index];
             Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
             Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
-            pos += right * sideMul * 3.5f;
+            pos += right * sideMul * 3.8f;
             pos.y = SampleHeight(terrain, pos.x, pos.z);
 
             var npcGo = new GameObject(goName);
             npcGo.transform.position = pos;
             npcGo.transform.rotation = Quaternion.LookRotation(-right * sideMul, Vector3.up);
 
-            InstantiateCharacter(modelPath, npcGo.transform, null, null);
+            // Passing the locomotion controller is what stops NPCs standing
+            // in the model's default T-pose with arms out - they now play
+            // the same idle/walk blend the players use.
+            InstantiateCharacter(modelPath, npcGo.transform, animController, null);
 
             var npc = npcGo.AddComponent<TownNPCInteractable>();
             var so = new SerializedObject(npc);
@@ -865,10 +1167,144 @@ namespace UpIzUpMini.EditorTools
                 }
             }
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            if (patrols)
+            {
+                var patrol = npcGo.AddComponent<PatrolNPC>();
+                Vector3 a = roadPoints[Mathf.Max(1, index - 2)] + right * sideMul * 3.8f;
+                Vector3 b = roadPoints[Mathf.Min(roadPoints.Count - 2, index + 2)] + right * sideMul * 3.8f;
+                a.y = SampleHeight(terrain, a.x, a.z);
+                b.y = SampleHeight(terrain, b.x, b.z);
+
+                var pso = new SerializedObject(patrol);
+                var wp = pso.FindProperty("waypoints");
+                wp.arraySize = 2;
+                wp.GetArrayElementAtIndex(0).vector3Value = a;
+                wp.GetArrayElementAtIndex(1).vector3Value = b;
+                pso.FindProperty("reactsToHeat").boolValue = reactsToHeat;
+                pso.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        /// <summary>
+        /// Makes the shop/market area actually readable: a stall canopy and
+        /// crates beside the road where the shopkeeper and buyer stand, so
+        /// the player can see where selling happens.
+        /// </summary>
+        private static void BuildMarketArea(Terrain terrain, List<Vector3> roadPoints, int index)
+        {
+            index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
+            Vector3 basePos = roadPoints[index];
+            Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+
+            var parent = new GameObject("LalayMarket");
+
+            Material canopyMat = GetOrCreateMaterial("MarketCanopy", new Color(0.85f, 0.32f, 0.25f));
+            Material postMat = GetOrCreateMaterial("MarketPost", new Color(0.42f, 0.32f, 0.22f));
+            Material crateMat = GetOrCreateMaterial("MarketCrate", new Color(0.6f, 0.45f, 0.28f));
+
+            foreach (int side in new[] { -1, 1 })
+            {
+                Vector3 stallPos = basePos + right * side * 5.6f;
+                stallPos.y = SampleHeight(terrain, stallPos.x, stallPos.z);
+
+                var stall = new GameObject(side < 0 ? "BuyerStall" : "ShopStall");
+                stall.transform.SetParent(parent.transform);
+                stall.transform.position = stallPos;
+                stall.transform.rotation = Quaternion.LookRotation(-right * side, Vector3.up);
+
+                var canopy = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                canopy.name = "Canopy";
+                canopy.transform.SetParent(stall.transform, false);
+                canopy.transform.localPosition = new Vector3(0f, 2.5f, 0f);
+                canopy.transform.localScale = new Vector3(4.2f, 0.12f, 3f);
+                canopy.GetComponent<Renderer>().sharedMaterial = canopyMat;
+
+                foreach (float px in new[] { -1.9f, 1.9f })
+                {
+                    foreach (float pz in new[] { -1.3f, 1.3f })
+                    {
+                        var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                        post.name = "Post";
+                        post.transform.SetParent(stall.transform, false);
+                        post.transform.localPosition = new Vector3(px, 1.25f, pz);
+                        post.transform.localScale = new Vector3(0.12f, 1.25f, 0.12f);
+                        post.GetComponent<Renderer>().sharedMaterial = postMat;
+                    }
+                }
+
+                var table = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                table.name = "Table";
+                table.transform.SetParent(stall.transform, false);
+                table.transform.localPosition = new Vector3(0f, 0.85f, 0.6f);
+                table.transform.localScale = new Vector3(3.4f, 0.12f, 1f);
+                table.GetComponent<Renderer>().sharedMaterial = crateMat;
+
+                for (int c = 0; c < 3; c++)
+                {
+                    var crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    crate.name = $"Crate_{c}";
+                    crate.transform.SetParent(stall.transform, false);
+                    crate.transform.localPosition = new Vector3(-1.2f + c * 1.2f, 0.3f, -0.9f);
+                    crate.transform.localScale = Vector3.one * 0.6f;
+                    crate.GetComponent<Renderer>().sharedMaterial = crateMat;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Hides facial-hair submeshes by making their material fully
+        /// transparent. The character pack puts beard/moustache/goatee on
+        /// separate material slots of one shared skinned renderer, so they
+        /// can't be removed by deleting a GameObject - and editing the
+        /// shared material would strip the beard from every character.
+        /// Used to keep Smart and Strong reading as 18-year-olds rather
+        /// than bearded older men.
+        /// </summary>
+        private static void HideFacialHair(GameObject instance)
+        {
+            string[] hairSlots = { "beard", "mustache", "goatee" };
+
+            foreach (var renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = renderer.sharedMaterials;
+                bool changed = false;
+
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null) continue;
+                    string matName = mats[i].name.ToLowerInvariant();
+                    bool isFacialHair = false;
+                    foreach (var slot in hairSlots)
+                    {
+                        if (matName.Contains(slot)) { isFacialHair = true; break; }
+                    }
+                    if (!isFacialHair) continue;
+
+                    var clear = new Material(mats[i]) { name = mats[i].name + "_Hidden" };
+                    // Standard shader needs explicit transparent setup to
+                    // respect alpha at runtime.
+                    clear.SetFloat("_Mode", 3f);
+                    clear.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    clear.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    clear.SetInt("_ZWrite", 0);
+                    clear.DisableKeyword("_ALPHATEST_ON");
+                    clear.EnableKeyword("_ALPHABLEND_ON");
+                    clear.renderQueue = 3000;
+                    clear.color = new Color(0f, 0f, 0f, 0f);
+
+                    mats[i] = clear;
+                    changed = true;
+                }
+
+                if (changed) renderer.sharedMaterials = mats;
+            }
         }
 
         private static GameObject InstantiateCharacter(
-            string fbxPath, Transform parent, RuntimeAnimatorController animController, Color? skinTint = null)
+            string fbxPath, Transform parent, RuntimeAnimatorController animController,
+            Color? skinTint = null, bool hideFacialHair = false)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
@@ -884,6 +1320,11 @@ namespace UpIzUpMini.EditorTools
             if (skinTint.HasValue)
             {
                 ApplySkinTint(instance, skinTint.Value);
+            }
+
+            if (hideFacialHair)
+            {
+                HideFacialHair(instance);
             }
 
             return instance;
@@ -1036,15 +1477,28 @@ namespace UpIzUpMini.EditorTools
             Image staminaFill = CreateMeter(canvasGo.transform, "Stamina", new Vector2(20f, -50f), new Color(0.2f, 0.55f, 0.85f), font, out _);
             Image heatFill = CreateMeter(canvasGo.transform, "Heat", new Vector2(20f, -80f), new Color(0.9f, 0.55f, 0.1f), font, out _);
 
-            Text moneyLabel = CreateLabel(canvasGo.transform, "$0", 30, new Vector2(-140f, -20f), font);
-            AnchorTopRight(moneyLabel.rectTransform);
+            // Money/crop sit against bright sky, so they get a dark backing
+            // panel - white-on-sky was unreadable at some camera angles.
+            var infoPanel = new GameObject("InfoPanel");
+            infoPanel.transform.SetParent(canvasGo.transform, false);
+            var infoRect = infoPanel.AddComponent<RectTransform>();
+            infoRect.anchorMin = infoRect.anchorMax = new Vector2(1f, 1f);
+            infoRect.pivot = new Vector2(1f, 1f);
+            infoRect.sizeDelta = new Vector2(280f, 100f);
+            infoRect.anchoredPosition = new Vector2(-20f, -20f);
+            infoPanel.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.55f);
 
-            Text nameLabel = CreateLabel(canvasGo.transform, "Smart", 26, new Vector2(140f, -110f), font);
+            Text moneyLabel = CreateLabel(infoPanel.transform, "$0", 34, new Vector2(0f, -26f), font);
+            moneyLabel.rectTransform.anchorMin = moneyLabel.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+            moneyLabel.rectTransform.sizeDelta = new Vector2(260f, 40f);
+
+            Text cropLabel = CreateLabel(infoPanel.transform, string.Empty, 24, new Vector2(0f, -68f), font);
+            cropLabel.rectTransform.anchorMin = cropLabel.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+            cropLabel.rectTransform.sizeDelta = new Vector2(260f, 36f);
+
+            Text nameLabel = CreateLabel(canvasGo.transform, "Smart", 26, new Vector2(130f, -112f), font);
             nameLabel.rectTransform.anchorMin = nameLabel.rectTransform.anchorMax = new Vector2(0f, 1f);
             nameLabel.alignment = TextAnchor.MiddleLeft;
-
-            Text cropLabel = CreateLabel(canvasGo.transform, string.Empty, 26, new Vector2(-140f, -60f), font);
-            AnchorTopRight(cropLabel.rectTransform);
 
             var hud = canvasGo.AddComponent<HUDController>();
             var so = new SerializedObject(hud);

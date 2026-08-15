@@ -5,10 +5,10 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-011 Phase C complete (NPCs, HUD, 6-plot farming loop, crop selection, Tab switching with a real second character) plus two deferred fixes (vertical mouse-look, Shanty Town collision). Windows build produced, zero errors in a 10s headless run of the actual compiled game. Nothing in Phase C has been hands-on playtested by a human yet — that's the next step.
+- Status: MINI-012 built on top of Phase C: real decimated crop plants with 4 growth stages, hillside Montine farm (8-plot grid, terraced), beach/jetty/boat + swimming, NPC idle/patrol animation (T-pose fixed), police reacting to heat, black road, market stalls, farm safehouse, F5/F9 save-load, and retuned movement speeds. Windows build produced, zero errors in a 12s headless run. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
-- Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C built and statically/headlessly verified, pending user playtest.
+- Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C and `MINI-012` built and statically/headlessly verified, pending user playtest.
 - Last known good commit: `9f80953`
 
 ## Ownership protocol
@@ -35,7 +35,7 @@ After verification, append a change entry, update the verification results, and 
 ## Current blockers
 
 - The precise Grand Bay map anchors must be copied into `Docs/MAP-ANCHORS.json` from verified research/user references (still not done — `MINI-002`).
-- `GrandBayProof.unity`'s MINI-011 Phase C content (NPC roles, farming loop, HUD meters, crop selection, Tab switching, vertical mouse-look, shanty collision) needs a hands-on human playtest via `Builds/GrandBayProof/UpIzUpMini.exe` — see the MINI-011 Phase C entry below for exactly what's confirmed (compiles, builds, runs with zero console errors) versus what isn't (whether any of it actually plays right).
+- `GrandBayProof.unity`'s MINI-011 Phase C and MINI-012 content needs a hands-on human playtest via `Builds/GrandBayProof/UpIzUpMini.exe`. Highest-uncertainty items: the running-speed retune (a reasoned fix for foot-sliding, not a confirmed one), swimming, and the F5/F9 save-load round-trip. See the MINI-012 entry for what is and isn't confirmed.
 
 ## Change record
 
@@ -249,6 +249,32 @@ After verification, append a change entry, update the verification results, and 
   - Shopkeeper doesn't have a real "buy seeds" transaction yet — planting just uses whichever crop is selected via 1-4, no seed-purchase gate. Matches the brief's Mission 1 loosely but simplifies it; worth a look before calling this "done."
   - HUD is a first pass (basic bars/labels, no icons/polish); layout was eyeballed from one render, not fine-tuned.
 - Next action: user playtests everything above by hand and reports back.
+
+### MINI-012 — Realistic crops, hillside farm, coast, NPC stance, save/load
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: After playtesting Phase C the user reported: NPCs standing with arms stretched out (T-pose), Strong too pale and bearded (both boys are 18), plantation should be in the hills (Montine), crops unrealistic (suggested reusing the larger game's), skybox making the money label unreadable, farm plots wildly placed, wanted a jetty/boat/sand and swimming, shop area visible with its NPC, black Lalay road, watered soil going darker, seeing actual plants rather than a spreading green circle, police movement tied to heat, awkward running fixed, save/load, and a safehouse near the farm.
+- Implementation:
+  - **Realistic crops (the significant piece).** Read `E:\Unity\Up iz up\AI-COLLABORATION-HANDOFF.md` and mined the larger project. Its `Assets/Imported Plants/` tomato and weed models are photogrammetry scans: **2,000,000 triangles each, 183MB, one submesh, no growth stages** — measured with a probe, not assumed. That's ~13x a whole mobile scene budget for one plant, and it's why the larger game imported but never actually referenced them. Rather than drop the idea or ship 12M triangles of farm, wrote `MeshDecimator.cs` (vertex-clustering decimation: grid the bounds, collapse each cell's vertices to their average, rebuild triangles, drop degenerates) and `Mini012CropAssetBuilder.cs`. Result: **3,259 and 5,561 triangles (0.16% / 0.28% kept)**, verified by render to still read as a real tomato plant with fruit and a real cannabis plant. Source FBXs deleted after conversion — 366MB in, 282KB out.
+  - `CropStageVisual.cs` + rewritten `FarmPlot.cs`: 4 discrete growth stages using the real plant mesh (scaling through seedling → grown), with separate fruit spheres that ripen green → red. Fruit is separate because the scan is a single submesh, so tinting it would have recoloured the foliage too. Soil colours now copied exactly from the larger game's `CropPatch.cs` (`DrySoilColor` / `WateredSoilColor`) so watering visibly darkens the plot and the two games match.
+  - **Farm moved to the hills** (+X is the rising side per `BuildTerrain`; it was previously on the coastal side) and reorganised into a tidy 4x2 grid of 8 plots aligned to the farm's own axes. Added `FlattenTerrainArea()` to carve a level terrace, without which flat plot geometry would float on the hillside. The access track now stops at the plantation edge instead of running through it, the tilled ground is sized/rotated to the grid, and vegetation is kept out of the farm radius (a tree was growing up through the plots).
+  - **Coast**: sand beach placed on the actual measured waterline, a timber jetty on posts running out over the water, and a moored boat. `SwimmingController.cs` floats characters at the surface instead of sinking, so the sea is enterable.
+  - **NPC stance fixed**: NPCs were instantiated with no `RuntimeAnimatorController`, so they rendered the model's authored T-pose. They now receive the same locomotion controller as the players. Verified by sampling the idle clip in-editor and rendering (animators don't evaluate outside Play mode, so a plain render would have proven nothing).
+  - `PatrolNPC.cs`: villager and police walk between waypoints with correct walk animation; police speed up and switch to the run blend once heat passes its threshold.
+  - **Characters read as 18**: `HideFacialHair()` makes the beard/moustache/goatee material slots transparent per-instance (they're separate slots on one shared skinned renderer, so they can't be deleted, and editing the shared material would strip beards from every character). Strong's skin corrected from a near-white tone to a mid-brown.
+  - **Awkward running diagnosed**: walk/run speeds (3.2 / 6.5 m/s) far exceeded the authored stride of the Human Basic Motions clips, so the feet skated. Retuned to 1.9 / 4.4 (and the companion to 2.1). This is a plausible, reasoned fix but **not confirmed** — it needs the user's eye.
+  - **Market area**: stall canopy, table and crates beside the road with the shopkeeper and buyer at it; house placement now leaves that frontage clear (the stall was previously buried in a house). **Black Lalay road.** HUD money/crop moved onto a dark backing panel so they're readable against bright sky. Farm safehouse beside the plantation.
+  - `SaveLoadSystem.cs`: F5 saves, F9 loads — money, heat, inventory, every plot's crop/state/growth timer, both characters' positions, and the active character. Uses PlayerPrefs+JSON rather than a file so it works identically on Windows, Android and WebGL (WebGL has no ordinary filesystem) — relevant to D-008.
+- Files changed: `Assets/UpIzUpMini/Editor/MeshDecimator.cs`, `Mini012CropAssetBuilder.cs`, `Mini012MeshProbe.cs` (new); `Scripts/Farming/CropStageVisual.cs`, `Scripts/Character/SwimmingController.cs`, `Scripts/Interaction/PatrolNPC.cs`, `Scripts/SaveLoadSystem.cs` (new); `Scripts/Farming/FarmPlot.cs`, `Scripts/Character/PlayerController.cs`, `FollowController.cs`, `CharacterSwitchManager.cs`, `Scripts/Economy/EconomyManager.cs`, `Editor/Mini011PhaseBSetup.cs`, `Editor/Mini011AssetSnapshot.cs`; `Art/CropMeshes/*.asset` (new); `Scenes/GrandBayProof.unity`; `Docs/ASSET-REGISTER.md`.
+- Verification: compiles clean throughout. Scene builder clean. Rendered and inspected five views before shipping — decimated crops (real plant shape confirmed), the farm (tidy grid, red ripe vs green young fruit, darker watered soil, safehouse, no tree through the plots), the coast (sand/jetty/boat), and NPC stance twice (natural arms-down pose; second pass confirming the market stall no longer clips a house). Windows build succeeded; headless run of the compiled game: zero console errors over 12 seconds.
+- Known issues (honest):
+  - **Nothing here is hands-on playtested.** Swimming, save/load round-trip, police heat reaction, the running fix, and planting the real crops all need the user at the controls. Static render + clean headless run is not the same as it playing correctly.
+  - The running-speed retune is a *reasoned* fix for foot-sliding, not a confirmed one; if it still looks wrong the next step is inspecting the clips' actual root velocity rather than guessing again.
+  - Decimated crops have no UVs/textures — they're flat-shaded solid colour. Silhouette is right, surface detail isn't. Source scans' own provenance/licence isn't recorded in the larger project either; worth confirming before any release.
+  - Not done from the request: NPC jumping, and porting the larger game's dialogue content (only its soil colours and crop-stage structure were reused).
+  - Swimming is float-at-surface only — no swim animation, so the character plays walk/idle while in water.
+- Next action: user playtests; the running feel and swimming are the two most likely to need another pass.
 
 ## Required change-entry format
 

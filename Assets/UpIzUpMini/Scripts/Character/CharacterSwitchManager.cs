@@ -32,6 +32,7 @@ namespace UpIzUpMini.Character
 
         public int ActiveIndex { get; private set; }
         public CharacterSlot Active => slots[ActiveIndex];
+        public CharacterSlot[] Slots => slots;
 
         public event Action<CharacterSlot> OnActiveChanged;
 
@@ -55,7 +56,7 @@ namespace UpIzUpMini.Character
 
         public void SwitchTo(int index)
         {
-            if (index < 0 || index >= slots.Length || index == ActiveIndex) return;
+            if (index < 0 || index >= slots.Length) return;
             ApplyActive(index);
         }
 

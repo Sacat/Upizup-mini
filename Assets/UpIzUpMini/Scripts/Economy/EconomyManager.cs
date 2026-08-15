@@ -81,5 +81,23 @@ namespace UpIzUpMini.Economy
             Heat = Mathf.Clamp(Heat + amount, 0f, MaxHeat);
             OnChanged?.Invoke();
         }
+
+        /// <summary>Restore saved state - see SaveLoadSystem.</summary>
+        public void LoadState(int money, float heat, IReadOnlyList<string> ids, IReadOnlyList<int> counts)
+        {
+            Money = money;
+            Heat = Mathf.Clamp(heat, 0f, MaxHeat);
+
+            _inventory.Clear();
+            if (ids != null && counts != null)
+            {
+                for (int i = 0; i < ids.Count && i < counts.Count; i++)
+                {
+                    _inventory[ids[i]] = counts[i];
+                }
+            }
+
+            OnChanged?.Invoke();
+        }
     }
 }

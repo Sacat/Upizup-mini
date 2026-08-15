@@ -78,6 +78,12 @@ don't pan out visually or technically.
 | MINI-AST-003 | Arteria3d - Tropical Island Foliage Pack | Arteria3d | `...\Arteria3d - Tropical Island Foliage Pack.unitypackage` | Unverified | Vegetation fallback if MINI-AST-102/103 don't give enough variety. |
 | MINI-AST-004 | Tropical Nature Pack | Unlisted | `...\Tropical Nature Pack\Tropical Nature Pack.unitypackage` | Unverified | Same as above. |
 
+## Derived from the larger project (MINI-012)
+
+| asset_id | asset_name | source | licence | purpose |
+|---|---|---|---|---|
+| MINI-AST-120 | TomatoPlant_LOD.asset / WeedPlant_LOD.asset | Decimated from `E:\Unity\Up iz up\Assets\Imported Plants\{Tomato,Weed} plant.fbx` | Same ownership as the larger project (user's own project; original scan provenance not recorded there either — worth confirming before release) | Realistic crop visuals. **The sources are ~2,000,000-triangle photogrammetry scans (183MB each), single submesh, no growth stages — unusable directly on a mobile target and never actually referenced in the larger game's scene.** Reduced to 3,259 / 5,561 triangles (0.16% / 0.28%) with `MeshDecimator.cs` (vertex-clustering), preserving stem/leaf/fruit silhouette. Verified by render: still clearly reads as a tomato plant with fruit, and a cannabis plant. The 366MB of source FBXs were deleted after conversion; only the 282KB of decimated meshes are in the repo. |
+
 ## Explicitly rejected
 
 - Adventurer Character, Fighter Character, Warriors And Commoner (local `E:\Assets`) — fantasy/medieval sword-fighter aesthetic, wrong genre.

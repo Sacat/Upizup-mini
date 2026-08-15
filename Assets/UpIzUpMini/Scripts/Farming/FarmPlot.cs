@@ -7,23 +7,26 @@ namespace UpIzUpMini.Farming
     public enum PlotState { Empty, PlantedDry, Growing, Ripe }
 
     /// <summary>
-    /// One farm plot: [E] Plant (using the currently selected crop from
-    /// CropSelectionController) -> [E] Water -> grows through 3 visual
-    /// stages -> [E] Harvest -> back to Empty. Soil is light brown while
-    /// Empty, dark brown once planted (matches the user's explicit
-    /// before/after soil colour request); the crop mesh scales up and
-    /// tints from unripe to ripe colour as it grows.
+    /// One farm plot: [E] Plant (using the crop selected with keys 1-4)
+    /// -> [E] Water -> grows through 4 visible stages -> [E] Harvest.
+    ///
+    /// Soil colours are taken from the larger Up Iz Up project's
+    /// CropPatch.cs so the two games match: dry soil is light brown, and
+    /// watering visibly darkens it.
     /// </summary>
     public class FarmPlot : InteractableBase
     {
+        // Matches CropPatch.DrySoilColor / WateredSoilColor in E:\Unity\Up iz up.
+        private static readonly Color DrySoilColor = new Color(0.52f, 0.32f, 0.16f, 1f);
+        private static readonly Color WateredSoilColor = new Color(0.23f, 0.105f, 0.045f, 1f);
+
         [SerializeField] private Renderer soilRenderer;
-        [SerializeField] private Transform cropVisualRoot;
-        [SerializeField] private Renderer cropRenderer;
-        [SerializeField] private Color soilEmptyColor = new Color(0.62f, 0.5f, 0.35f);
-        [SerializeField] private Color soilPlantedColor = new Color(0.28f, 0.18f, 0.1f);
+        [SerializeField] private CropStageVisual tomatoVisual;
+        [SerializeField] private CropStageVisual weedVisual;
 
         private PlotState _state = PlotState.Empty;
         private CropDefinition _crop;
+        private CropStageVisual _activeVisual;
         private float _growTimer;
         private string _lastFeedback;
 
@@ -38,18 +41,26 @@ namespace UpIzUpMini.Farming
             _ => "[ E ]"
         };
 
+        private void Start()
+        {
+            SetSoilColor(DrySoilColor);
+            if (tomatoVisual != null) tomatoVisual.SetVisible(false);
+            if (weedVisual != null) weedVisual.SetVisible(false);
+        }
+
         private void Update()
         {
             if (_state != PlotState.Growing || _crop == null) return;
 
             _growTimer += Time.deltaTime;
             float t = Mathf.Clamp01(_growTimer / Mathf.Max(0.1f, _crop.growDurationSeconds));
-            ApplyGrowthVisual(t);
 
-            if (t >= 1f)
-            {
-                _state = PlotState.Ripe;
-            }
+            // 4 discrete stages rather than a continuous scale, so growth
+            // reads as a plant developing rather than something inflating.
+            int stage = t >= 1f ? 3 : Mathf.Clamp(Mathf.FloorToInt(t * 3f), 0, 2);
+            _activeVisual?.ApplyStage(stage, _crop.unripeColor, _crop.ripeColor);
+
+            if (t >= 1f) _state = PlotState.Ripe;
         }
 
         public override void Interact(GameObject interactor)
@@ -61,20 +72,24 @@ namespace UpIzUpMini.Farming
                     if (crop == null) return;
                     _crop = crop;
                     _state = PlotState.PlantedDry;
-                    SetSoilColor(soilPlantedColor);
-                    ApplyGrowthVisual(0f);
-                    if (cropVisualRoot != null) cropVisualRoot.gameObject.SetActive(true);
-                    _lastFeedback = $"Planted {crop.displayName}. Needs water.";
+
+                    _activeVisual = crop.isIllegal ? weedVisual : tomatoVisual;
+                    if (tomatoVisual != null) tomatoVisual.SetVisible(_activeVisual == tomatoVisual);
+                    if (weedVisual != null) weedVisual.SetVisible(_activeVisual == weedVisual);
+                    _activeVisual?.ApplyStage(0, crop.unripeColor, crop.ripeColor);
+
+                    _lastFeedback = $"Planted {crop.displayName}. It need water, nuh.";
                     break;
 
                 case PlotState.PlantedDry:
                     _state = PlotState.Growing;
                     _growTimer = 0f;
-                    _lastFeedback = $"Watered. {_crop.displayName} is growing.";
+                    SetSoilColor(WateredSoilColor);
+                    _lastFeedback = $"Watered. {_crop.displayName} growing now.";
                     break;
 
                 case PlotState.Growing:
-                    _lastFeedback = "Still growing.";
+                    _lastFeedback = "Still growing. Give it time.";
                     break;
 
                 case PlotState.Ripe:
@@ -91,29 +106,43 @@ namespace UpIzUpMini.Farming
 
         public override string GetInteractionFeedback() => _lastFeedback;
 
+        /// <summary>Save/load support - see SaveLoadSystem.</summary>
+        public int GetSaveState() => (int)_state;
+        public string GetSaveCropId() => _crop != null ? _crop.cropId : string.Empty;
+        public float GetSaveTimer() => _growTimer;
+
+        public void LoadState(int state, CropDefinition crop, float timer)
+        {
+            _crop = crop;
+            _state = (PlotState)state;
+            _growTimer = timer;
+
+            if (_crop == null || _state == PlotState.Empty)
+            {
+                ResetPlot();
+                return;
+            }
+
+            _activeVisual = _crop.isIllegal ? weedVisual : tomatoVisual;
+            if (tomatoVisual != null) tomatoVisual.SetVisible(_activeVisual == tomatoVisual);
+            if (weedVisual != null) weedVisual.SetVisible(_activeVisual == weedVisual);
+
+            SetSoilColor(_state == PlotState.PlantedDry ? DrySoilColor : WateredSoilColor);
+
+            float t = Mathf.Clamp01(_growTimer / Mathf.Max(0.1f, _crop.growDurationSeconds));
+            int stage = _state == PlotState.Ripe ? 3 : Mathf.Clamp(Mathf.FloorToInt(t * 3f), 0, 2);
+            _activeVisual?.ApplyStage(stage, _crop.unripeColor, _crop.ripeColor);
+        }
+
         private void ResetPlot()
         {
             _state = PlotState.Empty;
             _crop = null;
             _growTimer = 0f;
-            SetSoilColor(soilEmptyColor);
-            if (cropVisualRoot != null) cropVisualRoot.gameObject.SetActive(false);
-        }
-
-        private void ApplyGrowthVisual(float t)
-        {
-            if (cropVisualRoot != null)
-            {
-                float scale = Mathf.Lerp(0.15f, 1f, t);
-                cropVisualRoot.localScale = Vector3.one * scale;
-            }
-            if (cropRenderer != null && _crop != null)
-            {
-                // Stay unripe-coloured for most of growth, only ripen in
-                // the final third - gives a clear 3rd visual stage.
-                float colorT = Mathf.Clamp01((t - 0.66f) / 0.34f);
-                cropRenderer.material.color = Color.Lerp(_crop.unripeColor, _crop.ripeColor, colorT);
-            }
+            SetSoilColor(DrySoilColor);
+            if (tomatoVisual != null) tomatoVisual.SetVisible(false);
+            if (weedVisual != null) weedVisual.SetVisible(false);
+            _activeVisual = null;
         }
 
         private void SetSoilColor(Color color)

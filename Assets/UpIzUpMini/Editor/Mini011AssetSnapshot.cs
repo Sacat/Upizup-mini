@@ -185,6 +185,158 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "grandbay-gameplay-hud.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-012/Snapshot NPC Stance")]
+        public static void SnapshotNpcStance()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            // Animators don't evaluate outside Play mode, so the idle clip
+            // is sampled onto every character explicitly - otherwise this
+            // would render the model's authored T-pose and tell us nothing
+            // about whether the animator is actually wired up.
+            var idle = LoadFirstClip(
+                "Assets/Kevin Iglesias/Human Animations/Animations/Male/Idles/HumanM@Idle01.fbx");
+            if (idle == null) Debug.LogWarning("Snapshot: idle clip not found.");
+
+            int sampled = 0;
+            foreach (var animator in Object.FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (animator.runtimeAnimatorController == null)
+                {
+                    Debug.LogWarning($"Snapshot: {animator.name} has NO animator controller (would T-pose).");
+                    continue;
+                }
+                if (idle != null)
+                {
+                    idle.SampleAnimation(animator.gameObject, 0.4f);
+                    sampled++;
+                }
+            }
+            Debug.Log($"Snapshot: sampled idle onto {sampled} animator(s).");
+
+            var shop = GameObject.Find("NPC_Shopkeeper");
+            var buyer = GameObject.Find("NPC_Buyer");
+            Vector3 target = shop != null ? shop.transform.position
+                : (buyer != null ? buyer.transform.position : Vector3.zero);
+
+            var camGo = new GameObject("NpcCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = target + new Vector3(0f, 3.2f, -9f);
+            camGo.transform.LookAt(target + Vector3.up * 1.1f);
+            cam.fieldOfView = 50f;
+            cam.farClipPlane = 300f;
+
+            RenderAndSave(cam, "npc-stance.png");
+        }
+
+        private static AnimationClip LoadFirstClip(string fbxPath)
+        {
+            foreach (var a in AssetDatabase.LoadAllAssetsAtPath(fbxPath))
+            {
+                if (a is AnimationClip clip && !clip.name.StartsWith("__preview__")) return clip;
+            }
+            return null;
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-012/Snapshot Farm")]
+        public static void SnapshotFarm()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var farm = GameObject.Find("MontineFarm");
+            if (farm == null) { Debug.LogError("Snapshot: MontineFarm not found."); return; }
+
+            // Reveal a few plots at different growth stages so the crop
+            // visuals can actually be judged.
+            var plots = Object.FindObjectsByType<UpIzUpMini.Farming.FarmPlot>(FindObjectsSortMode.None);
+            System.Array.Sort(plots, (a, b) => string.CompareOrdinal(a.name, b.name));
+            var tomato = AssetDatabase.LoadAssetAtPath<UpIzUpMini.Economy.CropDefinition>(
+                "Assets/UpIzUpMini/Data/Crops/tomato.asset");
+            for (int i = 0; i < plots.Length; i++)
+            {
+                int stage = Mathf.Min(3, i / 2);
+                plots[i].LoadState(stage >= 3 ? 3 : 2, tomato,
+                    tomato != null ? tomato.growDurationSeconds * (stage / 3f) : 0f);
+            }
+
+            var camGo = new GameObject("FarmCam");
+            var cam = camGo.AddComponent<Camera>();
+            Vector3 c = farm.transform.position;
+            camGo.transform.position = c + new Vector3(-13f, 9f, -13f);
+            camGo.transform.LookAt(c + Vector3.up * 0.5f);
+            cam.fieldOfView = 55f;
+            cam.farClipPlane = 500f;
+
+            RenderAndSave(cam, "montine-farm.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-012/Snapshot Coast")]
+        public static void SnapshotCoast()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var jetty = GameObject.Find("CoastAndJetty");
+            if (jetty == null) { Debug.LogError("Snapshot: CoastAndJetty not found."); return; }
+
+            var deck = GameObject.Find("JettyDeck");
+            Vector3 target = deck != null ? deck.transform.position : jetty.transform.position;
+
+            var camGo = new GameObject("CoastCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = target + new Vector3(18f, 14f, -26f);
+            camGo.transform.LookAt(target);
+            cam.fieldOfView = 58f;
+            cam.farClipPlane = 500f;
+
+            RenderAndSave(cam, "coast-jetty.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-012/Snapshot Decimated Crops")]
+        public static void SnapshotDecimatedCrops()
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            var light = new GameObject("Sun").AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.transform.rotation = Quaternion.Euler(45f, -30f, 0f);
+            light.intensity = 1.3f;
+
+            string[] meshPaths =
+            {
+                "Assets/UpIzUpMini/Art/CropMeshes/TomatoPlant_LOD.asset",
+                "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset",
+            };
+
+            // The source scans are authored at ~2cm tall, so normalize each
+            // to a realistic ~1m plant height for inspection.
+            const float targetHeight = 1f;
+            float x = 0f;
+            foreach (var path in meshPaths)
+            {
+                var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+                if (mesh == null) { Debug.LogWarning($"Snapshot: missing {path}"); continue; }
+
+                float scale = targetHeight / Mathf.Max(0.0001f, mesh.bounds.size.y);
+                var go = new GameObject(mesh.name);
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var mr = go.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = new Material(Shader.Find("Standard")) { color = new Color(0.3f, 0.55f, 0.25f) };
+                go.transform.position = new Vector3(x, 0f, 0f);
+                go.transform.localScale = Vector3.one * scale;
+
+                x += 1.2f;
+            }
+
+            var camGo = new GameObject("SnapshotCamera");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = new Vector3(x / 2f - 0.6f, 0.6f, -2.2f);
+            camGo.transform.LookAt(new Vector3(x / 2f - 0.6f, 0.45f, 0f));
+            cam.fieldOfView = 55f;
+            cam.farClipPlane = 100f;
+
+            RenderAndSave(cam, "decimated-crops.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Shanty Town Sample")]
         public static void SnapshotShantyTown()
         {

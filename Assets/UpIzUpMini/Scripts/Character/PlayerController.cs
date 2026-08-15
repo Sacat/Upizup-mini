@@ -14,8 +14,12 @@ namespace UpIzUpMini.Character
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour
     {
-        [SerializeField] private float walkSpeed = 3.2f;
-        [SerializeField] private float runSpeed = 6.5f;
+        // Tuned to the authored pace of the Human Basic Motions clips
+        // (Walk01 ~1.9 m/s, Run01 ~4.4 m/s). The previous 3.2/6.5 moved the
+        // capsule far faster than the animation's stride, which is what made
+        // running look wrong - the feet skated across the ground.
+        [SerializeField] private float walkSpeed = 1.9f;
+        [SerializeField] private float runSpeed = 4.4f;
         [SerializeField] private float turnSpeed = 12f;
         [SerializeField] private float gravity = -20f;
 

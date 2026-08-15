@@ -15,7 +15,9 @@ namespace UpIzUpMini.Character
     public class FollowController : MonoBehaviour
     {
         [SerializeField] private float followDistance = 3.5f;
-        [SerializeField] private float moveSpeed = 3.4f;
+        // Matches PlayerController.walkSpeed so the companion's stride
+        // reads correctly against the same walk animation.
+        [SerializeField] private float moveSpeed = 2.1f;
         [SerializeField] private float turnSpeed = 8f;
         [SerializeField] private Animator animator;
         [SerializeField] private string speedParam = "Speed";
