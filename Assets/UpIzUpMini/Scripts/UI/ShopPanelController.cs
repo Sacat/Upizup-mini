@@ -84,6 +84,8 @@ namespace UpIzUpMini.UI
                             Missions.MissionSystem.Instance?.Notify(
                                 Missions.ObjectiveKind.BuySeeds, stock[i].itemId);
                         }
+                        Missions.MissionSystem.Instance?.Notify(
+                            Missions.ObjectiveKind.BuyItem, stock[i].itemId);
                     }
                 }
 

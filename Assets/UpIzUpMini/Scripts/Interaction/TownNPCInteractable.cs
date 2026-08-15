@@ -8,7 +8,7 @@ namespace UpIzUpMini.Interaction
     /// accessories. They are separate shopfronts with separate stock, per
     /// the user's request - not one merged shop.
     /// </summary>
-    public enum NpcRole { Villager, Police, FarmShop, Buyer, ApparelShop }
+    public enum NpcRole { Villager, Police, FarmShop, Buyer, ApparelShop, Boss }
 
     /// <summary>
     /// One interactable for every named-role NPC (villager, police,
@@ -43,6 +43,14 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private UI.ShopPanelController shop;
 
         [TextArea(1, 3)]
+        [SerializeField] private string bossOfferLine =
+            "Allu working hard for small money. Take dis Bushers seed - one harvest pay more than all dat tomato. But keep it far from di road, nuh.";
+        [TextArea(1, 3)]
+        [SerializeField] private string bossFollowUpLine =
+            "Grow it good and bring it back. Police doe have to know nothing.";
+        [SerializeField] private CropDefinition bossSeedCrop;
+
+        [TextArea(1, 3)]
         [SerializeField] private string[] buyerLines =
         {
             "Bring me good tomato and I go pay you fair, yah wii.",
@@ -65,6 +73,7 @@ namespace UpIzUpMini.Interaction
             NpcRole.Buyer => "[ E ] Sell",
             NpcRole.FarmShop => "[ E ] Farm Shop",
             NpcRole.ApparelShop => "[ E ] Clothes Shop",
+            NpcRole.Boss => "[ E ] Talk to Boss K",
             _ => "[ E ] Talk"
         };
 
@@ -95,6 +104,22 @@ namespace UpIzUpMini.Interaction
                 case NpcRole.ApparelShop:
                     _lastFeedback = shopkeeperLine;
                     shop?.Open();
+                    break;
+
+                case NpcRole.Boss:
+                    // Boss K's offer - Docs/STORY.md Mission 5. Grants the
+                    // illegal strain's seeds so the player can take the
+                    // higher-paying, higher-heat work.
+                    if (bossSeedCrop != null && EconomyManager.Instance != null
+                        && EconomyManager.Instance.GetSeeds(bossSeedCrop.cropId) <= 0)
+                    {
+                        EconomyManager.Instance.AddSeeds(bossSeedCrop.cropId, 3);
+                        _lastFeedback = bossOfferLine;
+                    }
+                    else
+                    {
+                        _lastFeedback = bossFollowUpLine;
+                    }
                     break;
 
                 default:

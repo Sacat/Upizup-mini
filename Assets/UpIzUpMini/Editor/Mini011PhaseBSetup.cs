@@ -399,6 +399,8 @@ namespace UpIzUpMini.EditorTools
         // keep clear of the plantation.
         private static Vector3 _farmCenter;
         private static float _farmClearRadius = 22f;
+        private static Vector3 _expansionPlotPos;
+        private static Vector3 _bossPos;
 
         private static void BuildSea()
         {
@@ -1013,8 +1015,81 @@ namespace UpIzUpMini.EditorTools
             }
 
             BuildFarmSafehouse(terrain, farmCenter, right, dir);
+            BuildExpansionPlots(terrain, farmCenter, right, dir, soilEmptyMat, farmParent.transform);
 
             farmPlot = firstPlot;
+        }
+
+        /// <summary>
+        /// Fenced-off expansion plots beside the main farm. They only
+        /// become usable once the Montine land is bought, giving the land
+        /// purchase a real effect (see LockedFarmPlot).
+        /// </summary>
+        private static void BuildExpansionPlots(
+            Terrain terrain, Vector3 farmCenter, Vector3 right, Vector3 dir,
+            Material soilMat, Transform parent)
+        {
+            Material fenceMat = GetOrCreateMaterial("LandFence", new Color(0.55f, 0.42f, 0.26f));
+
+            for (int col = 0; col < 3; col++)
+            {
+                Vector3 pos = farmCenter
+                              + right * ((col - 1) * 3.6f)
+                              + dir * 8.6f;
+                pos.y = SampleHeight(terrain, pos.x, pos.z) + 0.03f;
+
+                if (col == 1) _expansionPlotPos = pos;
+
+                var plot = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                plot.name = $"FarmPlot_X{col}";
+                plot.transform.SetParent(parent);
+                plot.transform.position = pos;
+                plot.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+                plot.transform.localScale = new Vector3(2.8f, 0.06f, 3.0f);
+                var plotRenderer = plot.GetComponent<Renderer>();
+                plotRenderer.sharedMaterial = soilMat;
+                plot.GetComponent<Collider>().enabled = false;
+
+                var tomatoVisual = BuildCropVisual(plot.transform, "TomatoVisual",
+                    "Assets/UpIzUpMini/Art/CropMeshes/TomatoPlant_LOD.asset", 1.7f, fruitCount: 4);
+                var weedVisual = BuildCropVisual(plot.transform, "WeedVisual",
+                    "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f, fruitCount: 0);
+
+                var plotComponent = plot.AddComponent<FarmPlot>();
+                var pso = new SerializedObject(plotComponent);
+                pso.FindProperty("soilRenderer").objectReferenceValue = plotRenderer;
+                pso.FindProperty("tomatoVisual").objectReferenceValue = tomatoVisual;
+                pso.FindProperty("weedVisual").objectReferenceValue = weedVisual;
+                pso.ApplyModifiedPropertiesWithoutUndo();
+
+                // Simple fence marking the land as not yet owned.
+                var fence = new GameObject("LockedFence");
+                fence.transform.SetParent(plot.transform, false);
+                // Counter the plot's non-uniform scale.
+                fence.transform.localScale = new Vector3(1f / 2.8f, 1f / 0.06f, 1f / 3.0f);
+                for (int i = 0; i < 4; i++)
+                {
+                    var post = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    post.transform.SetParent(fence.transform, false);
+                    float t = i / 3f;
+                    post.transform.localPosition = new Vector3(-1.3f + t * 2.6f, 0.55f, 1.5f);
+                    post.transform.localScale = new Vector3(0.1f, 1.1f, 0.1f);
+                    post.GetComponent<Renderer>().sharedMaterial = fenceMat;
+                    Object.DestroyImmediate(post.GetComponent<Collider>());
+                }
+                var rail = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                rail.transform.SetParent(fence.transform, false);
+                rail.transform.localPosition = new Vector3(0f, 0.95f, 1.5f);
+                rail.transform.localScale = new Vector3(2.8f, 0.1f, 0.08f);
+                rail.GetComponent<Renderer>().sharedMaterial = fenceMat;
+                Object.DestroyImmediate(rail.GetComponent<Collider>());
+
+                var locked = plot.AddComponent<LockedFarmPlot>();
+                var lso = new SerializedObject(locked);
+                lso.FindProperty("requiredItemId").stringValue = "land_montine";
+                lso.FindProperty("lockedVisual").objectReferenceValue = fence;
+                lso.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         /// <summary>
@@ -1147,6 +1222,12 @@ namespace UpIzUpMini.EditorTools
             var vitals = go.AddComponent<CharacterVitals>();
             go.AddComponent<SwimmingController>().SetWaterLevel(SeaLevelY);
 
+            // Shows purchased apparel on the character.
+            var equipment = go.AddComponent<CharacterEquipment>();
+            var eqSo = new SerializedObject(equipment);
+            eqSo.FindProperty("animator").objectReferenceValue = animator;
+            eqSo.ApplyModifiedPropertiesWithoutUndo();
+
             var playerController = go.AddComponent<PlayerController>();
             var pcSo = new SerializedObject(playerController);
             pcSo.FindProperty("animator").objectReferenceValue = animator;
@@ -1204,6 +1285,45 @@ namespace UpIzUpMini.EditorTools
 
             BuildMarketArea(terrain, roadPoints, index: 6, title: "FARM SHOP", secondTitle: "PRODUCE BUYER");
             BuildMarketArea(terrain, roadPoints, index: 9, title: "CLOTHES", secondTitle: null);
+
+            BuildBossNpc(terrain, roadPoints, allCrops, animController);
+        }
+
+        /// <summary>
+        /// Boss K waits near the Montine turnoff, away from the market -
+        /// per Docs/STORY.md he watches their deliveries and offers the
+        /// higher-paying illegal work.
+        /// </summary>
+        private static void BuildBossNpc(
+            Terrain terrain, List<Vector3> roadPoints, CropDefinition[] allCrops,
+            RuntimeAnimatorController animController)
+        {
+            int mid = roadPoints.Count / 2;
+            Vector3 dir = (roadPoints[mid + 1] - roadPoints[mid - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+
+            Vector3 pos = roadPoints[mid] + right * 7.5f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+            _bossPos = pos;
+
+            var go = new GameObject("NPC_BossK");
+            go.transform.position = pos;
+            go.transform.rotation = Quaternion.LookRotation(-right, Vector3.up);
+
+            InstantiateCharacter("Assets/Floreswa/Models/male02_3.fbx", go.transform, animController, null);
+
+            CropDefinition bushers = null;
+            foreach (var c in allCrops)
+            {
+                if (c != null && c.isIllegal) { bushers = c; break; }
+            }
+
+            var npc = go.AddComponent<TownNPCInteractable>();
+            var so = new SerializedObject(npc);
+            so.FindProperty("role").enumValueIndex = (int)NpcRole.Boss;
+            so.FindProperty("npcName").stringValue = "BossK";
+            so.FindProperty("bossSeedCrop").objectReferenceValue = bushers;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void BuildNpc(
@@ -1621,6 +1741,9 @@ namespace UpIzUpMini.EditorTools
             Vector3 marketPos = roadPoints[Mathf.Clamp(6, 1, roadPoints.Count - 2)];
             Vector3 apparelPos = roadPoints[Mathf.Clamp(9, 1, roadPoints.Count - 2)];
             Vector3 plotPos = firstPlot != null ? firstPlot.position : farmCenter;
+            Vector3 policePos = roadPoints[Mathf.Clamp(4, 1, roadPoints.Count - 2)];
+            Vector3 expansionPos = _expansionPlotPos != Vector3.zero ? _expansionPlotPos : farmCenter;
+            Vector3 bossPos = _bossPos != Vector3.zero ? _bossPos : farmCenter;
 
             var missions = new List<Mission>
             {
@@ -1714,6 +1837,90 @@ namespace UpIzUpMini.EditorTools
                             kind = ObjectiveKind.SellCrop,
                             instruction = "Sell the crop to the Produce Buyer",
                             markerPosition = marketPos,
+                        },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M3",
+                    title = "More Land",
+                    briefing = "Dat small plot cannot hold allu forever. Buy the land next to it.",
+                    rewardMoney = 80,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.BuyItem,
+                            targetId = "land_montine",
+                            instruction = "Buy the Montine Land Plot from the Farm Shop ($600)",
+                            markerPosition = marketPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.PlantCrop,
+                            instruction = "Plant something on your new land",
+                            markerPosition = expansionPos,
+                        },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M4",
+                    title = "The Offer",
+                    briefing = "A man name Boss K been watching allu deliveries. He waiting up by the farm track.",
+                    rewardMoney = 0,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.TalkTo,
+                            targetId = "BossK",
+                            instruction = "Go and hear what Boss K have to say",
+                            markerPosition = bossPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.PlantCrop,
+                            targetId = "bushers",
+                            instruction = "Plant the Bushers up at Montine  [ 4 ] to select",
+                            markerPosition = plotPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.HarvestCrop,
+                            targetId = "bushers",
+                            requiredCount = 3,
+                            instruction = "Water it, let it grow, then harvest the Bushers",
+                            markerPosition = plotPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.SellCrop,
+                            instruction = "Sell it in Lalay - but know dis raise police heat",
+                            markerPosition = marketPos,
+                        },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M5",
+                    title = "Cool Down",
+                    briefing = "Police watching allu now. Stay off di road till dey lose interest.",
+                    rewardMoney = 120,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.EscapeHeat,
+                            instruction = "Get away from Lalay and let the heat cool right down",
+                            markerPosition = farmCenter,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.TalkTo,
+                            targetId = "Police",
+                            instruction = "Walk past the officer clean - talk to him with low heat",
+                            markerPosition = policePos,
                         },
                     }
                 },

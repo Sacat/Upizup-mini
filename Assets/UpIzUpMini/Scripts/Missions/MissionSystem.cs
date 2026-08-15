@@ -15,6 +15,8 @@ namespace UpIzUpMini.Missions
         SellCrop,      // sell crops to the buyer
         BuySeeds,      // purchase seeds from the farm shop
         ReachArea,     // walk into a world position
+        BuyItem,       // purchase a specific shop item (e.g. land)
+        EscapeHeat,    // let police heat cool back below a threshold
     }
 
     [Serializable]
@@ -156,7 +158,9 @@ namespace UpIzUpMini.Missions
 
             // Position objectives complete by proximity rather than an event.
             var obj = CurrentObjective;
-            if (obj != null && obj.kind == ObjectiveKind.ReachArea)
+            if (obj == null) return;
+
+            if (obj.kind == ObjectiveKind.ReachArea)
             {
                 var player = Character.CharacterSwitchManager.Instance?.Active?.root;
                 if (player != null &&
@@ -166,7 +170,23 @@ namespace UpIzUpMini.Missions
                     AdvanceObjective();
                 }
             }
+            else if (obj.kind == ObjectiveKind.EscapeHeat)
+            {
+                // Completes once heat has actually been raised and then
+                // cooled off again, so it can't be skipped by never
+                // committing a crime in the first place.
+                float heat = EconomyManager.Instance != null ? EconomyManager.Instance.Heat : 0f;
+                if (heat >= 35f) _sawHighHeat = true;
+                if (_sawHighHeat && heat <= 8f)
+                {
+                    _sawHighHeat = false;
+                    obj.progress = obj.requiredCount;
+                    AdvanceObjective();
+                }
+            }
         }
+
+        private bool _sawHighHeat;
 
         private void ShowBanner(string text)
         {
@@ -179,6 +199,40 @@ namespace UpIzUpMini.Missions
             missions = newMissions;
             _missionIndex = 0;
             _objectiveIndex = 0;
+        }
+
+        // --- Save/load ---------------------------------------------------
+
+        public int SaveMissionIndex => _missionIndex;
+        public int SaveObjectiveIndex => _objectiveIndex;
+
+        public List<int> CaptureObjectiveProgress()
+        {
+            var progress = new List<int>();
+            var m = Current;
+            if (m == null) return progress;
+            foreach (var o in m.objectives) progress.Add(o.progress);
+            return progress;
+        }
+
+        public void LoadState(int missionIndex, int objectiveIndex, IReadOnlyList<int> progress)
+        {
+            _missionIndex = Mathf.Clamp(missionIndex, 0, missions.Count);
+            _objectiveIndex = Mathf.Max(0, objectiveIndex);
+
+            var m = Current;
+            if (m != null)
+            {
+                _objectiveIndex = Mathf.Clamp(_objectiveIndex, 0, Mathf.Max(0, m.objectives.Count - 1));
+                if (progress != null)
+                {
+                    for (int i = 0; i < m.objectives.Count && i < progress.Count; i++)
+                    {
+                        m.objectives[i].progress = progress[i];
+                    }
+                }
+                ShowBanner(CurrentObjective != null ? CurrentObjective.instruction : m.title);
+            }
         }
     }
 }

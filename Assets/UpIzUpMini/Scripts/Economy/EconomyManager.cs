@@ -150,8 +150,23 @@ namespace UpIzUpMini.Economy
             OnChanged?.Invoke();
         }
 
+        /// <summary>Snapshot seeds and owned items for saving.</summary>
+        public void CaptureExtras(List<string> seedIds, List<int> seedCounts, List<string> ownedIds)
+        {
+            foreach (var kv in _seeds)
+            {
+                seedIds.Add(kv.Key);
+                seedCounts.Add(kv.Value);
+            }
+            ownedIds.AddRange(_owned);
+        }
+
         /// <summary>Restore saved state - see SaveLoadSystem.</summary>
-        public void LoadState(int money, float heat, IReadOnlyList<string> ids, IReadOnlyList<int> counts)
+        public void LoadState(
+            int money, float heat,
+            IReadOnlyList<string> ids, IReadOnlyList<int> counts,
+            IReadOnlyList<string> seedIds = null, IReadOnlyList<int> seedCounts = null,
+            IReadOnlyList<string> ownedIds = null)
         {
             Money = money;
             Heat = Mathf.Clamp(heat, 0f, MaxHeat);
@@ -163,6 +178,21 @@ namespace UpIzUpMini.Economy
                 {
                     _inventory[ids[i]] = counts[i];
                 }
+            }
+
+            if (seedIds != null && seedCounts != null)
+            {
+                _seeds.Clear();
+                for (int i = 0; i < seedIds.Count && i < seedCounts.Count; i++)
+                {
+                    _seeds[seedIds[i]] = seedCounts[i];
+                }
+            }
+
+            if (ownedIds != null)
+            {
+                _owned.Clear();
+                foreach (var id in ownedIds) _owned.Add(id);
             }
 
             OnChanged?.Invoke();

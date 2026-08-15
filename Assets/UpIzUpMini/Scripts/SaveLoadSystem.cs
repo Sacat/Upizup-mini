@@ -26,6 +26,14 @@ namespace UpIzUpMini
         public Vector3 smartPosition;
         public Vector3 strongPosition;
         public int activeCharacter;
+
+        public List<string> seedIds = new List<string>();
+        public List<int> seedCounts = new List<int>();
+        public List<string> ownedItemIds = new List<string>();
+
+        public int missionIndex;
+        public int objectiveIndex;
+        public List<int> objectiveProgress = new List<int>();
     }
 
     /// <summary>
@@ -68,6 +76,16 @@ namespace UpIzUpMini
                     save.inventoryIds.Add(crop.cropId);
                     save.inventoryCounts.Add(EconomyManager.Instance.GetCount(crop.cropId));
                 }
+
+                EconomyManager.Instance.CaptureExtras(save.seedIds, save.seedCounts, save.ownedItemIds);
+            }
+
+            var missions = Missions.MissionSystem.Instance;
+            if (missions != null)
+            {
+                save.missionIndex = missions.SaveMissionIndex;
+                save.objectiveIndex = missions.SaveObjectiveIndex;
+                save.objectiveProgress = missions.CaptureObjectiveProgress();
             }
 
             foreach (var plot in FindPlotsOrdered())
@@ -112,7 +130,12 @@ namespace UpIzUpMini
                 return;
             }
 
-            EconomyManager.Instance?.LoadState(save.money, save.heat, save.inventoryIds, save.inventoryCounts);
+            EconomyManager.Instance?.LoadState(
+                save.money, save.heat, save.inventoryIds, save.inventoryCounts,
+                save.seedIds, save.seedCounts, save.ownedItemIds);
+
+            Missions.MissionSystem.Instance?.LoadState(
+                save.missionIndex, save.objectiveIndex, save.objectiveProgress);
 
             var plots = FindPlotsOrdered();
             for (int i = 0; i < plots.Count && i < save.plots.Count; i++)

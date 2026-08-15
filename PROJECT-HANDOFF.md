@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-014 built. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
+- Status: MINI-015 built. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
@@ -324,7 +324,31 @@ After verification, append a change entry, update the verification results, and 
   - Objectives are generated in the scene builder rather than authored as assets; fine for two missions, worth moving to ScriptableObjects as the count grows.
 - Next action: user playtests — animation feel first, then run Mission 1 end to end and check the arrow/instructions read clearly.
 
+### MINI-015 — Closing the outstanding gaps: boss/police/land missions, wearable apparel, mission save/load
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: "do what is still not done" — finish the three items flagged as outstanding at the end of MINI-014.
+- Implementation:
+  - **Apparel now actually appears on the characters.** `CharacterEquipment` attaches purchased items to Humanoid bones via `Animator.GetBoneTransform` — which only works because every model was converted to a Humanoid rig back in MINI-013, so no per-model bone names are needed. Cap and shades mount to `Head`, the gold chain to `Chest`, the watch to `LeftLowerArm`. It subscribes to `EconomyManager.OnChanged`, so an item appears the moment it's bought. Geometry is generated primitives (there are no clothing assets in the project); it is deliberately easy to swap for real meshes later.
+  - **Buying land now does something.** `LockedFarmPlot` gates three extra plots behind the `land_montine` purchase: until it's bought they are fenced off and their `FarmPlot` component is disabled, which removes them from the interaction registry so no `[E] Plant` prompt appears on land you do not own. Buying the land drops the fences and enables them. Verified by render — the three fenced plots sit clearly behind the main 8.
+  - **Three new missions**, continuing the GTA-style one-instruction-at-a-time flow:
+    - **M3 "More Land"** — buy the Montine Land Plot from the Farm Shop, then plant on the new land. Uses a new `BuyItem` objective kind.
+    - **M4 "The Offer"** — Boss K (new `NpcRole.Boss`, standing near the Montine turnoff away from the market, per `Docs/STORY.md` Mission 5) gives Bushers seed on first talk; then plant, grow, harvest and sell it — with the sale raising police heat.
+    - **M5 "Cool Down"** — a new `EscapeHeat` objective that requires heat to actually be raised above 35 and then cooled below 8 before completing, so it cannot be skipped by simply never committing a crime; then talk to the officer while clean.
+  - **Mission progress is now saved.** `SaveLoadSystem` persists mission index, objective index and per-objective progress, plus (previously missing) seed counts and owned shop items. `EconomyManager.CaptureExtras`/extended `LoadState` handle the economy half.
+- Files changed: `Scripts/Character/CharacterEquipment.cs`, `Scripts/Farming/LockedFarmPlot.cs` (new); `Scripts/Missions/MissionSystem.cs` (BuyItem/EscapeHeat kinds, save/load state), `Scripts/SaveLoadSystem.cs`, `Scripts/Economy/EconomyManager.cs`, `Scripts/Interaction/TownNPCInteractable.cs` (Boss role), `Scripts/UI/ShopPanelController.cs`, `Editor/Mini011PhaseBSetup.cs`; `Scenes/GrandBayProof.unity`.
+- Verification: compiles clean (one brace-structure slip introduced while editing `MissionSystem.Update` was caught and fixed before it reached a build). Scene builder clean. Farm re-rendered: 8 usable plots plus 3 clearly fenced locked plots, ripe red fruit on the plants, MONTINE FARM sign readable. Windows build succeeded; **zero console errors in a 14s headless run**.
+- Known issues (honest):
+  - **Still not playtested by hand.** Everything here is verified by compile, scene render and a clean headless run — not by playing it. The apparel bone offsets in particular were positioned by reasoning about Humanoid proportions, not by looking at a character wearing them, so the cap/chain placement may well need nudging.
+  - Clothing and footwear (`shirt_lacos`, `shorts_adibas`, `shoes_mike`, `shoes_pumba`) still have no visual — they would need to replace body materials or swap meshes rather than attach to a bone, which is a larger change than the accessory attachment used here.
+  - Vehicles and boats remain economy entries only; nothing is drivable.
+  - `EscapeHeat` relies on heat decaying over time; there is no active police pursuit, so "escaping" currently means waiting rather than being chased.
+  - Missions are still generated in the scene builder rather than authored as assets. With five missions this is close to the point where moving them to ScriptableObjects would pay off.
+- Next action: user playtests. Best single run to exercise the new work: buy a cap and chain from the Clothes Shop (check they appear), then follow M3 → M4 → M5 to hit the land, boss and police content, and press F5/F9 partway to confirm mission progress survives.
+
 ## Required change-entry format
+
 
 
 ```text
