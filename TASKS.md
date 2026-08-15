@@ -1,10 +1,12 @@
 # Up Iz Up Mini — Task Board
 
-## Ready
+## Done (pending user confirmation)
 
 ### MINI-001 — 2.5D Grand Bay proof of concept
 
 Goal: Create one playable scene proving the visual and control direction.
+
+Status: Implemented and statically validated by Claude on 2026-08-15. Batch-mode compile and scene-wiring validation both pass. Runtime/visual behavior (movement feel, prompts, dialogue, console-clean Play mode) has **not** been manually play-tested yet — headless automated Play-mode verification hit an unrelated Unity Editor Search-module bug in this environment. See the MINI-001 entry in `PROJECT-HANDOFF.md` for full detail and the requested manual check.
 
 Acceptance criteria:
 
@@ -18,13 +20,7 @@ Acceptance criteria:
 - No flat top-down tilemap presentation.
 - Scene runs without console errors and passes a batch-mode compile.
 
-Reserved scope when claimed:
-
-- `Assets/UpIzUpMini/Scenes/GrandBayProof.unity`
-- `Assets/UpIzUpMini/Scripts/Character/`
-- `Assets/UpIzUpMini/Scripts/Camera/`
-- `Assets/UpIzUpMini/Scripts/Interaction/`
-- `Assets/UpIzUpMini/Editor/Mini001SceneSetup.cs`
+## Ready
 
 ### MINI-002 — Map-anchor data
 
