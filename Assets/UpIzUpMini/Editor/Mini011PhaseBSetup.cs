@@ -1,12 +1,16 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Animations;
+using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using UpIzUpMini.Cameras;
 using UpIzUpMini.Character;
 using UpIzUpMini.Interaction;
+using UpIzUpMini.UI;
 
 namespace UpIzUpMini.EditorTools
 {
@@ -56,6 +60,7 @@ namespace UpIzUpMini.EditorTools
             Transform player = BuildPlayer(terrain, roadPoints, locomotionController);
             BuildNPC(terrain, roadPoints);
             BuildCamera(player);
+            BuildPauseMenu();
 
             EnsureFolder("Assets/UpIzUpMini/Scenes");
             bool saved = EditorSceneManager.SaveScene(scene, ScenePath);
@@ -776,6 +781,108 @@ namespace UpIzUpMini.EditorTools
 
             camGo.transform.position = player.position + new Vector3(0f, 6.8f, -7f);
             camGo.transform.LookAt(player.position + Vector3.up * 1.4f);
+        }
+
+        /// <summary>
+        /// Esc-to-pause menu (Resume/Quit) and the EventSystem it needs for
+        /// button clicks/keyboard navigation. Uses legacy UGUI Text (no
+        /// TextMeshPro package in this project yet - see Phase C scope in
+        /// TASKS.md) with Unity's built-in Arial font.
+        /// </summary>
+        private static void BuildPauseMenu()
+        {
+            if (Object.FindFirstObjectByType<EventSystem>() == null)
+            {
+                var esGo = new GameObject("EventSystem");
+                esGo.AddComponent<EventSystem>();
+                esGo.AddComponent<StandaloneInputModule>();
+            }
+
+            var canvasGo = new GameObject("PauseMenuCanvas");
+            var canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasGo.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            canvasGo.AddComponent<GraphicRaycaster>();
+
+            var panelGo = new GameObject("PausePanel");
+            panelGo.transform.SetParent(canvasGo.transform, false);
+            var panelImage = panelGo.AddComponent<Image>();
+            panelImage.color = new Color(0f, 0f, 0f, 0.72f);
+            var panelRect = panelGo.GetComponent<RectTransform>();
+            panelRect.anchorMin = Vector2.zero;
+            panelRect.anchorMax = Vector2.one;
+            panelRect.offsetMin = Vector2.zero;
+            panelRect.offsetMax = Vector2.zero;
+
+            Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            var title = CreateLabel(panelGo.transform, "PAUSED", 56, new Vector2(0f, 160f), builtinFont);
+            title.alignment = TextAnchor.MiddleCenter;
+
+            var resumeBtn = CreateButton(panelGo.transform, "Resume", new Vector2(0f, 20f), builtinFont);
+            var quitBtn = CreateButton(panelGo.transform, "Quit (Q)", new Vector2(0f, -70f), builtinFont);
+
+            var controller = canvasGo.AddComponent<PauseMenuController>();
+            var so = new SerializedObject(controller);
+            so.FindProperty("panel").objectReferenceValue = panelGo;
+            so.FindProperty("resumeButton").objectReferenceValue = resumeBtn;
+            so.FindProperty("quitButton").objectReferenceValue = quitBtn;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            UnityEventTools.AddPersistentListener(resumeBtn.onClick, controller.ResumeGame);
+            UnityEventTools.AddPersistentListener(quitBtn.onClick, controller.QuitGame);
+
+            panelGo.SetActive(false);
+        }
+
+        private static Text CreateLabel(Transform parent, string text, int fontSize, Vector2 anchoredPos, Font font)
+        {
+            var go = new GameObject($"Label_{text}");
+            go.transform.SetParent(parent, false);
+            var rect = go.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(600f, 80f);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = anchoredPos;
+
+            var label = go.AddComponent<Text>();
+            label.text = text;
+            label.font = font;
+            label.fontSize = fontSize;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.color = Color.white;
+            return label;
+        }
+
+        private static Button CreateButton(Transform parent, string text, Vector2 anchoredPos, Font font)
+        {
+            var go = new GameObject($"Button_{text}");
+            go.transform.SetParent(parent, false);
+            var rect = go.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(280f, 64f);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = anchoredPos;
+
+            var image = go.AddComponent<Image>();
+            image.color = new Color(0.2f, 0.2f, 0.24f, 0.95f);
+            var button = go.AddComponent<Button>();
+
+            var labelGo = new GameObject("Label");
+            labelGo.transform.SetParent(go.transform, false);
+            var labelRect = labelGo.AddComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+            var label = labelGo.AddComponent<Text>();
+            label.text = text;
+            label.font = font;
+            label.fontSize = 28;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.color = Color.white;
+
+            return button;
         }
 
         // ---------------------------------------------------------------

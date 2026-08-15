@@ -114,6 +114,49 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "grandbay-overview-mid.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Pause Menu")]
+        public static void SnapshotPauseMenu()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            // GameObject.Find only searches active objects, and the panel
+            // starts inactive - look it up via the canvas instead.
+            var canvasEarly = Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
+            var panel = canvasEarly != null ? canvasEarly.transform.Find("PausePanel") : null;
+            if (panel != null) panel.gameObject.SetActive(true);
+            else Debug.LogWarning("Snapshot: PausePanel not found under canvas.");
+
+            var mainCamGo = GameObject.FindWithTag("MainCamera");
+            var player = GameObject.FindWithTag("Player");
+            if (mainCamGo != null && player != null)
+            {
+                mainCamGo.transform.position = player.transform.position + new Vector3(0f, 6.8f, -7f);
+                mainCamGo.transform.LookAt(player.transform.position + Vector3.up * 1.4f);
+            }
+
+            var cam = mainCamGo != null ? mainCamGo.GetComponent<Camera>() : null;
+            if (cam == null)
+            {
+                Debug.LogError("Snapshot: no MainCamera found.");
+                return;
+            }
+
+            // Screen Space - Overlay canvases don't get captured by
+            // Camera.Render() to a texture (they draw directly to the
+            // screen backbuffer, bypassing any camera) - switch to
+            // Screen Space - Camera just for this diagnostic snapshot so
+            // the UI is actually visible in the rendered PNG. Not saved.
+            var canvas = Object.FindFirstObjectByType<Canvas>();
+            if (canvas != null)
+            {
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+            }
+
+            RenderAndSave(cam, "grandbay-pause-menu.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Shanty Town Sample")]
         public static void SnapshotShantyTown()
         {

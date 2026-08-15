@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-011 Phase B built, user-tested, and bugfixed once (roofs, density, shanty scale/texture, prompt text size, skin tones, animator staleness). Windows build produced (`Builds/GrandBayProof/UpIzUpMini.exe`), zero errors in a headless run. Awaiting a second round of user feedback; Phase C (NPCs, HUD meters, crop selection/growth, Tab switching + Strong) is clearly scoped in `TASKS.md` but not started.
+- Status: MINI-011 Phase B built, user-tested, bugfixed once, and now has a working Esc pause menu (Resume/Quit, mouse+keyboard) and mouse-look camera orbit. Windows build produced, zero errors in a headless run. Awaiting user hands-on test of the menu/mouse-look; Phase C (NPCs, HUD meters, crop selection/growth, Tab switching + Strong) is clearly scoped in `TASKS.md` but not started.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000` (`MINI-001` implemented pending confirmation; `MINI-011` Phase A complete, Phase B not started)
@@ -207,6 +207,24 @@ After verification, append a change entry, update the verification results, and 
   - Police, shopkeeper, and crop-buyer NPCs; health/heat/stamina meters; numbered (1-4) crop-selection; before/after soil colour states across multiple plots; crop growth-stage scaling and green-to-red fruit colour — none of this exists yet. This is the clearly-scoped Phase C list now (see `TASKS.md`).
   - Car/driving explicitly deferred by the user to a later phase.
 - Next action: user re-tests this build; then Phase C (NPCs, HUD meters, crop selection/growth, Tab switching + Strong as a real second character) gets claimed.
+
+### MINI-011 — Pause menu + mouse-look
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User confirmed the bugfix pass works, asked for Esc-to-menu with Q-to-quit/navigable options, and mouse-look camera control. Noted running still feels weird (deferred by user) and asked me to keep visually inspecting my own work.
+- Implementation:
+  - `PauseMenuController.cs` (new): Esc toggles a pause panel (`Time.timeScale` 0/1, cursor unlocked+visible while paused, locked+hidden while playing). While paused, Q quits (`EditorApplication.isPlaying = false` in-Editor, `Application.Quit()` in a build). Resume/Quit are real UGUI `Button`s — mouse-clickable, and keyboard-navigable for free via Unity's default `Selectable` navigation once one is selected (`EventSystem.SetSelectedGameObject(resumeButton)` on pause).
+  - `ThirdPersonFollowCamera.cs`: added mouse-look — horizontal orbit driven by `Input.GetAxis("Mouse X")`, but only while `Cursor.lockState == CursorLockMode.Locked`, so opening the pause menu doesn't spin the camera from residual mouse delta. Downward look angle is unaffected (still ~44°); `PlayerController` already moves camera-relative, so WASD direction follows wherever the mouse has oriented the camera, which is the intended combined scheme.
+  - `Mini011PhaseBSetup.cs`: builds the `EventSystem` (+`StandaloneInputModule`, matching the project's legacy Input Manager setup) and a Screen Space - Overlay `Canvas` with the pause panel/buttons using legacy `UnityEngine.UI.Text` and Unity 6's built-in `LegacyRuntime.ttf` (not `Arial.ttf` — that constant was removed in Unity 6 and threw an `ArgumentException` on the first attempt; fixed and reconfirmed via a rebuild).
+  - Extended `Mini011AssetSnapshot.cs` with a pause-menu snapshot mode to visually confirm the UI layout before shipping the build — caught a real bug in the diagnostic itself along the way (`GameObject.Find` doesn't search inactive objects, so the initially-hidden panel wasn't found; fixed by looking it up via the canvas's transform instead).
+- Files changed: `Assets/UpIzUpMini/Scripts/UI/PauseMenuController.cs` (new), `Assets/UpIzUpMini/Scripts/Camera/ThirdPersonFollowCamera.cs`, `Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs`, `Assets/UpIzUpMini/Editor/Mini011AssetSnapshot.cs`, `Assets/UpIzUpMini/Scenes/GrandBayProof.unity` (rebuilt).
+- Verification: compile clean; scene builder hit one real runtime exception (`Arial.ttf` removed in Unity 6) caught and fixed, then rebuilt clean; rendered the pause menu (title + both buttons legible, correctly positioned — full-screen dim overlay didn't show in this particular render because verifying an Overlay-mode canvas requires temporarily switching it to Camera mode for the offline snapshot technique to capture it at all, which appears to affect its compositing in this static single-frame test; the shipped scene keeps the canvas in Overlay mode, unaffected by the snapshot script since scene changes there aren't saved). Windows build succeeded, zero errors in an 8s headless run, launched for the user.
+- Known issues:
+  - **Mouse-look and pause-menu interaction (clicking buttons, Q-to-quit, keyboard nav) have not been confirmed by an actual human interacting with the compiled game** — Update()-driven input logic can't be meaningfully exercised from batch mode. This is exactly what the launched build is for.
+  - The pause panel's full-screen dark overlay wasn't visually confirmed in the offline snapshot for the technical reason above; worth a quick look in the real build.
+  - Running "feels weird" is explicitly deferred by the user — not addressed in this pass.
+- Next action: user tests Esc/mouse-look/Q-quit in the running build.
 
 ## Required change-entry format
 
