@@ -185,6 +185,40 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "grandbay-gameplay-hud.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-016/Snapshot Walk Pose")]
+        public static void SnapshotWalkPose()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            // Sample mid-stride of the actual walk clip onto the two
+            // protagonists. This is the real test of retargeting quality:
+            // a bad avatar shows up as bent/twisted legs here.
+            var walk = LoadFirstClip("Assets/UpIzUpMini/Art/Animations/Locomotion--Walk_N.anim.fbx");
+            if (walk == null) { Debug.LogError("Snapshot: walk clip missing"); return; }
+
+            var franki = GameObject.Find("Franki");
+            var sacat = GameObject.Find("Sacat");
+            foreach (var go in new[] { franki, sacat })
+            {
+                if (go == null) continue;
+                var animator = go.GetComponentInChildren<Animator>();
+                if (animator == null) { Debug.LogWarning($"Snapshot: no animator on {go.name}"); continue; }
+                Debug.Log($"Snapshot: {go.name} avatar human={animator.avatar != null && animator.avatar.isHuman}");
+                walk.SampleAnimation(animator.gameObject, 0.45f);
+            }
+
+            Vector3 target = franki != null ? franki.transform.position : Vector3.zero;
+
+            var camGo = new GameObject("WalkCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = target + new Vector3(3.2f, 1.35f, -3.6f);
+            camGo.transform.LookAt(target + Vector3.up * 1.0f);
+            cam.fieldOfView = 45f;
+            cam.farClipPlane = 200f;
+
+            RenderAndSave(cam, "walk-pose.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-014/Snapshot Mission Marker")]
         public static void SnapshotMissionMarker()
         {

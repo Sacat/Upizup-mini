@@ -85,6 +85,8 @@ namespace UpIzUpMini.Character
             if (vitals != null)
             {
                 vitals.SetRunning(wantsRun && moveDir.sqrMagnitude > 0.001f);
+                // Running out of stamina drops the player to a walk - it
+                // must never bring them to a complete stop.
                 wantsRun = wantsRun && vitals.CanRun;
             }
             IsRunning = wantsRun;

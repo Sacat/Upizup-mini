@@ -18,6 +18,7 @@ namespace UpIzUpMini.Interaction
     {
         [SerializeField] private float interactRange = 2.75f;
         [SerializeField] private KeyCode interactKey = KeyCode.E;
+        [SerializeField] private KeyCode cloneKey = KeyCode.R;
         [SerializeField] private float feedbackDuration = 3f;
 
         private IInteractable _current;
@@ -36,6 +37,17 @@ namespace UpIzUpMini.Interaction
                 _current.Interact(gameObject);
                 _feedback = (_current as InteractableBase)?.GetInteractionFeedback();
                 _feedbackTimer = feedbackDuration;
+            }
+
+            // R clones a ripe plant for extra seed (see FarmPlot.Clone).
+            if (_current is Farming.FarmPlot plot && Input.GetKeyDown(cloneKey))
+            {
+                string result = plot.Clone();
+                if (!string.IsNullOrEmpty(result))
+                {
+                    _feedback = result;
+                    _feedbackTimer = feedbackDuration;
+                }
             }
 
             if (_feedbackTimer > 0f)
@@ -118,10 +130,17 @@ namespace UpIzUpMini.Interaction
                 if (screenPoint.z > 0f)
                 {
                     var guiPoint = new Vector2(screenPoint.x, Screen.height - screenPoint.y);
-                    float w = 220f * scale;
+                    float w = 260f * scale;
                     float h = 56f * scale;
                     var rect = new Rect(guiPoint.x - w / 2f, guiPoint.y - h / 2f, w, h);
                     GUI.Box(rect, _current.PromptLabel, _promptStyle);
+
+                    // A ripe plot also offers cloning, shown as a second line.
+                    if (_current is Farming.FarmPlot ripePlot && ripePlot.CanClone)
+                    {
+                        var cloneRect = new Rect(rect.x, rect.y + h + 4f * scale, w, h);
+                        GUI.Box(cloneRect, ripePlot.CloneLabel, _promptStyle);
+                    }
                 }
             }
 

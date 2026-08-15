@@ -77,16 +77,21 @@ namespace UpIzUpMini.EditorTools
             Vector3 startPos = roadPoints[0];
             startPos.y = SampleHeight(terrain, startPos.x, startPos.z);
 
-            // The two protagonists are Franki and Sacat (renamed from the
-            // earlier Smart/Strong placeholders per the user). Franki is
-            // the darker-skinned of the two; Sacat is lighter but still a
-            // brown-skinned Dominican teen. Facial hair hidden - both 18.
+            // Franki and Sacat use the larger project's own character
+            // models. Measured reason (MINI-016): those avatars map 52
+            // human bones over a 67-72 bone skeleton, where the previous
+            // Floreswa models - authored Generic and force-converted to
+            // Humanoid - mapped only 23 over 39 with an auto-estimated
+            // rest pose. Retargeting the shared locomotion clips onto the
+            // sparse auto-avatar is what produced the distorted legs.
+            // Their own materials are used, so no skin tint / facial-hair
+            // hiding is applied here.
             CharacterSlot smart = BuildControllableCharacter(
-                "Franki", "Franki", "Assets/Floreswa/Models/male01_1.fbx",
-                new Color(0.33f, 0.20f, 0.12f), startPos, locomotionController, startActive: true);
+                "Franki", "Franki", "Assets/UpIzUpMini/Art/Characters/Mainchar.fbx",
+                null, startPos, locomotionController, startActive: true);
             CharacterSlot strong = BuildControllableCharacter(
-                "Sacat", "Sacat", "Assets/Floreswa/Models/male02_1.fbx",
-                new Color(0.52f, 0.35f, 0.22f), startPos + new Vector3(1.4f, 0f, -1.2f),
+                "Sacat", "Sacat", "Assets/UpIzUpMini/Art/Characters/Strong.fbx",
+                null, startPos + new Vector3(1.4f, 0f, -1.2f),
                 locomotionController, startActive: false);
             strong.followController.FollowTarget = smart.root.transform;
 
@@ -101,6 +106,20 @@ namespace UpIzUpMini.EditorTools
             WriteSlot(slotsProp.GetArrayElementAtIndex(1), strong);
             switchSo.FindProperty("followCamera").objectReferenceValue = camera;
             switchSo.ApplyModifiedPropertiesWithoutUndo();
+
+            // Windowed by default so the game can be minimised/resized.
+            new GameObject("WindowMode").AddComponent<WindowModeController>();
+
+            // Police escalation: extra officers appear as heat climbs.
+            var policeNpc = GameObject.Find("NPC_Police");
+            if (policeNpc != null)
+            {
+                var spawnerGo = new GameObject("PoliceReinforcements");
+                var spawner = spawnerGo.AddComponent<PoliceReinforcementSpawner>();
+                var spSo = new SerializedObject(spawner);
+                spSo.FindProperty("officerTemplate").objectReferenceValue = policeNpc;
+                spSo.ApplyModifiedPropertiesWithoutUndo();
+            }
 
             var saveGo = new GameObject("SaveLoadSystem");
             var saveSystem = saveGo.AddComponent<SaveLoadSystem>();
@@ -1201,7 +1220,7 @@ namespace UpIzUpMini.EditorTools
         /// rather than adding/removing components.
         /// </summary>
         private static CharacterSlot BuildControllableCharacter(
-            string goName, string displayName, string modelPath, Color skinTint,
+            string goName, string displayName, string modelPath, Color? skinTint,
             Vector3 position, RuntimeAnimatorController animController, bool startActive)
         {
             var go = new GameObject(goName);
@@ -1213,10 +1232,11 @@ namespace UpIzUpMini.EditorTools
             controller.height = 2f;
             controller.radius = 0.4f;
 
-            // Smart and Strong are 18 - facial hair is hidden so they don't
-            // read as older men (Docs/STORY.md).
+            // Facial hair is only hidden on the Floreswa models, whose
+            // beard/moustache/goatee live on separate material slots. The
+            // larger project's characters use their own authored materials.
             var visual = InstantiateCharacter(modelPath, go.transform, animController, skinTint,
-                hideFacialHair: true);
+                hideFacialHair: skinTint.HasValue);
             var animator = visual.GetComponentInChildren<Animator>();
 
             var vitals = go.AddComponent<CharacterVitals>();

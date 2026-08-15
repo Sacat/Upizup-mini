@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-015 built. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
+- Status: MINI-016 built. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
@@ -347,7 +347,33 @@ After verification, append a change entry, update the verification results, and 
   - Missions are still generated in the scene builder rather than authored as assets. With five missions this is close to the point where moving them to ScriptableObjects would pay off.
 - Next action: user playtests. Best single run to exercise the new work: buy a cap and chain from the Clothes Shop (check they appear), then follow M3 → M4 → M5 to hit the land, boss and police content, and press F5/F9 partway to confirm mission progress survives.
 
+### MINI-016 — Root-caused the animation problem; real character models, R cloning, windowed mode
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: Fix walking/running ("spaghetti legs") as the essential item and explain why it works in the larger project but not here; add R-key plant cloning for +2 seeds; windowed/minimisable mode; stamina should drop the player to a walk rather than stopping them; police reinforcements at high heat; and write a proper handoff so Codex can continue. User explicitly approved copying the original Franki/Sacat character assets from the larger project.
+- Implementation:
+  - **Root cause found by measurement, and it answers the user's question directly.** `Mini016AvatarDiagnostic` reports bone *counts*, not just avatar validity — which matters because the previous "avatar valid = true" check was passing while the animation was still broken. Result: the Floreswa models map **23 human bones over a 39-bone skeleton**; the larger project's `Mainchar`/`Strong` map **52 over 67–72**. The Floreswa rigs were authored **Generic** and force-converted to Humanoid in MINI-013, so Unity auto-estimated a rest pose from a model never authored in a T-pose. Retargeting the shared clips against that sparse, mis-estimated avatar is what distorted the limbs. That is precisely why the same clips look right in the larger project, which uses models authored *for* Humanoid.
+  - Copied `Mainchar.fbx` (Franki) and `Strong.fbx` (Sacat) plus their materials/textures into `Assets/UpIzUpMini/Art/Characters/` with the user's approval, imported them Humanoid, and verified the 52-bone avatars. Scene builder now uses them; skin-tint and facial-hair hiding are no longer applied to the protagonists since these ship their own authored materials.
+  - **Verified visually**, which is the real test: sampled the walk clip mid-stride and rendered it. Clean leg bend, correct arm swing, no distortion — versus the previous distorted result.
+  - **Texture budget**: the copied maps are 4K PNGs (~380MB, some normals 30MB each), far past the mobile target in D-008. Removed 8 duplicate `" 1.png"` variants (50MB) and added `Mini016TextureBudget` capping imports (normals 512, colour 1024, compressed, mipmapped). Runtime/mobile cost is now sane; the repo still carries full-size sources, flagged in the handoff.
+  - **R cloning**: `FarmPlot.Clone()` takes cuttings from a ripe plant for +2 seed without harvesting it, surfaced as a second world prompt line and wired to R in `InteractionDetector`.
+  - **Windowed mode**: `WindowModeController` starts windowed (1600×900) and toggles borderless fullscreen on F11 / Alt+Enter — borderless rather than exclusive specifically so minimising and alt-tab behave normally.
+  - **Stamina no longer stops the player.** Exhaustion now only removes the *run* option; walking always remains available.
+  - **Police reinforcements**: `PoliceReinforcementSpawner` pools officers and activates one at heat ≥ 55 and a second at ≥ 85, positioned behind the active character so they arrive rather than materialise in view. Despawns as heat falls.
+  - Controls overlay updated for R, F11 and the stamina behaviour.
+  - **`Docs/CODEX-HANDOFF.md`** written as requested: the avatar root cause with the bone-count table, why locomotion speeds are fixed constants (the clips are in-place with no root motion, so speeds come from the larger project's `ThirdPersonController.cs`), the fact that the scene is *generated* and hand edits get overwritten, the crop-decimation rationale, the verification workflow that actually works here (Play Mode hangs in batch mode; animators do not evaluate outside Play mode; Overlay canvases do not render to a RenderTexture), current state, and a prioritised list of outstanding work.
+- Files changed: `Editor/Mini016AvatarDiagnostic.cs`, `Mini016CharacterImport.cs`, `Mini016TextureBudget.cs`, `Scripts/UI/WindowModeController.cs`, `Scripts/Interaction/PoliceReinforcementSpawner.cs`, `Docs/CODEX-HANDOFF.md` (new); `Art/Characters/*` (new, approved copy); `Scripts/Farming/FarmPlot.cs`, `Scripts/Interaction/InteractionDetector.cs`, `Scripts/Character/PlayerController.cs`, `Scripts/UI/ControlsPanelController.cs`, `Editor/Mini011PhaseBSetup.cs`, `Editor/Mini011AssetSnapshot.cs`; `Scenes/GrandBayProof.unity`.
+- Verification: compiles clean. Avatar bone counts measured before and after. Walk pose rendered and inspected — the decisive check. Texture caps applied to 49 textures. Scene builder clean. Windows build succeeded; **zero console errors in a 14s headless run**.
+- Known issues (honest):
+  - **Not playtested by hand.** The walk *pose* is verified from a rendered frame; motion in real time is not. This is the thing to check first.
+  - **Not done from this request** (carried into `Docs/CODEX-HANDOFF.md` §7): dedicated "Land and Surveys" location and a car dealer for vehicles/boats — land is still sold via the farm shop; the Guadeloupe $500 → 3× sea trade; shirts/shorts/shoes as wearables (only cap/shades/chain/watch attach to bones); tighter/multiple building colliders; harder police missions actually using the new reinforcements; and vehicles/driving, which the user deferred to a later pass.
+  - `Art/Characters/` adds ~380MB of 4K source PNGs to the repository. Import settings cap the runtime cost, but the repo weight is real — worth re-encoding or Git LFS.
+  - Police reinforcements are spawned and positioned but do not pursue; `EscapeHeat` still means waiting for decay.
+- Next action: user playtests movement first. If the walk/run now looks right, the next most valuable work is the shop split (Land and Surveys, car dealer) and tighter colliders, then vehicles.
+
 ## Required change-entry format
+
 
 
 

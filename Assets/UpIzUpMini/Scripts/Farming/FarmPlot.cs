@@ -32,6 +32,26 @@ namespace UpIzUpMini.Farming
         private float _growTimer;
         private string _lastFeedback;
 
+        [SerializeField] private int seedsPerClone = 2;
+
+        /// <summary>
+        /// R clones a mature plant: takes cuttings for extra seed without
+        /// harvesting the crop, so the farm can be expanded from one buy.
+        /// Only possible once the plant is ripe.
+        /// </summary>
+        public bool CanClone => _state == PlotState.Ripe && _crop != null;
+
+        public string CloneLabel => CanClone ? "[ R ] Clone for seed" : null;
+
+        public string Clone()
+        {
+            if (!CanClone) return null;
+
+            EconomyManager.Instance?.AddSeeds(_crop.cropId, seedsPerClone);
+            _lastFeedback = $"Took cuttings - {seedsPerClone} more {_crop.displayName} seed.";
+            return _lastFeedback;
+        }
+
         public override string PromptLabel => _state switch
         {
             PlotState.Empty => CropSelectionController.Instance != null && CropSelectionController.Instance.Selected != null
