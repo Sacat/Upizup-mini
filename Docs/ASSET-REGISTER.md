@@ -18,10 +18,10 @@ specifically asked for.
 
 | asset_id | asset_name | publisher | licence | purpose |
 |---|---|---|---|---|
-| MINI-AST-101 | Low Poly Character Pack | Floreswa | Standard Unity Asset Store EULA (free) | Primary rigged humanoid source — candidate base for Smart/Strong and ambient NPCs. |
+| MINI-AST-101 | Low Poly Character Pack | Floreswa | Standard Unity Asset Store EULA (free) | Primary rigged humanoid source. **Visually confirmed 2026-08-15** (`Logs/Snapshots/character-pack-sample.png`): male01 and male02 variants are visually distinct (blue polo + cap + beard vs. green long-sleeve + short hair), clean readable low-poly style, both convert to valid Humanoid avatars (see rig-test result above). Good base for Smart/Strong. |
 | MINI-AST-102 | Low Poly Environment - Nature Free | Polytope Studio | Standard Unity Asset Store EULA (free) | Vegetation/environment dressing; well-rated (111 ratings, 10,495 favourites), actively maintained (v1.1.2, URP 12/14/16/17 shader variants). |
 | MINI-AST-103 | Low Poly Tropical Beach | Aquaset | Standard Unity Asset Store EULA (free) | Palm/beach/dock props for coastal dressing. |
-| MINI-AST-104 | POLYGON - Starter Pack - Art by Synty | Synty Studios | Standard Unity Asset Store EULA (free) | Neutral modular props; actively maintained (v1.1.0, shader graph conversion, 2022.3.56 update) — test pieces for style match before use, per the corrective brief's own caution. |
+| MINI-AST-104 | POLYGON - Starter Pack - Art by Synty | Synty Studios | Standard Unity Asset Store EULA (free) | Neutral modular props; actively maintained (v1.1.0, shader graph conversion, 2022.3.56 update). **Checked 2026-08-15:** its "Building" prefabs are generic industrial/sci-fi kit pieces (pipes, beams, ladders, flat background silhouettes), not village houses — not usable as the building source either. Synty's bold-flat-colour low-poly style is still a fine visual reference for props/vehicles generally. |
 | MINI-AST-105 | Cartoon Farm Crops | False Wisp Studios | Standard Unity Asset Store EULA (free) | Candidate crop meshes for the tomato/farming loop — user's brief already flagged this as old; test/convert materials for URP before use. |
 
 ## Already owned — newly discovered, strong candidates
@@ -35,7 +35,7 @@ below).
 
 | asset_id | asset_name | publisher | purpose |
 |---|---|---|---|
-| MINI-AST-110 | Demo City By Versatile Studio (Mobile Friendly) | Versatile Studio | 282.7MB, explicitly mobile-optimized — likely candidate for Grand Bay village buildings, stronger fit than anything found in `E:\Assets`. Needs a visual-style check against the shanty/corrugated-roof direction before committing. |
+| MINI-AST-110 | Demo City By Versatile Studio (Mobile Friendly) | Versatile Studio | 282.7MB, mobile-optimized. **Visually tested 2026-08-15 (`Logs/Snapshots/demo-city-houses.png`, rendered directly via `Mini011AssetSnapshot.cs`, not guessed from names): flat gray/white concrete cube buildings, black roller-shutter garage doors, zero colour, zero corrugated-roof character — a modern/industrial city kit, not a village. Rejected as the building source.** |
 | MINI-AST-111 | Human Basic Motions FREE | Kevin Iglesias | Modern, actively-maintained (v2.4.2) locomotion/animation pack — idle/walk/run/strafe/turn, separate masculine/feminine rigs, animation layers. This is the animation source the user's original brief specifically named, and it removes the biggest technical risk flagged in the prior plan (Shanty Town 2's legacy pre-Mecanim animation format). |
 | MINI-AST-112 | Human Melee Animations FREE | Kevin Iglesias | Bonus combat/interaction animation source if needed later (heat/police escalation). |
 | MINI-AST-113 | Starter Assets - ThirdPerson \| URP | Unity Technologies | Official reference third-person CharacterController + Cinemachine + Input System setup — useful reference/base for `PlayerController`/camera rework, URP-native. |

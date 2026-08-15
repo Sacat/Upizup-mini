@@ -146,6 +146,21 @@ After verification, append a change entry, update the verification results, and 
 - Known issues: `Assets/` is now 757MB and unorganized (assets sit in their default publisher-named folders, not yet moved/curated under `Assets/UpIzUpMini/`). Nothing has been visually inspected yet — I still have no screenshot capability; a look at these assets in the Editor is worth doing before Phase B geometry work commits to any of them stylistically.
 - Next action: awaiting user direction — either a visual gut-check of the imported packages, or go-ahead to claim Phase B (terrain + environment + camera rebuild) directly.
 
+### MINI-011 — Phase B investigation: rendered asset snapshots, buildings blocker found
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User gave the go-ahead for Phase B, added new standing project context (mobile/all-platforms priority, per-phase exe test workflow, Dominica-first world framing with a Guadeloupe 3x sea-trade abstraction) — recorded in `DECISIONS.md` D-006/D-007/D-008 and this session's persistent memory.
+- Implementation: Before committing to Demo City as the building source, built `Mini011AssetSnapshot.cs` — a batch-mode (no `-nographics`, so real rendering works) tool that instantiates prefabs and renders an actual `Camera.Render()` frame to PNG, sidestepping both the earlier Editor Play-mode bug and the desktop-screenshot window-focus problem. Rendered actual samples instead of guessing from prefab names:
+  - Demo City's `small_house_*`/`mid_house_*` prefabs: flat gray/white concrete cubes with black roller-shutter doors — a modern/industrial city kit, not a village. **Rejected.**
+  - POLYGON Starter Pack's "Building" prefabs: generic industrial/sci-fi kit (pipes, beams, ladders, background silhouettes). **Rejected** as a building source (still fine as a general low-poly style reference for props).
+  - Low Poly Character Pack's male01/male02: clean, visually distinct, both valid Humanoid avatars. **Confirmed good** for Smart/Strong.
+- Files changed: `Assets/UpIzUpMini/Editor/Mini011AssetSnapshot.cs`, `Docs/ASSET-REGISTER.md`, `DECISIONS.md`.
+- Scene/prefab changes: None persisted — snapshots render into a throwaway in-memory scene (`NewScene`, never saved), `GrandBayProof.unity` untouched.
+- Verification: `Logs/snapshot-democity.log`, `Logs/snapshot-characters.log`, images at `Logs/Snapshots/demo-city-houses.png` and `Logs/Snapshots/character-pack-sample.png`.
+- Known issues: **No confirmed building/environment source for the Caribbean shanty-village look yet.** Real options: (a) the local `E:\Assets` Arteria3d Shanty Town packs (visual style is a strong match per the original audit, but Asset Store entitlement is still unverified by me — user has not explicitly confirmed ownership of these specific packs the way they did for the 5 Store-acquired ones), (b) hand-built modular houses (wall/roof/door/window kit), which the corrective brief explicitly sanctions ("may be agent-built modular geometry, but they must look like finished houses, not scaled cubes"), or (c) sourcing a new pack. Not decided yet — asked the user.
+- Next action: user picks a building-source direction; then Phase B (terrain/road/building placement/camera) gets claimed and built for real.
+
 ## Required change-entry format
 
 ```text
