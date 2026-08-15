@@ -73,8 +73,8 @@ don't pan out visually or technically.
 
 | asset_id | asset_name | publisher | source path (local) | licence | purpose |
 |---|---|---|---|---|---|
-| MINI-AST-001 | Arteria3d - Shanty Town | Arteria3d | `E:\Assets\Pack\Arteria Pack\Arteria3d - Shanty Town\shanty town\` | Unverified — user to confirm Asset Store entitlement | Corrugated-roof shanty structures, barrels, clotheslines, crates. Still the closest single-pack match for "shanty/favela" architecture if Demo City doesn't fit. |
-| MINI-AST-002 | Arteria3d - Shanty Town 2 | Arteria3d | `E:\Assets\Pack\Arteria Pack\Arteria3d - Shanty Town 2\Arteria3d - ShantyTown 2\` | Unverified | Additional buildings + 9 characters + soldier. **Technical risk unchanged:** pre-Mecanim-era export, frame-range animations, Humanoid-avatar compatibility unconfirmed. Deprioritized now that MINI-AST-101/111 (Store-acquired, confirmed-modern) cover the same need with less risk. |
+| MINI-AST-001 | Arteria3d - Shanty Town | Arteria3d | `Assets/ArteriaShantyTown/ShantyTown1/` (copied into project 2026-08-15, user-approved) | User-approved local use | **Confirmed usable 2026-08-15** (`Logs/Snapshots/shanty-town-houses.png`): `shanty1`/`shanty5` render with genuine textured corrugated-tin roofing and tan/weathered wall colour — a real match for the brief's "corrugated-roof village architecture." These read as small shacks/stalls/clutter scale, not full multi-room houses — good for market stalls, lean-tos, and yard structures; the main housing stock still needs hand-built modular houses (see risks below). Props (barrels, clothesline, container, door, fence, metal panels, tyres) are also usable set dressing. |
+| MINI-AST-002 | Arteria3d - Shanty Town 2 (buildings only) | Arteria3d | `Assets/ArteriaShantyTown/ShantyTown2_Buildings/` (copied into project 2026-08-15, user-approved) | User-approved local use | **Rejected after testing.** Rendered `BuildingA`/`BuildingE`: both showed up flat white/untextured. Investigated why: the sibling "TEXTURES" folder in the source pack doesn't contain image files — it's `.u3d` CAD-format export bundles per building, not usable Unity textures. Fixing this would mean sourcing real texture images that may not exist in this pack at all. Not worth the effort given the hand-build fallback is explicitly sanctioned. Characters/soldier from this pack were never used (Low Poly Character Pack won that role). |
 | MINI-AST-003 | Arteria3d - Tropical Island Foliage Pack | Arteria3d | `...\Arteria3d - Tropical Island Foliage Pack.unitypackage` | Unverified | Vegetation fallback if MINI-AST-102/103 don't give enough variety. |
 | MINI-AST-004 | Tropical Nature Pack | Unlisted | `...\Tropical Nature Pack\Tropical Nature Pack.unitypackage` | Unverified | Same as above. |
 
@@ -85,5 +85,9 @@ don't pan out visually or technically.
 
 ## Not yet sourced (blocking gaps)
 
-- No local or acquired pack matches "landmark buildings" (school, church, credit union) closely enough — those will need custom-built modular pieces regardless of which building pack wins.
+- No local or acquired pack matches "landmark buildings" (school, church, credit union) or full multi-room village houses closely enough — main housing stock will be hand-built modular pieces (wall/roof/door/window kit), dressed with Shanty Town 1's genuine textured props/small structures where they fit.
 - Cartoon Farm Crops (MINI-AST-105) is the only crop-specific asset acquired; still needs a URP material test per the user's own brief before trusting it for the tomato growth stages.
+
+## Building-source conclusion (2026-08-15)
+
+Hybrid, per user direction: **Shanty Town 1's small structures/props** (genuinely good, textured, tropical) for market stalls, lean-tos, and yard dressing; **hand-built modular houses** (wall/roof/door/window kit, explicitly sanctioned by the corrective brief) for the main housing stock along the Lalay road, since nothing tested so far (Demo City, POLYGON Starter Pack, Shanty Town 2) gives full textured Caribbean houses. This is the plan Phase B will build against.

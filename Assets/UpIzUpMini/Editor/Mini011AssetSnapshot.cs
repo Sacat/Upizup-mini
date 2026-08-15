@@ -58,6 +58,49 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "demo-city-houses.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Shanty Town Sample")]
+        public static void SnapshotShantyTown()
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            var light = new GameObject("Sun").AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.transform.rotation = Quaternion.Euler(45f, -30f, 0f);
+            light.intensity = 1.2f;
+
+            string[] prefabPaths =
+            {
+                "Assets/ArteriaShantyTown/ShantyTown1/shanty1.fbx",
+                "Assets/ArteriaShantyTown/ShantyTown1/shanty5.fbx",
+                "Assets/ArteriaShantyTown/ShantyTown1/shanty10.fbx",
+                "Assets/ArteriaShantyTown/ShantyTown2_Buildings/BuildingA/BuildingA.fbx",
+                "Assets/ArteriaShantyTown/ShantyTown2_Buildings/BuildingE/BuildingE.fbx",
+            };
+
+            float x = 0f;
+            foreach (var path in prefabPaths)
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (prefab == null)
+                {
+                    Debug.LogWarning($"Snapshot: could not load {path}");
+                    continue;
+                }
+                var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                instance.transform.position = new Vector3(x, 0f, 0f);
+                x += 8f;
+            }
+
+            var camGo = new GameObject("SnapshotCamera");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = new Vector3(x / 2f, 6f, -12f);
+            camGo.transform.LookAt(new Vector3(x / 2f, 1.5f, 0f));
+            cam.fieldOfView = 60f;
+            cam.farClipPlane = 200f;
+
+            RenderAndSave(cam, "shanty-town-houses.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Character Pack Sample")]
         public static void SnapshotCharacterPack()
         {
