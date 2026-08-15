@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-020 built. Walking/running confirmed correct by the user. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
+- Status: MINI-021 built. Protagonists are Deril (smart) and Franki (strong). Walking/running confirmed correct by the user. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
@@ -461,7 +461,31 @@ After verification, append a change entry, update the verification results, and 
   - Vehicles not drivable; shirts/shorts/shoes have no visual; police reinforcements do not pursue.
 - Next action: user playtests — particularly the Montine turnoff being clear, the road having no gap, the meters moving, and the bed menu.
 
+### MINI-021 — Proximity-driven police heat, visible officers, meter percentages, Deril/Franki
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: Percentages on the meters; heat should sit at 0 until police are near and rise with proximity, GTA-style; police were nowhere to be seen, and should wear a blue shirt, black trousers and black hat and stand in strategic spots; at 100 heat blink red and spawn another officer, dropping back to one as it cools with distance; health should fall when police are very close; carrying weed should push heat up faster near police; stamina percentage that drains running, recovers walking and recovers faster stopped; the `[E]` options text is cut off; the dialogue box should disappear on walking away; character names weren't appearing; and Deril is the smart character with Franki the strong one.
+- Implementation:
+  - **Heat is now proximity-driven, not timed.** New `PoliceHeatController` replaces `EconomyManager`'s flat decay (that field is gone). Heat sits at 0 with no officer nearby; inside an 18m notice radius it climbs, scaled by closeness so it rises fastest at contact, and **2.5x faster while carrying weed** (illegal crops *or* seeds). Stepping away bleeds it off at 9/sec. Inside 4m an officer also drains health. The officer list is rescanned once a second rather than cached, so reinforcements spawned at high heat are picked up.
+  - **Police are visible now, and there are two** — one patrolling the lower road, one posted by the shops, so an officer should always be in sight. `ApplyPoliceUniform` tints the shirt blue and trousers/shoes black (cloning the materials so only that officer changes) and mounts a black cap on the head bone. Verified by render: blue shirt, black trousers, black cap, standing on the road.
+  - Reinforcements were already tied to heat thresholds (55 and 85) from MINI-015; with heat now proximity-based they escalate as intended and stand down as the player gets clear.
+  - **Meter percentages** on all three bars ("Health 100%", "Energy 74%", "Heat 0%"), with the bars widened to fit.
+  - **Stamina tiers**: drains at 14/s running, recovers at 8/s while walking and **22/s standing still**, so stopping is meaningfully faster. `PlayerController` reports movement state to make that distinction possible.
+  - **`[E]` prompt no longer clipped** — the box is now sized from the measured text (`GUIStyle.CalcSize`) rather than a fixed width, which is what cut off the multi-option safehouse menu. The feedback box was also widened.
+  - **Dialogue clears on walking away** — `InteractionDetector` now drops the feedback the moment the current interactable goes out of range, instead of leaving it up for the remainder of its timer.
+  - **Character names**: renamed to **Deril** (smart, Mainchar) and **Franki** (strong, Strong.fbx), superseding Franki/Sacat. The HUD label already flashes-and-fades on switch from MINI-020; it now shows the correct names.
+- Files changed: `Scripts/Interaction/PoliceHeatController.cs` (new); `Scripts/Economy/EconomyManager.cs`, `Scripts/Character/CharacterVitals.cs`, `PlayerController.cs`, `Scripts/Interaction/TownNPCInteractable.cs`, `InteractionDetector.cs`, `Scripts/UI/HUDController.cs`, `Editor/Mini011PhaseBSetup.cs`, `Mini011AssetSnapshot.cs`; `Scenes/GrandBayProof.unity`.
+- Verification: compiles clean; scene builder clean; police officer rendered and confirmed in uniform on the road; Windows build succeeded; **zero console errors in a 14s headless run**.
+- Known issues (honest):
+  - **Not playtested.** The heat rates (6/sec at contact, 2.5x with contraband, 9/sec cooling) and the 18m/4m radii are first-pass numbers chosen to feel GTA-like; they will almost certainly want tuning once played.
+  - Health now only ever goes *down* (police pressure, no regeneration) — resting at the safehouse or eating food restores it, but there is no passive regen. If that feels punishing it is a one-line change.
+  - Because heat no longer decays on a timer, the `EscapeHeat` mission objective from MINI-015 now genuinely requires moving away from police rather than standing still — arguably better, but it changes that mission's feel and is untested.
+  - Vehicles still not drivable; shirts/shorts/shoes still have no visual.
+- Next action: user playtests — particularly walking near an officer with and without weed on them, and watching heat climb, blink at 100, spawn a second officer, then fall as they walk away.
+
 ## Required change-entry format
+
 
 
 

@@ -14,7 +14,6 @@ namespace UpIzUpMini.Economy
         public static EconomyManager Instance { get; private set; }
 
         [SerializeField] private int startingMoney = 20;
-        [SerializeField] private float heatDecayPerSecond = 0.6f;
 
         private readonly Dictionary<string, int> _inventory = new Dictionary<string, int>();
 
@@ -30,13 +29,9 @@ namespace UpIzUpMini.Economy
             Money = startingMoney;
         }
 
-        private void Update()
-        {
-            if (Heat > 0f)
-            {
-                Heat = Mathf.Max(0f, Heat - heatDecayPerSecond * Time.deltaTime);
-            }
-        }
+        // Heat is driven entirely by PoliceHeatController (proximity to
+        // officers), not by a flat timer - so it stays at 0 unless police
+        // are actually nearby.
 
         private readonly Dictionary<string, int> _seeds = new Dictionary<string, int>();
         private readonly HashSet<string> _owned = new HashSet<string>();

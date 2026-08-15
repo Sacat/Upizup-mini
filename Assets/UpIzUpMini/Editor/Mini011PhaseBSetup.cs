@@ -86,11 +86,13 @@ namespace UpIzUpMini.EditorTools
             // sparse auto-avatar is what produced the distorted legs.
             // Their own materials are used, so no skin tint / facial-hair
             // hiding is applied here.
+            // Deril is the smart one, Franki the strong one (user
+            // direction - supersedes the earlier Franki/Sacat naming).
             CharacterSlot smart = BuildControllableCharacter(
-                "Franki", "Franki", "Assets/UpIzUpMini/Art/Characters/Mainchar.fbx",
+                "Deril", "Deril", "Assets/UpIzUpMini/Art/Characters/Mainchar.fbx",
                 null, startPos, locomotionController, startActive: true);
             CharacterSlot strong = BuildControllableCharacter(
-                "Sacat", "Sacat", "Assets/UpIzUpMini/Art/Characters/Strong.fbx",
+                "Franki", "Franki", "Assets/UpIzUpMini/Art/Characters/Strong.fbx",
                 null, startPos + new Vector3(1.4f, 0f, -1.2f),
                 locomotionController, startActive: false);
             strong.followController.FollowTarget = smart.root.transform;
@@ -109,6 +111,18 @@ namespace UpIzUpMini.EditorTools
 
             // Windowed by default so the game can be minimised/resized.
             new GameObject("WindowMode").AddComponent<WindowModeController>();
+
+            // Heat is driven by proximity to officers, not a timer.
+            var heatGo = new GameObject("PoliceHeatController");
+            var heatCtrl = heatGo.AddComponent<PoliceHeatController>();
+            var heatSo = new SerializedObject(heatCtrl);
+            var illegalProp = heatSo.FindProperty("illegalCrops");
+            var illegal = new List<CropDefinition>();
+            foreach (var c in crops) { if (c != null && c.isIllegal) illegal.Add(c); }
+            illegalProp.arraySize = illegal.Count;
+            for (int i = 0; i < illegal.Count; i++)
+                illegalProp.GetArrayElementAtIndex(i).objectReferenceValue = illegal[i];
+            heatSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Police escalation: extra officers appear as heat climbs.
             var policeNpc = GameObject.Find("NPC_Police");
@@ -1466,6 +1480,12 @@ namespace UpIzUpMini.EditorTools
                 modelPath: "Assets/Floreswa/Models/male03_1.fbx", role: NpcRole.Villager,
                 cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: false);
 
+            // Two officers so there is always one visible: one patrolling
+            // the lower road, one posted by the shops.
+            BuildNpc(terrain, roadPoints, index: 7, sideMul: -1f, goName: "NPC_PoliceShops",
+                modelPath: "Assets/Floreswa/Models/male01_1.fbx", role: NpcRole.Police,
+                cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: true);
+
             // Police patrols the Lalay road and speeds up when heat is high.
             BuildNpc(terrain, roadPoints, index: 3, sideMul: -1f, goName: "NPC_Police",
                 modelPath: "Assets/Floreswa/Models/male01_2.fbx", role: NpcRole.Police,
@@ -1614,7 +1634,12 @@ namespace UpIzUpMini.EditorTools
             // Passing the locomotion controller is what stops NPCs standing
             // in the model's default T-pose with arms out - they now play
             // the same idle/walk blend the players use.
-            InstantiateCharacter(modelPath, npcGo.transform, animController, null);
+            var npcVisual = InstantiateCharacter(modelPath, npcGo.transform, animController, null);
+
+            if (role == NpcRole.Police)
+            {
+                ApplyPoliceUniform(npcVisual);
+            }
 
             var npc = npcGo.AddComponent<TownNPCInteractable>();
             var so = new SerializedObject(npc);
@@ -1654,6 +1679,66 @@ namespace UpIzUpMini.EditorTools
                 pso.FindProperty("reactsToHeat").boolValue = reactsToHeat;
                 pso.ApplyModifiedPropertiesWithoutUndo();
             }
+        }
+
+        /// <summary>
+        /// Blue shirt, black trousers and a black cap, so officers read as
+        /// police at a glance on the road.
+        /// </summary>
+        private static void ApplyPoliceUniform(GameObject instance)
+        {
+            var shirt = new Color(0.12f, 0.22f, 0.55f);
+            var trousers = new Color(0.08f, 0.08f, 0.10f);
+
+            foreach (var renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = renderer.sharedMaterials;
+                bool changed = false;
+
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null) continue;
+                    string n = mats[i].name.ToLowerInvariant();
+
+                    Color? tint = null;
+                    if (n.Contains("tshirt") || n.Contains("shirt")) tint = shirt;
+                    else if (n.Contains("pants") || n.Contains("trouser")) tint = trousers;
+                    else if (n.Contains("shoes")) tint = trousers;
+
+                    if (tint == null) continue;
+
+                    // Clone so only this officer is recoloured.
+                    mats[i] = new Material(mats[i]) { color = tint.Value };
+                    changed = true;
+                }
+
+                if (changed) renderer.sharedMaterials = mats;
+            }
+
+            // Black cap on the head bone.
+            var animator = instance.GetComponentInChildren<Animator>();
+            var head = animator != null && animator.isHuman
+                ? animator.GetBoneTransform(HumanBodyBones.Head)
+                : null;
+            if (head == null) return;
+
+            var capMat = GetOrCreateMaterial("PoliceCap", trousers);
+
+            var crown = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            crown.name = "PoliceCap";
+            crown.transform.SetParent(head, false);
+            crown.transform.localPosition = new Vector3(0f, 0.15f, 0.01f);
+            crown.transform.localScale = new Vector3(0.2f, 0.12f, 0.2f);
+            crown.GetComponent<Renderer>().sharedMaterial = capMat;
+            Object.DestroyImmediate(crown.GetComponent<Collider>());
+
+            var peak = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            peak.name = "PoliceCapPeak";
+            peak.transform.SetParent(head, false);
+            peak.transform.localPosition = new Vector3(0f, 0.13f, 0.12f);
+            peak.transform.localScale = new Vector3(0.19f, 0.02f, 0.12f);
+            peak.GetComponent<Renderer>().sharedMaterial = capMat;
+            Object.DestroyImmediate(peak.GetComponent<Collider>());
         }
 
         /// <summary>
@@ -2424,9 +2509,9 @@ namespace UpIzUpMini.EditorTools
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             canvasGo.AddComponent<GraphicRaycaster>();
 
-            Image healthFill = CreateMeter(canvasGo.transform, "Health", new Vector2(20f, -20f), new Color(0.20f, 0.80f, 0.25f), font, out _);
-            Image staminaFill = CreateMeter(canvasGo.transform, "Energy", new Vector2(20f, -50f), new Color(0.95f, 0.85f, 0.15f), font, out _);
-            Image heatFill = CreateMeter(canvasGo.transform, "Heat", new Vector2(20f, -80f), new Color(0.90f, 0.15f, 0.12f), font, out _);
+            Image healthFill = CreateMeter(canvasGo.transform, "Health", new Vector2(20f, -20f), new Color(0.20f, 0.80f, 0.25f), font, out Text healthPct);
+            Image staminaFill = CreateMeter(canvasGo.transform, "Energy", new Vector2(20f, -50f), new Color(0.95f, 0.85f, 0.15f), font, out Text staminaPct);
+            Image heatFill = CreateMeter(canvasGo.transform, "Heat", new Vector2(20f, -80f), new Color(0.90f, 0.15f, 0.12f), font, out Text heatPct);
 
             // Money/crop sit against bright sky, so they get a dark backing
             // panel - white-on-sky was unreadable at some camera angles.
@@ -2459,6 +2544,9 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("moneyLabel").objectReferenceValue = moneyLabel;
             so.FindProperty("characterNameLabel").objectReferenceValue = nameLabel;
             so.FindProperty("cropSelectionLabel").objectReferenceValue = cropLabel;
+            so.FindProperty("healthPercent").objectReferenceValue = healthPct;
+            so.FindProperty("staminaPercent").objectReferenceValue = staminaPct;
+            so.FindProperty("heatPercent").objectReferenceValue = heatPct;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -2650,7 +2738,7 @@ namespace UpIzUpMini.EditorTools
             var bgRect = bgGo.AddComponent<RectTransform>();
             bgRect.anchorMin = bgRect.anchorMax = new Vector2(0f, 1f);
             bgRect.pivot = new Vector2(0f, 1f);
-            bgRect.sizeDelta = new Vector2(220f, 22f);
+            bgRect.sizeDelta = new Vector2(260f, 24f);
             bgRect.anchoredPosition = anchoredPos;
             var bgImage = bgGo.AddComponent<Image>();
             bgImage.color = new Color(0f, 0f, 0f, 0.5f);
@@ -2678,7 +2766,7 @@ namespace UpIzUpMini.EditorTools
             labelText = labelGo.AddComponent<Text>();
             labelText.text = label;
             labelText.font = font;
-            labelText.fontSize = 14;
+            labelText.fontSize = 16;
             labelText.alignment = TextAnchor.MiddleCenter;
             labelText.color = Color.white;
 

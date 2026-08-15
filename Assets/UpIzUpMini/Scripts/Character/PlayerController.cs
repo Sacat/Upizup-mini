@@ -98,6 +98,7 @@ namespace UpIzUpMini.Character
             if (vitals != null)
             {
                 vitals.SetRunning(wantsRun && hasInput);
+                vitals.SetMoving(hasInput);
                 // Exhaustion only removes the run option - it must never
                 // bring the player to a complete stop.
                 wantsRun = wantsRun && vitals.CanRun;

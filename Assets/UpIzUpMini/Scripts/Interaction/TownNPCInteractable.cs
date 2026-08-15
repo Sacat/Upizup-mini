@@ -25,6 +25,8 @@ namespace UpIzUpMini.Interaction
     public class TownNPCInteractable : InteractableBase
     {
         [SerializeField] private NpcRole role = NpcRole.Villager;
+
+        public NpcRole Role => role;
         [SerializeField] private string npcName = "Villager";
 
         // Phrasing follows the real Dominican conversation the user

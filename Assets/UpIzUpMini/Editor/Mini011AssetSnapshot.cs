@@ -294,7 +294,7 @@ namespace UpIzUpMini.EditorTools
             }
             Debug.Log($"Snapshot: sampled idle onto {sampled} animator(s).");
 
-            var shop = GameObject.Find("NPC_Shopkeeper");
+            var shop = GameObject.Find("NPC_PoliceShops") ?? GameObject.Find("NPC_Police");
             var buyer = GameObject.Find("NPC_Buyer");
             Vector3 target = shop != null ? shop.transform.position
                 : (buyer != null ? buyer.transform.position : Vector3.zero);

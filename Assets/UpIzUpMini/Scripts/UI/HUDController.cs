@@ -26,6 +26,11 @@ namespace UpIzUpMini.UI
         [SerializeField] private Text characterNameLabel;
         [SerializeField] private Text cropSelectionLabel;
 
+        [Header("Meter percentage labels")]
+        [SerializeField] private Text healthPercent;
+        [SerializeField] private Text staminaPercent;
+        [SerializeField] private Text heatPercent;
+
         [Header("Bar colours")]
         [SerializeField] private Color healthColor = new Color(0.20f, 0.80f, 0.25f);
         [SerializeField] private Color staminaColor = new Color(0.95f, 0.85f, 0.15f);
@@ -75,6 +80,8 @@ namespace UpIzUpMini.UI
                 healthFill.fillAmount = vitals != null && vitals.MaxHealth > 0f
                     ? vitals.Health / vitals.MaxHealth : 1f;
                 healthFill.color = healthColor;
+                if (healthPercent != null)
+                    healthPercent.text = $"Health  {Mathf.RoundToInt(healthFill.fillAmount * 100f)}%";
             }
 
             if (staminaFill != null)
@@ -84,6 +91,8 @@ namespace UpIzUpMini.UI
                 staminaFill.fillAmount = vitals != null && vitals.MaxStamina > 0f
                     ? vitals.Stamina / vitals.MaxStamina : 1f;
                 staminaFill.color = staminaColor;
+                if (staminaPercent != null)
+                    staminaPercent.text = $"Energy  {Mathf.RoundToInt(staminaFill.fillAmount * 100f)}%";
             }
 
             if (heatFill != null)
@@ -102,6 +111,8 @@ namespace UpIzUpMini.UI
                 }
 
                 heatFill.color = c;
+                if (heatPercent != null)
+                    heatPercent.text = $"Heat  {Mathf.RoundToInt(heat01 * 100f)}%";
             }
 
             if (moneyLabel != null && EconomyManager.Instance != null)

@@ -30,7 +30,16 @@ namespace UpIzUpMini.Interaction
 
         private void Update()
         {
+            var previous = _current;
             _current = FindNearestInRange();
+
+            // Drop the dialogue box as soon as the player walks away,
+            // rather than leaving it hanging for the full timer.
+            if (previous != null && _current == null)
+            {
+                _feedback = null;
+                _feedbackTimer = 0f;
+            }
 
             if (_current != null && Input.GetKeyDown(interactKey) && _current.CanInteract(gameObject))
             {
@@ -130,24 +139,36 @@ namespace UpIzUpMini.Interaction
                 if (screenPoint.z > 0f)
                 {
                     var guiPoint = new Vector2(screenPoint.x, Screen.height - screenPoint.y);
-                    float w = 260f * scale;
-                    float h = 56f * scale;
+                    // Sized from the text so longer prompts (e.g. the
+                    // safehouse menu) aren't clipped.
+                    var content = new GUIContent(_current.PromptLabel);
+                    Vector2 size = _promptStyle.CalcSize(content);
+                    float w = Mathf.Max(260f * scale, size.x + 40f * scale);
+                    float h = Mathf.Max(56f * scale, size.y + 20f * scale);
                     var rect = new Rect(guiPoint.x - w / 2f, guiPoint.y - h / 2f, w, h);
                     GUI.Box(rect, _current.PromptLabel, _promptStyle);
 
                     // A ripe plot also offers cloning, shown as a second line.
-                    if (_current is Farming.FarmPlot ripePlot && ripePlot.CanClone)
+                    if (_current is Farming.FarmPlot plotWithClone)
                     {
-                        var cloneRect = new Rect(rect.x, rect.y + h + 4f * scale, w, h);
-                        GUI.Box(cloneRect, ripePlot.CloneLabel, _promptStyle);
+                        string cloneLabel = plotWithClone.CloneLabel;
+                        if (!string.IsNullOrEmpty(cloneLabel))
+                        {
+                            var cloneContent = new GUIContent(cloneLabel);
+                            Vector2 cloneSize = _promptStyle.CalcSize(cloneContent);
+                            float cw = Mathf.Max(w, cloneSize.x + 40f * scale);
+                            var cloneRect = new Rect(
+                                guiPoint.x - cw / 2f, rect.y + h + 4f * scale, cw, h);
+                            GUI.Box(cloneRect, cloneLabel, _promptStyle);
+                        }
                     }
                 }
             }
 
             if (_feedbackTimer > 0f && !string.IsNullOrEmpty(_feedback))
             {
-                float w = 700f * scale;
-                float h = 110f * scale;
+                float w = 900f * scale;
+                float h = 130f * scale;
                 var rect = new Rect(Screen.width / 2f - w / 2f, Screen.height - h - 30f * scale, w, h);
                 GUI.Box(rect, _feedback, _feedbackStyle);
             }

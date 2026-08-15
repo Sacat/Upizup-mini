@@ -14,8 +14,11 @@ namespace UpIzUpMini.Character
     {
         [SerializeField] private float maxHealth = 100f;
         [SerializeField] private float maxStamina = 100f;
-        [SerializeField] private float staminaDrainPerSecond = 18f;
-        [SerializeField] private float staminaRegenPerSecond = 12f;
+        [SerializeField] private float staminaDrainPerSecond = 14f;
+        [Tooltip("Recovery while walking.")]
+        [SerializeField] private float staminaRegenWalking = 8f;
+        [Tooltip("Recovery while standing still - deliberately faster.")]
+        [SerializeField] private float staminaRegenIdle = 22f;
 
         public float Health { get; private set; }
         public float Stamina { get; private set; }
@@ -42,9 +45,16 @@ namespace UpIzUpMini.Character
                 _boostEndsAt = -1f;
             }
 
-            Stamina = _running
-                ? Mathf.Max(0f, Stamina - staminaDrainPerSecond * Time.deltaTime)
-                : Mathf.Min(maxStamina, Stamina + staminaRegenPerSecond * _boostRegenMultiplier * Time.deltaTime);
+            if (_running)
+            {
+                Stamina = Mathf.Max(0f, Stamina - staminaDrainPerSecond * Time.deltaTime);
+            }
+            else
+            {
+                // Recovers while walking, and noticeably faster at a stop.
+                float regen = _moving ? staminaRegenWalking : staminaRegenIdle;
+                Stamina = Mathf.Min(maxStamina, Stamina + regen * _boostRegenMultiplier * Time.deltaTime);
+            }
         }
 
         /// <summary>True while moving fast enough to be "running" - also
@@ -52,6 +62,11 @@ namespace UpIzUpMini.Character
         public bool CanRun => Stamina > 1f;
 
         public void SetRunning(bool running) => _running = running && CanRun;
+
+        /// <summary>Lets stamina recover faster when standing still.</summary>
+        public void SetMoving(bool moving) => _moving = moving;
+
+        private bool _moving;
 
         /// <summary>Full restore - used when resting at a safehouse.</summary>
         public void Restore()
