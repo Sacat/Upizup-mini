@@ -37,9 +37,15 @@ namespace UpIzUpMini.Interaction
             && EconomyManager.Instance != null
             && EconomyManager.Instance.Heat >= heatAlertThreshold;
 
+        private CharacterController _controller;
+
         private void Awake()
         {
             if (animator == null) animator = GetComponentInChildren<Animator>();
+
+            // Added by the scene builder so patrols are blocked by
+            // building colliders instead of walking through walls.
+            _controller = GetComponent<CharacterController>();
         }
 
         public void SetWaypoints(Vector3[] points)
@@ -77,7 +83,18 @@ namespace UpIzUpMini.Interaction
                         float speed = alert ? alertSpeed : walkSpeed;
                         Vector3 dir = toTarget.normalized;
 
-                        transform.position += dir * speed * Time.deltaTime;
+                        // Move through a CharacterController so patrols are
+                        // blocked by building colliders instead of walking
+                        // straight through walls.
+                        if (_controller != null && _controller.enabled)
+                        {
+                            _controller.SimpleMove(dir * speed);
+                        }
+                        else
+                        {
+                            transform.position += dir * speed * Time.deltaTime;
+                        }
+
                         transform.rotation = Quaternion.Slerp(
                             transform.rotation, Quaternion.LookRotation(dir), turnSpeed * Time.deltaTime);
 
@@ -89,8 +106,14 @@ namespace UpIzUpMini.Interaction
 
             if (animator != null)
             {
-                _animBlend = Mathf.MoveTowards(_animBlend, desiredBlend, 8f * Time.deltaTime);
+                _animBlend = Mathf.Lerp(_animBlend, desiredBlend, 10f * Time.deltaTime);
+                if (_animBlend < 0.01f) _animBlend = 0f;
                 animator.SetFloat(speedParam, _animBlend);
+                // The authored StarterAssets controller scales playback by
+                // MotionSpeed and gates on Grounded; without these the clip
+                // plays at a fixed rate and the feet skate.
+                animator.SetFloat("MotionSpeed", desiredBlend > 0.01f ? 1f : 0f);
+                animator.SetBool("Grounded", true);
             }
         }
     }

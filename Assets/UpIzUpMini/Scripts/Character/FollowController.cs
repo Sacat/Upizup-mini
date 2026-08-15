@@ -45,15 +45,17 @@ namespace UpIzUpMini.Character
             // Speed is fed to the animator in real m/s to match the blend
             // tree thresholds (0 / 2.0 / 5.335).
             float speedBlend = 0f;
+            bool moving = false;
             if (dist > followDistance)
             {
                 Vector3 dir = toTarget.normalized;
                 // Break into a run if we've fallen well behind, so the
                 // companion can actually catch up.
-                float speed = dist > followDistance * 3f ? moveSpeed * 2.4f : moveSpeed;
+                float speed = dist > followDistance * 3f ? 5.335f : moveSpeed;
                 _controller.SimpleMove(dir * speed);
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), turnSpeed * Time.deltaTime);
                 speedBlend = speed;
+                moving = true;
             }
 
             if (animator != null)
@@ -61,6 +63,10 @@ namespace UpIzUpMini.Character
                 _animSpeedBlend = Mathf.Lerp(_animSpeedBlend, speedBlend, 10f * Time.deltaTime);
                 if (_animSpeedBlend < 0.01f) _animSpeedBlend = 0f;
                 animator.SetFloat(speedParam, _animSpeedBlend);
+                // The authored controller needs these too, or the clip
+                // plays at a fixed rate and the feet skate.
+                animator.SetFloat("MotionSpeed", moving ? 1f : 0f);
+                animator.SetBool("Grounded", true);
             }
         }
     }

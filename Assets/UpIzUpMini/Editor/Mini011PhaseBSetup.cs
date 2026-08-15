@@ -56,7 +56,7 @@ namespace UpIzUpMini.EditorTools
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
-            RuntimeAnimatorController locomotionController = BuildAnimatorController();
+            RuntimeAnimatorController locomotionController = LoadLocomotionController();
 
             BuildLighting();
             Terrain terrain = BuildTerrain();
@@ -171,6 +171,35 @@ namespace UpIzUpMini.EditorTools
         // ---------------------------------------------------------------
         // Animator
         // ---------------------------------------------------------------
+
+        private const string StarterControllerPath =
+            "Assets/UpIzUpMini/Art/Animations/StarterAssetsThirdPerson.controller";
+
+        /// <summary>
+        /// Uses the larger project's own authored animator controller
+        /// rather than generating one.
+        ///
+        /// The generated controller was a bare 1D blend tree with no
+        /// `MotionSpeed` parameter, so clips played at a fixed rate
+        /// regardless of how fast the character actually moved - the feet
+        /// could never agree with the ground. The authored controller has
+        /// Speed / MotionSpeed / Grounded / Jump / FreeFall and the
+        /// transitions these clips were built for. Falls back to the
+        /// generated one only if the asset is missing.
+        /// </summary>
+        private static RuntimeAnimatorController LoadLocomotionController()
+        {
+            var authored = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(StarterControllerPath);
+            if (authored != null)
+            {
+                Debug.Log("Mini011PhaseBSetup: using authored StarterAssetsThirdPerson controller.");
+                return authored;
+            }
+
+            Debug.LogWarning($"Mini011PhaseBSetup: {StarterControllerPath} missing; " +
+                             "falling back to the generated controller (locomotion will look worse).");
+            return BuildAnimatorController();
+        }
 
         private static RuntimeAnimatorController BuildAnimatorController()
         {
@@ -603,6 +632,10 @@ namespace UpIzUpMini.EditorTools
             int marketIndex = Mathf.Clamp(6, 1, roadPoints.Count - 2);
             Vector3 marketPos = roadPoints[marketIndex];
 
+            // The Montine farm track leaves the road at its midpoint
+            // (BuildFarmPathAndClearing), so that junction must stay clear.
+            Vector3 montineTurnoff = roadPoints[roadPoints.Count / 2];
+
             // Dense placement: sample points every ~7m along the road
             // polyline (not just at the coarse mesh-segment vertices), so
             // houses read as a packed village row rather than scattered
@@ -627,6 +660,11 @@ namespace UpIzUpMini.EditorTools
 
                     // Keep the market frontage open on both sides.
                     if (Vector3.Distance(basePos, marketPos) < 11f) continue;
+
+                    // Keep the Montine turnoff clear - a house was sitting
+                    // across the junction where the farm track leaves the
+                    // Lalay road, blocking the route.
+                    if (Vector3.Distance(basePos, montineTurnoff) < 14f) continue;
                     Quaternion rot = Quaternion.LookRotation(-right * side, Vector3.up)
                                       * Quaternion.Euler(0f, Random(i * 3 + side, -12f, 12f), 0f);
 
@@ -1453,6 +1491,13 @@ namespace UpIzUpMini.EditorTools
 
             if (patrols)
             {
+                // Patrolling NPCs move via CharacterController so they
+                // collide with buildings rather than walking through them.
+                var cc = npcGo.AddComponent<CharacterController>();
+                cc.center = new Vector3(0f, 0.95f, 0f);
+                cc.height = 1.85f;
+                cc.radius = 0.32f;
+
                 var patrol = npcGo.AddComponent<PatrolNPC>();
                 Vector3 a = roadPoints[Mathf.Max(1, index - 2)] + right * sideMul * 3.8f;
                 Vector3 b = roadPoints[Mathf.Min(roadPoints.Count - 2, index + 2)] + right * sideMul * 3.8f;

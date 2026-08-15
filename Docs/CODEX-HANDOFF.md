@@ -54,10 +54,24 @@ MoveSpeed   = 2.0     SprintSpeed = 5.335
 JumpHeight  = 1.2     Gravity     = -15.0
 ```
 
-`PlayerController`, `FollowController` and `PatrolNPC` all drive the
-animator's `Speed` parameter in **real m/s**, and the blend tree
-thresholds are `0 / 2.0 / 5.335`. **Do not change one without the other**
-— mismatching them is what makes feet skate.
+**The project uses the larger project's own authored controller**,
+`Art/Animations/StarterAssetsThirdPerson.controller` — do NOT go back to
+generating one. Verified thresholds: `Idle @ 0, Walk_N @ 2, Run_N @ 6`.
+
+Its parameters are `Speed`, `MotionSpeed`, `Grounded`, `Jump`,
+`FreeFall`. **`MotionSpeed` is the one that is easy to miss and it is
+essential** — it scales clip playback rate, so without it clips play at a
+fixed rate regardless of movement and the feet skate no matter how well
+speeds are tuned. That was the cause of the walking problem that survived
+MINI-014 through MINI-017. `PlayerController`, `FollowController` and
+`PatrolNPC` all set it.
+
+**GUID trap:** the controller references clips by GUID. If you re-copy the
+animation FBXs, copy their original `.meta` files too, or Unity assigns
+fresh GUIDs and every reference silently resolves to nothing — a
+controller that loads fine and plays nothing. Run
+`MINI-018 → Verify Locomotion Controller` to check (`missingMotion` must
+be 0).
 
 ## 3. How the scene is built
 

@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-017 built. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
+- Status: MINI-018 built. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
@@ -394,7 +394,30 @@ After verification, append a change entry, update the verification results, and 
   - Police reinforcements spawn with heat but still do not pursue.
 - Next action: user playtests movement and scale first. If movement still looks wrong, that needs a focused pass with a frame-by-frame comparison against the larger project rather than more inference.
 
+### MINI-018 — The actual walking fix: use the larger project's authored animator controller
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: Walking/running still looked wrong after MINI-016/017. User's read — "the original bones and mappings with the mixamo was the best... get it fixed like the original just scale down" — was correct and pointed at the remaining difference. Also: an NPC walking through houses, and a building sitting on the Lalay/Montine junction.
+- Implementation:
+  - **Root cause of the remaining problem: I was generating my own animator controller instead of using the larger project's.** By MINI-016 the models and clips matched the big game, but the *controller* did not. Reading the big game's `ThirdPersonController.cs` showed it sets a **`MotionSpeed`** parameter (`_animator.SetFloat(_animIDMotionSpeed, inputMagnitude)`) that scales clip playback rate. My generated 1D blend tree had no such parameter, so clips always played at a fixed rate regardless of how fast the character actually moved — the feet could never agree with the ground, no matter how well the speeds were tuned.
+  - Copied `StarterAssetsThirdPerson.controller` from the larger project and used it directly (`LoadLocomotionController`, falling back to the generated one only if the asset is missing).
+  - **Caught a GUID trap:** the controller references clips by GUID, and the animation FBXs had been copied in MINI-014 *without* their `.meta` files, so Unity had assigned fresh GUIDs — every reference would have silently resolved to nothing, giving a controller that loads fine and plays nothing. Copied the original `.meta` files to restore the GUIDs, then wrote `Mini018ControllerVerify` to prove it rather than assume: **states=4, withMotion=4, missingMotion=0**, and it printed the real thresholds — `Idle @ 0, Walk_N @ 2, Run_N @ 6` — plus all five parameters (Speed, Jump, Grounded, FreeFall, MotionSpeed).
+  - Rewrote `PlayerController` to mirror the big game's `Move()`: smoothed speed toward target at `SpeedChangeRate` (10) rather than snapping, a separate smoothed `_animationBlend`, and `MotionSpeed` set from whether there is input. Jump/Grounded/FreeFall now driven the same way.
+  - `FollowController` and `PatrolNPC` also set `MotionSpeed` and `Grounded`, or they would have kept the old skating for the companion and NPCs.
+  - **NPC walking through buildings**: patrolling NPCs now move via a `CharacterController` (`SimpleMove`) instead of writing `transform.position` directly, so building colliders actually stop them.
+  - **Building on the Montine junction removed**: house placement now skips a 14m radius around the mid-road turnoff where the farm track leaves the Lalay road.
+- Files changed: `Editor/Mini018ControllerVerify.cs` (new); `Art/Animations/StarterAssetsThirdPerson.controller` + original `*.anim.fbx.meta` (copied, GUID-matched); `Scripts/Character/PlayerController.cs` (rewritten around the authored controller), `FollowController.cs`, `Scripts/Interaction/PatrolNPC.cs`, `Editor/Mini011PhaseBSetup.cs`; `Scenes/GrandBayProof.unity`.
+- Verification: compiles clean. Scene builder logs `using authored StarterAssetsThirdPerson controller`. Controller verified with zero unresolved clips. Walk pose rendered — clean stride, correct leg bend and arm swing. Windows build succeeded; **zero console errors in a 14s headless run**.
+- Known issues (honest):
+  - **Still not confirmed in motion.** A static pose renders correctly and the controller now matches the original exactly, but the complaint is about movement over time, which I cannot observe. This is the third attempt at this problem; the difference now is that the *whole* chain — models, clips, controller, parameters and driving code — matches the larger project rather than being reconstructed. If it is still wrong, the remaining suspects are the camera-relative turn rate fighting the animation, or `Camera.main` lookup cost per frame.
+  - Vehicles remain purchasable but not drivable.
+  - Shirts/shorts/shoes still have no visual.
+  - Police reinforcements spawn but do not pursue.
+- Next action: user playtests movement specifically. If still wrong, screenshots at a few points during a walk cycle would tell me more than a video I cannot decode.
+
 ## Required change-entry format
+
 
 
 
