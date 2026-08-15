@@ -19,6 +19,7 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private float interactRange = 2.75f;
         [SerializeField] private KeyCode interactKey = KeyCode.E;
         [SerializeField] private KeyCode cloneKey = KeyCode.R;
+        [SerializeField] private KeyCode farmhandKey = KeyCode.G;
         [SerializeField] private float feedbackDuration = 3f;
 
         private IInteractable _current;
@@ -41,11 +42,42 @@ namespace UpIzUpMini.Interaction
                 _feedbackTimer = 0f;
             }
 
+            // While a dialogue box is up, E is consumed dismissing it -
+            // stops the player re-triggering a seller mid-sentence.
+            if (_feedbackTimer > 0f && Input.GetKeyDown(interactKey))
+            {
+                _feedback = null;
+                _feedbackTimer = 0f;
+                return;
+            }
+
             if (_current != null && Input.GetKeyDown(interactKey) && _current.CanInteract(gameObject))
             {
                 _current.Interact(gameObject);
                 _feedback = (_current as InteractableBase)?.GetInteractionFeedback();
                 _feedbackTimer = feedbackDuration;
+            }
+
+            if (Input.GetKeyDown(farmhandKey))
+            {
+                var switcher = Character.CharacterSwitchManager.Instance;
+                var slots = switcher?.Slots;
+                if (slots != null)
+                {
+                    int other = 1 - switcher.ActiveIndex;
+                    if (other >= 0 && other < slots.Length && slots[other]?.root != null)
+                    {
+                        var hand = slots[other].root.GetComponent<Character.FarmhandController>();
+                        if (hand != null)
+                        {
+                            hand.ToggleWorking();
+                            _feedback = hand.IsWorking
+                                ? $"{slots[other].displayName} staying to work the farm."
+                                : $"{slots[other].displayName} following again.";
+                            _feedbackTimer = feedbackDuration;
+                        }
+                    }
+                }
             }
 
             // R clones a ripe plant for extra seed (see FarmPlot.Clone).

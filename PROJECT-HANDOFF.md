@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-021 built. Protagonists are Deril (smart) and Franki (strong). Walking/running confirmed correct by the user. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
+- Status: MINI-022 built. Protagonists are Deril (smart) and Franki (strong). Walking/running confirmed correct by the user. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
@@ -484,7 +484,31 @@ After verification, append a change entry, update the verification results, and 
   - Vehicles still not drivable; shirts/shorts/shoes still have no visual.
 - Next action: user playtests — particularly walking near an officer with and without weed on them, and watching heat climb, blink at 100, spawn a second officer, then fall as they walk away.
 
+### MINI-022 — Police pursuit and obstacle avoidance, farmhand companion, clone-only seed
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: Police not chasing properly and running into houses; police should pace the Lalay road near the seller; no seed from harvest, only from cloning; be able to leave the other boy at the farm to plant and harvest; seed inventory shown in brackets; can't talk to sellers while the dialogue box is up; and bought clothes should change colour from the character's default black.
+- Implementation:
+  - **New `PoliceOfficer` replaces `PatrolNPC` for police.** It paces a stretch of road centred on the market (three road points either side of the seller), and switches to **pursuit** once heat passes 45, running at sprint speed until the player is either within 2m or more than 45m away.
+  - **Obstacle avoidance** is the fix for officers walking into houses. The old patrol drove in a straight line to its waypoint; `PoliceOfficer` casts a short whisker ahead and, when blocked, tries progressively wider turns to each side (55°, 110°, 165°) taking the first clear heading, and backs off if fully boxed in. Movement goes through `CharacterController.SimpleMove` so building colliders still apply.
+  - **Seed now comes only from cloning.** Harvesting no longer returns seed at all (`seedsPerHarvest` removed), so expanding the farm requires taking cuttings with R — which costs plant quality. That makes the clone/quality trade-off from MINI-020 actually matter.
+  - **Farmhand companion** (`FarmhandController`): press **G** to leave the inactive boy at the farm. He stops following and works plots on his own — walking to whichever plot needs attention and planting, watering or harvesting it. Growing plots and plots mid-cloning are skipped (`FarmPlot.NeedsFarmhandAttention`). G again brings him back to following. Following and working are mutually exclusive, so he can't do both.
+  - **Seed inventory in brackets**: `Seeds [4]   Held [12]`.
+  - **Dialogue blocks re-triggering**: while a feedback box is showing, E dismisses it rather than reaching the seller again, so you can't talk over a line mid-sentence.
+  - **Clothing recolours the character.** The models default to black, so `ApplyGarment` tints the relevant material slots on the character's own garments (top/bottom/shoes) rather than adding geometry — Lacostes Polo goes off-white, Adibas Shorts blue, Mike Air Kicks white, Pumba Runners red. Materials are cloned per-character so only the wearer changes, and originals are cached so items can be removed cleanly.
+- Files changed: `Scripts/Interaction/PoliceOfficer.cs`, `Scripts/Character/FarmhandController.cs` (new); `Scripts/Farming/FarmPlot.cs`, `Scripts/Interaction/InteractionDetector.cs`, `Scripts/Character/CharacterEquipment.cs`, `Scripts/UI/HUDController.cs`, `ControlsPanelController.cs`, `Editor/Mini011PhaseBSetup.cs`; `Scenes/GrandBayProof.unity`.
+- Verification: compiles clean (one variable-shadowing error caught and fixed before build); scene builder clean; Windows build succeeded; **zero console errors in a 15s headless run**.
+- Known issues (honest):
+  - **Not playtested.** The avoidance is a whisker cast, not pathfinding — it will get an officer around a wall but can still stall in a genuine dead end (it backs off rather than routing out). If officers still snag on geometry, the honest next step is a NavMesh rather than more whisker tuning.
+  - Chase threshold 45 heat and give-up range 45m are first-pass numbers.
+  - The farmhand walks straight to plots with no avoidance of its own, so it can catch on the safehouse if left on the far side.
+  - Garment recolouring depends on the character models' material slots being named recognisably (top/bottom/shoes). It is verified for those names but not visually confirmed on Deril/Franki specifically — if a garment doesn't change colour, that naming is the first thing to check.
+  - Vehicles still not drivable.
+- Next action: user playtests — particularly whether officers now round buildings instead of grinding into them, and whether the chase reads as a chase.
+
 ## Required change-entry format
+
 
 
 

@@ -24,7 +24,6 @@ namespace UpIzUpMini.Farming
         [SerializeField] private CropStageVisual tomatoVisual;
         [SerializeField] private CropStageVisual weedVisual;
         [SerializeField] private int harvestYield = 3;
-        [SerializeField] private int seedsPerHarvest = 2;
 
         private PlotState _state = PlotState.Empty;
         private CropDefinition _crop;
@@ -88,6 +87,16 @@ namespace UpIzUpMini.Farming
                 return Mathf.Lerp(1f, minFreshness, t) * _cloneQuality;
             }
         }
+
+        /// <summary>
+        /// True when a farmhand could usefully act here: an empty plot to
+        /// plant, dry soil to water, or ripe crop to harvest. Growing plots
+        /// and plots mid-cloning are skipped.
+        /// </summary>
+        public bool NeedsFarmhandAttention =>
+            _state == PlotState.Empty
+            || _state == PlotState.PlantedDry
+            || (_state == PlotState.Ripe && !IsCloning);
 
         public string Clone()
         {
@@ -208,9 +217,9 @@ namespace UpIzUpMini.Farming
                         EconomyManager.Instance.AddCrop(_crop.cropId, yield);
                         _lastHarvestYield = yield;
                         _lastFreshness = freshness;
-                        // A healthy plant gives back more seed than it took,
-                        // so the farm can be cloned/expanded from one buy.
-                        EconomyManager.Instance.AddSeeds(_crop.cropId, seedsPerHarvest);
+                        // Seed comes only from taking cuttings (R), never
+                        // from harvesting - so expanding the farm means
+                        // cloning, which costs plant quality.
                         if (_crop.isIllegal) EconomyManager.Instance.AddHeat(4f);
                     }
                     if (_crop != null)
@@ -219,7 +228,7 @@ namespace UpIzUpMini.Farming
                             : _lastFreshness > 0.6f ? "Still good."
                             : "It sit too long - worth less now.";
                         _lastFeedback =
-                            $"Harvested {_lastHarvestYield} {_crop.displayName} and {seedsPerHarvest} seed. {quality}";
+                            $"Harvested {_lastHarvestYield} {_crop.displayName}. {quality}";
 
                         Missions.MissionSystem.Instance?.NotifyCount(
                             Missions.ObjectiveKind.HarvestCrop, _crop.cropId, _lastHarvestYield);

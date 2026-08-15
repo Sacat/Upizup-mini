@@ -64,6 +64,60 @@ namespace UpIzUpMini.Character
 
             Apply("watch_rollie", HumanBodyBones.LeftLowerArm, economy.OwnsItem("watch_rollie"),
                 () => BuildWatch());
+
+            // Clothing recolours the character's own garments rather than
+            // adding geometry - the models default to black, so a bought
+            // item visibly changes their outfit.
+            ApplyGarment("shirt_lacos", new[] { "top", "tshirt", "shirt" }, new Color(0.90f, 0.94f, 0.96f));
+            ApplyGarment("shorts_adibas", new[] { "bottom", "pants", "trouser" }, new Color(0.25f, 0.32f, 0.62f));
+            ApplyGarment("shoes_mike", new[] { "shoes" }, new Color(0.95f, 0.95f, 0.95f));
+            ApplyGarment("shoes_pumba", new[] { "shoes" }, new Color(0.85f, 0.25f, 0.20f));
+        }
+
+        private readonly System.Collections.Generic.Dictionary<Renderer, Material[]> _originalMaterials
+            = new System.Collections.Generic.Dictionary<Renderer, Material[]>();
+
+        /// <summary>
+        /// Tints the character's existing garment material slots. Materials
+        /// are cloned per-instance so only this character changes, and the
+        /// originals are cached so an item can be removed cleanly.
+        /// </summary>
+        private void ApplyGarment(string itemId, string[] slotKeywords, Color color)
+        {
+            var economy = EconomyManager.Instance;
+            if (economy == null || !economy.OwnsItem(itemId)) return;
+
+            foreach (var renderer in GetComponentsInChildren<Renderer>(true))
+            {
+                if (!_originalMaterials.ContainsKey(renderer))
+                {
+                    _originalMaterials[renderer] = renderer.sharedMaterials;
+                }
+
+                var mats = renderer.sharedMaterials;
+                bool changed = false;
+
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null) continue;
+                    string n = mats[i].name.ToLowerInvariant();
+
+                    bool match = false;
+                    foreach (var keyword in slotKeywords)
+                    {
+                        if (n.Contains(keyword)) { match = true; break; }
+                    }
+                    if (!match) continue;
+
+                    // Already the right colour - don't clone again every frame.
+                    if (mats[i].color == color) continue;
+
+                    mats[i] = new Material(mats[i]) { color = color };
+                    changed = true;
+                }
+
+                if (changed) renderer.sharedMaterials = mats;
+            }
         }
 
         private void Apply(string itemId, HumanBodyBones bone, bool owned, System.Func<GameObject> build)

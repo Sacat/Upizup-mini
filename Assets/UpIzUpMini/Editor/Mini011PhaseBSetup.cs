@@ -1449,6 +1449,8 @@ namespace UpIzUpMini.EditorTools
             pcSo.ApplyModifiedPropertiesWithoutUndo();
             playerController.IsControlled = startActive;
 
+            go.AddComponent<FarmhandController>();
+
             var followController = go.AddComponent<FollowController>();
             var fcSo = new SerializedObject(followController);
             fcSo.FindProperty("animator").objectReferenceValue = animator;
@@ -1664,6 +1666,28 @@ namespace UpIzUpMini.EditorTools
                 cc.center = new Vector3(0f, 0.95f, 0f);
                 cc.height = 1.85f;
                 cc.radius = 0.32f;
+
+                if (role == NpcRole.Police)
+                {
+                    // Officers pace the road by the sellers and give chase
+                    // when heat is up; PoliceOfficer also steers around
+                    // buildings, which plain patrolling did not.
+                    var officer = npcGo.AddComponent<PoliceOfficer>();
+
+                    // Pace a stretch of road centred on the market.
+                    int marketIdx = Mathf.Clamp(6, 1, roadPoints.Count - 2);
+                    Vector3 beatStart = roadPoints[Mathf.Max(1, marketIdx - 3)];
+                    Vector3 beatEnd = roadPoints[Mathf.Min(roadPoints.Count - 2, marketIdx + 3)];
+                    beatStart.y = SampleHeight(terrain, beatStart.x, beatStart.z);
+                    beatEnd.y = SampleHeight(terrain, beatEnd.x, beatEnd.z);
+                    officer.SetPatrol(beatStart, beatEnd);
+
+                    var oso = new SerializedObject(officer);
+                    oso.FindProperty("patrolA").vector3Value = beatStart;
+                    oso.FindProperty("patrolB").vector3Value = beatEnd;
+                    oso.ApplyModifiedPropertiesWithoutUndo();
+                    return;
+                }
 
                 var patrol = npcGo.AddComponent<PatrolNPC>();
                 Vector3 a = roadPoints[Mathf.Max(1, index - 2)] + right * sideMul * 3.8f;
