@@ -18,14 +18,36 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private NpcRole role = NpcRole.Villager;
         [SerializeField] private string npcName = "Villager";
 
+        // Phrasing follows the real Dominican conversation the user
+        // supplied: "yea wii", "yah wii", "mn", "nuh", "facts", "irie",
+        // "allu", "doe" (don't), "dem". Used naturally and sparingly
+        // rather than in every sentence.
         [TextArea(1, 3)]
-        [SerializeField] private string villagerLine = "Ay bway, mind yuhself out dere, the sun hot today.";
+        [SerializeField] private string[] villagerLines =
+        {
+            "Yea wii, the sun hot today mn.",
+            "How di val na? I hear it was irie.",
+            "Allu doe miss nothing much round here, nuh.",
+            "Chhh. Lucky you.",
+        };
+
         [TextArea(1, 3)]
-        [SerializeField] private string shopkeeperLine = "Bring me good tomatoes and I go pay you fair, yah wii.";
+        [SerializeField] private string shopkeeperLine =
+            "Yea mn, I have seed and ting. Take a look nuh.";
+
+        [TextArea(1, 3)]
+        [SerializeField] private string[] buyerLines =
+        {
+            "Bring me good tomato and I go pay you fair, yah wii.",
+            "Facts. Quality does sell itself.",
+        };
+
         [TextArea(1, 3)]
         [SerializeField] private string policeCalmLine = "Morning. Everything alright over dey?";
         [TextArea(1, 3)]
-        [SerializeField] private string policeSuspiciousLine = "I watching allu close, nuh. Careful.";
+        [SerializeField] private string policeSuspiciousLine = "I watching allu close, nuh. Doe try nothing.";
+
+        private int _lineIndex;
 
         [SerializeField] private CropDefinition[] sellableCrops;
 
@@ -41,11 +63,11 @@ namespace UpIzUpMini.Interaction
                     if (EconomyManager.Instance != null && sellableCrops != null
                         && EconomyManager.Instance.TrySellAll(sellableCrops, out int earned))
                     {
-                        _lastFeedback = $"Sold for ${earned}.";
+                        _lastFeedback = $"Yea mn, sold for ${earned}.";
                     }
                     else
                     {
-                        _lastFeedback = "Nothing to sell right now.";
+                        _lastFeedback = NextLine(buyerLines, "Nothing to sell right now, nuh.");
                     }
                     break;
 
@@ -57,14 +79,22 @@ namespace UpIzUpMini.Interaction
 
                 case NpcRole.Shopkeeper:
                     _lastFeedback = shopkeeperLine;
-                    Debug.Log($"{npcName} (shopkeeper): {shopkeeperLine}");
+                    UI.ShopPanelController.Instance?.Open();
                     break;
 
                 default:
-                    _lastFeedback = villagerLine;
-                    Debug.Log($"{npcName}: {villagerLine}");
+                    _lastFeedback = NextLine(villagerLines, "Yea wii.");
                     break;
             }
+        }
+
+        /// <summary>Cycles through an NPC's lines so repeat talks vary.</summary>
+        private string NextLine(string[] lines, string fallback)
+        {
+            if (lines == null || lines.Length == 0) return fallback;
+            string line = lines[_lineIndex % lines.Length];
+            _lineIndex++;
+            return line;
         }
 
         public override string GetInteractionFeedback() => _lastFeedback;

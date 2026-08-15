@@ -5,10 +5,10 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-012 built on top of Phase C: real decimated crop plants with 4 growth stages, hillside Montine farm (8-plot grid, terraced), beach/jetty/boat + swimming, NPC idle/patrol animation (T-pose fixed), police reacting to heat, black road, market stalls, farm safehouse, F5/F9 save-load, and retuned movement speeds. Windows build produced, zero errors in a 12s headless run. Not hands-on playtested yet.
+- Status: MINI-013 built. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
-- Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C and `MINI-012` built and statically/headlessly verified, pending user playtest.
+- Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
 - Last known good commit: `9f80953`
 
 ## Ownership protocol
@@ -35,7 +35,8 @@ After verification, append a change entry, update the verification results, and 
 ## Current blockers
 
 - The precise Grand Bay map anchors must be copied into `Docs/MAP-ANCHORS.json` from verified research/user references (still not done — `MINI-002`).
-- `GrandBayProof.unity`'s MINI-011 Phase C and MINI-012 content needs a hands-on human playtest via `Builds/GrandBayProof/UpIzUpMini.exe`. Highest-uncertainty items: the running-speed retune (a reasoned fix for foot-sliding, not a confirmed one), swimming, and the F5/F9 save-load round-trip. See the MINI-012 entry for what is and isn't confirmed.
+- `GrandBayProof.unity` needs a hands-on human playtest via `Builds/GrandBayProof/UpIzUpMini.exe`. Highest-uncertainty items now: whether NPCs actually animate after the rig conversion, running feel at the measured speeds, jump, and the shop/seed loop.
+- **Missions are not implemented.** The user asked for full missions (planting/selling/police/bosses/buying land). The underlying systems exist (economy, shop, seeds, heat, land item) but there is no mission/objective state machine, no boss NPCs, and buying land has no gameplay effect yet. This needs its own task.
 
 ## Change record
 
@@ -275,6 +276,32 @@ After verification, append a change entry, update the verification results, and 
   - Not done from the request: NPC jumping, and porting the larger game's dialogue content (only its soil colours and crop-stage structure were reused).
   - Swimming is float-at-surface only — no swim animation, so the character plays walk/idle while in water.
 - Next action: user playtests; the running feel and swimming are the two most likely to need another pass.
+
+### MINI-013 — T-pose root cause, running fix, jump, seeds/shop, Franki & Sacat
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User reported NPCs still walking in T-pose, tomato fruit floating in mid-air, and running still bad. Asked for: seed/cloning like the larger game, spacebar jump, missions (planting/selling/police/bosses/land), a shop with fake-brand goods, characters renamed to Franki and Sacat, H for controls, street signs, fading area names, and Dominican dialogue based on a supplied real conversation. Also asked to record a YouTube workflow link.
+- Implementation:
+  - **T-pose root cause found and fixed (this was a real diagnosis, not a retry).** Checked `animationType` in every character model's `.meta`: the two player models are `3` (Humanoid) but **all four NPC models were `2` (Generic)**. Humanoid clips cannot retarget onto a Generic rig, so NPCs fell back to their bind pose regardless of the animator controller I attached last pass. `Mini013RigAndAnimAudit.ForceHumanoidRigs` converts all 9 models to Humanoid and re-verifies each avatar (`isValid`/`isHuman`) — all 9 now report `valid humanoid`.
+  - **Running fixed with measurement, not guesswork.** `MeasureLocomotionSpeeds` reads the clips' own root motion: Walk01 is authored at exactly **1.90 m/s**, Run01 at **3.80**, Sprint at 5.69. My previous run speed of 4.4 was ~16% faster than the animation's stride, which is precisely what makes feet skate. Set to 1.90/3.80 exactly.
+  - **Floating fruit fixed.** The decimated scan is centred on its own origin, so half the plant sat below the soil and the fruit (positioned against full plant height) ended up above its visible top. Mesh is now offset so its base rests at y=0, and fruit sits inside the plant's real height band. Verified by render — fruit now hangs on the plant.
+  - **Jump**: Space jumps (`v = sqrt(2gh)`), with a Jump state + Grounded transition added to the generated animator controller.
+  - **Seeds/cloning**: planting now consumes a seed; harvesting returns 3 crops **and 2 seeds**, so one purchase can be cloned into a bigger farm (the larger game's behaviour). `StarterInventory` grants a few legal seeds at start so the player isn't blocked; illegal strains are deliberately excluded (story-gated).
+  - **Shop**: `ShopItemDefinition` is one generic purchasable type covering seeds/clothing/footwear/accessories/vehicles/boats/property/land, so future stock is data rather than code. Stocked with fictional near-miss brands per the user — Mike Cap, Mike Air Kicks, Lacostes Polo, Gold Chain — plus seeds, a Montine land plot and a fishing pirogue. Opened by talking to the shopkeeper. (Caught and fixed a double-purchase bug in the panel while writing it: `TryPurchase` was being called twice per keypress.)
+  - **Franki and Sacat** replace the Smart/Strong placeholder names throughout.
+  - **H** controls overlay, **street signs** (LALAY, MONTINE, MONTINE FARM), and a **fading area-name banner** that only re-triggers when the area actually changes.
+  - **Dialogue** rewritten from the user's real supplied conversation and the patterns documented in the new `Docs/DIALOGUE-REFERENCE.md` (`yea wii`, `mn`, `nuh`, `facts`, `irie`, `allu`, `doe`, `di`). NPCs cycle lines so repeat talks vary. Used sparingly per AGENTS.md's warning against stereotype.
+  - YouTube workflow link recorded in `Docs/DIALOGUE-REFERENCE.md` with the user's note.
+- Files changed: `Editor/Mini013RigAndAnimAudit.cs` (new); `Scripts/Economy/ShopItemDefinition.cs`, `StarterInventory.cs`, `Scripts/UI/ShopPanelController.cs`, `ControlsPanelController.cs`, `AreaNameDisplay.cs` (new); `Scripts/Economy/EconomyManager.cs`, `Scripts/Farming/FarmPlot.cs`, `Scripts/Character/PlayerController.cs`, `Scripts/Interaction/TownNPCInteractable.cs`, `Scripts/UI/HUDController.cs`, `Editor/Mini011PhaseBSetup.cs`; `Data/Shop/*.asset` (new); all 9 `Floreswa/Models/*.fbx.meta` (rig type); `Scenes/GrandBayProof.unity`; `Docs/DIALOGUE-REFERENCE.md` (new).
+- Verification: compiles clean; all 9 avatars verified valid humanoid; animation speeds measured and logged; scene builder clean; farm re-rendered confirming fruit attached to plants and the Montine sign present; Windows build succeeded; **zero console errors in a 12s headless run**.
+- Known issues (honest):
+  - **The T-pose fix is verified at the asset level (all 9 avatars valid humanoid), not yet seen animating in a real playtest.** That's the single most important thing for the user to check.
+  - **Missions are NOT built.** The user asked for full missions (planting/selling/police/bosses/buying land). What exists is the economy, shop, seeds, land *item*, police heat reaction — the systems missions would sit on — but no mission/objective state machine, no boss NPCs, no land ownership actually changing gameplay. Buying "Montine Land Plot" currently only marks it owned. This is the largest outstanding gap and needs its own task.
+  - Shop items other than seeds have no visual effect yet — clothing/chains/shoes don't appear on the characters, vehicles/boats/houses aren't drivable or enterable. They're economy entries only.
+  - Jump animation transition timing is untested by hand and may need tuning.
+  - The YouTube workflow video is recorded but not reviewed.
+- Next action: user playtests — priority checks are NPC animation (T-pose gone?), running feel, jump, and the shop/seed loop. Then missions should be scoped as their own task.
 
 ## Required change-entry format
 

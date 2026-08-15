@@ -50,9 +50,18 @@ namespace UpIzUpMini.UI
             if (cropSelectionLabel != null && CropSelectionController.Instance != null)
             {
                 var crop = CropSelectionController.Instance.Selected;
-                cropSelectionLabel.text = crop != null
-                    ? $"[{CropSelectionController.Instance.SelectedIndex + 1}] {crop.displayName}"
-                    : string.Empty;
+                if (crop == null)
+                {
+                    cropSelectionLabel.text = string.Empty;
+                }
+                else
+                {
+                    int seeds = EconomyManager.Instance != null ? EconomyManager.Instance.GetSeeds(crop.cropId) : 0;
+                    int held = EconomyManager.Instance != null ? EconomyManager.Instance.GetCount(crop.cropId) : 0;
+                    cropSelectionLabel.text =
+                        $"[{CropSelectionController.Instance.SelectedIndex + 1}] {crop.displayName}\n" +
+                        $"seeds {seeds}   held {held}";
+                }
             }
         }
     }

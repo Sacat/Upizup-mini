@@ -69,14 +69,15 @@ namespace UpIzUpMini.EditorTools
             Vector3 startPos = roadPoints[0];
             startPos.y = SampleHeight(terrain, startPos.x, startPos.z);
 
-            // Smart is the darker-skinned of the two; Strong is lighter but
-            // still a brown-skinned Dominican teen - the previous value read
-            // as white. Both have facial hair hidden (they're 18).
+            // The two protagonists are Franki and Sacat (renamed from the
+            // earlier Smart/Strong placeholders per the user). Franki is
+            // the darker-skinned of the two; Sacat is lighter but still a
+            // brown-skinned Dominican teen. Facial hair hidden - both 18.
             CharacterSlot smart = BuildControllableCharacter(
-                "Smart", "Smart", "Assets/Floreswa/Models/male01_1.fbx",
+                "Franki", "Franki", "Assets/Floreswa/Models/male01_1.fbx",
                 new Color(0.33f, 0.20f, 0.12f), startPos, locomotionController, startActive: true);
             CharacterSlot strong = BuildControllableCharacter(
-                "Strong", "Strong", "Assets/Floreswa/Models/male02_1.fbx",
+                "Sacat", "Sacat", "Assets/Floreswa/Models/male02_1.fbx",
                 new Color(0.52f, 0.35f, 0.22f), startPos + new Vector3(1.4f, 0f, -1.2f),
                 locomotionController, startActive: false);
             strong.followController.FollowTarget = smart.root.transform;
@@ -103,6 +104,23 @@ namespace UpIzUpMini.EditorTools
                 knownProp.GetArrayElementAtIndex(i).objectReferenceValue = crops[i];
             }
             saveSo.ApplyModifiedPropertiesWithoutUndo();
+
+            ShopItemDefinition[] shopStock = BuildShopStock(crops);
+            BuildStreetSigns(terrain, roadPoints, _farmCenter);
+            BuildExtraUI(shopStock, roadPoints, _farmCenter);
+
+            // Starting seeds so the player can plant before their first
+            // shop trip.
+            var starterGo = new GameObject("StarterSeeds");
+            var starter = starterGo.AddComponent<StarterInventory>();
+            var stSo = new SerializedObject(starter);
+            var stProp = stSo.FindProperty("startingSeeds");
+            stProp.arraySize = crops.Length;
+            for (int i = 0; i < crops.Length; i++)
+            {
+                stProp.GetArrayElementAtIndex(i).objectReferenceValue = crops[i];
+            }
+            stSo.ApplyModifiedPropertiesWithoutUndo();
 
             BuildHUD();
             BuildPauseMenu();
@@ -158,6 +176,34 @@ namespace UpIzUpMini.EditorTools
             rootMachine.defaultState = state;
 
             AssetDatabase.AddObjectToAsset(tree, controller);
+
+            // Jump: triggered from PlayerController on Space, returns to
+            // locomotion once the character is grounded again.
+            controller.AddParameter("Jump", AnimatorControllerParameterType.Trigger);
+            controller.AddParameter("Grounded", AnimatorControllerParameterType.Bool);
+
+            var jumpClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Jump/HumanM@Jump01.fbx");
+            if (jumpClip != null)
+            {
+                var jumpState = rootMachine.AddState("Jump");
+                jumpState.motion = jumpClip;
+
+                var toJump = state.AddTransition(jumpState);
+                toJump.AddCondition(AnimatorConditionMode.If, 0f, "Jump");
+                toJump.hasExitTime = false;
+                toJump.duration = 0.08f;
+
+                var toGround = jumpState.AddTransition(state);
+                toGround.AddCondition(AnimatorConditionMode.If, 0f, "Grounded");
+                toGround.hasExitTime = true;
+                toGround.exitTime = 0.7f;
+                toGround.duration = 0.15f;
+            }
+            else
+            {
+                Debug.LogWarning("Mini011PhaseBSetup: jump clip not found; jump will move but not animate.");
+            }
+
             EditorUtility.SetDirty(controller);
 
             return controller;
@@ -988,6 +1034,11 @@ namespace UpIzUpMini.EditorTools
                 // plant height so they aren't invisible specks.
                 float normalize = plantHeightMetres / Mathf.Max(0.0001f, mesh.bounds.size.y);
                 meshGo.transform.localScale = Vector3.one * normalize;
+
+                // The scan is centred on its origin, so half the plant sat
+                // below the soil and the fruit ended up hovering above its
+                // visible top. Lift it so the base rests at y=0.
+                meshGo.transform.localPosition = new Vector3(0f, -mesh.bounds.min.y * normalize, 0f);
             }
             else
             {
@@ -1001,10 +1052,13 @@ namespace UpIzUpMini.EditorTools
                 var fruit = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 fruit.name = $"Fruit_{i}";
                 fruit.transform.SetParent(plantRoot.transform, false);
+                // Keep fruit inside the plant's real height band (base at
+                // y=0, top at plantHeightMetres) so it hangs on the plant
+                // rather than floating above it.
                 fruit.transform.localPosition = new Vector3(
-                    Mathf.Cos(angle) * plantHeightMetres * 0.22f,
-                    plantHeightMetres * (0.35f + 0.13f * i),
-                    Mathf.Sin(angle) * plantHeightMetres * 0.22f);
+                    Mathf.Cos(angle) * plantHeightMetres * 0.16f,
+                    plantHeightMetres * (0.30f + 0.11f * i),
+                    Mathf.Sin(angle) * plantHeightMetres * 0.16f);
                 fruit.transform.localScale = Vector3.one * (plantHeightMetres * 0.15f);
                 Object.DestroyImmediate(fruit.GetComponent<Collider>());
                 var fr = fruit.GetComponent<Renderer>();
@@ -1446,6 +1500,113 @@ namespace UpIzUpMini.EditorTools
             return crops;
         }
 
+        // Fictional near-miss brand names per the user's direction, so no
+        // real trademark is used.
+        private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] ShopSpecs =
+        {
+            ("seed_tomato", "Tomato Seeds (x5)",   ShopCategory.Seed,      12,  "tomato", 5),
+            ("seed_banana", "Banana Suckers (x3)", ShopCategory.Seed,      20,  "banana", 3),
+            ("seed_carrot", "Carrot Seeds (x5)",   ShopCategory.Seed,      10,  "carrot", 5),
+            ("cap_mike",    "Mike Cap",            ShopCategory.Clothing,  45,  null,     0),
+            ("shirt_lacos", "Lacostes Polo",       ShopCategory.Clothing,  80,  null,     0),
+            ("shoes_mike",  "Mike Air Kicks",      ShopCategory.Footwear,  150, null,     0),
+            ("chain_gold",  "Gold Chain",          ShopCategory.Accessory, 320, null,     0),
+            ("land_montine","Montine Land Plot",   ShopCategory.Land,      600, null,     0),
+            ("boat_pirogue","Fishing Pirogue",     ShopCategory.Boat,      900, null,     0),
+        };
+
+        private static ShopItemDefinition[] BuildShopStock(CropDefinition[] crops)
+        {
+            EnsureFolder("Assets/UpIzUpMini/Data/Shop");
+            var items = new ShopItemDefinition[ShopSpecs.Length];
+
+            for (int i = 0; i < ShopSpecs.Length; i++)
+            {
+                var spec = ShopSpecs[i];
+                string path = $"Assets/UpIzUpMini/Data/Shop/{spec.id}.asset";
+                var item = AssetDatabase.LoadAssetAtPath<ShopItemDefinition>(path);
+                if (item == null)
+                {
+                    item = ScriptableObject.CreateInstance<ShopItemDefinition>();
+                    AssetDatabase.CreateAsset(item, path);
+                }
+
+                item.itemId = spec.id;
+                item.displayName = spec.name;
+                item.category = spec.cat;
+                item.price = spec.price;
+                item.seedQuantity = spec.qty;
+                item.grantsCrop = null;
+                if (!string.IsNullOrEmpty(spec.seedCrop))
+                {
+                    foreach (var c in crops)
+                    {
+                        if (c != null && c.cropId == spec.seedCrop) { item.grantsCrop = c; break; }
+                    }
+                }
+                EditorUtility.SetDirty(item);
+                items[i] = item;
+            }
+
+            return items;
+        }
+
+        /// <summary>Roadside signs naming Lalay and the Montine turnoff.</summary>
+        private static void BuildStreetSigns(Terrain terrain, List<Vector3> roadPoints, Vector3 farmCenter)
+        {
+            var parent = new GameObject("StreetSigns");
+            Material postMat = GetOrCreateMaterial("SignPost", new Color(0.35f, 0.35f, 0.37f));
+            Material boardMat = GetOrCreateMaterial("SignBoard", new Color(0.1f, 0.35f, 0.18f));
+
+            BuildSign(parent.transform, terrain, roadPoints[1], "LALAY", postMat, boardMat);
+
+            int mid = roadPoints.Count / 2;
+            BuildSign(parent.transform, terrain, roadPoints[mid], "MONTINE", postMat, boardMat);
+            BuildSign(parent.transform, terrain,
+                farmCenter + (roadPoints[mid] - farmCenter).normalized * 16f,
+                "MONTINE FARM", postMat, boardMat);
+        }
+
+        private static void BuildSign(
+            Transform parent, Terrain terrain, Vector3 near, string text, Material postMat, Material boardMat)
+        {
+            Vector3 pos = near + new Vector3(4.6f, 0f, 0f);
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+
+            var sign = new GameObject($"Sign_{text}");
+            sign.transform.SetParent(parent);
+            sign.transform.position = pos;
+
+            var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            post.name = "Post";
+            post.transform.SetParent(sign.transform, false);
+            post.transform.localPosition = new Vector3(0f, 1.2f, 0f);
+            post.transform.localScale = new Vector3(0.1f, 1.2f, 0.1f);
+            post.GetComponent<Renderer>().sharedMaterial = postMat;
+
+            var board = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            board.name = "Board";
+            board.transform.SetParent(sign.transform, false);
+            board.transform.localPosition = new Vector3(0f, 2.5f, 0f);
+            board.transform.localScale = new Vector3(2.4f, 0.55f, 0.08f);
+            board.GetComponent<Renderer>().sharedMaterial = boardMat;
+            Object.DestroyImmediate(board.GetComponent<Collider>());
+
+            // World-space label on the board.
+            var textGo = new GameObject("Label");
+            textGo.transform.SetParent(sign.transform, false);
+            textGo.transform.localPosition = new Vector3(0f, 2.5f, -0.07f);
+            var tm = textGo.AddComponent<TextMesh>();
+            tm.text = text;
+            // characterSize scales the glyphs in world units - 0.08 made
+            // the label many times wider than its board.
+            tm.characterSize = 0.022f;
+            tm.fontSize = 90;
+            tm.anchor = TextAnchor.MiddleCenter;
+            tm.alignment = TextAlignment.Center;
+            tm.color = Color.white;
+        }
+
         private static CropDefinition[] LoadAllCropDefinitions()
         {
             var crops = new CropDefinition[CropSpecs.Length];
@@ -1509,6 +1670,110 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("characterNameLabel").objectReferenceValue = nameLabel;
             so.FindProperty("cropSelectionLabel").objectReferenceValue = cropLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>Shop panel, H-controls overlay, and the fading area-name label.</summary>
+        private static void BuildExtraUI(ShopItemDefinition[] stock, List<Vector3> roadPoints, Vector3 farmCenter)
+        {
+            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            var canvasGo = new GameObject("GameplayUICanvas");
+            var canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 5;
+            var scaler = canvasGo.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            canvasGo.AddComponent<GraphicRaycaster>();
+
+            // Shop
+            var shopPanel = CreateModalPanel(canvasGo.transform, "ShopPanel", new Vector2(900f, 620f));
+            var shopText = CreateModalText(shopPanel.transform, font, 26);
+            var shop = canvasGo.AddComponent<ShopPanelController>();
+            var shopSo = new SerializedObject(shop);
+            shopSo.FindProperty("panel").objectReferenceValue = shopPanel;
+            shopSo.FindProperty("bodyText").objectReferenceValue = shopText;
+            var stockProp = shopSo.FindProperty("stock");
+            stockProp.arraySize = stock.Length;
+            for (int i = 0; i < stock.Length; i++)
+            {
+                stockProp.GetArrayElementAtIndex(i).objectReferenceValue = stock[i];
+            }
+            shopSo.ApplyModifiedPropertiesWithoutUndo();
+
+            // Controls (H)
+            var controlsPanel = CreateModalPanel(canvasGo.transform, "ControlsPanel", new Vector2(880f, 640f));
+            var controlsText = CreateModalText(controlsPanel.transform, font, 26);
+            var controls = canvasGo.AddComponent<ControlsPanelController>();
+            var cso = new SerializedObject(controls);
+            cso.FindProperty("panel").objectReferenceValue = controlsPanel;
+            cso.FindProperty("bodyText").objectReferenceValue = controlsText;
+            cso.ApplyModifiedPropertiesWithoutUndo();
+
+            // Area name banner
+            var areaGo = new GameObject("AreaName");
+            areaGo.transform.SetParent(canvasGo.transform, false);
+            var areaRect = areaGo.AddComponent<RectTransform>();
+            areaRect.anchorMin = areaRect.anchorMax = new Vector2(0.5f, 0f);
+            areaRect.pivot = new Vector2(0.5f, 0f);
+            areaRect.sizeDelta = new Vector2(900f, 90f);
+            areaRect.anchoredPosition = new Vector2(0f, 140f);
+            var areaText = areaGo.AddComponent<Text>();
+            areaText.font = font;
+            areaText.fontSize = 54;
+            areaText.fontStyle = FontStyle.Bold;
+            areaText.alignment = TextAnchor.MiddleCenter;
+            areaText.color = new Color(1f, 1f, 1f, 0f);
+
+            var area = canvasGo.AddComponent<AreaNameDisplay>();
+            var aso = new SerializedObject(area);
+            aso.FindProperty("label").objectReferenceValue = areaText;
+            var zonesProp = aso.FindProperty("zones");
+            zonesProp.arraySize = 2;
+
+            var lalay = zonesProp.GetArrayElementAtIndex(0);
+            lalay.FindPropertyRelative("areaName").stringValue = "Lalay";
+            lalay.FindPropertyRelative("center").vector3Value = roadPoints[roadPoints.Count / 3];
+            lalay.FindPropertyRelative("radius").floatValue = 70f;
+
+            var montine = zonesProp.GetArrayElementAtIndex(1);
+            montine.FindPropertyRelative("areaName").stringValue = "Montine";
+            montine.FindPropertyRelative("center").vector3Value = farmCenter;
+            montine.FindPropertyRelative("radius").floatValue = 55f;
+
+            aso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static GameObject CreateModalPanel(Transform parent, string name, Vector2 size)
+        {
+            var panel = new GameObject(name);
+            panel.transform.SetParent(parent, false);
+            var rect = panel.AddComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = size;
+            rect.anchoredPosition = Vector2.zero;
+            panel.AddComponent<Image>().color = new Color(0.04f, 0.05f, 0.07f, 0.93f);
+            panel.SetActive(false);
+            return panel;
+        }
+
+        private static Text CreateModalText(Transform parent, Font font, int fontSize)
+        {
+            var go = new GameObject("Body");
+            go.transform.SetParent(parent, false);
+            var rect = go.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(36f, 30f);
+            rect.offsetMax = new Vector2(-36f, -30f);
+
+            var text = go.AddComponent<Text>();
+            text.font = font;
+            text.fontSize = fontSize;
+            text.alignment = TextAnchor.UpperLeft;
+            text.color = Color.white;
+            text.supportRichText = true;
+            return text;
         }
 
         private static void AnchorTopRight(RectTransform rect)

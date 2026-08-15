@@ -14,18 +14,24 @@ namespace UpIzUpMini.Character
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour
     {
-        // Tuned to the authored pace of the Human Basic Motions clips
-        // (Walk01 ~1.9 m/s, Run01 ~4.4 m/s). The previous 3.2/6.5 moved the
-        // capsule far faster than the animation's stride, which is what made
-        // running look wrong - the feet skated across the ground.
-        [SerializeField] private float walkSpeed = 1.9f;
-        [SerializeField] private float runSpeed = 4.4f;
+        // Measured from the clips' own root motion via
+        // Mini013RigAndAnimAudit.MeasureLocomotionSpeeds - Walk01 is
+        // authored at exactly 1.90 m/s and Run01 at 3.80 m/s. Matching
+        // these removes foot-sliding; an earlier guess of 4.4 for run was
+        // 16% too fast, which is why running looked like skating.
+        [SerializeField] private float walkSpeed = 1.90f;
+        [SerializeField] private float runSpeed = 3.80f;
+        [SerializeField] private float jumpHeight = 1.15f;
         [SerializeField] private float turnSpeed = 12f;
         [SerializeField] private float gravity = -20f;
 
         [SerializeField] private Animator animator;
         [SerializeField] private string speedParam = "Speed";
+        [SerializeField] private string jumpParam = "Jump";
+        [SerializeField] private string groundedParam = "Grounded";
         [SerializeField] private CharacterVitals vitals;
+
+        public bool IsJumping { get; private set; }
 
         private CharacterController _controller;
         private float _verticalVelocity;
@@ -90,10 +96,22 @@ namespace UpIzUpMini.Character
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSpeed * Time.deltaTime);
             }
 
-            if (_controller.isGrounded && _verticalVelocity < 0f)
+            bool grounded = _controller.isGrounded;
+            if (grounded && _verticalVelocity < 0f)
             {
                 _verticalVelocity = -1f;
             }
+
+            if (grounded && Input.GetKeyDown(KeyCode.Space))
+            {
+                // v = sqrt(2 * g * h) for the requested apex height.
+                _verticalVelocity = Mathf.Sqrt(2f * Mathf.Abs(gravity) * jumpHeight);
+                IsJumping = true;
+                animator?.SetTrigger(jumpParam);
+            }
+
+            if (grounded && _verticalVelocity <= 0f) IsJumping = false;
+
             _verticalVelocity += gravity * Time.deltaTime;
 
             Vector3 motion = moveDir * speed + Vector3.up * _verticalVelocity;
@@ -106,6 +124,7 @@ namespace UpIzUpMini.Character
                 float target = CurrentSpeed <= 0f ? 0f : (IsRunning ? 2f : 1f);
                 _animSpeedBlend = Mathf.MoveTowards(_animSpeedBlend, target, 12f * Time.deltaTime);
                 animator.SetFloat(speedParam, _animSpeedBlend);
+                animator.SetBool(groundedParam, grounded);
             }
         }
     }

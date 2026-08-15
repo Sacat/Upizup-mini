@@ -23,6 +23,8 @@ namespace UpIzUpMini.Farming
         [SerializeField] private Renderer soilRenderer;
         [SerializeField] private CropStageVisual tomatoVisual;
         [SerializeField] private CropStageVisual weedVisual;
+        [SerializeField] private int harvestYield = 3;
+        [SerializeField] private int seedsPerHarvest = 2;
 
         private PlotState _state = PlotState.Empty;
         private CropDefinition _crop;
@@ -70,6 +72,15 @@ namespace UpIzUpMini.Farming
                 case PlotState.Empty:
                     var crop = CropSelectionController.Instance != null ? CropSelectionController.Instance.Selected : null;
                     if (crop == null) return;
+
+                    // Planting costs a seed - buy more from the shopkeeper,
+                    // or get them back by harvesting.
+                    if (EconomyManager.Instance != null && !EconomyManager.Instance.TryConsumeSeed(crop.cropId))
+                    {
+                        _lastFeedback = $"No {crop.displayName} seed left. Buy some by the shop, nuh.";
+                        return;
+                    }
+
                     _crop = crop;
                     _state = PlotState.PlantedDry;
 
@@ -95,10 +106,15 @@ namespace UpIzUpMini.Farming
                 case PlotState.Ripe:
                     if (EconomyManager.Instance != null && _crop != null)
                     {
-                        EconomyManager.Instance.AddCrop(_crop.cropId, 1);
+                        EconomyManager.Instance.AddCrop(_crop.cropId, harvestYield);
+                        // A healthy plant gives back more seed than it took,
+                        // so the farm can be cloned/expanded from one buy.
+                        EconomyManager.Instance.AddSeeds(_crop.cropId, seedsPerHarvest);
                         if (_crop.isIllegal) EconomyManager.Instance.AddHeat(4f);
                     }
-                    _lastFeedback = _crop != null ? $"Harvested {_crop.displayName}." : "Harvested.";
+                    _lastFeedback = _crop != null
+                        ? $"Harvested {harvestYield} {_crop.displayName} and {seedsPerHarvest} seed."
+                        : "Harvested.";
                     ResetPlot();
                     break;
             }

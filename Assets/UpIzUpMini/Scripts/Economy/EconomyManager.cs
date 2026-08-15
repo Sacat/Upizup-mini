@@ -38,7 +38,69 @@ namespace UpIzUpMini.Economy
             }
         }
 
+        private readonly Dictionary<string, int> _seeds = new Dictionary<string, int>();
+        private readonly HashSet<string> _owned = new HashSet<string>();
+
         public int GetCount(string cropId) => _inventory.TryGetValue(cropId, out int c) ? c : 0;
+
+        // --- Seeds -------------------------------------------------------
+        // Planting consumes a seed; harvesting returns more than one so the
+        // player can keep replanting (the "clone plants / get extra seeds"
+        // behaviour from the larger game).
+
+        public int GetSeeds(string cropId) => _seeds.TryGetValue(cropId, out int c) ? c : 0;
+
+        public void AddSeeds(string cropId, int amount)
+        {
+            _seeds.TryGetValue(cropId, out int current);
+            _seeds[cropId] = Mathf.Max(0, current + amount);
+            OnChanged?.Invoke();
+        }
+
+        public bool TryConsumeSeed(string cropId)
+        {
+            if (GetSeeds(cropId) <= 0) return false;
+            _seeds[cropId] = GetSeeds(cropId) - 1;
+            OnChanged?.Invoke();
+            return true;
+        }
+
+        // --- Purchases ---------------------------------------------------
+
+        public bool OwnsItem(string itemId) => _owned.Contains(itemId);
+
+        public bool TryPurchase(ShopItemDefinition item, out string message)
+        {
+            if (item == null) { message = "Nothing to buy."; return false; }
+
+            if (item.category != ShopCategory.Seed && _owned.Contains(item.itemId))
+            {
+                message = $"You already have {item.displayName}.";
+                return false;
+            }
+
+            if (Money < item.price)
+            {
+                message = $"{item.displayName} cost ${item.price}. You short.";
+                return false;
+            }
+
+            Money -= item.price;
+
+            if (item.category == ShopCategory.Seed && item.grantsCrop != null)
+            {
+                AddSeeds(item.grantsCrop.cropId, item.seedQuantity);
+                message = $"Bought {item.seedQuantity} {item.displayName} for ${item.price}.";
+            }
+            else
+            {
+                _owned.Add(item.itemId);
+                message = $"Bought {item.displayName} for ${item.price}.";
+            }
+
+            OnChanged?.Invoke();
+            return true;
+        }
 
         public void AddCrop(string cropId, int amount)
         {
