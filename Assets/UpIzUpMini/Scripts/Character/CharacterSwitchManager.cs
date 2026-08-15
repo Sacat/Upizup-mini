@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UpIzUpMini.Cameras;
 using UpIzUpMini.Interaction;
@@ -54,9 +55,22 @@ namespace UpIzUpMini.Character
             }
         }
 
+        // A character can be temporarily unavailable - e.g. away on the
+        // Guadeloupe run (DECISIONS.md D-007).
+        private readonly HashSet<int> _locked = new HashSet<int>();
+
+        public void SetLocked(int index, bool locked)
+        {
+            if (locked) _locked.Add(index);
+            else _locked.Remove(index);
+        }
+
+        public bool IsLocked(int index) => _locked.Contains(index);
+
         public void SwitchTo(int index)
         {
             if (index < 0 || index >= slots.Length) return;
+            if (_locked.Contains(index)) return;
             ApplyActive(index);
         }
 

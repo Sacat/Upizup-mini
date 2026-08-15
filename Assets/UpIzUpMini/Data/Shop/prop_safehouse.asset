@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 45456d67ab597e34b942d247a4ea5627, type: 3}
-  m_Name: boat_pirogue
+  m_Name: prop_safehouse
   m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Economy.ShopItemDefinition
-  itemId: boat_pirogue
-  displayName: Fishing Pirogue
-  category: 5
-  price: 2600
+  itemId: prop_safehouse
+  displayName: Montine Safehouse Deed
+  category: 6
+  price: 2200
   description: 
   grantsCrop: {fileID: 0}
   seedQuantity: 0

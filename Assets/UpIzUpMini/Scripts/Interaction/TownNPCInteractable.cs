@@ -8,7 +8,7 @@ namespace UpIzUpMini.Interaction
     /// accessories. They are separate shopfronts with separate stock, per
     /// the user's request - not one merged shop.
     /// </summary>
-    public enum NpcRole { Villager, Police, FarmShop, Buyer, ApparelShop, Boss }
+    public enum NpcRole { Villager, Police, FarmShop, Buyer, ApparelShop, Boss, LandOffice, CarDealer, BoatMan }
 
     /// <summary>
     /// One interactable for every named-role NPC (villager, police,
@@ -102,8 +102,18 @@ namespace UpIzUpMini.Interaction
 
                 case NpcRole.FarmShop:
                 case NpcRole.ApparelShop:
+                case NpcRole.LandOffice:
+                case NpcRole.CarDealer:
                     _lastFeedback = shopkeeperLine;
                     shop?.Open();
+                    break;
+
+                case NpcRole.BoatMan:
+                    // Guadeloupe run - DECISIONS.md D-007: abstracted
+                    // dispatch, no Guadeloupe map, 3x price.
+                    _lastFeedback = GuadeloupeTrade.Instance != null
+                        ? GuadeloupeTrade.Instance.Interact()
+                        : "Boat not running today.";
                     break;
 
                 case NpcRole.Boss:

@@ -32,6 +32,13 @@ character: it prints bone counts, not just validity.
 copied with the user's explicit approval into
 `Assets/UpIzUpMini/Art/Characters/`.
 
+**Related, found in MINI-017:** the Floreswa NPC models also imported at
+**2.73-2.83m tall** against the protagonists' ~1.95m and a 2m
+`CharacterController`. `Mini017NpcScaleFix` normalises them to 1.85m via
+`ModelImporter.globalScale`. Use `Mini017ScaleProbe` to check any new
+character - a model taller than its collision capsule cannot have its
+feet meet the ground.
+
 **If you add more characters:** prefer models authored for Humanoid.
 Force-converting a Generic rig will reintroduce this bug.
 
@@ -127,10 +134,10 @@ windowed mode (F11).
 Ordered roughly by the user's stated priority:
 
 1. **Vehicles and driving** — explicitly wanted, explicitly deferred by the user until after the current pass. Also bikes, physics, road mechanics. `Vehicle Physics Pro - Community Edition` is already in the user's Asset Store account.
-2. **Separate shopfronts still to split out** — the user asked for land to be sold at a dedicated **"Land and Surveys"** location and vehicles/boats at a **car dealer**, rather than all through the farm shop. Currently `land_montine` is still stocked in the farm shop and there is no dealer. `ShopPanelController` is already per-shop, so this is mostly scene-building plus moving stock entries.
-3. **Guadeloupe sea trade** — pay the boat man **$500**, send produce, receive **3×** the value. Design is settled (DECISIONS.md D-007: abstracted dispatch, no Guadeloupe map, character unavailable while away). Not implemented.
+2. ~~Separate shopfronts~~ — **done in MINI-017.** Land now sells from a "Land and Surveys" office and vehicles/boats from a "Car Dealer", each with its own NPC, stall, sign and stock.
+3. ~~Guadeloupe sea trade~~ — **done in MINI-017** (`GuadeloupeTrade`): $500 fee, the non-controlled character sails with the crop inventory and returns after ~90s with 3x value, and is locked out of switching while away. Trip length and multiplier are unbalanced first-pass values.
 4. **Wearables** — cap/shades/chain/watch attach to bones and work; **shirts, shorts and shoes do not**, as they need material or mesh swaps rather than bone attachment.
-5. **Building colliders are too coarse** — the user reports they extend well past the buildings. `AddBoundsCollider` fits one box to the whole instance's bounds; shanty structures with overhangs need multiple tighter colliders, or per-renderer boxes.
+5. ~~Building colliders too coarse~~ — **improved in MINI-017**: per-renderer boxes from local mesh bounds, trimmed 8% horizontally, instead of one box around the whole instance. Worth re-checking by hand.
 6. **Harder police missions** — reinforcements spawn with heat, but no mission uses them yet and there is no active pursuit; `EscapeHeat` currently just means waiting for decay.
 7. **Character texture weight** — `Art/Characters/` is ~380MB of 4K PNGs. Import settings are capped (normals 512, colour 1024) so runtime/mobile cost is fine, but the **repository** still carries the full-size sources. Consider re-encoding them down or moving to Git LFS.
 8. Missions are generated in the scene builder rather than authored as assets; at 5+ missions this is worth moving to ScriptableObjects.

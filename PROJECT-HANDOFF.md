@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-016 built. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
+- Status: MINI-017 built. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
@@ -372,7 +372,30 @@ After verification, append a change entry, update the verification results, and 
   - Police reinforcements are spawned and positioned but do not pursue; `EscapeHeat` still means waiting for decay.
 - Next action: user playtests movement first. If the walk/run now looks right, the next most valuable work is the shop split (Land and Surveys, car dealer) and tighter colliders, then vehicles.
 
+### MINI-017 — Character scale mismatch, tighter colliders, Land/Dealer shops, Guadeloupe run
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User sent a video showing the character walking oddly and noted the protagonist is much smaller than the other characters, and asked for the remaining outstanding items.
+- Implementation:
+  - **Scale mismatch measured, and it is the inverse of how it appears.** `Mini017ScaleProbe` measured real world-space heights: Franki 1.974m and Sacat 1.934m (correct, and matching the 2m `CharacterController` capsule), against Floreswa NPCs at **2.73–2.83m**. The protagonists are not undersized — the NPCs were roughly 45% oversized, i.e. nearly 9 feet tall, and were also bursting out of the 2m capsule that actually moves through the world. That mismatch is very likely a contributor to the odd-looking movement as well, since a model taller than its collision capsule cannot have its feet line up with the ground.
+  - `Mini017NpcScaleFix` normalises all nine Floreswa models to 1.85m via `ModelImporter.globalScale`, folding into the existing import scale rather than overwriting it. Fixed at import so every use is correct, rather than scaling instances at each call site. Re-measured after: all NPCs now 1.850m. Verified visually against the stalls and buildings.
+  - **Building colliders tightened.** `AddBoundsCollider` previously fitted a single box to the whole instance's bounds, so shanty structures with overhanging roofs and lean-tos blocked the player metres from the actual walls. Now each renderer gets its own `BoxCollider` from its local mesh bounds, trimmed 8% horizontally so eaves and thin trim don't push the player off the wall face.
+  - **Land and vehicle sales split into their own locations**, as asked. New `NpcRole` values `LandOffice`, `CarDealer` and `BoatMan`. Land no longer sells from the farm shop: a **"Land and Surveys"** office sells the Montine plot, a Hillside survey lot and a Montine safehouse deed; a **"Car Dealer"** sells a Scrambler bike, a Pickup van and the Fishing pirogue. Vehicle prices ($1,800–$3,200) are deliberately set well above early-game income so they remain a later purchase, per the user's direction. Both have their own stall and sign.
+  - **Guadeloupe run implemented** (`GuadeloupeTrade`), matching DECISIONS.md D-007 and Docs/STORY.md Chapter Five: talk to the boat man at the end of the jetty, pay the captain **$500**, and the character who is *not* currently controlled sails with the whole crop inventory and returns after ~90s with **3×** its local value. While away that character is deactivated and `CharacterSwitchManager.SetLocked` prevents switching to them — so the player genuinely gives up their second body for the duration. No Guadeloupe map, route or evasion detail is modelled.
+- Files changed: `Editor/Mini017ScaleProbe.cs`, `Mini017NpcScaleFix.cs`, `Scripts/Economy/GuadeloupeTrade.cs` (new); `Scripts/Character/CharacterSwitchManager.cs` (lock support), `Scripts/Interaction/TownNPCInteractable.cs`, `Editor/Mini011PhaseBSetup.cs`; all nine `Floreswa/Models/*.fbx.meta` (import scale); `Data/Shop/*.asset`; `Scenes/GrandBayProof.unity`.
+- Verification: compiles clean. Heights measured before and after (2.73–2.83m → 1.850m). Scene builder clean. Market re-rendered — NPCs now sit at believable height against the stalls and buildings. Windows build succeeded; **zero console errors in a 14s headless run**.
+- Known issues (honest):
+  - **The video could not be viewed** — there is no ffmpeg on this machine and no video decoding available, so the walk problem was diagnosed from the user's written description plus measurement, not from the footage. The scale mismatch is confirmed and fixed; **whether that fully accounts for the "walks weird" complaint is not established.** If it still looks wrong after this, the next thing to check is the animator blend thresholds against actual movement speed, and whether the `Jump`/`Grounded` transitions are firing during normal walking.
+  - Nothing here is playtested by hand.
+  - Vehicles and boats are purchasable but **not drivable** — no vehicle controller, physics or road mechanics yet. That was explicitly deferred by the user to a later pass and remains the largest outstanding feature.
+  - Shirts/shorts/shoes still have no visual (bone attachment only covers cap/shades/chain/watch).
+  - The Guadeloupe trip length (90s) and 3× multiplier are first-pass values and unbalanced against the rest of the economy.
+  - Police reinforcements spawn with heat but still do not pursue.
+- Next action: user playtests movement and scale first. If movement still looks wrong, that needs a focused pass with a frame-by-frame comparison against the larger project rather than more inference.
+
 ## Required change-entry format
+
 
 
 

@@ -134,8 +134,10 @@ namespace UpIzUpMini.EditorTools
 
             ShopItemDefinition[] farmStock = BuildShopStock(crops);
             ShopItemDefinition[] apparelStock = BuildApparelStock(crops);
+            ShopItemDefinition[] landStock = BuildStock(LandSpecs, crops);
+            ShopItemDefinition[] dealerStock = BuildStock(DealerSpecs, crops);
             BuildStreetSigns(terrain, roadPoints, _farmCenter);
-            BuildExtraUI(farmStock, apparelStock, roadPoints, _farmCenter);
+            BuildExtraUI(farmStock, apparelStock, landStock, dealerStock, roadPoints, _farmCenter);
             BuildMissions(terrain, roadPoints, _farmCenter, farmPlot);
 
             // Starting seeds so the player can plant before their first
@@ -869,22 +871,32 @@ namespace UpIzUpMini.EditorTools
             var renderers = instance.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0) return;
 
-            Bounds worldBounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
+            // One box around the whole instance was far too generous -
+            // shanty structures have overhanging roofs and lean-tos, so a
+            // single bounding box blocked the player metres away from the
+            // actual walls. Give each renderer its own collider instead,
+            // which tracks the real shape much more closely.
+            foreach (var renderer in renderers)
             {
-                worldBounds.Encapsulate(renderers[i].bounds);
-            }
+                var meshFilter = renderer.GetComponent<MeshFilter>();
+                if (meshFilter == null || meshFilter.sharedMesh == null) continue;
 
-            var collider = instance.AddComponent<BoxCollider>();
-            // Convert world-space bounds into this transform's local space
-            // so the collider stays correct if the instance is scaled.
-            Vector3 localCenter = instance.transform.InverseTransformPoint(worldBounds.center);
-            Vector3 localSize = new Vector3(
-                worldBounds.size.x / Mathf.Max(0.0001f, instance.transform.lossyScale.x),
-                worldBounds.size.y / Mathf.Max(0.0001f, instance.transform.lossyScale.y),
-                worldBounds.size.z / Mathf.Max(0.0001f, instance.transform.lossyScale.z));
-            collider.center = localCenter;
-            collider.size = localSize;
+                var go = renderer.gameObject;
+                if (go.GetComponent<Collider>() != null) continue;
+
+                var box = go.AddComponent<BoxCollider>();
+                // Local-space mesh bounds, so the box follows this
+                // renderer's own transform and scale exactly.
+                Bounds local = meshFilter.sharedMesh.bounds;
+                box.center = local.center;
+
+                // Trim slightly so eaves and thin trim don't push the
+                // player away from the wall face.
+                box.size = new Vector3(
+                    local.size.x * 0.92f,
+                    local.size.y,
+                    local.size.z * 0.92f);
+            }
         }
 
         /// <summary>
@@ -1306,7 +1318,64 @@ namespace UpIzUpMini.EditorTools
             BuildMarketArea(terrain, roadPoints, index: 6, title: "FARM SHOP", secondTitle: "PRODUCE BUYER");
             BuildMarketArea(terrain, roadPoints, index: 9, title: "CLOTHES", secondTitle: null);
 
+            // Land office and car dealer are their own locations further
+            // along the road, separate from the farm/clothes shops.
+            BuildNpc(terrain, roadPoints, index: 11, sideMul: -1f, goName: "NPC_LandOffice",
+                modelPath: "Assets/Floreswa/Models/male03_3.fbx", role: NpcRole.LandOffice,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+
+            BuildNpc(terrain, roadPoints, index: 13, sideMul: 1f, goName: "NPC_CarDealer",
+                modelPath: "Assets/Floreswa/Models/male01_3.fbx", role: NpcRole.CarDealer,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+
+            BuildMarketArea(terrain, roadPoints, index: 11, title: "LAND AND SURVEYS", secondTitle: null);
+            BuildMarketArea(terrain, roadPoints, index: 13, title: "CAR DEALER", secondTitle: null);
+
             BuildBossNpc(terrain, roadPoints, allCrops, animController);
+            BuildBoatMan(terrain, allCrops, animController);
+        }
+
+        /// <summary>
+        /// The captain who runs produce to Guadeloupe, standing at the end
+        /// of the jetty. See GuadeloupeTrade / DECISIONS.md D-007.
+        /// </summary>
+        private static void BuildBoatMan(
+            Terrain terrain, CropDefinition[] allCrops, RuntimeAnimatorController animController)
+        {
+            var deck = GameObject.Find("JettyDeck");
+            if (deck == null)
+            {
+                Debug.LogWarning("Mini011PhaseBSetup: JettyDeck not found; skipping boat man.");
+                return;
+            }
+
+            Vector3 pos = deck.transform.position
+                          + new Vector3(-deck.transform.localScale.x * 0.35f, 0f, 0f);
+            pos.y = deck.transform.position.y + deck.transform.localScale.y * 0.5f;
+
+            var go = new GameObject("NPC_BoatMan");
+            go.transform.position = pos;
+            go.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+
+            InstantiateCharacter("Assets/Floreswa/Models/male02_3.fbx", go.transform, animController, null);
+
+            var npc = go.AddComponent<TownNPCInteractable>();
+            var so = new SerializedObject(npc);
+            so.FindProperty("role").enumValueIndex = (int)NpcRole.BoatMan;
+            so.FindProperty("npcName").stringValue = "BoatMan";
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            // The trade system itself.
+            var tradeGo = new GameObject("GuadeloupeTrade");
+            var trade = tradeGo.AddComponent<GuadeloupeTrade>();
+            var tso = new SerializedObject(trade);
+            var cropsProp = tso.FindProperty("sellableCrops");
+            cropsProp.arraySize = allCrops.Length;
+            for (int i = 0; i < allCrops.Length; i++)
+            {
+                cropsProp.GetArrayElementAtIndex(i).objectReferenceValue = allCrops[i];
+            }
+            tso.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>
@@ -1690,7 +1759,24 @@ namespace UpIzUpMini.EditorTools
             ("seed_tomato", "Tomato Seeds (x5)",   ShopCategory.Seed,      12,  "tomato", 5),
             ("seed_banana", "Banana Suckers (x3)", ShopCategory.Seed,      20,  "banana", 3),
             ("seed_carrot", "Carrot Seeds (x5)",   ShopCategory.Seed,      10,  "carrot", 5),
-            ("land_montine","Montine Land Plot",   ShopCategory.Land,      600, null,     0),
+        };
+
+        // Land is sold from its own "Land and Surveys" office, not the
+        // farm shop (user direction).
+        private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] LandSpecs =
+        {
+            ("land_montine",  "Montine Land Plot",     ShopCategory.Land,     600,  null, 0),
+            ("land_hillside", "Hillside Survey Lot",   ShopCategory.Land,     1400, null, 0),
+            ("prop_safehouse","Montine Safehouse Deed",ShopCategory.Property, 2200, null, 0),
+        };
+
+        // Vehicles and boats come from a dealer, and are priced so they
+        // are a later-game purchase (user direction).
+        private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] DealerSpecs =
+        {
+            ("bike_scrambler", "Scrambler Bike",   ShopCategory.Vehicle, 1800, null, 0),
+            ("van_pickup",     "Pickup Van",       ShopCategory.Vehicle, 3200, null, 0),
+            ("boat_pirogue",   "Fishing Pirogue",  ShopCategory.Boat,    2600, null, 0),
         };
 
         // Separate apparel shopfront - kept distinct from the farm shop.
@@ -2154,6 +2240,7 @@ namespace UpIzUpMini.EditorTools
         /// <summary>Shop panel, H-controls overlay, and the fading area-name label.</summary>
         private static void BuildExtraUI(
             ShopItemDefinition[] farmStock, ShopItemDefinition[] apparelStock,
+            ShopItemDefinition[] landStock, ShopItemDefinition[] dealerStock,
             List<Vector3> roadPoints, Vector3 farmCenter)
         {
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -2170,22 +2257,26 @@ namespace UpIzUpMini.EditorTools
             // Two separate shopfronts with separate stock and panels.
             var farmShop = BuildShopPanel(canvasGo, "FarmShopPanel", "FARM SHOP", farmStock, font);
             var apparelShop = BuildShopPanel(canvasGo, "ApparelShopPanel", "CLOTHES SHOP", apparelStock, font);
+            var landShop = BuildShopPanel(canvasGo, "LandShopPanel", "LAND AND SURVEYS", landStock, font);
+            var dealerShop = BuildShopPanel(canvasGo, "DealerShopPanel", "CAR DEALER", dealerStock, font);
 
             // Hand each shopkeeper NPC its own shop panel.
             foreach (var npc in Object.FindObjectsByType<TownNPCInteractable>(FindObjectsSortMode.None))
             {
                 var nso = new SerializedObject(npc);
-                var roleIndex = nso.FindProperty("role").enumValueIndex;
-                if (roleIndex == (int)NpcRole.FarmShop)
+                int roleIndex = nso.FindProperty("role").enumValueIndex;
+                ShopPanelController target = roleIndex switch
                 {
-                    nso.FindProperty("shop").objectReferenceValue = farmShop;
-                    nso.ApplyModifiedPropertiesWithoutUndo();
-                }
-                else if (roleIndex == (int)NpcRole.ApparelShop)
-                {
-                    nso.FindProperty("shop").objectReferenceValue = apparelShop;
-                    nso.ApplyModifiedPropertiesWithoutUndo();
-                }
+                    (int)NpcRole.FarmShop => farmShop,
+                    (int)NpcRole.ApparelShop => apparelShop,
+                    (int)NpcRole.LandOffice => landShop,
+                    (int)NpcRole.CarDealer => dealerShop,
+                    _ => null
+                };
+                if (target == null) continue;
+
+                nso.FindProperty("shop").objectReferenceValue = target;
+                nso.ApplyModifiedPropertiesWithoutUndo();
             }
 
             // Mission HUD: objective card plus a large transient banner.
