@@ -44,16 +44,21 @@ namespace UpIzUpMini.EditorTools
             GameObject mainCamera = GameObject.FindWithTag("MainCamera");
             ValidateCamera(mainCamera, player, problems);
 
-            var npcs = Object.FindObjectsByType<NPCInteractable>(FindObjectsSortMode.None);
-            if (npcs.Length < 1)
+            // MINI-011 Phase C replaced NPCInteractable/FarmPlotInteractable
+            // with TownNPCInteractable/FarmPlot; accept either generation
+            // so this validator doesn't go stale as the scene evolves.
+            int npcCount = Object.FindObjectsByType<NPCInteractable>(FindObjectsSortMode.None).Length
+                + Object.FindObjectsByType<UpIzUpMini.Interaction.TownNPCInteractable>(FindObjectsSortMode.None).Length;
+            if (npcCount < 1)
             {
-                problems.Add("No NPCInteractable found (need at least one standing NPC).");
+                problems.Add("No NPCInteractable/TownNPCInteractable found (need at least one standing NPC).");
             }
 
-            var plots = Object.FindObjectsByType<FarmPlotInteractable>(FindObjectsSortMode.None);
-            if (plots.Length < 1)
+            int plotCount = Object.FindObjectsByType<FarmPlotInteractable>(FindObjectsSortMode.None).Length
+                + Object.FindObjectsByType<UpIzUpMini.Farming.FarmPlot>(FindObjectsSortMode.None).Length;
+            if (plotCount < 1)
             {
-                problems.Add("No FarmPlotInteractable found (need at least one farm plot).");
+                problems.Add("No FarmPlotInteractable/FarmPlot found (need at least one farm plot).");
             }
 
             bool pass = problems.Count == 0;

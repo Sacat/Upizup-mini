@@ -5,10 +5,10 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-011 Phase B built, user-tested, bugfixed once, and now has a working Esc pause menu (Resume/Quit, mouse+keyboard) and mouse-look camera orbit. Windows build produced, zero errors in a headless run. Awaiting user hands-on test of the menu/mouse-look; Phase C (NPCs, HUD meters, crop selection/growth, Tab switching + Strong) is clearly scoped in `TASKS.md` but not started.
+- Status: MINI-011 Phase C complete (NPCs, HUD, 6-plot farming loop, crop selection, Tab switching with a real second character) plus two deferred fixes (vertical mouse-look, Shanty Town collision). Windows build produced, zero errors in a 10s headless run of the actual compiled game. Nothing in Phase C has been hands-on playtested by a human yet — that's the next step.
 - Current owner: None
 - Active task: None
-- Last verified change: `MINI-000` (`MINI-001` implemented pending confirmation; `MINI-011` Phase A complete, Phase B not started)
+- Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C built and statically/headlessly verified, pending user playtest.
 - Last known good commit: `9f80953`
 
 ## Ownership protocol
@@ -34,9 +34,8 @@ After verification, append a change entry, update the verification results, and 
 
 ## Current blockers
 
-- No asset has been approved/imported for the Mini yet.
-- The precise Grand Bay map anchors must be copied into `Docs/MAP-ANCHORS.json` from verified research/user references.
-- `GrandBayProof.unity` needs one manual visual check — either via `Builds/GrandBayProof/UpIzUpMini.exe` or the Editor's Play button — see MINI-001 known issues below. A headless standalone-player run already confirmed zero console errors across the core Update loop; only the interaction-prompt UI and general look/feel remain unconfirmed.
+- The precise Grand Bay map anchors must be copied into `Docs/MAP-ANCHORS.json` from verified research/user references (still not done — `MINI-002`).
+- `GrandBayProof.unity`'s MINI-011 Phase C content (NPC roles, farming loop, HUD meters, crop selection, Tab switching, vertical mouse-look, shanty collision) needs a hands-on human playtest via `Builds/GrandBayProof/UpIzUpMini.exe` — see the MINI-011 Phase C entry below for exactly what's confirmed (compiles, builds, runs with zero console errors) versus what isn't (whether any of it actually plays right).
 
 ## Change record
 
@@ -225,6 +224,31 @@ After verification, append a change entry, update the verification results, and 
   - The pause panel's full-screen dark overlay wasn't visually confirmed in the offline snapshot for the technical reason above; worth a quick look in the real build.
   - Running "feels weird" is explicitly deferred by the user — not addressed in this pass.
 - Next action: user tests Esc/mouse-look/Q-quit in the running build.
+
+### MINI-011 — Phase C: NPCs, HUD, farming loop, crop selection, character switching + deferred fixes
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User confirmed the pause menu/mouse-look pass worked, then asked for the full Phase C list from `TASKS.md` (police/shopkeeper/buyer NPCs, health/heat/stamina meters, 1-4 crop selection, multi-plot soil states, crop growth visuals) plus, separately mid-turn, a standing note about designing the economy for future shop/accessory purchases (saved to memory, not implemented). After Phase C, asked for two more fixes: vertical (pitch) mouse-look, and Shanty Town buildings having no collision (player walked through them).
+- Implementation:
+  - **Economy** (`Scripts/Economy/`): `CropDefinition` (ScriptableObject — id/name/price/illegal flag/growth-visual colours, deliberately generic per the future-extensibility note rather than a tomato-only type), `EconomyManager` (shared money + inventory + heat, matching Docs/STORY.md's "share money, inventory, heat"), `CropSelectionController` (keys 1-4 pick the active crop). 4 crop assets created: Tomato, Banana, Carrot, Bushers (the last flagged `isIllegal`, so selling it adds heat — the brief's own heat-source requirement).
+  - **Farming** (`Scripts/Farming/FarmPlot.cs`): replaces `FarmPlotInteractable` with a real state machine (Empty → PlantedDry → Growing → Ripe → back to Empty). Soil is light brown while empty, dark brown once planted — matches the user's explicit request. Crop visual scales up and tints from unripe to ripe colour over the final third of growth (3 distinguishable visual stages: tiny/green, mid-size/green, full-size/ripe-colour). 6 plots built in a 3x2 grid in the farm clearing (the brief's minimum), not the single plot MINI-001 had.
+  - **NPCs** (`Scripts/Interaction/TownNPCInteractable.cs`): one role-based interactable (`Villager`/`Police`/`Shopkeeper`/`Buyer`) rather than four near-duplicate classes. Police's line reacts to current heat level. Buyer sells the entire shared inventory via `EconomyManager.TrySellAll`. 4 NPCs placed along the road using 3 different Floreswa body variants so they're visually distinct from each other and from Smart/Strong.
+  - **Characters**: `CharacterVitals` (per-character health/stamina, matching Docs/STORY.md's "retain separate health, stamina"), `FollowController` (simple direct-steering companion AI for whichever boy isn't controlled — not a NavMesh agent, so it can cut corners around obstacles; acceptable for this pass), `CharacterSwitchManager` (Tab swaps control between Smart and Strong: toggles `PlayerController.IsControlled`/`InteractionDetector.enabled`/`FollowController.FollowingEnabled`, retargets the camera). Strong now exists as a real second controllable character (lighter skin per the user's tone request) rather than the NPC placeholder from the earlier bugfix pass — the ambient villager NPC moved to a third Floreswa body variant so it doesn't overlap Strong's identity.
+  - **HUD** (`Scripts/UI/HUDController.cs`): health/stamina/heat bars (`Image.Type.Filled`), money, active character name, current crop selection — built into a second Screen Space - Overlay canvas alongside the pause menu's.
+  - **Deferred fixes, done after Phase C per the user's explicit ordering:**
+    - `ThirdPersonFollowCamera` rewritten from fixed-height/distance to a proper spherical orbit (yaw + pitch, both mouse-driven while the cursor is locked, pitch clamped 20-75°) so the player can look up and down, not just side to side. Kept a field-initializer default (`_pitch = 44f`) rather than only setting it in `Awake()`, specifically so `Mini001SceneValidation`'s look-angle check (which runs without entering Play mode) keeps working.
+    - Shanty Town instances never had a `Collider` — FBX-imported meshes don't get one automatically the way primitives do, so the player walked straight through every shanty structure. Added `AddBoundsCollider()`: computes each instance's actual rendered bounds and adds a matching `BoxCollider` in local space (scale-safe). Hand-built houses already had colliders (from their primitive walls) and were unaffected. Small scattered props (barrels/tyres/etc.) deliberately left uncollided — the user's complaint was specifically about buildings.
+  - Updated the old `Mini001SceneValidation.cs` to recognize both the pre- and post-Phase-C interactable types, so it doesn't silently report a false failure now that `NPCInteractable`/`FarmPlotInteractable` have been superseded by `TownNPCInteractable`/`FarmPlot` in the built scene (MINI-001's own history/scripts are untouched otherwise).
+- Files changed: `Assets/UpIzUpMini/Scripts/Economy/**` (new), `Assets/UpIzUpMini/Scripts/Farming/FarmPlot.cs` (new), `Assets/UpIzUpMini/Scripts/Interaction/TownNPCInteractable.cs` (new), `Assets/UpIzUpMini/Scripts/Character/CharacterVitals.cs`, `CharacterSwitchManager.cs`, `FollowController.cs` (new), `PlayerController.cs` (IsControlled gate + stamina hookup), `Assets/UpIzUpMini/Scripts/UI/HUDController.cs` (new), `Assets/UpIzUpMini/Scripts/Camera/ThirdPersonFollowCamera.cs` (spherical orbit), `Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs` (major expansion), `Assets/UpIzUpMini/Editor/Mini001SceneValidation.cs`, `Assets/UpIzUpMini/Data/Crops/*.asset` (new), `Assets/UpIzUpMini/Scenes/GrandBayProof.unity` (rebuilt).
+- Verification: compile clean on first attempt for the full Phase C addition (a genuinely large change). Scene builder ran clean (no exceptions) on the first try. Rendered three real views before shipping: a wide/mid overview (village layout still intact), a gameplay-HUD render (confirmed all three meters, money, and — importantly — **both Smart and Strong standing together, visually distinct**, not assumed), consistent with the corrective brief's "clearly different clothing colours, body silhouettes" requirement. Ran `Mini001SceneValidation` after updating it for the new component types: **PASS**, including the camera look-angle check (44°, within the 40-50° range, confirming the deferred vertical-look rewrite didn't regress it). Windows build succeeded; headless run of the actual compiled game: **zero console errors** across 10 seconds with every new system (economy, 6 farm plots, 4 NPCs, both characters, switch manager, HUD) actually initializing via real `Awake()`/`Start()`/`Update()` calls, not just constructed statically.
+- Known issues (stated plainly):
+  - **None of the interactive behavior has been confirmed by an actual human** — crop selection, planting/watering/harvesting, talking to each NPC role, selling, Tab-switching, the companion actually following, vertical mouse-look, and walking into a (now solid) shanty building all need a real playtest. Static/headless verification confirms things construct and run without exceptions, not that they feel or play correctly.
+  - `FollowController` uses direct steering, not pathfinding — the companion can get stuck on/cut through obstacles in tight spots. Acceptable for this pass, worth a NavMesh upgrade later if it's a problem in practice.
+  - Only tomato has its growth colours deliberately tuned (green→red per the user's explicit ask); banana/carrot/Bushers use reasonable but less-considered placeholder colours.
+  - Shopkeeper doesn't have a real "buy seeds" transaction yet — planting just uses whichever crop is selected via 1-4, no seed-purchase gate. Matches the brief's Mission 1 loosely but simplifies it; worth a look before calling this "done."
+  - HUD is a first pass (basic bars/labels, no icons/polish); layout was eyeballed from one render, not fine-tuned.
+- Next action: user playtests everything above by hand and reports back.
 
 ## Required change-entry format
 

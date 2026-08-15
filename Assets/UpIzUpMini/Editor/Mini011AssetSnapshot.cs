@@ -157,6 +157,34 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "grandbay-pause-menu.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Gameplay HUD")]
+        public static void SnapshotGameplayHud()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var mainCamGo = GameObject.FindWithTag("MainCamera");
+            var player = GameObject.FindWithTag("Player");
+            if (mainCamGo == null) { Debug.LogError("Snapshot: no MainCamera."); return; }
+            var cam = mainCamGo.GetComponent<Camera>();
+
+            if (player != null)
+            {
+                mainCamGo.transform.position = player.transform.position + new Vector3(0f, 6.8f, -7f);
+                mainCamGo.transform.LookAt(player.transform.position + Vector3.up * 1.4f);
+            }
+
+            // Same Overlay-canvas caveat as SnapshotPauseMenu - switch every
+            // canvas in the scene to Camera space just for this render.
+            foreach (var canvas in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+            }
+
+            RenderAndSave(cam, "grandbay-gameplay-hud.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Shanty Town Sample")]
         public static void SnapshotShantyTown()
         {

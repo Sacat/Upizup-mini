@@ -35,34 +35,38 @@ stay as a scope reference but MINI-011 is being tracked as one corrective
 initiative broken into internal Phases A-D with hard visual gates between
 them, per the brief's own instructions.
 
-Status: **Phase A and Phase B complete, bugfixed once from user testing.**
-See `Docs/MINI-011-VISUAL-PLAN.md`, `Docs/ASSET-REGISTER.md`, and the
-Phase B / Phase B bugfix entries in `PROJECT-HANDOFF.md`. `GrandBayProof`
-now has a sculpted terrain, road, ~30-40 houses (real Shanty Town
-structures + hand-built modular houses), vegetation, sea, and Humanoid
-player/NPC with basic locomotion animation. Full story now recorded in
-`Docs/STORY.md`.
+Status: **Phase A, B, and C all built.** See `Docs/MINI-011-VISUAL-PLAN.md`,
+`Docs/ASSET-REGISTER.md`, and the Phase B/bugfix/Phase C entries in
+`PROJECT-HANDOFF.md`. `GrandBayProof` now has: sculpted terrain, road,
+~30-40 houses (real Shanty Town structures + hand-built modular houses,
+now with collision), vegetation, sea; two controllable Humanoid characters
+(Smart/Strong, Tab to switch, companion follows when inactive); 4 NPCs
+(Villager/Police/Shopkeeper/Buyer); 6 farm plots with a full
+plant→water→grow→harvest state machine and light/dark soil states;
+1-4 crop selection (Tomato/Banana/Carrot/Bushers); a HUD (health/stamina/
+heat/money/crop/character-name); Esc pause menu with mouse+keyboard
+navigation; mouse-look camera (horizontal + vertical). Full story recorded
+in `Docs/STORY.md`.
 
-**Phase C scope (next, not started)** — from the user's own request list
-after testing Phase B:
+Compiles clean, scene builder runs clean, static validation passes, and a
+Windows build runs with **zero console errors in a 10-second headless run**
+of the actual compiled game (economy/NPCs/plots/characters/HUD all
+actually initializing, not just constructed). **None of it has been
+hands-on playtested by a human yet** — that's the explicit next step, not
+assumed done.
 
-- Police, shopkeeper, and crop-buyer NPCs, visible and interactable near
-  the Lalay road (per `Docs/STORY.md` Mission 1/2's mentor/market-woman
-  and Mission 2's shopkeeper/friendly police).
-- HUD: health meter, heat meter (police), stamina meter.
-- Numbered crop-selection: keys 1/2/3/4 change which crop is planted.
-- Multiple farm plots (6+ per the corrective brief) with light-brown
-  (unplanted) vs dark-brown (planted/watered) soil states.
-- Crop growth: visible scale-up through growth stages; tomato fruit
-  colour green while growing, red when ripe.
-- Upgrade `OnGUI` prompts/dialogue to Canvas + TextMeshPro (already
-  planned; `com.unity.ugui` is installed).
-- Tab/Q character switching, with Strong built as a real second
-  controllable character (not just the NPC placeholder) — `CharacterSwitchManager` per the corrective brief, shared money/inventory/heat, independent health/stamina/position.
-- Re-confirm the running/animation fix from the Phase B bugfix pass.
+**Known gaps, not yet addressed:**
 
-Car/driving is explicitly deferred by the user to a later phase (noted,
-not scheduled yet).
+- No real "buy seeds" transaction — planting just uses whichever crop is
+  selected via 1-4.
+- Only tomato's grow-colour (green→red) was deliberately tuned; other
+  crops use reasonable placeholder colours.
+- `FollowController` (companion AI) is direct-steering, not NavMesh —
+  can cut corners/snag on obstacles in tight spots.
+- `OnGUI` interaction prompts still not upgraded to Canvas + TextMeshPro
+  (the pause menu/HUD use legacy UGUI Text now; prompts are the one
+  remaining OnGUI surface).
+- Car/driving explicitly deferred by the user to a later phase.
 
 ## Ready
 

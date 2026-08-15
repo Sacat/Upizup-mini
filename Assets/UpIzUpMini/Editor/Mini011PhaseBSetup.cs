@@ -9,6 +9,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UpIzUpMini.Cameras;
 using UpIzUpMini.Character;
+using UpIzUpMini.Economy;
+using UpIzUpMini.Farming;
 using UpIzUpMini.Interaction;
 using UpIzUpMini.UI;
 
@@ -57,9 +59,38 @@ namespace UpIzUpMini.EditorTools
             BuildVegetation(terrain, roadPoints);
             BuildFarmPathAndClearing(terrain, roadPoints, out Transform farmPlot);
 
-            Transform player = BuildPlayer(terrain, roadPoints, locomotionController);
-            BuildNPC(terrain, roadPoints);
-            BuildCamera(player);
+            BuildEconomyAndCrops();
+            BuildTownNPCs(terrain, roadPoints);
+
+            Vector3 startPos = roadPoints[0];
+            startPos.y = SampleHeight(terrain, startPos.x, startPos.z);
+
+            // Smart (darker-skinned per user direction) starts controllable;
+            // Strong (lighter-skinned) starts as a following companion.
+            // Docs/STORY.md: "the player can switch between Smart and
+            // Strong... retain separate health, stamina, position."
+            CharacterSlot smart = BuildControllableCharacter(
+                "Smart", "Smart", "Assets/Floreswa/Models/male01_1.fbx",
+                new Color(0.35f, 0.22f, 0.13f), startPos, locomotionController, startActive: true);
+            CharacterSlot strong = BuildControllableCharacter(
+                "Strong", "Strong", "Assets/Floreswa/Models/male02_1.fbx",
+                new Color(0.72f, 0.56f, 0.42f), startPos + new Vector3(1.4f, 0f, -1.2f),
+                locomotionController, startActive: false);
+            strong.followController.FollowTarget = smart.root.transform;
+
+            ThirdPersonFollowCamera camera = BuildCamera(smart.root.transform);
+
+            var switchGo = new GameObject("CharacterSwitchManager");
+            var switchManager = switchGo.AddComponent<CharacterSwitchManager>();
+            var switchSo = new SerializedObject(switchManager);
+            var slotsProp = switchSo.FindProperty("slots");
+            slotsProp.arraySize = 2;
+            WriteSlot(slotsProp.GetArrayElementAtIndex(0), smart);
+            WriteSlot(slotsProp.GetArrayElementAtIndex(1), strong);
+            switchSo.FindProperty("followCamera").objectReferenceValue = camera;
+            switchSo.ApplyModifiedPropertiesWithoutUndo();
+
+            BuildHUD();
             BuildPauseMenu();
 
             EnsureFolder("Assets/UpIzUpMini/Scenes");
@@ -366,6 +397,7 @@ namespace UpIzUpMini.EditorTools
                             instance.transform.position = basePos;
                             instance.transform.rotation = rot;
                             instance.transform.localScale = Vector3.one * ShantyScale;
+                            AddBoundsCollider(instance);
                         }
                     }
                     else
@@ -568,6 +600,36 @@ namespace UpIzUpMini.EditorTools
         }
 
         /// <summary>
+        /// FBX-imported meshes (unlike primitives) never get a Collider
+        /// automatically. Shanty Town structures had none, which is why
+        /// the player could walk straight through them - fixed by adding
+        /// a BoxCollider sized to the instance's actual rendered bounds
+        /// (in local space, so it scales correctly with the instance).
+        /// </summary>
+        private static void AddBoundsCollider(GameObject instance)
+        {
+            var renderers = instance.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0) return;
+
+            Bounds worldBounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                worldBounds.Encapsulate(renderers[i].bounds);
+            }
+
+            var collider = instance.AddComponent<BoxCollider>();
+            // Convert world-space bounds into this transform's local space
+            // so the collider stays correct if the instance is scaled.
+            Vector3 localCenter = instance.transform.InverseTransformPoint(worldBounds.center);
+            Vector3 localSize = new Vector3(
+                worldBounds.size.x / Mathf.Max(0.0001f, instance.transform.lossyScale.x),
+                worldBounds.size.y / Mathf.Max(0.0001f, instance.transform.lossyScale.y),
+                worldBounds.size.z / Mathf.Max(0.0001f, instance.transform.lossyScale.z));
+            collider.center = localCenter;
+            collider.size = localSize;
+        }
+
+        /// <summary>
         /// Some packs (Aquaset Low Poly Tropical Beach) ship both a
         /// Materials/URP/ and Materials/Built-In/ variant of every
         /// material but wire prefabs to the URP one by default. This
@@ -648,72 +710,161 @@ namespace UpIzUpMini.EditorTools
             clearing.GetComponent<Renderer>().sharedMaterial = clearingMat;
             Object.DestroyImmediate(clearing.GetComponent<Collider>());
 
-            var plot = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            plot.name = "FarmPlot";
-            plot.transform.SetParent(pathParent.transform);
-            plot.transform.position = farmCenter + Vector3.up * 0.03f + Vector3.forward * 2f;
-            plot.transform.localScale = new Vector3(4f, 0.05f, 3f);
-            plot.GetComponent<Renderer>().sharedMaterial = soilMat;
-            plot.GetComponent<Collider>().enabled = false;
+            // 6 plots in a 3x2 grid, per the brief's "six usable planting
+            // spots" minimum - a single plot is explicitly not enough.
+            Material soilEmptyMat = GetOrCreateMaterial("FarmSoilEmpty", new Color(0.62f, 0.5f, 0.35f));
+            Vector3 gridRight = right;
+            Vector3 gridForward = dir;
+            Transform firstPlot = null;
 
-            var plotInteractable = plot.AddComponent<FarmPlotInteractable>();
-            var so = new SerializedObject(plotInteractable);
-            so.FindProperty("soilRenderer").objectReferenceValue = plot.GetComponent<Renderer>();
-            so.ApplyModifiedPropertiesWithoutUndo();
+            for (int row = 0; row < 2; row++)
+            {
+                for (int col = 0; col < 3; col++)
+                {
+                    Vector3 plotPos = farmCenter
+                        + gridRight * ((col - 1) * 3.4f)
+                        + gridForward * (row * 3.4f - 1.5f);
+                    plotPos.y = SampleHeight(terrain, plotPos.x, plotPos.z) + 0.03f;
 
-            farmPlot = plot.transform;
+                    var plot = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    plot.name = $"FarmPlot_{row}_{col}";
+                    plot.transform.SetParent(pathParent.transform);
+                    plot.transform.position = plotPos;
+                    plot.transform.localScale = new Vector3(2.6f, 0.05f, 2.6f);
+                    var plotRenderer = plot.GetComponent<Renderer>();
+                    plotRenderer.sharedMaterial = soilEmptyMat;
+                    plot.GetComponent<Collider>().enabled = false;
+
+                    var cropVisual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    cropVisual.name = "CropVisual";
+                    cropVisual.transform.SetParent(plot.transform, false);
+                    cropVisual.transform.localPosition = new Vector3(0f, 0.35f, 0f);
+                    cropVisual.transform.localScale = Vector3.one * 0.15f;
+                    Object.DestroyImmediate(cropVisual.GetComponent<Collider>());
+                    var cropMat = new Material(Shader.Find("Standard")) { color = Color.green };
+                    cropVisual.GetComponent<Renderer>().sharedMaterial = cropMat;
+                    cropVisual.SetActive(false);
+
+                    var plotInteractable = plot.AddComponent<FarmPlot>();
+                    var so = new SerializedObject(plotInteractable);
+                    so.FindProperty("soilRenderer").objectReferenceValue = plotRenderer;
+                    so.FindProperty("cropVisualRoot").objectReferenceValue = cropVisual.transform;
+                    so.FindProperty("cropRenderer").objectReferenceValue = cropVisual.GetComponent<Renderer>();
+                    so.ApplyModifiedPropertiesWithoutUndo();
+
+                    if (firstPlot == null) firstPlot = plot.transform;
+                }
+            }
+
+            farmPlot = firstPlot;
         }
 
         // ---------------------------------------------------------------
         // Player / NPC / Camera
         // ---------------------------------------------------------------
 
-        private static Transform BuildPlayer(Terrain terrain, List<Vector3> roadPoints, RuntimeAnimatorController animController)
+        /// <summary>
+        /// Builds one of the two controllable boys with CharacterController,
+        /// PlayerController, FollowController (used while this one is NOT
+        /// active), CharacterVitals, InteractionDetector, and a visual
+        /// model. Both components stay on both characters at all times;
+        /// CharacterSwitchManager toggles which is "live" via
+        /// PlayerController.IsControlled / FollowController.FollowingEnabled
+        /// rather than adding/removing components.
+        /// </summary>
+        private static CharacterSlot BuildControllableCharacter(
+            string goName, string displayName, string modelPath, Color skinTint,
+            Vector3 position, RuntimeAnimatorController animController, bool startActive)
         {
-            Vector3 start = roadPoints[0];
-            start.y = SampleHeight(terrain, start.x, start.z);
+            var go = new GameObject(goName);
+            if (startActive) go.tag = "Player";
+            go.transform.position = position;
 
-            var playerGo = new GameObject("Player");
-            playerGo.tag = "Player";
-            playerGo.transform.position = start;
-
-            var controller = playerGo.AddComponent<CharacterController>();
+            var controller = go.AddComponent<CharacterController>();
             controller.center = new Vector3(0f, 1f, 0f);
             controller.height = 2f;
             controller.radius = 0.4f;
 
-            // Smart (this controllable character) is the darker-skinned of
-            // the two boys per user direction; Strong (NPC placeholder
-            // until Phase C's switching system exists) is lighter.
-            var visual = InstantiateCharacter(
-                "Assets/Floreswa/Models/male01_1.fbx", playerGo.transform, animController,
-                new Color(0.35f, 0.22f, 0.13f));
+            var visual = InstantiateCharacter(modelPath, go.transform, animController, skinTint);
+            var animator = visual.GetComponentInChildren<Animator>();
 
-            var playerController = playerGo.AddComponent<PlayerController>();
+            var vitals = go.AddComponent<CharacterVitals>();
+
+            var playerController = go.AddComponent<PlayerController>();
             var pcSo = new SerializedObject(playerController);
-            pcSo.FindProperty("animator").objectReferenceValue = visual.GetComponentInChildren<Animator>();
+            pcSo.FindProperty("animator").objectReferenceValue = animator;
+            pcSo.FindProperty("vitals").objectReferenceValue = vitals;
             pcSo.ApplyModifiedPropertiesWithoutUndo();
+            playerController.IsControlled = startActive;
 
-            playerGo.AddComponent<InteractionDetector>();
+            var followController = go.AddComponent<FollowController>();
+            var fcSo = new SerializedObject(followController);
+            fcSo.FindProperty("animator").objectReferenceValue = animator;
+            fcSo.ApplyModifiedPropertiesWithoutUndo();
+            followController.FollowingEnabled = !startActive;
 
-            return playerGo.transform;
+            var interactionDetector = go.AddComponent<InteractionDetector>();
+            interactionDetector.enabled = startActive;
+
+            return new CharacterSlot
+            {
+                displayName = displayName,
+                root = go,
+                playerController = playerController,
+                followController = followController,
+                vitals = vitals,
+                interactionDetector = interactionDetector
+            };
         }
 
-        private static void BuildNPC(Terrain terrain, List<Vector3> roadPoints)
+        private static void BuildTownNPCs(Terrain terrain, List<Vector3> roadPoints)
         {
-            Vector3 pos = roadPoints[2];
-            Vector3 dir = (roadPoints[3] - roadPoints[1]).normalized;
+            CropDefinition[] allCrops = LoadAllCropDefinitions();
+
+            BuildNpc(terrain, roadPoints, index: 2, sideMul: 1f, goName: "NPC_Villager",
+                modelPath: "Assets/Floreswa/Models/male03_1.fbx", role: NpcRole.Villager, cropsForBuyer: null);
+
+            BuildNpc(terrain, roadPoints, index: 4, sideMul: -1f, goName: "NPC_Police",
+                modelPath: "Assets/Floreswa/Models/male01_2.fbx", role: NpcRole.Police, cropsForBuyer: null);
+
+            BuildNpc(terrain, roadPoints, index: 6, sideMul: 1f, goName: "NPC_Shopkeeper",
+                modelPath: "Assets/Floreswa/Models/male02_2.fbx", role: NpcRole.Shopkeeper, cropsForBuyer: null);
+
+            BuildNpc(terrain, roadPoints, index: 8, sideMul: -1f, goName: "NPC_Buyer",
+                modelPath: "Assets/Floreswa/Models/male03_2.fbx", role: NpcRole.Buyer, cropsForBuyer: allCrops);
+        }
+
+        private static void BuildNpc(
+            Terrain terrain, List<Vector3> roadPoints, int index, float sideMul, string goName,
+            string modelPath, NpcRole role, CropDefinition[] cropsForBuyer)
+        {
+            index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
+            Vector3 pos = roadPoints[index];
+            Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
             Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
-            pos += right * 3.5f;
+            pos += right * sideMul * 3.5f;
             pos.y = SampleHeight(terrain, pos.x, pos.z);
 
-            var npcGo = new GameObject("NPC_Villager");
+            var npcGo = new GameObject(goName);
             npcGo.transform.position = pos;
-            npcGo.transform.rotation = Quaternion.LookRotation(-right, Vector3.up);
+            npcGo.transform.rotation = Quaternion.LookRotation(-right * sideMul, Vector3.up);
 
-            InstantiateCharacter("Assets/Floreswa/Models/male02_1.fbx", npcGo.transform, null,
-                new Color(0.72f, 0.56f, 0.42f));
-            npcGo.AddComponent<NPCInteractable>();
+            InstantiateCharacter(modelPath, npcGo.transform, null, null);
+
+            var npc = npcGo.AddComponent<TownNPCInteractable>();
+            var so = new SerializedObject(npc);
+            so.FindProperty("role").enumValueIndex = (int)role;
+            so.FindProperty("npcName").stringValue = goName.Replace("NPC_", "");
+            if (cropsForBuyer != null)
+            {
+                var arrProp = so.FindProperty("sellableCrops");
+                arrProp.arraySize = cropsForBuyer.Length;
+                for (int i = 0; i < cropsForBuyer.Length; i++)
+                {
+                    arrProp.GetArrayElementAtIndex(i).objectReferenceValue = cropsForBuyer[i];
+                }
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static GameObject InstantiateCharacter(
@@ -764,7 +915,7 @@ namespace UpIzUpMini.EditorTools
             }
         }
 
-        private static void BuildCamera(Transform player)
+        private static ThirdPersonFollowCamera BuildCamera(Transform player)
         {
             var camGo = new GameObject("MainCamera");
             camGo.tag = "MainCamera";
@@ -781,6 +932,176 @@ namespace UpIzUpMini.EditorTools
 
             camGo.transform.position = player.position + new Vector3(0f, 6.8f, -7f);
             camGo.transform.LookAt(player.position + Vector3.up * 1.4f);
+
+            return follow;
+        }
+
+        private static void WriteSlot(SerializedProperty slotProp, CharacterSlot slot)
+        {
+            slotProp.FindPropertyRelative("displayName").stringValue = slot.displayName;
+            slotProp.FindPropertyRelative("root").objectReferenceValue = slot.root;
+            slotProp.FindPropertyRelative("playerController").objectReferenceValue = slot.playerController;
+            slotProp.FindPropertyRelative("followController").objectReferenceValue = slot.followController;
+            slotProp.FindPropertyRelative("vitals").objectReferenceValue = slot.vitals;
+            slotProp.FindPropertyRelative("interactionDetector").objectReferenceValue = slot.interactionDetector;
+        }
+
+        // ---------------------------------------------------------------
+        // Economy / crops
+        // ---------------------------------------------------------------
+
+        private static readonly (string id, string name, int price, bool illegal, string unripeHex, string ripeHex)[] CropSpecs =
+        {
+            ("tomato", "Tomato", 5, false, "4D8C40", "BF1F1A"),
+            ("banana", "Banana", 6, false, "5C9E3E", "E8D23C"),
+            ("carrot", "Carrot", 4, false, "4D8C40", "E07A1F"),
+            ("bushers", "Bushers", 22, true, "3A6B2E", "5B7A2E"),
+        };
+
+        private static CropDefinition[] BuildEconomyAndCrops()
+        {
+            EnsureFolder("Assets/UpIzUpMini/Data/Crops");
+            var crops = new CropDefinition[CropSpecs.Length];
+
+            for (int i = 0; i < CropSpecs.Length; i++)
+            {
+                var spec = CropSpecs[i];
+                string path = $"Assets/UpIzUpMini/Data/Crops/{spec.id}.asset";
+                var crop = AssetDatabase.LoadAssetAtPath<CropDefinition>(path);
+                if (crop == null)
+                {
+                    crop = ScriptableObject.CreateInstance<CropDefinition>();
+                    AssetDatabase.CreateAsset(crop, path);
+                }
+
+                crop.cropId = spec.id;
+                crop.displayName = spec.name;
+                crop.sellPrice = spec.price;
+                crop.isIllegal = spec.illegal;
+                crop.growDurationSeconds = 18f;
+                ColorUtility.TryParseHtmlString("#" + spec.unripeHex, out var unripe);
+                ColorUtility.TryParseHtmlString("#" + spec.ripeHex, out var ripe);
+                crop.unripeColor = unripe;
+                crop.ripeColor = ripe;
+                EditorUtility.SetDirty(crop);
+
+                crops[i] = crop;
+            }
+
+            var economyGo = new GameObject("EconomyManager");
+            economyGo.AddComponent<EconomyManager>();
+
+            var selectionGo = new GameObject("CropSelectionController");
+            var selection = selectionGo.AddComponent<CropSelectionController>();
+            var so = new SerializedObject(selection);
+            var cropsProp = so.FindProperty("crops");
+            cropsProp.arraySize = crops.Length;
+            for (int i = 0; i < crops.Length; i++)
+            {
+                cropsProp.GetArrayElementAtIndex(i).objectReferenceValue = crops[i];
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return crops;
+        }
+
+        private static CropDefinition[] LoadAllCropDefinitions()
+        {
+            var crops = new CropDefinition[CropSpecs.Length];
+            for (int i = 0; i < CropSpecs.Length; i++)
+            {
+                crops[i] = AssetDatabase.LoadAssetAtPath<CropDefinition>(
+                    $"Assets/UpIzUpMini/Data/Crops/{CropSpecs[i].id}.asset");
+            }
+            return crops;
+        }
+
+        // ---------------------------------------------------------------
+        // HUD
+        // ---------------------------------------------------------------
+
+        private static void BuildHUD()
+        {
+            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            var canvasGo = new GameObject("HUDCanvas");
+            var canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasGo.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            canvasGo.AddComponent<GraphicRaycaster>();
+
+            Image healthFill = CreateMeter(canvasGo.transform, "Health", new Vector2(20f, -20f), new Color(0.8f, 0.15f, 0.15f), font, out _);
+            Image staminaFill = CreateMeter(canvasGo.transform, "Stamina", new Vector2(20f, -50f), new Color(0.2f, 0.55f, 0.85f), font, out _);
+            Image heatFill = CreateMeter(canvasGo.transform, "Heat", new Vector2(20f, -80f), new Color(0.9f, 0.55f, 0.1f), font, out _);
+
+            Text moneyLabel = CreateLabel(canvasGo.transform, "$0", 30, new Vector2(-140f, -20f), font);
+            AnchorTopRight(moneyLabel.rectTransform);
+
+            Text nameLabel = CreateLabel(canvasGo.transform, "Smart", 26, new Vector2(140f, -110f), font);
+            nameLabel.rectTransform.anchorMin = nameLabel.rectTransform.anchorMax = new Vector2(0f, 1f);
+            nameLabel.alignment = TextAnchor.MiddleLeft;
+
+            Text cropLabel = CreateLabel(canvasGo.transform, string.Empty, 26, new Vector2(-140f, -60f), font);
+            AnchorTopRight(cropLabel.rectTransform);
+
+            var hud = canvasGo.AddComponent<HUDController>();
+            var so = new SerializedObject(hud);
+            so.FindProperty("healthFill").objectReferenceValue = healthFill;
+            so.FindProperty("staminaFill").objectReferenceValue = staminaFill;
+            so.FindProperty("heatFill").objectReferenceValue = heatFill;
+            so.FindProperty("moneyLabel").objectReferenceValue = moneyLabel;
+            so.FindProperty("characterNameLabel").objectReferenceValue = nameLabel;
+            so.FindProperty("cropSelectionLabel").objectReferenceValue = cropLabel;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void AnchorTopRight(RectTransform rect)
+        {
+            rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
+        }
+
+        private static Image CreateMeter(Transform parent, string label, Vector2 anchoredPos, Color fillColor, Font font, out Text labelText)
+        {
+            var bgGo = new GameObject($"Meter_{label}_BG");
+            bgGo.transform.SetParent(parent, false);
+            var bgRect = bgGo.AddComponent<RectTransform>();
+            bgRect.anchorMin = bgRect.anchorMax = new Vector2(0f, 1f);
+            bgRect.pivot = new Vector2(0f, 1f);
+            bgRect.sizeDelta = new Vector2(220f, 22f);
+            bgRect.anchoredPosition = anchoredPos;
+            var bgImage = bgGo.AddComponent<Image>();
+            bgImage.color = new Color(0f, 0f, 0f, 0.5f);
+
+            var fillGo = new GameObject($"Meter_{label}_Fill");
+            fillGo.transform.SetParent(bgGo.transform, false);
+            var fillRect = fillGo.AddComponent<RectTransform>();
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.offsetMin = new Vector2(2f, 2f);
+            fillRect.offsetMax = new Vector2(-2f, -2f);
+            var fillImage = fillGo.AddComponent<Image>();
+            fillImage.color = fillColor;
+            fillImage.type = Image.Type.Filled;
+            fillImage.fillMethod = Image.FillMethod.Horizontal;
+            fillImage.fillAmount = 1f;
+
+            var labelGo = new GameObject($"Meter_{label}_Label");
+            labelGo.transform.SetParent(bgGo.transform, false);
+            var labelRect = labelGo.AddComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+            labelText = labelGo.AddComponent<Text>();
+            labelText.text = label;
+            labelText.font = font;
+            labelText.fontSize = 14;
+            labelText.alignment = TextAnchor.MiddleCenter;
+            labelText.color = Color.white;
+
+            return fillImage;
         }
 
         /// <summary>
