@@ -33,21 +33,67 @@ namespace UpIzUpMini.Farming
         private string _lastFeedback;
 
         [SerializeField] private int seedsPerClone = 2;
+        [SerializeField] private float cloneCooldownSeconds = 60f;
+
+        [Header("Freshness")]
+        [Tooltip("Seconds after ripening before the crop is worth the minimum.")]
+        [SerializeField] private float spoilSeconds = 120f;
+        [Tooltip("Fraction of full value a fully-spoiled crop still fetches.")]
+        [SerializeField] private float minFreshness = 0.35f;
+
+        private float _cloneReadyAt;
+        private float _ripeSince = -1f;
+        private int _lastHarvestYield;
+        private float _lastFreshness = 1f;
 
         /// <summary>
         /// R clones a mature plant: takes cuttings for extra seed without
         /// harvesting the crop, so the farm can be expanded from one buy.
-        /// Only possible once the plant is ripe.
+        /// Rate-limited so a single ripe plant isn't an infinite seed tap.
         /// </summary>
-        public bool CanClone => _state == PlotState.Ripe && _crop != null;
+        public bool CanClone => _state == PlotState.Ripe
+                                && _crop != null
+                                && Time.time >= _cloneReadyAt;
 
-        public string CloneLabel => CanClone ? "[ R ] Clone for seed" : null;
+        public string CloneLabel
+        {
+            get
+            {
+                if (_state != PlotState.Ripe || _crop == null) return null;
+                if (CanClone) return "[ R ] Clone for seed";
+                int wait = Mathf.CeilToInt(_cloneReadyAt - Time.time);
+                return $"Cuttings again in {wait}s";
+            }
+        }
+
+        /// <summary>
+        /// Crop value falls the longer it is left standing after ripening,
+        /// so harvesting promptly is rewarded.
+        /// </summary>
+        public float Freshness
+        {
+            get
+            {
+                if (_ripeSince < 0f) return 1f;
+                float overdue = Time.time - _ripeSince;
+                float t = Mathf.Clamp01(overdue / Mathf.Max(1f, spoilSeconds));
+                return Mathf.Lerp(1f, minFreshness, t);
+            }
+        }
 
         public string Clone()
         {
-            if (!CanClone) return null;
+            if (_state != PlotState.Ripe || _crop == null) return null;
+
+            if (Time.time < _cloneReadyAt)
+            {
+                int wait = Mathf.CeilToInt(_cloneReadyAt - Time.time);
+                _lastFeedback = $"Plant need time to recover - {wait}s.";
+                return _lastFeedback;
+            }
 
             EconomyManager.Instance?.AddSeeds(_crop.cropId, seedsPerClone);
+            _cloneReadyAt = Time.time + cloneCooldownSeconds;
             _lastFeedback = $"Took cuttings - {seedsPerClone} more {_crop.displayName} seed.";
             return _lastFeedback;
         }
@@ -82,7 +128,11 @@ namespace UpIzUpMini.Farming
             int stage = t >= 1f ? 3 : Mathf.Clamp(Mathf.FloorToInt(t * 3f), 0, 2);
             _activeVisual?.ApplyStage(stage, _crop.unripeColor, _crop.ripeColor);
 
-            if (t >= 1f) _state = PlotState.Ripe;
+            if (t >= 1f)
+            {
+                _state = PlotState.Ripe;
+                if (_ripeSince < 0f) _ripeSince = Time.time;
+            }
         }
 
         public override void Interact(GameObject interactor)
@@ -130,19 +180,31 @@ namespace UpIzUpMini.Farming
                 case PlotState.Ripe:
                     if (EconomyManager.Instance != null && _crop != null)
                     {
-                        EconomyManager.Instance.AddCrop(_crop.cropId, harvestYield);
+                        // Leaving a ripe plant standing costs yield.
+                        float freshness = Freshness;
+                        int yield = Mathf.Max(1, Mathf.RoundToInt(harvestYield * freshness));
+                        EconomyManager.Instance.AddCrop(_crop.cropId, yield);
+                        _lastHarvestYield = yield;
+                        _lastFreshness = freshness;
                         // A healthy plant gives back more seed than it took,
                         // so the farm can be cloned/expanded from one buy.
                         EconomyManager.Instance.AddSeeds(_crop.cropId, seedsPerHarvest);
                         if (_crop.isIllegal) EconomyManager.Instance.AddHeat(4f);
                     }
-                    _lastFeedback = _crop != null
-                        ? $"Harvested {harvestYield} {_crop.displayName} and {seedsPerHarvest} seed."
-                        : "Harvested.";
                     if (_crop != null)
                     {
+                        string quality = _lastFreshness > 0.85f ? "Prime."
+                            : _lastFreshness > 0.6f ? "Still good."
+                            : "It sit too long - worth less now.";
+                        _lastFeedback =
+                            $"Harvested {_lastHarvestYield} {_crop.displayName} and {seedsPerHarvest} seed. {quality}";
+
                         Missions.MissionSystem.Instance?.NotifyCount(
-                            Missions.ObjectiveKind.HarvestCrop, _crop.cropId, harvestYield);
+                            Missions.ObjectiveKind.HarvestCrop, _crop.cropId, _lastHarvestYield);
+                    }
+                    else
+                    {
+                        _lastFeedback = "Harvested.";
                     }
                     ResetPlot();
                     break;
@@ -184,6 +246,8 @@ namespace UpIzUpMini.Farming
             _state = PlotState.Empty;
             _crop = null;
             _growTimer = 0f;
+            _ripeSince = -1f;
+            _cloneReadyAt = 0f;
             SetSoilColor(DrySoilColor);
             if (tomatoVisual != null) tomatoVisual.SetVisible(false);
             if (weedVisual != null) weedVisual.SetVisible(false);

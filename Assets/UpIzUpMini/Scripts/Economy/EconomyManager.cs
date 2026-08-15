@@ -73,7 +73,8 @@ namespace UpIzUpMini.Economy
         {
             if (item == null) { message = "Nothing to buy."; return false; }
 
-            if (item.category != ShopCategory.Seed && _owned.Contains(item.itemId))
+            // Consumables can be bought repeatedly; possessions cannot.
+            if (!item.IsConsumable && _owned.Contains(item.itemId))
             {
                 message = $"You already have {item.displayName}.";
                 return false;
@@ -91,6 +92,31 @@ namespace UpIzUpMini.Economy
             {
                 AddSeeds(item.grantsCrop.cropId, item.seedQuantity);
                 message = $"Bought {item.seedQuantity} {item.displayName} for ${item.price}.";
+            }
+            else if (item.category == ShopCategory.Food || item.category == ShopCategory.Enhancement)
+            {
+                // Used on the spot by whoever is currently controlled.
+                var vitals = Character.CharacterSwitchManager.Instance?.Active?.vitals;
+                if (vitals == null)
+                {
+                    message = "Nobody here to take it.";
+                    Money += item.price; // refund - nothing happened
+                    return false;
+                }
+
+                if (item.healAmount > 0f) vitals.Heal(item.healAmount);
+                if (item.staminaBoost > 0f || item.regenMultiplier > 1f)
+                {
+                    vitals.ApplyBoost(item.staminaBoost, item.regenMultiplier, item.boostSeconds);
+                }
+                else
+                {
+                    vitals.RestoreStamina(item.healAmount * 0.5f);
+                }
+
+                message = item.category == ShopCategory.Food
+                    ? $"Ate {item.displayName}. Feeling better."
+                    : $"Took {item.displayName}. Boost for {Mathf.RoundToInt(item.boostSeconds)}s.";
             }
             else
             {

@@ -136,8 +136,10 @@ namespace UpIzUpMini.EditorTools
             ShopItemDefinition[] apparelStock = BuildApparelStock(crops);
             ShopItemDefinition[] landStock = BuildStock(LandSpecs, crops);
             ShopItemDefinition[] dealerStock = BuildStock(DealerSpecs, crops);
+            ShopItemDefinition[] foodStock = BuildStock(FoodSpecs, crops);
+            ShopItemDefinition[] pharmacyStock = BuildStock(PharmacySpecs, crops);
             BuildStreetSigns(terrain, roadPoints, _farmCenter);
-            BuildExtraUI(farmStock, apparelStock, landStock, dealerStock, roadPoints, _farmCenter);
+            BuildExtraUI(farmStock, apparelStock, landStock, dealerStock, foodStock, pharmacyStock, roadPoints, _farmCenter);
             BuildMissions(terrain, roadPoints, _farmCenter, farmPlot);
 
             // Starting seeds so the player can plant before their first
@@ -502,6 +504,28 @@ namespace UpIzUpMini.EditorTools
             sand.transform.position = new Vector3(shoreX + 5f, SeaLevelY + 0.05f, shoreZ);
             sand.transform.localScale = new Vector3(26f, 0.3f, 70f);
             sand.GetComponent<Renderer>().sharedMaterial = sandMat;
+
+            // Invisible wall at the water's edge. The player should only get
+            // out over the sea via the jetty, so swimming is blocked rather
+            // than simulated. The wall is split around the jetty mouth so
+            // the deck stays walkable.
+            float wallX = shoreX - 6f;
+            float wallHeight = 6f;
+            float gapHalfWidth = 3.4f;
+
+            foreach (int side in new[] { -1, 1 })
+            {
+                var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                wall.name = $"ShorelineBarrier_{(side < 0 ? "A" : "B")}";
+                wall.transform.SetParent(parent.transform);
+
+                float halfSpan = (70f * 0.5f - gapHalfWidth) * 0.5f;
+                float centreZ = shoreZ + side * (gapHalfWidth + halfSpan);
+
+                wall.transform.position = new Vector3(wallX, SeaLevelY + wallHeight * 0.5f, centreZ);
+                wall.transform.localScale = new Vector3(1.5f, wallHeight, halfSpan * 2f);
+                Object.DestroyImmediate(wall.GetComponent<Renderer>());
+            }
 
             // Jetty deck runs from the sand out over the water (-X).
             var jettyParent = new GameObject("Jetty");
@@ -1021,7 +1045,10 @@ namespace UpIzUpMini.EditorTools
                 seg.transform.rotation = Quaternion.LookRotation((b - a).normalized, Vector3.up);
                 seg.transform.localScale = new Vector3(3.2f, 0.06f, Vector3.Distance(a, b) + 1f);
                 seg.GetComponent<Renderer>().sharedMaterial = dirtMat;
-                Object.DestroyImmediate(seg.GetComponent<Collider>());
+                // Keep the collider: the track sits proud of the terrain,
+                // so without one the player runs straight through it.
+                var segCollider = seg.GetComponent<BoxCollider>();
+                if (segCollider != null) segCollider.isTrigger = false;
             }
 
             // Tilled ground under the plantation, aligned to the plot grid
@@ -1254,6 +1281,12 @@ namespace UpIzUpMini.EditorTools
             parent.transform.rotation = rot;
 
             BuildProceduralHouse(parent.transform, pos, rot, storeys: 1, name: "FarmSafehouse_Building");
+
+            // Rest point: restores health/stamina, drops heat and saves.
+            var restGo = new GameObject("FarmSafehouse_Rest");
+            restGo.transform.SetParent(parent.transform);
+            restGo.transform.position = pos + rot * new Vector3(0f, 0f, 3.2f);
+            restGo.AddComponent<SafehouseInteractable>();
         }
 
         // ---------------------------------------------------------------
@@ -1290,7 +1323,8 @@ namespace UpIzUpMini.EditorTools
             var animator = visual.GetComponentInChildren<Animator>();
 
             var vitals = go.AddComponent<CharacterVitals>();
-            go.AddComponent<SwimmingController>().SetWaterLevel(SeaLevelY);
+            // Swimming removed - the sea is now walled off at the shoreline
+            // and reachable only along the jetty (user direction).
 
             // Shows purchased apparel on the character.
             var equipment = go.AddComponent<CharacterEquipment>();
@@ -1330,7 +1364,9 @@ namespace UpIzUpMini.EditorTools
         {
             CropDefinition[] allCrops = LoadAllCropDefinitions();
 
-            BuildNpc(terrain, roadPoints, index: 2, sideMul: 1f, goName: "NPC_Villager",
+            // Walks along the road itself (sideMul 0) rather than through
+            // the yards, where it was clipping houses.
+            BuildNpc(terrain, roadPoints, index: 2, sideMul: 0f, goName: "NPC_Villager",
                 modelPath: "Assets/Floreswa/Models/male03_1.fbx", role: NpcRole.Villager,
                 cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: false);
 
@@ -1366,6 +1402,16 @@ namespace UpIzUpMini.EditorTools
                 modelPath: "Assets/Floreswa/Models/male01_3.fbx", role: NpcRole.CarDealer,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
+            BuildNpc(terrain, roadPoints, index: 4, sideMul: 1f, goName: "NPC_FoodShop",
+                modelPath: "Assets/Floreswa/Models/male02_1.fbx", role: NpcRole.FoodShop,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+
+            BuildNpc(terrain, roadPoints, index: 8, sideMul: 1f, goName: "NPC_Pharmacy",
+                modelPath: "Assets/Floreswa/Models/male03_2.fbx", role: NpcRole.Pharmacy,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+
+            BuildMarketArea(terrain, roadPoints, index: 4, title: "FOOD", secondTitle: null);
+            BuildMarketArea(terrain, roadPoints, index: 8, title: "PHARMACY", secondTitle: null);
             BuildMarketArea(terrain, roadPoints, index: 11, title: "LAND AND SURVEYS", secondTitle: null);
             BuildMarketArea(terrain, roadPoints, index: 13, title: "CAR DEALER", secondTitle: null);
 
@@ -1815,6 +1861,23 @@ namespace UpIzUpMini.EditorTools
             ("prop_safehouse","Montine Safehouse Deed",ShopCategory.Property, 2200, null, 0),
         };
 
+        // Food shop - healing. Consumed on purchase.
+        private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] FoodSpecs =
+        {
+            ("food_bakes",   "Bakes and Saltfish", ShopCategory.Food, 12, null, 0),
+            ("food_broth",   "Fish Broth",         ShopCategory.Food, 20, null, 0),
+            ("food_provision","Ground Provision",  ShopCategory.Food, 30, null, 0),
+            ("food_juice",   "Sorrel Juice",       ShopCategory.Food,  8, null, 0),
+        };
+
+        // Pharmacy - temporary enhancements. Consumed on purchase.
+        private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] PharmacySpecs =
+        {
+            ("pill_energy",  "Energy Pills",   ShopCategory.Enhancement, 45,  null, 0),
+            ("pill_stamina", "Stamina Tonic",  ShopCategory.Enhancement, 70,  null, 0),
+            ("pill_focus",   "Focus Capsules", ShopCategory.Enhancement, 110, null, 0),
+        };
+
         // Vehicles and boats come from a dealer, and are priced so they
         // are a later-game purchase (user direction).
         private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] DealerSpecs =
@@ -1867,6 +1930,27 @@ namespace UpIzUpMini.EditorTools
                 item.price = spec.price;
                 item.seedQuantity = spec.qty;
                 item.grantsCrop = null;
+
+                // Consumable tuning by category.
+                switch (spec.cat)
+                {
+                    case ShopCategory.Food:
+                        item.healAmount = Mathf.Clamp(spec.price * 1.6f, 15f, 100f);
+                        item.staminaBoost = 0f;
+                        item.regenMultiplier = 1f;
+                        break;
+                    case ShopCategory.Enhancement:
+                        item.healAmount = 0f;
+                        item.staminaBoost = Mathf.Clamp(spec.price * 0.5f, 20f, 60f);
+                        item.regenMultiplier = 1.8f;
+                        item.boostSeconds = 45f;
+                        break;
+                    default:
+                        item.healAmount = 0f;
+                        item.staminaBoost = 0f;
+                        item.regenMultiplier = 1f;
+                        break;
+                }
                 if (!string.IsNullOrEmpty(spec.seedCrop))
                 {
                     foreach (var c in crops)
@@ -2286,6 +2370,7 @@ namespace UpIzUpMini.EditorTools
         private static void BuildExtraUI(
             ShopItemDefinition[] farmStock, ShopItemDefinition[] apparelStock,
             ShopItemDefinition[] landStock, ShopItemDefinition[] dealerStock,
+            ShopItemDefinition[] foodStock, ShopItemDefinition[] pharmacyStock,
             List<Vector3> roadPoints, Vector3 farmCenter)
         {
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -2304,6 +2389,8 @@ namespace UpIzUpMini.EditorTools
             var apparelShop = BuildShopPanel(canvasGo, "ApparelShopPanel", "CLOTHES SHOP", apparelStock, font);
             var landShop = BuildShopPanel(canvasGo, "LandShopPanel", "LAND AND SURVEYS", landStock, font);
             var dealerShop = BuildShopPanel(canvasGo, "DealerShopPanel", "CAR DEALER", dealerStock, font);
+            var foodShop = BuildShopPanel(canvasGo, "FoodShopPanel", "FOOD SHOP", foodStock, font);
+            var pharmacyShop = BuildShopPanel(canvasGo, "PharmacyPanel", "PHARMACY", pharmacyStock, font);
 
             // Hand each shopkeeper NPC its own shop panel.
             foreach (var npc in Object.FindObjectsByType<TownNPCInteractable>(FindObjectsSortMode.None))
@@ -2316,6 +2403,8 @@ namespace UpIzUpMini.EditorTools
                     (int)NpcRole.ApparelShop => apparelShop,
                     (int)NpcRole.LandOffice => landShop,
                     (int)NpcRole.CarDealer => dealerShop,
+                    (int)NpcRole.FoodShop => foodShop,
+                    (int)NpcRole.Pharmacy => pharmacyShop,
                     _ => null
                 };
                 if (target == null) continue;

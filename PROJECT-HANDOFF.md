@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-018 built. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
+- Status: MINI-019 built. Walking/running confirmed correct by the user. Animation root cause found and fixed (see MINI-016). See Docs/CODEX-HANDOFF.md for continuation context. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
@@ -416,7 +416,31 @@ After verification, append a change entry, update the verification results, and 
   - Police reinforcements spawn but do not pursue.
 - Next action: user playtests movement specifically. If still wrong, screenshots at a few points during a walk cycle would tell me more than a video I cannot decode.
 
+### MINI-019 — Water blocked, road colliders, crop freshness, safehouse rest, food/pharmacy shops
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User confirmed walking and running are now correct. Remaining list: dirt road needs colliders; the sea should be off-limits except via the jetty; clone time 60s; the longer a plant stands the less it is worth; the blue NPC should walk on the road; the farm safehouse should allow saving, resting, healing and heat reduction; a shop selling pills/enhancements and a food shop for healing; and the stamina bar should move like the other bars.
+- Implementation:
+  - **Dirt road colliders.** The Montine track segments had their colliders destroyed at build time, and the track sits proud of the terrain, so the player ran straight through it. Colliders are now kept (and explicitly non-trigger).
+  - **Sea blocked, jetty walkable.** Swimming was the wrong model for what the user wants, so `SwimmingController` is no longer attached. Instead an invisible barrier runs along the waterline, deliberately **split around the jetty mouth** so the deck remains the only way out over the water. The barrier is a collider with its renderer removed.
+  - **Clone cooldown 60s.** `FarmPlot.Clone` is rate-limited per plot; the world prompt shows the remaining wait rather than silently failing, so a ripe plant is no longer an infinite seed tap.
+  - **Crop freshness.** A plot records when it ripened; value decays from full to 35% over 120s of standing. Harvest yield scales with freshness and the feedback line reports it ("Prime." / "Still good." / "It sit too long - worth less now."). Mission progress counts the actual yield, not the nominal one.
+  - **Villager walks on the road.** It was patrolling offset into the yards, which is what put it through houses; its patrol offset is now zero so it follows the road itself. (Its collision fix landed in MINI-018 - it moves via CharacterController.)
+  - **Safehouse rest.** New `SafehouseInteractable` at the farm safehouse: `[E] Rest` fully restores the active character's health and stamina, cuts heat by 60, and saves the game. `CharacterVitals` gained `Restore`/`Heal`/`RestoreStamina`/`Damage`.
+  - **Food shop and pharmacy**, as separate shopfronts with their own NPC, stall and sign: Food (Bakes and Saltfish, Fish Broth, Ground Provision, Sorrel Juice) heals on purchase; Pharmacy (Energy Pills, Stamina Tonic, Focus Capsules) applies a temporary stamina-ceiling and regeneration boost via `CharacterVitals.ApplyBoost`, which expires cleanly. Consumables can be re-bought, unlike possessions - `ShopItemDefinition.IsConsumable` now gates the "you already have this" check that previously blocked repeat purchases.
+  - **Stamina bar**: the boost raises the visible ceiling and tops the bar up, so enhancement purchases read on the HUD.
+- Files changed: `Scripts/Interaction/SafehouseInteractable.cs` (new); `Scripts/Farming/FarmPlot.cs`, `Scripts/Character/CharacterVitals.cs`, `Scripts/Economy/ShopItemDefinition.cs`, `EconomyManager.cs`, `Scripts/Interaction/TownNPCInteractable.cs`, `Scripts/UI/ControlsPanelController.cs`, `Editor/Mini011PhaseBSetup.cs`; `Data/Shop/*.asset`; `Scenes/GrandBayProof.unity`.
+- Verification: compiles clean; scene builder clean and still logs "using authored StarterAssetsThirdPerson controller"; Windows build succeeded; **zero console errors in a 14s headless run**.
+- Known issues (honest):
+  - **Not playtested.** In particular the shoreline barrier's gap alignment with the jetty mouth is computed, not observed - if the gap is off, the jetty will either be unreachable or the barrier will have a hole elsewhere. That is the most likely thing to need a nudge.
+  - The stamina bar was already wired to `CharacterVitals.Stamina`; if it still does not visibly move, the cause is drain/regen tuning (18/s drain, 12/s regen) rather than the binding, and those numbers are easy to adjust.
+  - Food/pharmacy items are consumed instantly at the shop rather than carried as inventory - simpler, but means you cannot stock up before a run.
+  - Vehicles still not drivable; shirts/shorts/shoes still have no visual; police reinforcements still do not pursue.
+- Next action: user playtests. This was intended as the closing pass for "the first part of the game", so the useful check is a full run: mission 1 through the farming loop, rest at the safehouse, buy food and pills, and confirm the sea is properly walled off.
+
 ## Required change-entry format
+
 
 
 

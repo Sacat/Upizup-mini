@@ -19,3 +19,7 @@ MonoBehaviour:
   description: 
   grantsCrop: {fileID: 11400000, guid: b7ea73307c90ecd40b247176853ac9ef, type: 2}
   seedQuantity: 5
+  healAmount: 0
+  staminaBoost: 0
+  regenMultiplier: 1
+  boostSeconds: 30

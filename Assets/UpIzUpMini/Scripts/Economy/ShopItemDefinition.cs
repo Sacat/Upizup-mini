@@ -2,7 +2,14 @@ using UnityEngine;
 
 namespace UpIzUpMini.Economy
 {
-    public enum ShopCategory { Seed, Clothing, Footwear, Accessory, Vehicle, Boat, Property, Land }
+    public enum ShopCategory
+    {
+        Seed, Clothing, Footwear, Accessory, Vehicle, Boat, Property, Land,
+        /// <summary>Food - restores health. Consumed on purchase.</summary>
+        Food,
+        /// <summary>Pills/enhancements - temporary stamina boost. Consumed on purchase.</summary>
+        Enhancement,
+    }
 
     /// <summary>
     /// A generic purchasable. Deliberately one type covering seeds,
@@ -28,5 +35,19 @@ namespace UpIzUpMini.Economy
         [Header("Seed items only")]
         public CropDefinition grantsCrop;
         public int seedQuantity = 3;
+
+        [Header("Consumables (Food / Enhancement)")]
+        public float healAmount;
+        public float staminaBoost;
+        public float regenMultiplier = 1f;
+        public float boostSeconds = 30f;
+
+        /// <summary>
+        /// Consumables are used immediately and can be bought repeatedly,
+        /// unlike one-off possessions such as a chain or a vehicle.
+        /// </summary>
+        public bool IsConsumable => category == ShopCategory.Food
+                                    || category == ShopCategory.Enhancement
+                                    || category == ShopCategory.Seed;
     }
 }

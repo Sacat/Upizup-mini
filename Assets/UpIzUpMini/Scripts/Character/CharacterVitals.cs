@@ -32,9 +32,19 @@ namespace UpIzUpMini.Character
 
         private void Update()
         {
+            // Expire any temporary enhancement.
+            if (_boostEndsAt > 0f && Time.time >= _boostEndsAt)
+            {
+                maxStamina -= _boostExtraStamina;
+                Stamina = Mathf.Min(Stamina, maxStamina);
+                _boostExtraStamina = 0f;
+                _boostRegenMultiplier = 1f;
+                _boostEndsAt = -1f;
+            }
+
             Stamina = _running
                 ? Mathf.Max(0f, Stamina - staminaDrainPerSecond * Time.deltaTime)
-                : Mathf.Min(maxStamina, Stamina + staminaRegenPerSecond * Time.deltaTime);
+                : Mathf.Min(maxStamina, Stamina + staminaRegenPerSecond * _boostRegenMultiplier * Time.deltaTime);
         }
 
         /// <summary>True while moving fast enough to be "running" - also
@@ -42,5 +52,44 @@ namespace UpIzUpMini.Character
         public bool CanRun => Stamina > 1f;
 
         public void SetRunning(bool running) => _running = running && CanRun;
+
+        /// <summary>Full restore - used when resting at a safehouse.</summary>
+        public void Restore()
+        {
+            Health = maxHealth;
+            Stamina = maxStamina;
+        }
+
+        public void Heal(float amount)
+        {
+            Health = Mathf.Min(maxHealth, Health + amount);
+        }
+
+        public void RestoreStamina(float amount)
+        {
+            Stamina = Mathf.Min(maxStamina, Stamina + amount);
+        }
+
+        public void Damage(float amount)
+        {
+            Health = Mathf.Max(0f, Health - amount);
+        }
+
+        /// <summary>
+        /// Temporary boost from an enhancement item - raises the ceiling and
+        /// tops the character up, so the effect is visible on the meters.
+        /// </summary>
+        public void ApplyBoost(float extraMaxStamina, float regenMultiplier, float seconds)
+        {
+            maxStamina += extraMaxStamina;
+            Stamina = maxStamina;
+            _boostRegenMultiplier = regenMultiplier;
+            _boostEndsAt = Time.time + seconds;
+            _boostExtraStamina = extraMaxStamina;
+        }
+
+        private float _boostEndsAt = -1f;
+        private float _boostExtraStamina;
+        private float _boostRegenMultiplier = 1f;
     }
 }

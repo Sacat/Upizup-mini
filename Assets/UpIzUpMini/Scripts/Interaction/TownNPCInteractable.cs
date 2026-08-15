@@ -8,7 +8,11 @@ namespace UpIzUpMini.Interaction
     /// accessories. They are separate shopfronts with separate stock, per
     /// the user's request - not one merged shop.
     /// </summary>
-    public enum NpcRole { Villager, Police, FarmShop, Buyer, ApparelShop, Boss, LandOffice, CarDealer, BoatMan }
+    public enum NpcRole
+    {
+        Villager, Police, FarmShop, Buyer, ApparelShop, Boss,
+        LandOffice, CarDealer, BoatMan, FoodShop, Pharmacy
+    }
 
     /// <summary>
     /// One interactable for every named-role NPC (villager, police,
@@ -74,6 +78,11 @@ namespace UpIzUpMini.Interaction
             NpcRole.FarmShop => "[ E ] Farm Shop",
             NpcRole.ApparelShop => "[ E ] Clothes Shop",
             NpcRole.Boss => "[ E ] Talk to Boss K",
+            NpcRole.LandOffice => "[ E ] Land and Surveys",
+            NpcRole.CarDealer => "[ E ] Vehicles",
+            NpcRole.FoodShop => "[ E ] Food",
+            NpcRole.Pharmacy => "[ E ] Pharmacy",
+            NpcRole.BoatMan => "[ E ] Guadeloupe Run",
             _ => "[ E ] Talk"
         };
 
@@ -104,6 +113,8 @@ namespace UpIzUpMini.Interaction
                 case NpcRole.ApparelShop:
                 case NpcRole.LandOffice:
                 case NpcRole.CarDealer:
+                case NpcRole.FoodShop:
+                case NpcRole.Pharmacy:
                     _lastFeedback = shopkeeperLine;
                     shop?.Open();
                     break;

@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 45456d67ab597e34b942d247a4ea5627, type: 3}
-  m_Name: land_montine
+  m_Name: pill_focus
   m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Economy.ShopItemDefinition
-  itemId: land_montine
-  displayName: Montine Land Plot
-  category: 7
-  price: 600
+  itemId: pill_focus
+  displayName: Focus Capsules
+  category: 9
+  price: 110
   description: 
   grantsCrop: {fileID: 0}
   seedQuantity: 0
   healAmount: 0
-  staminaBoost: 0
-  regenMultiplier: 1
-  boostSeconds: 30
+  staminaBoost: 55
+  regenMultiplier: 1.8
+  boostSeconds: 45
