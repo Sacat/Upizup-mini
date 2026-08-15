@@ -138,6 +138,12 @@ namespace UpIzUpMini.Economy
             return soldAnything;
         }
 
+        public void AddMoney(int amount)
+        {
+            Money += amount;
+            OnChanged?.Invoke();
+        }
+
         public void AddHeat(float amount)
         {
             Heat = Mathf.Clamp(Heat + amount, 0f, MaxHeat);

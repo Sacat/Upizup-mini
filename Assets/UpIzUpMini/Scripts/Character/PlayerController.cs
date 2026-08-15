@@ -14,16 +14,18 @@ namespace UpIzUpMini.Character
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour
     {
-        // Measured from the clips' own root motion via
-        // Mini013RigAndAnimAudit.MeasureLocomotionSpeeds - Walk01 is
-        // authored at exactly 1.90 m/s and Run01 at 3.80 m/s. Matching
-        // these removes foot-sliding; an earlier guess of 4.4 for run was
-        // 16% too fast, which is why running looked like skating.
-        [SerializeField] private float walkSpeed = 1.90f;
-        [SerializeField] private float runSpeed = 3.80f;
-        [SerializeField] private float jumpHeight = 1.15f;
+        // Locomotion now uses the StarterAssets/Mixamo clips taken from the
+        // larger Up Iz Up project. Those are in-place clips with no root
+        // motion, so the correct speeds are the ones Unity tuned them for
+        // in ThirdPersonController: MoveSpeed 2.0, SprintSpeed 5.335,
+        // JumpHeight 1.2, Gravity -15. Using the animation's own numbers
+        // is what stops the feet skating.
+        [SerializeField] private float walkSpeed = 2.0f;
+        [SerializeField] private float runSpeed = 5.335f;
+        [SerializeField] private float jumpHeight = 1.2f;
+        [SerializeField] private float speedChangeRate = 10f;
         [SerializeField] private float turnSpeed = 12f;
-        [SerializeField] private float gravity = -20f;
+        [SerializeField] private float gravity = -15f;
 
         [SerializeField] private Animator animator;
         [SerializeField] private string speedParam = "Speed";
@@ -119,10 +121,11 @@ namespace UpIzUpMini.Character
 
             if (animator != null)
             {
-                // 0 = idle, 1 = walk, 2 = run. Blend tree in Mini011PhaseBSetup's
-                // generated controller expects this normalized range.
-                float target = CurrentSpeed <= 0f ? 0f : (IsRunning ? 2f : 1f);
-                _animSpeedBlend = Mathf.MoveTowards(_animSpeedBlend, target, 12f * Time.deltaTime);
+                // Speed is in real m/s to match the blend tree thresholds
+                // (0 / 2.0 / 5.335), the same convention StarterAssets uses
+                // for these clips.
+                _animSpeedBlend = Mathf.Lerp(_animSpeedBlend, CurrentSpeed, speedChangeRate * Time.deltaTime);
+                if (_animSpeedBlend < 0.01f) _animSpeedBlend = 0f;
                 animator.SetFloat(speedParam, _animSpeedBlend);
                 animator.SetBool(groundedParam, grounded);
             }

@@ -83,6 +83,16 @@ namespace UpIzUpMini.Character
             }
 
             OnActiveChanged?.Invoke(Active);
+
+            if (_hasSwitchedOnce)
+            {
+                Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.Switch);
+            }
+            _hasSwitchedOnce = true;
         }
+
+        // Start() applies the initial active character, which must not count
+        // as the player performing a switch.
+        private bool _hasSwitchedOnce;
     }
 }

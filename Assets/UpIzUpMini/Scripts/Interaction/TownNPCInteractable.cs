@@ -3,7 +3,12 @@ using UpIzUpMini.Economy;
 
 namespace UpIzUpMini.Interaction
 {
-    public enum NpcRole { Villager, Police, Shopkeeper, Buyer }
+    /// <summary>
+    /// FarmShop sells seeds/tools; ApparelShop sells clothing, footwear and
+    /// accessories. They are separate shopfronts with separate stock, per
+    /// the user's request - not one merged shop.
+    /// </summary>
+    public enum NpcRole { Villager, Police, FarmShop, Buyer, ApparelShop }
 
     /// <summary>
     /// One interactable for every named-role NPC (villager, police,
@@ -35,6 +40,8 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private string shopkeeperLine =
             "Yea mn, I have seed and ting. Take a look nuh.";
 
+        [SerializeField] private UI.ShopPanelController shop;
+
         [TextArea(1, 3)]
         [SerializeField] private string[] buyerLines =
         {
@@ -53,7 +60,13 @@ namespace UpIzUpMini.Interaction
 
         private string _lastFeedback;
 
-        public override string PromptLabel => role == NpcRole.Buyer ? "[ E ] Sell" : "[ E ] Talk";
+        public override string PromptLabel => role switch
+        {
+            NpcRole.Buyer => "[ E ] Sell",
+            NpcRole.FarmShop => "[ E ] Farm Shop",
+            NpcRole.ApparelShop => "[ E ] Clothes Shop",
+            _ => "[ E ] Talk"
+        };
 
         public override void Interact(GameObject interactor)
         {
@@ -64,6 +77,7 @@ namespace UpIzUpMini.Interaction
                         && EconomyManager.Instance.TrySellAll(sellableCrops, out int earned))
                     {
                         _lastFeedback = $"Yea mn, sold for ${earned}.";
+                        Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.SellCrop);
                     }
                     else
                     {
@@ -77,15 +91,18 @@ namespace UpIzUpMini.Interaction
                     Debug.Log($"{npcName} (police): {_lastFeedback}");
                     break;
 
-                case NpcRole.Shopkeeper:
+                case NpcRole.FarmShop:
+                case NpcRole.ApparelShop:
                     _lastFeedback = shopkeeperLine;
-                    UI.ShopPanelController.Instance?.Open();
+                    shop?.Open();
                     break;
 
                 default:
                     _lastFeedback = NextLine(villagerLines, "Yea wii.");
                     break;
             }
+
+            Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.TalkTo, npcName);
         }
 
         /// <summary>Cycles through an NPC's lines so repeat talks vary.</summary>

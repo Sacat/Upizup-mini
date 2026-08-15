@@ -12,6 +12,7 @@ using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
 using UpIzUpMini.Farming;
 using UpIzUpMini.Interaction;
+using UpIzUpMini.Missions;
 using UpIzUpMini.UI;
 
 namespace UpIzUpMini.EditorTools
@@ -31,6 +32,13 @@ namespace UpIzUpMini.EditorTools
         private const string ScenePath = "Assets/UpIzUpMini/Scenes/GrandBayProof.unity";
         private const string MaterialFolder = "Assets/UpIzUpMini/Art/Materials";
         private const string ControllerPath = "Assets/UpIzUpMini/Art/PlayerLocomotion.controller";
+
+        // Speeds the imported StarterAssets locomotion clips were authored
+        // and tuned for (ThirdPersonController.MoveSpeed / SprintSpeed in
+        // the larger project). Blend thresholds and the character
+        // controller both use these so the feet match the ground.
+        public const float LocomotionWalkSpeed = 2.0f;
+        public const float LocomotionRunSpeed = 5.335f;
 
         private const float TerrainSize = 320f;
         private const float TerrainHeight = 36f;
@@ -105,9 +113,11 @@ namespace UpIzUpMini.EditorTools
             }
             saveSo.ApplyModifiedPropertiesWithoutUndo();
 
-            ShopItemDefinition[] shopStock = BuildShopStock(crops);
+            ShopItemDefinition[] farmStock = BuildShopStock(crops);
+            ShopItemDefinition[] apparelStock = BuildApparelStock(crops);
             BuildStreetSigns(terrain, roadPoints, _farmCenter);
-            BuildExtraUI(shopStock, roadPoints, _farmCenter);
+            BuildExtraUI(farmStock, apparelStock, roadPoints, _farmCenter);
+            BuildMissions(terrain, roadPoints, _farmCenter, farmPlot);
 
             // Starting seeds so the player can plant before their first
             // shop trip.
@@ -155,9 +165,14 @@ namespace UpIzUpMini.EditorTools
             var controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
             controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
 
-            var idle = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Idles/HumanM@Idle01.fbx");
-            var walk = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_Forward.fbx");
-            var run = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Run/HumanM@Run01_Forward.fbx");
+            // Locomotion clips come from the larger Up Iz Up project
+            // (Unity StarterAssets / Mixamo-sourced). They are in-place
+            // clips driven by a real m/s Speed parameter, so the blend
+            // thresholds are the actual speeds Unity tuned them for:
+            // MoveSpeed 2.0 and SprintSpeed 5.335.
+            var idle = LoadClip("Assets/UpIzUpMini/Art/Animations/Stand--Idle.anim.fbx");
+            var walk = LoadClip("Assets/UpIzUpMini/Art/Animations/Locomotion--Walk_N.anim.fbx");
+            var run = LoadClip("Assets/UpIzUpMini/Art/Animations/Locomotion--Run_N.anim.fbx");
 
             var tree = new BlendTree
             {
@@ -167,8 +182,8 @@ namespace UpIzUpMini.EditorTools
                 useAutomaticThresholds = false
             };
             if (idle != null) tree.AddChild(idle, 0f);
-            if (walk != null) tree.AddChild(walk, 1f);
-            if (run != null) tree.AddChild(run, 2f);
+            if (walk != null) tree.AddChild(walk, LocomotionWalkSpeed);
+            if (run != null) tree.AddChild(run, LocomotionRunSpeed);
 
             var rootMachine = controller.layers[0].stateMachine;
             var state = rootMachine.AddState("Locomotion");
@@ -182,7 +197,7 @@ namespace UpIzUpMini.EditorTools
             controller.AddParameter("Jump", AnimatorControllerParameterType.Trigger);
             controller.AddParameter("Grounded", AnimatorControllerParameterType.Bool);
 
-            var jumpClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Jump/HumanM@Jump01.fbx");
+            var jumpClip = LoadClip("Assets/UpIzUpMini/Art/Animations/Jump--Jump.anim.fbx");
             if (jumpClip != null)
             {
                 var jumpState = rootMachine.AddState("Jump");
@@ -1173,17 +1188,22 @@ namespace UpIzUpMini.EditorTools
                 modelPath: "Assets/Floreswa/Models/male01_2.fbx", role: NpcRole.Police,
                 cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: true);
 
-            // Shopkeeper and buyer stand at the market area, so they stay
-            // put next to their stalls.
-            BuildNpc(terrain, roadPoints, index: 6, sideMul: 1f, goName: "NPC_Shopkeeper",
-                modelPath: "Assets/Floreswa/Models/male02_2.fbx", role: NpcRole.Shopkeeper,
+            // Farm shop, crop buyer, and the separate apparel shop each get
+            // their own stall and stay put beside it.
+            BuildNpc(terrain, roadPoints, index: 6, sideMul: 1f, goName: "NPC_FarmShop",
+                modelPath: "Assets/Floreswa/Models/male02_2.fbx", role: NpcRole.FarmShop,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
             BuildNpc(terrain, roadPoints, index: 6, sideMul: -1f, goName: "NPC_Buyer",
                 modelPath: "Assets/Floreswa/Models/male03_2.fbx", role: NpcRole.Buyer,
                 cropsForBuyer: allCrops, animController: animController, patrols: false, reactsToHeat: false);
 
-            BuildMarketArea(terrain, roadPoints, index: 6);
+            BuildNpc(terrain, roadPoints, index: 9, sideMul: 1f, goName: "NPC_ApparelShop",
+                modelPath: "Assets/Floreswa/Models/male01_3.fbx", role: NpcRole.ApparelShop,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+
+            BuildMarketArea(terrain, roadPoints, index: 6, title: "FARM SHOP", secondTitle: "PRODUCE BUYER");
+            BuildMarketArea(terrain, roadPoints, index: 9, title: "CLOTHES", secondTitle: null);
         }
 
         private static void BuildNpc(
@@ -1245,14 +1265,15 @@ namespace UpIzUpMini.EditorTools
         /// crates beside the road where the shopkeeper and buyer stand, so
         /// the player can see where selling happens.
         /// </summary>
-        private static void BuildMarketArea(Terrain terrain, List<Vector3> roadPoints, int index)
+        private static void BuildMarketArea(
+            Terrain terrain, List<Vector3> roadPoints, int index, string title, string secondTitle)
         {
             index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
             Vector3 basePos = roadPoints[index];
             Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
             Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
 
-            var parent = new GameObject("LalayMarket");
+            var parent = new GameObject($"Market_{title}");
 
             Material canopyMat = GetOrCreateMaterial("MarketCanopy", new Color(0.85f, 0.32f, 0.25f));
             Material postMat = GetOrCreateMaterial("MarketPost", new Color(0.42f, 0.32f, 0.22f));
@@ -1260,10 +1281,14 @@ namespace UpIzUpMini.EditorTools
 
             foreach (int side in new[] { -1, 1 })
             {
+                // Only build the second stall when this market has one.
+                if (side < 0 && string.IsNullOrEmpty(secondTitle)) continue;
+
                 Vector3 stallPos = basePos + right * side * 5.6f;
                 stallPos.y = SampleHeight(terrain, stallPos.x, stallPos.z);
 
-                var stall = new GameObject(side < 0 ? "BuyerStall" : "ShopStall");
+                string stallName = side < 0 ? secondTitle : title;
+                var stall = new GameObject($"Stall_{stallName}");
                 stall.transform.SetParent(parent.transform);
                 stall.transform.position = stallPos;
                 stall.transform.rotation = Quaternion.LookRotation(-right * side, Vector3.up);
@@ -1274,6 +1299,24 @@ namespace UpIzUpMini.EditorTools
                 canopy.transform.localPosition = new Vector3(0f, 2.5f, 0f);
                 canopy.transform.localScale = new Vector3(4.2f, 0.12f, 3f);
                 canopy.GetComponent<Renderer>().sharedMaterial = canopyMat;
+
+                // Shopfront sign so the player can tell the farm shop, the
+                // produce buyer and the clothes shop apart at a glance.
+                var signGo = new GameObject("StallSign");
+                signGo.transform.SetParent(stall.transform, false);
+                // The stall's +Z faces the road. TextMesh reads correctly
+                // from its own -Z side, so the sign sits on the road side
+                // and is turned to face back into the stall; otherwise it
+                // renders mirrored to anyone standing on the road.
+                signGo.transform.localPosition = new Vector3(0f, 2.9f, 1.6f);
+                signGo.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                var stm = signGo.AddComponent<TextMesh>();
+                stm.text = stallName;
+                stm.characterSize = 0.05f;
+                stm.fontSize = 80;
+                stm.anchor = TextAnchor.MiddleCenter;
+                stm.alignment = TextAlignment.Center;
+                stm.color = Color.white;
 
                 foreach (float px in new[] { -1.9f, 1.9f })
                 {
@@ -1507,22 +1550,38 @@ namespace UpIzUpMini.EditorTools
             ("seed_tomato", "Tomato Seeds (x5)",   ShopCategory.Seed,      12,  "tomato", 5),
             ("seed_banana", "Banana Suckers (x3)", ShopCategory.Seed,      20,  "banana", 3),
             ("seed_carrot", "Carrot Seeds (x5)",   ShopCategory.Seed,      10,  "carrot", 5),
-            ("cap_mike",    "Mike Cap",            ShopCategory.Clothing,  45,  null,     0),
-            ("shirt_lacos", "Lacostes Polo",       ShopCategory.Clothing,  80,  null,     0),
-            ("shoes_mike",  "Mike Air Kicks",      ShopCategory.Footwear,  150, null,     0),
-            ("chain_gold",  "Gold Chain",          ShopCategory.Accessory, 320, null,     0),
             ("land_montine","Montine Land Plot",   ShopCategory.Land,      600, null,     0),
-            ("boat_pirogue","Fishing Pirogue",     ShopCategory.Boat,      900, null,     0),
+        };
+
+        // Separate apparel shopfront - kept distinct from the farm shop.
+        private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] ApparelSpecs =
+        {
+            ("cap_mike",    "Mike Cap",            ShopCategory.Clothing,  45,  null, 0),
+            ("shirt_lacos", "Lacostes Polo",       ShopCategory.Clothing,  80,  null, 0),
+            ("shorts_adibas","Adibas Shorts",      ShopCategory.Clothing,  65,  null, 0),
+            ("shoes_mike",  "Mike Air Kicks",      ShopCategory.Footwear,  150, null, 0),
+            ("shoes_pumba", "Pumba Runners",       ShopCategory.Footwear,  120, null, 0),
+            ("chain_gold",  "Gold Chain",          ShopCategory.Accessory, 320, null, 0),
+            ("shades_ray",  "Ray-Bam Shades",      ShopCategory.Accessory, 95,  null, 0),
+            ("watch_rollie","Rollex Watch",        ShopCategory.Accessory, 480, null, 0),
         };
 
         private static ShopItemDefinition[] BuildShopStock(CropDefinition[] crops)
+            => BuildStock(ShopSpecs, crops);
+
+        private static ShopItemDefinition[] BuildApparelStock(CropDefinition[] crops)
+            => BuildStock(ApparelSpecs, crops);
+
+        private static ShopItemDefinition[] BuildStock(
+            (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] specs,
+            CropDefinition[] crops)
         {
             EnsureFolder("Assets/UpIzUpMini/Data/Shop");
-            var items = new ShopItemDefinition[ShopSpecs.Length];
+            var items = new ShopItemDefinition[specs.Length];
 
-            for (int i = 0; i < ShopSpecs.Length; i++)
+            for (int i = 0; i < specs.Length; i++)
             {
-                var spec = ShopSpecs[i];
+                var spec = specs[i];
                 string path = $"Assets/UpIzUpMini/Data/Shop/{spec.id}.asset";
                 var item = AssetDatabase.LoadAssetAtPath<ShopItemDefinition>(path);
                 if (item == null)
@@ -1549,6 +1608,199 @@ namespace UpIzUpMini.EditorTools
             }
 
             return items;
+        }
+
+        /// <summary>
+        /// Builds Mission 1 ("A Start in Montine") as a chain of small,
+        /// explicitly-worded objectives with world markers - the GTA-style
+        /// bit-by-bit instruction flow. Mirrors Docs/STORY.md Mission 1.
+        /// </summary>
+        private static void BuildMissions(
+            Terrain terrain, List<Vector3> roadPoints, Vector3 farmCenter, Transform firstPlot)
+        {
+            Vector3 marketPos = roadPoints[Mathf.Clamp(6, 1, roadPoints.Count - 2)];
+            Vector3 apparelPos = roadPoints[Mathf.Clamp(9, 1, roadPoints.Count - 2)];
+            Vector3 plotPos = firstPlot != null ? firstPlot.position : farmCenter;
+
+            var missions = new List<Mission>
+            {
+                new Mission
+                {
+                    missionId = "M1",
+                    title = "A Start in Montine",
+                    briefing = "Franki and Sacat leaving school to make their own money. Start with the land.",
+                    rewardMoney = 60,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.Switch,
+                            instruction = "Press Tab to switch between Franki and Sacat",
+                            hasMarker = false,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.TalkTo,
+                            targetId = "FarmShop",
+                            instruction = "Go to the Farm Shop on the Lalay road",
+                            markerPosition = marketPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.BuySeeds,
+                            instruction = "Buy a pack of tomato seeds",
+                            markerPosition = marketPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.ReachArea,
+                            instruction = "Follow the dirt track up to the Montine farm",
+                            markerPosition = farmCenter,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.PlantCrop,
+                            targetId = "tomato",
+                            instruction = "Plant tomato in a plot  [ 1 ] to select, [ E ] to plant",
+                            markerPosition = plotPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.WaterAny,
+                            instruction = "Water the plot you just planted  [ E ]",
+                            markerPosition = plotPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.HarvestCrop,
+                            targetId = "tomato",
+                            requiredCount = 3,
+                            instruction = "Wait for it to ripen red, then harvest  [ E ]",
+                            markerPosition = plotPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.SellCrop,
+                            instruction = "Take the tomatoes back to the Produce Buyer in Lalay",
+                            markerPosition = marketPos,
+                        },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M2",
+                    title = "Look Sharp",
+                    briefing = "Money does talk, but so does how you look. Go see what the clothes shop have.",
+                    rewardMoney = 40,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.TalkTo,
+                            targetId = "ApparelShop",
+                            instruction = "Find the Clothes shop further up the Lalay road",
+                            markerPosition = apparelPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.HarvestCrop,
+                            targetId = "tomato",
+                            requiredCount = 6,
+                            instruction = "Grow and harvest 6 more tomato to build up your money",
+                            markerPosition = plotPos,
+                        },
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.SellCrop,
+                            instruction = "Sell the crop to the Produce Buyer",
+                            markerPosition = marketPos,
+                        },
+                    }
+                },
+            };
+
+            var go = new GameObject("MissionSystem");
+            var system = go.AddComponent<MissionSystem>();
+            var so = new SerializedObject(system);
+            var listProp = so.FindProperty("missions");
+            listProp.arraySize = missions.Count;
+
+            for (int m = 0; m < missions.Count; m++)
+            {
+                var mp = listProp.GetArrayElementAtIndex(m);
+                var mission = missions[m];
+                mp.FindPropertyRelative("missionId").stringValue = mission.missionId;
+                mp.FindPropertyRelative("title").stringValue = mission.title;
+                mp.FindPropertyRelative("briefing").stringValue = mission.briefing;
+                mp.FindPropertyRelative("rewardMoney").intValue = mission.rewardMoney;
+
+                var objProp = mp.FindPropertyRelative("objectives");
+                objProp.arraySize = mission.objectives.Count;
+                for (int o = 0; o < mission.objectives.Count; o++)
+                {
+                    var op = objProp.GetArrayElementAtIndex(o);
+                    var obj = mission.objectives[o];
+                    op.FindPropertyRelative("kind").enumValueIndex = (int)obj.kind;
+                    op.FindPropertyRelative("instruction").stringValue = obj.instruction;
+                    op.FindPropertyRelative("targetId").stringValue = obj.targetId ?? string.Empty;
+                    op.FindPropertyRelative("requiredCount").intValue = Mathf.Max(1, obj.requiredCount);
+                    op.FindPropertyRelative("markerPosition").vector3Value = obj.markerPosition;
+                    op.FindPropertyRelative("hasMarker").boolValue = obj.hasMarker;
+                }
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            BuildObjectiveMarker();
+        }
+
+        /// <summary>Bobbing arrow + ground ring pointing at the current objective.</summary>
+        private static void BuildObjectiveMarker()
+        {
+            var root = new GameObject("ObjectiveMarker");
+
+            Material markerMat = GetOrCreateMaterial("ObjectiveMarker", new Color(1f, 0.82f, 0.15f));
+            markerMat.EnableKeyword("_EMISSION");
+            markerMat.SetColor("_EmissionColor", new Color(0.9f, 0.7f, 0.1f));
+
+            // Downward-pointing cone: a cylinder tapered by scaling a
+            // primitive cone isn't available, so use a stretched pyramid
+            // approximation built from a cube rotated 45 degrees, which
+            // reads clearly as an arrow from the three-quarter camera.
+            var arrow = new GameObject("Arrow");
+            arrow.transform.SetParent(root.transform, false);
+            // Sits above the target; ObjectiveMarker bobs it at runtime,
+            // but it needs a sane resting height for edit-mode inspection.
+            arrow.transform.localPosition = new Vector3(0f, 2.6f, 0f);
+
+            var head = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            head.name = "Head";
+            head.transform.SetParent(arrow.transform, false);
+            head.transform.localRotation = Quaternion.Euler(45f, 0f, 45f);
+            head.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+            head.GetComponent<Renderer>().sharedMaterial = markerMat;
+            Object.DestroyImmediate(head.GetComponent<Collider>());
+
+            var shaft = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            shaft.name = "Shaft";
+            shaft.transform.SetParent(arrow.transform, false);
+            shaft.transform.localPosition = new Vector3(0f, 0.62f, 0f);
+            shaft.transform.localScale = new Vector3(0.22f, 0.7f, 0.22f);
+            shaft.GetComponent<Renderer>().sharedMaterial = markerMat;
+            Object.DestroyImmediate(shaft.GetComponent<Collider>());
+
+            var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            ring.name = "Ring";
+            ring.transform.SetParent(root.transform, false);
+            ring.transform.localPosition = new Vector3(0f, 0.06f, 0f);
+            ring.transform.localScale = new Vector3(2.6f, 0.03f, 2.6f);
+            ring.GetComponent<Renderer>().sharedMaterial = markerMat;
+            Object.DestroyImmediate(ring.GetComponent<Collider>());
+
+            var marker = root.AddComponent<ObjectiveMarker>();
+            var so = new SerializedObject(marker);
+            so.FindProperty("arrow").objectReferenceValue = arrow.transform;
+            so.FindProperty("ring").objectReferenceValue = ring.transform;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>Roadside signs naming Lalay and the Montine turnoff.</summary>
@@ -1673,7 +1925,9 @@ namespace UpIzUpMini.EditorTools
         }
 
         /// <summary>Shop panel, H-controls overlay, and the fading area-name label.</summary>
-        private static void BuildExtraUI(ShopItemDefinition[] stock, List<Vector3> roadPoints, Vector3 farmCenter)
+        private static void BuildExtraUI(
+            ShopItemDefinition[] farmStock, ShopItemDefinition[] apparelStock,
+            List<Vector3> roadPoints, Vector3 farmCenter)
         {
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -1686,20 +1940,59 @@ namespace UpIzUpMini.EditorTools
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             canvasGo.AddComponent<GraphicRaycaster>();
 
-            // Shop
-            var shopPanel = CreateModalPanel(canvasGo.transform, "ShopPanel", new Vector2(900f, 620f));
-            var shopText = CreateModalText(shopPanel.transform, font, 26);
-            var shop = canvasGo.AddComponent<ShopPanelController>();
-            var shopSo = new SerializedObject(shop);
-            shopSo.FindProperty("panel").objectReferenceValue = shopPanel;
-            shopSo.FindProperty("bodyText").objectReferenceValue = shopText;
-            var stockProp = shopSo.FindProperty("stock");
-            stockProp.arraySize = stock.Length;
-            for (int i = 0; i < stock.Length; i++)
+            // Two separate shopfronts with separate stock and panels.
+            var farmShop = BuildShopPanel(canvasGo, "FarmShopPanel", "FARM SHOP", farmStock, font);
+            var apparelShop = BuildShopPanel(canvasGo, "ApparelShopPanel", "CLOTHES SHOP", apparelStock, font);
+
+            // Hand each shopkeeper NPC its own shop panel.
+            foreach (var npc in Object.FindObjectsByType<TownNPCInteractable>(FindObjectsSortMode.None))
             {
-                stockProp.GetArrayElementAtIndex(i).objectReferenceValue = stock[i];
+                var nso = new SerializedObject(npc);
+                var roleIndex = nso.FindProperty("role").enumValueIndex;
+                if (roleIndex == (int)NpcRole.FarmShop)
+                {
+                    nso.FindProperty("shop").objectReferenceValue = farmShop;
+                    nso.ApplyModifiedPropertiesWithoutUndo();
+                }
+                else if (roleIndex == (int)NpcRole.ApparelShop)
+                {
+                    nso.FindProperty("shop").objectReferenceValue = apparelShop;
+                    nso.ApplyModifiedPropertiesWithoutUndo();
+                }
             }
-            shopSo.ApplyModifiedPropertiesWithoutUndo();
+
+            // Mission HUD: objective card plus a large transient banner.
+            var objectivePanel = new GameObject("ObjectivePanel");
+            objectivePanel.transform.SetParent(canvasGo.transform, false);
+            var opRect = objectivePanel.AddComponent<RectTransform>();
+            opRect.anchorMin = opRect.anchorMax = new Vector2(1f, 0.5f);
+            opRect.pivot = new Vector2(1f, 0.5f);
+            opRect.sizeDelta = new Vector2(430f, 130f);
+            opRect.anchoredPosition = new Vector2(-24f, 60f);
+            objectivePanel.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.55f);
+
+            var objectiveText = CreateModalText(objectivePanel.transform, font, 26);
+            objectiveText.alignment = TextAnchor.MiddleLeft;
+
+            var bannerGo = new GameObject("MissionBanner");
+            bannerGo.transform.SetParent(canvasGo.transform, false);
+            var bRect = bannerGo.AddComponent<RectTransform>();
+            bRect.anchorMin = bRect.anchorMax = new Vector2(0.5f, 0.5f);
+            bRect.sizeDelta = new Vector2(1200f, 220f);
+            bRect.anchoredPosition = new Vector2(0f, 180f);
+            var banner = bannerGo.AddComponent<Text>();
+            banner.font = font;
+            banner.fontSize = 44;
+            banner.fontStyle = FontStyle.Bold;
+            banner.alignment = TextAnchor.MiddleCenter;
+            banner.color = new Color(1f, 1f, 1f, 0f);
+
+            var missionHud = canvasGo.AddComponent<MissionHUD>();
+            var mhSo = new SerializedObject(missionHud);
+            mhSo.FindProperty("objectiveText").objectReferenceValue = objectiveText;
+            mhSo.FindProperty("bannerText").objectReferenceValue = banner;
+            mhSo.FindProperty("objectivePanel").objectReferenceValue = objectivePanel;
+            mhSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Controls (H)
             var controlsPanel = CreateModalPanel(canvasGo.transform, "ControlsPanel", new Vector2(880f, 640f));
@@ -1742,6 +2035,27 @@ namespace UpIzUpMini.EditorTools
             montine.FindPropertyRelative("radius").floatValue = 55f;
 
             aso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static ShopPanelController BuildShopPanel(
+            GameObject canvasGo, string panelName, string title, ShopItemDefinition[] stock, Font font)
+        {
+            var panel = CreateModalPanel(canvasGo.transform, panelName, new Vector2(900f, 640f));
+            var text = CreateModalText(panel.transform, font, 26);
+
+            var shop = canvasGo.AddComponent<ShopPanelController>();
+            var so = new SerializedObject(shop);
+            so.FindProperty("shopTitle").stringValue = title;
+            so.FindProperty("panel").objectReferenceValue = panel;
+            so.FindProperty("bodyText").objectReferenceValue = text;
+            var stockProp = so.FindProperty("stock");
+            stockProp.arraySize = stock.Length;
+            for (int i = 0; i < stock.Length; i++)
+            {
+                stockProp.GetArrayElementAtIndex(i).objectReferenceValue = stock[i];
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return shop;
         }
 
         private static GameObject CreateModalPanel(Transform parent, string name, Vector2 size)

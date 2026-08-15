@@ -17,8 +17,10 @@ namespace UpIzUpMini.Interaction
     public class PatrolNPC : MonoBehaviour
     {
         [SerializeField] private Vector3[] waypoints;
-        [SerializeField] private float walkSpeed = 1.5f;
-        [SerializeField] private float alertSpeed = 4.2f;
+        // Match the locomotion clips' tuned speeds so NPC feet don't skate
+        // (StarterAssets MoveSpeed 2.0 / SprintSpeed 5.335).
+        [SerializeField] private float walkSpeed = 2.0f;
+        [SerializeField] private float alertSpeed = 5.335f;
         [SerializeField] private float turnSpeed = 6f;
         [SerializeField] private float arriveDistance = 0.6f;
         [SerializeField] private Animator animator;
@@ -79,7 +81,8 @@ namespace UpIzUpMini.Interaction
                         transform.rotation = Quaternion.Slerp(
                             transform.rotation, Quaternion.LookRotation(dir), turnSpeed * Time.deltaTime);
 
-                        desiredBlend = alert ? 2f : 1f;
+                        // Real m/s, matching the blend tree thresholds.
+                        desiredBlend = speed;
                     }
                 }
             }

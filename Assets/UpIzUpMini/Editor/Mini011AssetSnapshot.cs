@@ -185,6 +185,52 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "grandbay-gameplay-hud.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-014/Snapshot Mission Marker")]
+        public static void SnapshotMissionMarker()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var idle = LoadFirstClip("Assets/UpIzUpMini/Art/Animations/Stand--Idle.anim.fbx");
+            int posed = 0;
+            foreach (var animator in Object.FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (animator.runtimeAnimatorController == null)
+                {
+                    Debug.LogWarning($"Snapshot: {animator.name} has NO controller.");
+                    continue;
+                }
+                if (idle != null) { idle.SampleAnimation(animator.gameObject, 1.0f); posed++; }
+            }
+            Debug.Log($"Snapshot: posed {posed} character(s) with the new idle clip.");
+
+            // Place the marker where the first objective with a marker points.
+            var marker = GameObject.Find("ObjectiveMarker");
+            var farmShop = GameObject.Find("NPC_FarmShop");
+            if (marker != null && farmShop != null)
+            {
+                marker.transform.position = farmShop.transform.position;
+            }
+
+            Vector3 target = farmShop != null ? farmShop.transform.position : Vector3.zero;
+
+            var camGo = new GameObject("MarkerCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = target + new Vector3(-6f, 5.5f, -11f);
+            camGo.transform.LookAt(target + Vector3.up * 1.6f);
+            cam.fieldOfView = 55f;
+            cam.farClipPlane = 300f;
+
+            // Overlay canvases don't capture to a RenderTexture.
+            foreach (var canvas in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+            }
+
+            RenderAndSave(cam, "mission-marker.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-012/Snapshot NPC Stance")]
         public static void SnapshotNpcStance()
         {

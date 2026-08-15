@@ -15,9 +15,9 @@ namespace UpIzUpMini.Character
     public class FollowController : MonoBehaviour
     {
         [SerializeField] private float followDistance = 3.5f;
-        // Matches PlayerController.walkSpeed so the companion's stride
-        // reads correctly against the same walk animation.
-        [SerializeField] private float moveSpeed = 2.1f;
+        // Matches the walk clip's tuned speed (StarterAssets MoveSpeed) so
+        // the companion's stride reads correctly.
+        [SerializeField] private float moveSpeed = 2.0f;
         [SerializeField] private float turnSpeed = 8f;
         [SerializeField] private Animator animator;
         [SerializeField] private string speedParam = "Speed";
@@ -42,18 +42,24 @@ namespace UpIzUpMini.Character
             toTarget.y = 0f;
             float dist = toTarget.magnitude;
 
+            // Speed is fed to the animator in real m/s to match the blend
+            // tree thresholds (0 / 2.0 / 5.335).
             float speedBlend = 0f;
             if (dist > followDistance)
             {
                 Vector3 dir = toTarget.normalized;
-                _controller.SimpleMove(dir * moveSpeed);
+                // Break into a run if we've fallen well behind, so the
+                // companion can actually catch up.
+                float speed = dist > followDistance * 3f ? moveSpeed * 2.4f : moveSpeed;
+                _controller.SimpleMove(dir * speed);
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), turnSpeed * Time.deltaTime);
-                speedBlend = 1f;
+                speedBlend = speed;
             }
 
             if (animator != null)
             {
-                _animSpeedBlend = Mathf.MoveTowards(_animSpeedBlend, speedBlend, 12f * Time.deltaTime);
+                _animSpeedBlend = Mathf.Lerp(_animSpeedBlend, speedBlend, 10f * Time.deltaTime);
+                if (_animSpeedBlend < 0.01f) _animSpeedBlend = 0f;
                 animator.SetFloat(speedParam, _animSpeedBlend);
             }
         }

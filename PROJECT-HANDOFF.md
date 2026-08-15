@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-013 built. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
+- Status: MINI-014 built. Fixed the real T-pose cause (NPC models were Generic rigs, not Humanoid - all 9 now verified valid humanoid), fixed running by measuring the clips' authored speed (1.90/3.80 m/s), fixed floating fruit, added Space jump, seed/cloning economy, a fake-brand shop, H controls, street signs, fading area names, and renamed the protagonists to Franki and Sacat with dialogue from the user's real supplied conversation. Windows build produced, zero errors in a 12s headless run. **Missions are still not built** - see MINI-013 known issues. Not hands-on playtested yet.
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest.
@@ -303,7 +303,29 @@ After verification, append a change entry, update the verification results, and 
   - The YouTube workflow video is recorded but not reviewed.
 - Next action: user playtests — priority checks are NPC animation (T-pose gone?), running feel, jump, and the shop/seed loop. Then missions should be scoped as their own task.
 
+### MINI-014 — StarterAssets/Mixamo animations, GTA-style missions, split shops
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: Prioritise farm land and switching animations to the Mixamo ones in the larger project, then build the missions previously skipped, GTA-style with arrows and bit-by-bit instructions, keeping the farm shop and apparel shop separate.
+- Implementation:
+  - **Animations replaced with the larger project's set.** Copied the 8 locomotion/jump clips from the larger project's `StarterAssets/ThirdPersonController/Character/Animations` (Idle, Walk_N, Run_N, Run_S, Jump, InAir, the two Land clips — ~5MB total). `Mini014AnimationImport` forces them Humanoid, sets loop flags per clip, and re-measures them. **Critically, these are in-place clips with no root motion** (measured planar speed ~0.00 m/s), so unlike the previous Kevin Iglesias set their correct speed cannot be read from the clip itself. Read the tuned values straight from the larger project's `ThirdPersonController.cs` instead: `MoveSpeed 2.0`, `SprintSpeed 5.335`, `JumpHeight 1.2`, `Gravity -15`. Applied all four. The animator's `Speed` parameter is now driven in **real m/s** with blend thresholds at 0 / 2.0 / 5.335 — the same convention StarterAssets uses for these exact clips. That is the actual fix for running looking wrong, rather than another speed guess.
+  - `PlayerController`, `FollowController` and `PatrolNPC` all updated to the same m/s convention; the companion now breaks into a run when it falls well behind instead of only ever walking.
+  - **Missions** (`Scripts/Missions/`): `MissionSystem` runs one objective at a time with a short explicit instruction, an optional world marker, and progress counts. Gameplay reports events *in* (`Notify`/`NotifyCount` from planting, watering, harvesting, selling, buying seeds, talking, switching, reaching an area) rather than the mission system polling — so missions stay decoupled from farming/economy internals. Two missions built: **M1 "A Start in Montine"** (8 objectives: Tab-switch tutorial, find the Farm Shop, buy tomato seeds, follow the track to Montine, plant, water, harvest 3, sell to the buyer — $60) and **M2 "Look Sharp"** (find the clothes shop, grow/harvest 6 more, sell — $40). Mirrors `Docs/STORY.md` Mission 1.
+  - `ObjectiveMarker`: bobbing, spinning gold arrow plus a ground ring that follows the current objective and hides once the player is close enough that it would obscure the target. `MissionHUD`: persistent objective card with live **distance in metres**, plus a large fading banner for briefings and completions.
+  - **Shops split in two, as asked.** `ShopPanelController` is no longer a singleton — each shopfront owns its own panel, title and stock, and each shopkeeper NPC holds a reference to its own shop. `NpcRole.Shopkeeper` became `FarmShop` and `ApparelShop`. Farm Shop sells seeds and the Montine land plot; the separate Clothes Shop sells Mike Cap, Mike Air Kicks, Lacostes Polo, Adibas Shorts, Pumba Runners, Ray-Bam Shades, Rollex Watch and a Gold Chain (all deliberately fictional near-miss brands). Each stall now carries a readable shopfront sign.
+- Files changed: `Editor/Mini014AnimationImport.cs`, `Scripts/Missions/MissionSystem.cs`, `Scripts/Missions/ObjectiveMarker.cs`, `Scripts/UI/MissionHUD.cs` (new); `Art/Animations/*.fbx` (new, from the larger project); `Scripts/Character/PlayerController.cs`, `FollowController.cs`, `CharacterSwitchManager.cs`, `Scripts/Interaction/PatrolNPC.cs`, `TownNPCInteractable.cs`, `Scripts/Farming/FarmPlot.cs`, `Scripts/Economy/EconomyManager.cs`, `Scripts/UI/ShopPanelController.cs`, `Editor/Mini011PhaseBSetup.cs`, `Editor/Mini011AssetSnapshot.cs`; `Scenes/GrandBayProof.unity`.
+- Verification: compiles clean throughout. Clips verified Humanoid and re-measured. Scene builder clean. Rendered and inspected the market three times — caught and fixed a mirrored shopfront sign (TextMesh reads from its -Z side) and an objective arrow resting at origin. Final render confirms a readable "FARM SHOP" sign, gold arrow + ground ring on the objective, and all 7 characters posed naturally with the new idle. Windows build succeeded; **zero console errors in a 12s headless run**.
+- Known issues (honest):
+  - **Not playtested by hand.** The animation swap is the whole point of this pass and cannot be confirmed from static renders — that is the single thing to check first.
+  - Missions cover the farming loop and the two shops. **Police/boss/land-ownership missions are still not built** — police react to heat and land is purchasable, but no mission uses them and buying land still has no gameplay effect.
+  - Apparel purchases still do not appear on the characters — economy entries only.
+  - `MissionSystem` state is not saved by `SaveLoadSystem` yet, so F9 restores money/crops/positions but restarts mission progress.
+  - Objectives are generated in the scene builder rather than authored as assets; fine for two missions, worth moving to ScriptableObjects as the count grows.
+- Next action: user playtests — animation feel first, then run Mission 1 end to end and check the arrow/instructions read clearly.
+
 ## Required change-entry format
+
 
 ```text
 ### MINI-### — Short title

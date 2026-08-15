@@ -14,8 +14,13 @@ namespace UpIzUpMini.UI
     /// </summary>
     public class ShopPanelController : MonoBehaviour
     {
-        public static ShopPanelController Instance { get; private set; }
-
+        /// <summary>
+        /// The farm shop (seeds/tools) and the apparel shop (clothing,
+        /// footwear, accessories) are deliberately separate shopfronts with
+        /// separate stock, per the user's request - so this is a per-shop
+        /// component, not a singleton. NPCs hold a reference to their own.
+        /// </summary>
+        [SerializeField] private string shopTitle = "SHOP";
         [SerializeField] private GameObject panel;
         [SerializeField] private Text bodyText;
         [SerializeField] private ShopItemDefinition[] stock;
@@ -27,7 +32,6 @@ namespace UpIzUpMini.UI
 
         private void Awake()
         {
-            Instance = this;
             if (panel != null) panel.SetActive(false);
         }
 
@@ -70,8 +74,17 @@ namespace UpIzUpMini.UI
                 {
                     // TryPurchase reports success or the reason it failed,
                     // so it must only be called once per keypress.
-                    EconomyManager.Instance.TryPurchase(stock[i], out string msg);
+                    bool bought = EconomyManager.Instance.TryPurchase(stock[i], out string msg);
                     _message = msg;
+
+                    if (bought && stock[i] != null)
+                    {
+                        if (stock[i].category == ShopCategory.Seed)
+                        {
+                            Missions.MissionSystem.Instance?.Notify(
+                                Missions.ObjectiveKind.BuySeeds, stock[i].itemId);
+                        }
+                    }
                 }
 
                 _messageTime = Time.unscaledTime;
@@ -84,7 +97,7 @@ namespace UpIzUpMini.UI
             if (bodyText == null) return;
 
             var sb = new StringBuilder();
-            sb.AppendLine("<b>SHOP</b>   (number key to buy, E or Esc to leave)");
+            sb.AppendLine($"<b>{shopTitle}</b>   (number key to buy, E or Esc to leave)");
             sb.AppendLine();
             sb.AppendLine($"Money: ${(EconomyManager.Instance != null ? EconomyManager.Instance.Money : 0)}");
             sb.AppendLine();

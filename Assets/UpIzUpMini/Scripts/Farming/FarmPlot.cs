@@ -83,6 +83,8 @@ namespace UpIzUpMini.Farming
 
                     _crop = crop;
                     _state = PlotState.PlantedDry;
+                    Missions.MissionSystem.Instance?.Notify(
+                        Missions.ObjectiveKind.PlantCrop, crop.cropId);
 
                     _activeVisual = crop.isIllegal ? weedVisual : tomatoVisual;
                     if (tomatoVisual != null) tomatoVisual.SetVisible(_activeVisual == tomatoVisual);
@@ -97,6 +99,8 @@ namespace UpIzUpMini.Farming
                     _growTimer = 0f;
                     SetSoilColor(WateredSoilColor);
                     _lastFeedback = $"Watered. {_crop.displayName} growing now.";
+                    Missions.MissionSystem.Instance?.Notify(
+                        Missions.ObjectiveKind.WaterAny, _crop.cropId);
                     break;
 
                 case PlotState.Growing:
@@ -115,6 +119,11 @@ namespace UpIzUpMini.Farming
                     _lastFeedback = _crop != null
                         ? $"Harvested {harvestYield} {_crop.displayName} and {seedsPerHarvest} seed."
                         : "Harvested.";
+                    if (_crop != null)
+                    {
+                        Missions.MissionSystem.Instance?.NotifyCount(
+                            Missions.ObjectiveKind.HarvestCrop, _crop.cropId, harvestYield);
+                    }
                     ResetPlot();
                     break;
             }
