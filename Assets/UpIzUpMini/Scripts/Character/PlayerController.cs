@@ -15,8 +15,12 @@ namespace UpIzUpMini.Character
         [SerializeField] private float turnSpeed = 12f;
         [SerializeField] private float gravity = -20f;
 
+        [SerializeField] private Animator animator;
+        [SerializeField] private string speedParam = "Speed";
+
         private CharacterController _controller;
         private float _verticalVelocity;
+        private float _animSpeedBlend;
 
         public bool IsRunning { get; private set; }
         public float CurrentSpeed { get; private set; }
@@ -24,6 +28,10 @@ namespace UpIzUpMini.Character
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
+            if (animator == null)
+            {
+                animator = GetComponentInChildren<Animator>();
+            }
         }
 
         private void Update()
@@ -56,6 +64,15 @@ namespace UpIzUpMini.Character
 
             Vector3 motion = moveDir * speed + Vector3.up * _verticalVelocity;
             _controller.Move(motion * Time.deltaTime);
+
+            if (animator != null)
+            {
+                // 0 = idle, 1 = walk, 2 = run. Blend tree in Mini011PhaseBSetup's
+                // generated controller expects this normalized range.
+                float target = CurrentSpeed <= 0f ? 0f : (IsRunning ? 2f : 1f);
+                _animSpeedBlend = Mathf.MoveTowards(_animSpeedBlend, target, 6f * Time.deltaTime);
+                animator.SetFloat(speedParam, _animSpeedBlend);
+            }
         }
     }
 }

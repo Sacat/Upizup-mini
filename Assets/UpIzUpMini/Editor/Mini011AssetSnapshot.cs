@@ -58,6 +58,62 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "demo-city-houses.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-011/Snapshot GrandBayProof Scene")]
+        public static void SnapshotGrandBayProof()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var mainCamGo = GameObject.FindWithTag("MainCamera");
+            if (mainCamGo == null)
+            {
+                Debug.LogError("Snapshot: no MainCamera found in GrandBayProof.");
+                return;
+            }
+            var cam = mainCamGo.GetComponent<Camera>();
+
+            // The follow camera positions itself relative to the player in
+            // LateUpdate/Play mode; in edit mode we approximate that pose
+            // once here so the snapshot matches what the player will see.
+            var player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                cam.transform.position = player.transform.position + new Vector3(0f, 6.8f, -7f);
+                cam.transform.LookAt(player.transform.position + Vector3.up * 1.4f);
+            }
+
+            RenderAndSave(cam, "grandbay-proof-overview.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-011/Snapshot GrandBayProof Overview")]
+        public static void SnapshotGrandBayProofOverview()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var camGo = new GameObject("OverviewCamera");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = new Vector3(160f, 140f, 30f);
+            camGo.transform.LookAt(new Vector3(160f, 0f, 150f));
+            cam.fieldOfView = 60f;
+            cam.farClipPlane = 600f;
+
+            RenderAndSave(cam, "grandbay-overview-wide.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-011/Snapshot GrandBayProof Mid Overview")]
+        public static void SnapshotGrandBayProofMid()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var camGo = new GameObject("MidOverviewCamera");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = new Vector3(115f, 34f, 55f);
+            camGo.transform.LookAt(new Vector3(135f, 5f, 95f));
+            cam.fieldOfView = 60f;
+            cam.farClipPlane = 400f;
+
+            RenderAndSave(cam, "grandbay-overview-mid.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Shanty Town Sample")]
         public static void SnapshotShantyTown()
         {

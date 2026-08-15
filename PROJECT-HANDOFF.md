@@ -5,7 +5,7 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-001 vertical-slice scene implemented and statically validated, pending user Play-mode confirmation. MINI-011 (corrective rebuild) Phase A complete: 8 free packages acquired and imported into `Assets/`, Humanoid rig risk resolved. Phase B (terrain/environment/camera rebuild) not yet claimed.
+- Status: MINI-011 Phase B built and playtestable: real terrain/road/houses/vegetation/sea in `GrandBayProof.unity`, Humanoid player+NPC with basic locomotion animation. Windows build produced (`Builds/GrandBayProof/UpIzUpMini.exe`), zero errors in a headless run. Awaiting user hands-on feedback before Phase C (people/prompts/mission/HUD).
 - Current owner: None
 - Active task: None
 - Last verified change: `MINI-000` (`MINI-001` implemented pending confirmation; `MINI-011` Phase A complete, Phase B not started)
@@ -160,6 +160,30 @@ After verification, append a change entry, update the verification results, and 
 - Verification: `Logs/snapshot-democity.log`, `Logs/snapshot-characters.log`, images at `Logs/Snapshots/demo-city-houses.png` and `Logs/Snapshots/character-pack-sample.png`.
 - Known issues: **No confirmed building/environment source for the Caribbean shanty-village look yet.** Real options: (a) the local `E:\Assets` Arteria3d Shanty Town packs (visual style is a strong match per the original audit, but Asset Store entitlement is still unverified by me — user has not explicitly confirmed ownership of these specific packs the way they did for the 5 Store-acquired ones), (b) hand-built modular houses (wall/roof/door/window kit), which the corrective brief explicitly sanctions ("may be agent-built modular geometry, but they must look like finished houses, not scaled cubes"), or (c) sourcing a new pack. Not decided yet — asked the user.
 - Next action: user picks a building-source direction; then Phase B (terrain/road/building placement/camera) gets claimed and built for real.
+
+### MINI-011 — Phase B build: real Grand Bay environment
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User confirmed the hybrid building strategy and said to move to the actual build, using Google Maps/reference images as a general style guide (not surveyed geometry).
+- Implementation:
+  - `Mini011PhaseBSetup.cs` (new) rebuilds `GrandBayProof.unity` end to end: a sculpted `Terrain` (coast → flat village shelf → hills, approximate, inspired by `Grandbay entire.jpg`'s general shape per `Docs/MAP-STRATEGY.md`/the terrain assessment doc — not surveyed data), a textured grass `TerrainLayer` (Polytope Studio's ground texture), a visible `Sea` plane on the coastal side (per user: don't forget the sea — visual placeholder only, Guadeloupe sea-trade per D-007 is not wired up yet), a multi-segment bending road textured with Shanty Town's `road.jpg`, ~30-40 densely-packed structures along both sides (mix of real Shanty Town shanty meshes and hand-built modular houses — proper pitched gable roofs via two angled boxes meeting at a ridge, inset door/window panels, varied Caribbean wall colours, occasional 2-storey variants), scattered Shanty Town props (barrels/clothesline/fence/tyres), vegetation (Aquaset palms coastal side, Polytope fruit trees inland), and the Montine dirty farm path/clearing/plot (now textured with Shanty Town's `tyretracks.jpg`).
+  - Replaced both the player and NPC capsules with real Low Poly Character Pack Humanoid models (`male01_1`/`male02_1`), each carrying an `Animator`.
+  - Built a small Idle/Walk/Run `BlendTree` `AnimatorController` (`Assets/UpIzUpMini/Art/PlayerLocomotion.controller`) from Human Basic Motions FREE's male clips (already Humanoid-rigged, confirmed via `.meta`, so Mecanim retargeting onto the Floreswa avatar works with no extra setup). `PlayerController.cs` now drives an `Animator.SetFloat("Speed", …)` blend based on `CurrentSpeed`/`IsRunning`.
+  - **Found and fixed a real bug via the new rendering-based visual-check workflow, not guesswork:** Aquaset's `PalmTree` prefabs are wired to their `Materials/URP/` variant by default; this project has no URP package, so they rendered solid magenta. The pack ships a `Materials/Built-In/` sibling for every material — added `SwapUrpMaterialsForBuiltIn()` to reassign by filename convention on instantiation. Confirmed fixed by re-rendering (palms are green in the after-shot).
+  - Iterated on house density twice using the same rendering workflow: first pass was far too sparse (large empty gaps, ~14 structures total) against the brief's "close to both sides of the road" requirement; resampled the road polyline to ~11m spacing for placement (independent of the coarser road-mesh polyline) to roughly triple density, confirmed via a second render.
+  - Extended `Mini011AssetSnapshot.cs` with scene-view snapshot modes (player-eye view, wide overview, mid-distance overview) used throughout this pass to catch the above two problems before building an exe, rather than after.
+- Files changed: `Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs` (new), `Assets/UpIzUpMini/Editor/Mini011AssetSnapshot.cs` (extended), `Assets/UpIzUpMini/Scripts/Character/PlayerController.cs` (Animator hookup), `Assets/UpIzUpMini/Art/PlayerLocomotion.controller` (new), `Assets/UpIzUpMini/Art/GrassGround.terrainlayer` (new), `Assets/UpIzUpMini/Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: `GrandBayProof.unity` fully rebuilt per above. `Mini001SceneSetup.cs`'s output is superseded but the script itself is untouched (MINI-001 history preserved per the corrective brief's instruction).
+- Verification commands: `Logs/phaseb-compile*.log` (batch-mode compiles, clean throughout), `Logs/phaseb-buildscene*.log` (scene builder runs, no exceptions), `Logs/snapshot-*.log` + `Logs/Snapshots/*.png` (visual checks — player-eye view, wide overview showing the palm-tree bug, mid overview showing both the bug-fix and the density fix), `Logs/phaseb-build-exe.log` (Windows Player build), `Logs/phaseb-player-run.log` (headless player run).
+- Verification results: all compiles clean (0 `error CS`). Scene builder runs clean, no exceptions logged. Windows build succeeded (~146MB). Headless player run: zero console errors across ~8 seconds of the real compiled game. Visual checks performed and iterated on using actual rendered frames, not assumptions — this is the first MINI-011 pass with real look-and-feel evidence, not just asset-level snapshots.
+- Known issues/limitations (stated plainly, not glossed over):
+  - Terrain shape is algorithmic (coast/shelf/hills approximation), not matched against the actual Grand Bay aerial/map references in any measured way — "looks generally like a tropical coastal village," not a surveyed recreation. Road path is procedural (sine-wave bend), not traced from the reference images.
+  - No mission, HUD, NPC talk/plant prompts upgraded yet — MINI-001's `OnGUI` interaction system is still wired in underneath (untouched), Canvas/TextMeshPro upgrade is Phase C per the corrective brief.
+  - Smart/Strong character switching is not built yet — only one controllable character (visually upgraded, but still one boy, no `CharacterSwitchManager`). Also Phase C+.
+  - Two-storey/tall building variant only rotates through one procedural shape; more visual variety would help before this is called "done."
+  - Have not personally watched it move/animate in real time — the rendered snapshots are static frames from batch mode; the headless run confirms no errors but not animation quality. That's the ask for this build.
+- Next action: user tests the launched build (movement, camera, animation quality, whether it reads as "Grand Bay" enough) and gives feedback before Phase C (people/prompts/mission/HUD) is claimed.
 
 ## Required change-entry format
 
