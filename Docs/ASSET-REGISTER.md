@@ -44,14 +44,27 @@ below).
 | MINI-AST-116 | Rocks FREE pack | DexSoft | Terrain dressing for the Montine trail/farm clearing. |
 | MINI-AST-117 | Grass Flowers Pack Free | ALP | Ground-cover dressing. |
 
-## Not yet pulled into the Unity project
+## Imported into the Unity project (2026-08-15)
 
-Acquisition (adding to the account) is done for every row above. None of
-these files exist in `Assets/` yet — that requires either the Editor's
-Package Manager "My Assets" download+import (a native Unity Editor GUI
-action I have no tool to drive or observe) or the user completing it
-manually. This is the next concrete blocker before any Phase B geometry
-work can start.
+All 8 packages above (MINI-AST-101 through 105, plus MINI-AST-110/111/112)
+are now physically in `Assets/` — imported via `Unity.exe -importPackage`
+against the `.unitypackage` files the user downloaded to the Asset Store
+cache (`%APPDATA%\Unity\Asset Store-5.x\...`), since the Package Manager
+GUI itself isn't something I can drive. Landed under
+`Assets/Floreswa`, `Assets/Kevin Iglesias`, `Assets/Polytope Studio`,
+`Assets/Aquaset`, `Assets/Synty`, `Assets/Cartoon_Farm_Crops`,
+`Assets/Versatile Studio Assets` (plus `Assets/Standard Assets`, a
+dependency pulled in by Cartoon Farm Crops). Full-project batch-mode
+compile is clean (0 `error CS`) after all imports, including after adding
+`com.unity.ugui` to `Packages/manifest.json` (needed by Human Basic
+Motions FREE's demo scene script, and by the project's own planned
+Canvas/TextMeshPro HUD anyway).
+
+**Humanoid rig risk RESOLVED:** `Assets/Floreswa/Models/male01_1.fbx` and
+`male02_1.fbx` both convert to valid Unity Humanoid avatars when the
+importer's animation type is set to Human (confirmed via a one-off test,
+`Mini011RigTest.cs`, log at `Logs/rigtest.log`). Low Poly Character Pack
+is a usable base for Smart/Strong.
 
 ## Local library (`E:\Assets`) — fallback only, not currently planned
 

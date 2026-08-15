@@ -5,10 +5,10 @@
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
-- Status: MINI-001 vertical-slice scene implemented and statically validated, pending user Play-mode confirmation. MINI-011 (corrective rebuild) Phase A audit/plan complete; 8 free Asset Store packages acquired to the user's account; blocked on the Editor-side Package Manager download+import step before Phase B production work starts.
+- Status: MINI-001 vertical-slice scene implemented and statically validated, pending user Play-mode confirmation. MINI-011 (corrective rebuild) Phase A complete: 8 free packages acquired and imported into `Assets/`, Humanoid rig risk resolved. Phase B (terrain/environment/camera rebuild) not yet claimed.
 - Current owner: None
 - Active task: None
-- Last verified change: `MINI-000` (`MINI-001` implemented pending confirmation; `MINI-011` Phase A pending Editor-side asset import)
+- Last verified change: `MINI-000` (`MINI-001` implemented pending confirmation; `MINI-011` Phase A complete, Phase B not started)
 - Last known good commit: `9f80953`
 
 ## Ownership protocol
@@ -128,6 +128,23 @@ After verification, append a change entry, update the verification results, and 
 - Verification commands/results: Confirmed via `assetstore.unity.com/account/assets` page text — all 5 requested packages plus the 3 bonus packages listed with Aug 2026 purchase dates.
 - Known issues: Acquisition (adding to the Unity account) is complete, but pulling any of these into the actual Mini project's `Assets/` folder requires the Unity Editor's Package Manager "My Assets" download+import flow — a native GUI action. I tried the Asset Store website's "Open in Unity" deep-link button once (for Low Poly Character Pack) to see if it completes the download automatically; I have no way to confirm what it did, since it hands off to Unity Hub (already running on this machine before the click) and I have no tool that can see or drive native desktop application windows. This is the concrete next blocker before Phase B geometry work.
 - Next action: user completes the Editor-side download+import (Package Manager → My Assets → Download/Import for each of the 8 packages), or confirms another way to get them into `Assets/`; then Phase B can be claimed starting with a Humanoid-avatar rig test on Low Poly Character Pack.
+
+### MINI-011 — Package import + Humanoid rig test (Phase A wrap-up)
+
+- Date: 2026-08-15
+- Owner: Claude
+- Request: User said they'd downloaded the assets. Opening the Editor GUI myself confirmed nothing had landed in `Assets/` yet — the Package Manager GUI is a native window I can't drive. Found the actual `.unitypackage` files already sitting in the OS-level Asset Store cache (`%APPDATA%\Unity\Asset Store-5.x\...`), which meant CLI import was possible after all.
+- Implementation:
+  - Confirmed no Unity process still had the project open/locked, then imported all 8 packages one at a time via `Unity.exe -batchmode -nographics -quit -importPackage "<path>.unitypackage"`: Low Poly Character Pack, Human Basic Motions FREE, Low Poly Environment - Nature Free, Low Poly Tropical Beach, POLYGON Starter Pack, Cartoon Farm Crops, Demo City (Mobile Friendly), Human Melee Animations FREE.
+  - Human Basic Motions FREE's bundled demo script needed `UnityEngine.UI` (Button/Text), which wasn't available — added `com.unity.ugui` to `Packages/manifest.json` (a standard Unity registry package, not an Asset Store item, so no account/licence question). This is also the package the project needs anyway for the Canvas/TextMeshPro HUD called for in the brief, replacing MINI-001's `OnGUI` prompts.
+  - Ran a full-project batch-mode compile after all imports: clean, 0 `error CS`.
+  - Wrote a one-off diagnostic (`Mini011RigTest.cs`) to resolve the biggest flagged risk: set Low Poly Character Pack's `male01_1.fbx`/`male02_1.fbx` importers to Humanoid animation type and checked the resulting `Avatar.isValid`/`isHuman`. **Both pass.** This unblocks building Smart/Strong on this pack with standard Mecanim retargeting.
+- Files changed: `Assets/Floreswa/**`, `Assets/Kevin Iglesias/**`, `Assets/Polytope Studio/**`, `Assets/Aquaset/**`, `Assets/Synty/**`, `Assets/Cartoon_Farm_Crops/**`, `Assets/Versatile Studio Assets/**`, `Assets/Standard Assets/**` (dependency), `Packages/manifest.json` (+com.unity.ugui), `Assets/UpIzUpMini/Editor/Mini011RigTest.cs`, `Docs/ASSET-REGISTER.md`.
+- Scene/prefab changes: None yet — `GrandBayProof.unity` is untouched. This was import + verification only, not Phase B geometry work.
+- Verification commands: see `Logs/import-01` through `import-08-*.log`, `Logs/ugui-resolve.log`, `Logs/final-compile-check.log`, `Logs/rigtest.log`.
+- Verification results: All 8 imports exit 0. Full-project compile exit 0, 0 `error CS`. Rig test: `RIGTEST OVERALL: PASS`.
+- Known issues: `Assets/` is now 757MB and unorganized (assets sit in their default publisher-named folders, not yet moved/curated under `Assets/UpIzUpMini/`). Nothing has been visually inspected yet — I still have no screenshot capability; a look at these assets in the Editor is worth doing before Phase B geometry work commits to any of them stylistically.
+- Next action: awaiting user direction — either a visual gut-check of the imported packages, or go-ahead to claim Phase B (terrain + environment + camera rebuild) directly.
 
 ## Required change-entry format
 
