@@ -36,7 +36,7 @@ After verification, append a change entry, update the verification results, and 
 
 - No asset has been approved/imported for the Mini yet.
 - The precise Grand Bay map anchors must be copied into `Docs/MAP-ANCHORS.json` from verified research/user references.
-- `GrandBayProof.unity` needs one manual Play-mode check in the Unity Editor GUI — see MINI-001 known issues below. Headless automated Play-mode verification is blocked by an Editor engine bug in this environment, not by a scene/script defect.
+- `GrandBayProof.unity` needs one manual visual check — either via `Builds/GrandBayProof/UpIzUpMini.exe` or the Editor's Play button — see MINI-001 known issues below. A headless standalone-player run already confirmed zero console errors across the core Update loop; only the interaction-prompt UI and general look/feel remain unconfirmed.
 
 ## Change record
 
@@ -92,7 +92,8 @@ After verification, append a change entry, update the verification results, and 
   - Prompts use `OnGUI`, not a UGUI World Space canvas (see Implementation notes above) — visually functional but not the eventual production UI approach.
   - Buildings, road, and farm path are untextured primitive blocks (flat color materials) — placeholder geometry proving layout/camera/interaction only, not final art.
   - Headless Play-mode automated verification is blocked in this environment by the Search-module bug described above; retry once Unity/Editor is patched or the Search index has been built once via the interactive Editor.
-- Next action: User (or next agent) opens `GrandBayProof.unity` in the Editor and does the manual Play-mode check above. Once confirmed, update this entry's "Known issues" to drop the play-test caveat and set MINI-001 to fully verified before starting `MINI-002`/`MINI-003`.
+- Build follow-up (same day): Added `Mini001Build.cs` and produced a Windows standalone player at `Builds/GrandBayProof/UpIzUpMini.exe` (mirrors the reference project's `Builds/PlayableAlpha/UpIzUp.exe` convention; `Builds/` is gitignored, not committed). Ran it headlessly (`-batchmode -nographics`, 6 seconds, log at `Logs/mini001-player-run.log`) — this sidesteps the Editor Search-module bug entirely since standalone players don't go through Editor Play mode. Result: **zero console errors**, confirming `Awake`/`Update`/`LateUpdate`/gravity/`CharacterController`/interaction range-scan all ran cleanly every frame. This is real evidence, not a substitute for looking at it: `-nographics` means nothing was rendered, and the player never walked into range of the NPC or farm plot, so the `OnGUI` prompt-box rendering path specifically was not exercised by this run.
+- Next action: User (or next agent) either double-clicks `Builds/GrandBayProof/UpIzUpMini.exe` directly, or opens `GrandBayProof.unity` in the Editor and presses Play, to do one real visual check: walk with WASD/arrows (Shift to run), approach the NPC and press E, approach the farm plot and press E, confirm the `[ E ] Talk`/`[ E ] Plant` prompts and dialogue line look right, and check the Console/log for errors during that walk. Once confirmed, update this entry's "Known issues" to drop the play-test caveat and set MINI-001 to fully verified before starting `MINI-002`/`MINI-003`.
 
 ## Required change-entry format
 
