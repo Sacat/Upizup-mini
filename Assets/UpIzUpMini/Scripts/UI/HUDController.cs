@@ -152,6 +152,9 @@ namespace UpIzUpMini.UI
                         lines.Append($"\n{crop.displayName}: {EconomyManager.Instance.GetCount(crop.cropId)}  Seeds: {EconomyManager.Instance.GetSeeds(crop.cropId)}");
                     }
                 }
+                var rep = UpIzUpMini.Progression.ProgressionManager.Instance;
+                if (rep != null)
+                    lines.Append($"\nREP  Boss K {rep.BossKReputation} | Farmers {rep.FarmerReputation} | Police {rep.PoliceReputation} | Gangs {rep.GangReputation}");
                 inventoryLabel.text = lines.ToString();
             }
         }

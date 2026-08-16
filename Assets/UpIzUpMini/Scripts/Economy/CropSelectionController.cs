@@ -18,7 +18,8 @@ namespace UpIzUpMini.Economy
 
         private static readonly KeyCode[] Keys =
         {
-            KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4
+            KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4,
+            KeyCode.Alpha5, KeyCode.Alpha6
         };
 
         private void Awake()
@@ -32,6 +33,8 @@ namespace UpIzUpMini.Economy
             {
                 if (Input.GetKeyDown(Keys[i]))
                 {
+                    if (UpIzUpMini.Progression.ProgressionManager.Instance != null
+                        && !UpIzUpMini.Progression.ProgressionManager.Instance.IsCropUnlocked(crops[i].cropId)) continue;
                     SelectedIndex = i;
                 }
             }

@@ -35,4 +35,8 @@
 - Restricted police proximity heat to carrying weed or weed seeds.
 - Added E companion crop orders and two post-weed missions.
 - Rebuilt the generated scene; compile, Windows build and player initialization pass.
+## 2026-08-15 - MINI-029
+
+- Added branching legitimate-farming versus weed-route progression.
+- Added four faction reputations, Boss K exploitation/withheld payments, Boss M/Boss P, locked Black Sugar/Purple, land searches/sabotage, and Grand Bay-gated Guadeloupe access before future Roseau expansion.
 

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6b6eaabfe11f77409d66267c2d625ef, type: 3}
+  m_Name: black_sugar
+  m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Economy.CropDefinition
+  cropId: black_sugar
+  displayName: Black Sugar
+  sellPrice: 38
+  isIllegal: 1
+  growDurationSeconds: 18
+  unripeColor: {r: 0.15686275, g: 0.20784314, b: 0.12156863, a: 1}
+  ripeColor: {r: 0.26666668, g: 0.1882353, b: 0.14901961, a: 1}

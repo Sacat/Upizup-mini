@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UpIzUpMini.Economy;
+using UpIzUpMini.Progression;
 
 namespace UpIzUpMini.Missions
 {
@@ -18,6 +19,7 @@ namespace UpIzUpMini.Missions
         BuyItem,       // purchase a specific shop item (e.g. land)
         EscapeHeat,    // let police heat cool back below a threshold
         AssignFarmhand,// leave the inactive protagonist tending a crop
+        ChoosePath,    // L legitimate farming / K risky weed route
     }
 
     [Serializable]
@@ -41,6 +43,7 @@ namespace UpIzUpMini.Missions
         public string title;
         [TextArea(1, 3)] public string briefing;
         public int rewardMoney;
+        public CareerPath requiredPath = CareerPath.Undecided;
         public List<MissionObjective> objectives = new List<MissionObjective>();
     }
 
@@ -136,6 +139,7 @@ namespace UpIzUpMini.Missions
 
             _missionIndex++;
             _objectiveIndex = 0;
+            SkipUnavailableMissions();
 
             if (Current != null)
             {
@@ -144,6 +148,13 @@ namespace UpIzUpMini.Missions
                 _pendingBriefing = $"{Current.title}\n{Current.briefing}";
                 _pendingBriefingAt = Time.time + 3.5f;
             }
+        }
+
+        private void SkipUnavailableMissions()
+        {
+            var path = ProgressionManager.Instance != null ? ProgressionManager.Instance.Path : CareerPath.Undecided;
+            while (_missionIndex < missions.Count && missions[_missionIndex].requiredPath != CareerPath.Undecided
+                   && missions[_missionIndex].requiredPath != path) _missionIndex++;
         }
 
         private string _pendingBriefing;
@@ -212,6 +223,8 @@ namespace UpIzUpMini.Missions
             Banner = text;
             BannerTime = Time.time;
         }
+
+        public void Alert(string text) => ShowBanner(text);
 
         public void SetMissions(List<Mission> newMissions)
         {

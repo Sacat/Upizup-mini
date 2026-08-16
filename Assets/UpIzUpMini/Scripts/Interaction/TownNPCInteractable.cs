@@ -11,7 +11,7 @@ namespace UpIzUpMini.Interaction
     public enum NpcRole
     {
         Villager, Police, FarmShop, Buyer, ApparelShop, Boss,
-        LandOffice, CarDealer, BoatMan, FoodShop, Pharmacy, Vagrant, BlackMarket
+        LandOffice, CarDealer, BoatMan, FoodShop, Pharmacy, Vagrant, BlackMarket, StrainBoss
     }
 
     /// <summary>
@@ -82,6 +82,7 @@ namespace UpIzUpMini.Interaction
             NpcRole.Boss => "[ E ] Talk to Boss K",
             NpcRole.Vagrant => "[ E ] Sell weed quietly",
             NpcRole.BlackMarket => "[ E ] Black Market",
+            NpcRole.StrainBoss => $"[ E ] Talk to {npcName}",
             NpcRole.LandOffice => "[ E ] Land and Surveys",
             NpcRole.CarDealer => "[ E ] Vehicles",
             NpcRole.FoodShop => "[ E ] Food",
@@ -149,6 +150,18 @@ namespace UpIzUpMini.Interaction
                     }
                     break;
 
+                case NpcRole.StrainBoss:
+                    var prog = UpIzUpMini.Progression.ProgressionManager.Instance;
+                    bool unlocked = bossSeedCrop != null && prog != null && prog.IsCropUnlocked(bossSeedCrop.cropId);
+                    if (!unlocked) _lastFeedback = "You not ready for this strain yet. Build your name first, nuh.";
+                    else if (EconomyManager.Instance != null && EconomyManager.Instance.GetSeeds(bossSeedCrop.cropId) <= 0)
+                    {
+                        EconomyManager.Instance.AddSeeds(bossSeedCrop.cropId, 3);
+                        _lastFeedback = $"Take three {bossSeedCrop.displayName} seed. This work carry more risk.";
+                    }
+                    else _lastFeedback = $"Bring back the {bossSeedCrop?.displayName ?? "crop"} when it ready.";
+                    break;
+
                 default:
                     _lastFeedback = NextLine(villagerLines, "Yea wii.");
                     break;
@@ -171,6 +184,9 @@ namespace UpIzUpMini.Interaction
         private void SellCrops(bool illegalOnly, bool legalOnly, float multiplier, string buyerId)
         {
             if (Character.CharacterSwitchManager.Instance?.Active?.displayName == "Sacat") multiplier *= 1.15f;
+            var progression = UpIzUpMini.Progression.ProgressionManager.Instance;
+            bool bossSale = buyerId == "BossK";
+            if (bossSale && progression != null) multiplier *= progression.BossPayoutMultiplier;
             if (EconomyManager.Instance != null && sellableCrops != null
                 && EconomyManager.Instance.TrySellCrops(sellableCrops, illegalOnly, legalOnly,
                     multiplier, out int earned, out bool soldIllegal))
@@ -180,8 +196,15 @@ namespace UpIzUpMini.Interaction
                     bool missionSale = Missions.MissionSystem.Instance != null
                         && Missions.MissionSystem.Instance.IsCurrentObjective(Missions.ObjectiveKind.SellCrop, buyerId);
                     EconomyManager.Instance.AddHeat(missionSale ? 50f : 30f);
+                    progression?.AddReputation(UpIzUpMini.Progression.Faction.GrandBayGangs, 4);
+                    progression?.AddReputation(UpIzUpMini.Progression.Faction.Police, -5);
                 }
-                _lastFeedback = $"Yea mn, sold for ${earned}.";
+                else progression?.AddReputation(UpIzUpMini.Progression.Faction.Farmers, 4);
+
+                if (bossSale) progression?.RecordBossJob();
+                _lastFeedback = bossSale && earned <= 0
+                    ? "Boss K: Money tight. I holding your payment this time. Do the next job and we settle, nuh."
+                    : $"Yea mn, sold for ${earned}.";
                 Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.SellCrop, buyerId);
             }
             else _lastFeedback = NextLine(buyerLines, "Nothing for me right now, nuh.");

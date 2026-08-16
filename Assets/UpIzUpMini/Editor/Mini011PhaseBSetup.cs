@@ -14,6 +14,7 @@ using UpIzUpMini.Farming;
 using UpIzUpMini.Interaction;
 using UpIzUpMini.Missions;
 using UpIzUpMini.UI;
+using UpIzUpMini.Progression;
 
 namespace UpIzUpMini.EditorTools
 {
@@ -73,6 +74,13 @@ namespace UpIzUpMini.EditorTools
             BuildWorldBoundaries();
 
             CropDefinition[] crops = BuildEconomyAndCrops();
+            new GameObject("ProgressionManager").AddComponent<ProgressionManager>();
+            new GameObject("ProgressionChoice").AddComponent<ProgressionChoiceController>();
+            var risk = new GameObject("LandRisk").AddComponent<LandRiskController>();
+            var riskSo = new SerializedObject(risk);
+            var riskCrops = riskSo.FindProperty("crops"); riskCrops.arraySize = crops.Length;
+            for (int i = 0; i < crops.Length; i++) riskCrops.GetArrayElementAtIndex(i).objectReferenceValue = crops[i];
+            riskSo.ApplyModifiedPropertiesWithoutUndo();
             BuildTownNPCs(terrain, roadPoints, locomotionController);
 
             Vector3 startPos = _safehouseSpawn != Vector3.zero ? _safehouseSpawn : roadPoints[0];
@@ -1575,7 +1583,29 @@ namespace UpIzUpMini.EditorTools
             BuildMarketArea(terrain, roadPoints, index: 15, title: "CAR DEALER", secondTitle: null);
 
             BuildBossNpc(terrain, roadPoints, allCrops, animController);
+            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossM", "black_sugar", 10, 1f);
+            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossP", "purple", 13, 1f);
             BuildBoatMan(terrain, allCrops, animController);
+        }
+
+        private static void BuildStrainBoss(Terrain terrain, List<Vector3> roadPoints,
+            CropDefinition[] crops, RuntimeAnimatorController controller, string bossName,
+            string cropId, int index, float side)
+        {
+            index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
+            Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3 pos = roadPoints[index] + right * side * 6.5f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+            var go = new GameObject("NPC_" + bossName); go.transform.position = pos;
+            go.transform.rotation = Quaternion.LookRotation(-right * side, Vector3.up);
+            InstantiateCharacter("Assets/Floreswa/Models/male02_1.fbx", go.transform, controller, null);
+            CropDefinition crop = System.Array.Find(crops, c => c != null && c.cropId == cropId);
+            var npc = go.AddComponent<TownNPCInteractable>(); var so = new SerializedObject(npc);
+            so.FindProperty("role").enumValueIndex = (int)NpcRole.StrainBoss;
+            so.FindProperty("npcName").stringValue = bossName;
+            so.FindProperty("bossSeedCrop").objectReferenceValue = crop;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>
@@ -2044,6 +2074,8 @@ namespace UpIzUpMini.EditorTools
             ("banana", "Banana", 6, false, "5C9E3E", "E8D23C"),
             ("carrot", "Carrot", 4, false, "4D8C40", "E07A1F"),
             ("bushers", "Bushers", 22, true, "3A6B2E", "5B7A2E"),
+            ("black_sugar", "Black Sugar", 38, true, "28351F", "443026"),
+            ("purple", "Purple", 55, true, "35402B", "6C3B78"),
         };
 
         private static CropDefinition[] BuildEconomyAndCrops()
@@ -2465,6 +2497,51 @@ namespace UpIzUpMini.EditorTools
                         },
                     }
                 },
+                new Mission
+                {
+                    missionId = "M8", title = "Choose Your Road",
+                    briefing = "Press L to expand legitimate farming, or K to commit to Boss K's weed route.",
+                    objectives = new List<MissionObjective> { new MissionObjective { kind = ObjectiveKind.ChoosePath, instruction = "Choose now: [L] Legitimate farming  or  [K] Weed route", hasMarker = false } }
+                },
+                new Mission
+                {
+                    missionId = "M9L", title = "Roots in the Soil", requiredPath = CareerPath.LegitimateFarmer,
+                    briefing = "Build respect with farmers and expand without Boss K owning allu.", rewardMoney = 300,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "tomato", requiredCount = 9, instruction = "Harvest 9 tomato for the legitimate market", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.BuyItem, targetId = "land_hillside", instruction = "Buy the Hillside Survey Lot", markerPosition = roadPoints[Mathf.Clamp(14,1,roadPoints.Count-2)] }
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M9W", title = "Boss K's Cut", requiredPath = CareerPath.WeedRoute,
+                    briefing = "Boss K lower the price after allu take the risk. He say loyalty first, payment later.",
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossK", instruction = "Return to Boss K for a worse job", markerPosition = bossPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "bushers", requiredCount = 3, instruction = "Grow and harvest 3 Bushers", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver to Boss K - he is cutting your payment", markerPosition = bossPos }
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M10W", title = "Black Sugar", requiredPath = CareerPath.WeedRoute,
+                    briefing = "Boss M will only release Black Sugar after Boss K use allu enough.",
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossM", instruction = "Meet Boss M and unlock Black Sugar [5]", markerPosition = roadPoints[Mathf.Clamp(10,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "black_sugar", requiredCount = 3, instruction = "Grow and harvest Black Sugar [5]", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver it to Boss K - payment may be withheld", markerPosition = bossPos }
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M11W", title = "Purple Territory", requiredPath = CareerPath.WeedRoute,
+                    briefing = "Your gang reputation open a meeting with Boss P. Purple pays most and brings the most heat.",
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossP", instruction = "Meet Boss P and unlock Purple [6]", markerPosition = roadPoints[Mathf.Clamp(13,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "purple", requiredCount = 3, instruction = "Grow and harvest Purple [6]", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BoatMan", instruction = "The Grand Bay route is established - meet the Boat Man", markerPosition = new Vector3(0f, SeaLevelY, TerrainSize*.5f) }
+                    }
+                },
             };
 
             var go = new GameObject("MissionSystem");
@@ -2481,6 +2558,7 @@ namespace UpIzUpMini.EditorTools
                 mp.FindPropertyRelative("title").stringValue = mission.title;
                 mp.FindPropertyRelative("briefing").stringValue = mission.briefing;
                 mp.FindPropertyRelative("rewardMoney").intValue = mission.rewardMoney;
+                mp.FindPropertyRelative("requiredPath").enumValueIndex = (int)mission.requiredPath;
 
                 var objProp = mp.FindPropertyRelative("objectives");
                 objProp.arraySize = mission.objectives.Count;

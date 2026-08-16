@@ -560,6 +560,15 @@ After verification, append a change entry, update the verification results, and 
 - Implementation: The helper reserves exactly three nearest enabled plots. The first two are production plots and are harvested as soon as ripe. The third is a permanent clone mother and is never harvested. When seeds fall to 1 or below, the mother produces two cuttings; those seeds replant the two harvested plots, creating a repeatable three-plant cycle.
 - Verification: Added `Mini028FarmhandValidation`, which constructs three ripe plots and exercises the real FarmPlot/Economy/Farmhand selection code. It initially caught a validation setup defect, then passed with: `harvested two, preserved/cloned third, produced 2 seeds`. Windows build succeeded, result Success, return code 0. Logs: `MINI-028-FarmhandValidation-3.log`, `MINI-028-WindowsBuild.log`.
 
+### MINI-029 - Branching Grand Bay progression before Guadeloupe/Roseau
+
+- Date: 2026-08-15
+- Owner: Codex
+- Implementation: Added separate Boss K/Farmers/Police/Grand Bay Gang reputation visible on the HUD; M8 chooses legitimate farming with L or the risky weed route with K; incompatible missions are skipped. Legitimate path expands crops/land. Weed path adds progressively worse Boss K jobs with payouts falling from full to 75%, 40%, then withheld. Added Boss M and Boss P; Black Sugar [5] and Purple [6] remain selection-locked until the required later-boss reputation/exploitation stages and those bosses grant seed. Bought Montine land receives periodic police-search or low-gang-reputation sabotage risk. Boat Man refuses the Guadeloupe dispatch until the Grand Bay weed route is established. Guadeloupe remains before all future Roseau expansion.
+- Missions added: M8 Choose Your Road; M9L Roots in the Soil; M9W Boss K's Cut; M10W Black Sugar; M11W Purple Territory/Boat Man introduction.
+- Verification: Unity compile clean; generated scene rebuilt; Windows build Success/return code 0; built player initialized with no Error/Exception/NullReference/MissingReference matches. Logs: `MINI-029-Compile.log`, `MINI-029-BuildScene.log`, `MINI-029-WindowsBuild.log`, `MINI-029-PlayerSmoke.log`.
+- Known issues: Reputation/path state is session-based until the save schema is extended. Land-risk events affect stored crop inventory rather than visually damaging plants. Balance and full M8-M11 hands-on playthrough remain to be tested.
+
 ## Required change-entry format
 
 
