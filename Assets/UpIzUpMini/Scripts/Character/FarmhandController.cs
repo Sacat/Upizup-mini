@@ -84,8 +84,26 @@ namespace UpIzUpMini.Character
 
             if (_cooldown <= 0f)
             {
-                // Plant / water / harvest, whichever the plot needs next.
-                _target.FarmhandInteract(gameObject, AssignedCrop);
+                // Preserve the crop cycle: when only one matching seed is
+                // left, take cuttings before harvesting. Clone adds seed
+                // and temporarily protects the parent from harvest; once
+                // it recovers, the farmhand harvests and replants.
+                bool cloned = false;
+                if (_target.IsRipe && _target.CanClone && _target.CurrentCrop != null
+                    && AssignedCrop != null
+                    && _target.CurrentCrop.cropId == AssignedCrop.cropId
+                    && EconomyManager.Instance != null
+                    && EconomyManager.Instance.GetSeeds(AssignedCrop.cropId) <= 1)
+                {
+                    string result = _target.Clone();
+                    cloned = !string.IsNullOrEmpty(result);
+                }
+
+                if (!cloned)
+                {
+                    // Plant / water / harvest, whichever the plot needs.
+                    _target.FarmhandInteract(gameObject, AssignedCrop);
+                }
                 _cooldown = actionCooldown;
             }
         }

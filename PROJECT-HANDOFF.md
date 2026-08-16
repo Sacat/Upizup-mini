@@ -538,6 +538,13 @@ After verification, append a change entry, update the verification results, and 
 - Fix: InteractionDetector now excludes targets whose `CanInteract` returns false before comparing distance. Approaching the inactive boy now displays and activates `[E] Send to farm`.
 - Verification: Windows build succeeded, result Success, return code 0 (`Logs/MINI-025-WindowsBuild.log`).
 
+### MINI-026 - Continuous farmhand plant/clone/harvest loop
+
+- Date: 2026-08-15
+- Owner: Codex
+- Implementation: FarmPlot exposes its ripe state/current crop. A working companion plants and waters the assigned crop, automatically clones a matching ripe plant whenever shared seed stock is 1 or less, waits through clone recovery, harvests it, and continues replanting. This maintains the seed supply without granting seed directly from harvest.
+- Verification: Windows build succeeded, result Success, return code 0 (`Logs/MINI-026-WindowsBuild.log`).
+
 ## Required change-entry format
 
 

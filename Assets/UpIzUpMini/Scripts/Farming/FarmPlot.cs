@@ -57,6 +57,8 @@ namespace UpIzUpMini.Farming
         public bool CanClone => _state == PlotState.Ripe
                                 && _crop != null
                                 && Time.time >= _cloneReadyAt;
+        public bool IsRipe => _state == PlotState.Ripe;
+        public CropDefinition CurrentCrop => _crop;
 
         /// <summary>True while cuttings are still recovering.</summary>
         public bool IsCloning => _cloneReadyAt > 0f && Time.time < _cloneReadyAt;
