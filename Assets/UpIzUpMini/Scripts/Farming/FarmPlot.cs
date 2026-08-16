@@ -58,6 +58,8 @@ namespace UpIzUpMini.Farming
                                 && _crop != null
                                 && Time.time >= _cloneReadyAt;
         public bool IsRipe => _state == PlotState.Ripe;
+        public bool IsEmpty => _state == PlotState.Empty;
+        public bool IsDry => _state == PlotState.PlantedDry;
         public CropDefinition CurrentCrop => _crop;
 
         /// <summary>True while cuttings are still recovering.</summary>
@@ -135,7 +137,10 @@ namespace UpIzUpMini.Farming
             if (!CanClone) return false;
             string result = Clone();
             if (string.IsNullOrEmpty(result)) return false;
-            _cloneReadyAt = 0f;
+            // The helper keeps this plant as a mother rather than
+            // harvesting it. A short action recovery prevents repeated
+            // cloning in the same frame without stalling the farm loop.
+            _cloneReadyAt = Time.time + 2f;
             return true;
         }
 

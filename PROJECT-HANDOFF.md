@@ -553,6 +553,13 @@ After verification, append a change entry, update the verification results, and 
 - Fix: When seed is at 1 or below, the helper takes cuttings and harvests in the same automated farm action. Manual R cloning retains its normal cooldown.
 - Verification: Windows build succeeded, result Success, return code 0 (`Logs/MINI-027-WindowsBuild.log`).
 
+### MINI-028 - Verified three-plot farmhand cycle
+
+- Date: 2026-08-15
+- Owner: Codex
+- Implementation: The helper reserves exactly three nearest enabled plots. The first two are production plots and are harvested as soon as ripe. The third is a permanent clone mother and is never harvested. When seeds fall to 1 or below, the mother produces two cuttings; those seeds replant the two harvested plots, creating a repeatable three-plant cycle.
+- Verification: Added `Mini028FarmhandValidation`, which constructs three ripe plots and exercises the real FarmPlot/Economy/Farmhand selection code. It initially caught a validation setup defect, then passed with: `harvested two, preserved/cloned third, produced 2 seeds`. Windows build succeeded, result Success, return code 0. Logs: `MINI-028-FarmhandValidation-3.log`, `MINI-028-WindowsBuild.log`.
+
 ## Required change-entry format
 
 
