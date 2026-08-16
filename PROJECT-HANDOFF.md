@@ -530,6 +530,14 @@ After verification, append a change entry, update the verification results, and 
 - Deferred recommendations: character-required mission gating; faction reputation; arrests/injury consequences; unlockable Black Sugar/Purple progression; land raids/sabotage; vehicles and bike missions; richer Guadeloupe return presentation; boundary/fall visual screenshot and hands-on collision test.
 - Known issues: The build is mechanically verified but boundaries and balance still require a human playtest.
 
+### MINI-025 - Send-to-farm interaction fix
+
+- Date: 2026-08-15
+- Owner: Codex
+- Root cause: The active protagonist's own CompanionInteractable was always the nearest registered target at distance zero. It could not be interacted with, but it still hid the inactive protagonist from the detector.
+- Fix: InteractionDetector now excludes targets whose `CanInteract` returns false before comparing distance. Approaching the inactive boy now displays and activates `[E] Send to farm`.
+- Verification: Windows build succeeded, result Success, return code 0 (`Logs/MINI-025-WindowsBuild.log`).
+
 ## Required change-entry format
 
 

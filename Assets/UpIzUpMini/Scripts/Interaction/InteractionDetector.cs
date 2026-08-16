@@ -111,6 +111,11 @@ namespace UpIzUpMini.Interaction
                 if (interactable == null) continue;
                 var mb = interactable as MonoBehaviour;
                 if (mb == null) continue;
+                // Ignore the active boy's own CompanionInteractable (and
+                // any other temporarily invalid target). Previously that
+                // self target was always distance zero, so it hid the
+                // inactive boy and made "Send to farm" appear broken.
+                if (!interactable.CanInteract(gameObject)) continue;
 
                 float distSqr = (mb.transform.position - transform.position).sqrMagnitude;
                 if (distSqr <= bestDistSqr)
