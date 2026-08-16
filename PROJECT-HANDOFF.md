@@ -545,6 +545,14 @@ After verification, append a change entry, update the verification results, and 
 - Implementation: FarmPlot exposes its ripe state/current crop. A working companion plants and waters the assigned crop, automatically clones a matching ripe plant whenever shared seed stock is 1 or less, waits through clone recovery, harvests it, and continues replanting. This maintains the seed supply without granting seed directly from harvest.
 - Verification: Windows build succeeded, result Success, return code 0 (`Logs/MINI-026-WindowsBuild.log`).
 
+### MINI-027 - Farmhand harvest after cloning
+
+- Date: 2026-08-15
+- Owner: Codex
+- Root cause: Automated cloning inherited the manual player's 60-second no-harvest recovery, making the helper appear unable to harvest.
+- Fix: When seed is at 1 or below, the helper takes cuttings and harvests in the same automated farm action. Manual R cloning retains its normal cooldown.
+- Verification: Windows build succeeded, result Success, return code 0 (`Logs/MINI-027-WindowsBuild.log`).
+
 ## Required change-entry format
 
 

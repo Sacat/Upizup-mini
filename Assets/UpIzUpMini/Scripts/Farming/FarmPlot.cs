@@ -124,6 +124,21 @@ namespace UpIzUpMini.Farming
             return _lastFeedback;
         }
 
+        /// <summary>
+        /// Automated farm work represents taking the cutting as part of
+        /// the harvest action. Manual R cloning keeps its 60-second plant
+        /// recovery, but the assigned helper must not stand idle for a
+        /// minute and appear unable to harvest.
+        /// </summary>
+        public bool FarmhandCloneBeforeHarvest()
+        {
+            if (!CanClone) return false;
+            string result = Clone();
+            if (string.IsNullOrEmpty(result)) return false;
+            _cloneReadyAt = 0f;
+            return true;
+        }
+
         public override string PromptLabel => _state switch
         {
             PlotState.Empty => CropSelectionController.Instance != null && CropSelectionController.Instance.Selected != null

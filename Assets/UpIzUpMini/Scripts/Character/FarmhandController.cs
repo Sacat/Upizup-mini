@@ -88,22 +88,18 @@ namespace UpIzUpMini.Character
                 // left, take cuttings before harvesting. Clone adds seed
                 // and temporarily protects the parent from harvest; once
                 // it recovers, the farmhand harvests and replants.
-                bool cloned = false;
                 if (_target.IsRipe && _target.CanClone && _target.CurrentCrop != null
                     && AssignedCrop != null
                     && _target.CurrentCrop.cropId == AssignedCrop.cropId
                     && EconomyManager.Instance != null
                     && EconomyManager.Instance.GetSeeds(AssignedCrop.cropId) <= 1)
                 {
-                    string result = _target.Clone();
-                    cloned = !string.IsNullOrEmpty(result);
+                    _target.FarmhandCloneBeforeHarvest();
                 }
 
-                if (!cloned)
-                {
-                    // Plant / water / harvest, whichever the plot needs.
-                    _target.FarmhandInteract(gameObject, AssignedCrop);
-                }
+                // After an automated cutting, harvest immediately. Manual
+                // player cloning still uses the normal recovery cooldown.
+                _target.FarmhandInteract(gameObject, AssignedCrop);
                 _cooldown = actionCooldown;
             }
         }
