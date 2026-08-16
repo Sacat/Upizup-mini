@@ -569,6 +569,14 @@ After verification, append a change entry, update the verification results, and 
 - Verification: Unity compile clean; generated scene rebuilt; Windows build Success/return code 0; built player initialized with no Error/Exception/NullReference/MissingReference matches. Logs: `MINI-029-Compile.log`, `MINI-029-BuildScene.log`, `MINI-029-WindowsBuild.log`, `MINI-029-PlayerSmoke.log`.
 - Known issues: Reputation/path state is session-based until the save schema is extended. Land-risk events affect stored crop inventory rather than visually damaging plants. Balance and full M8-M11 hands-on playthrough remain to be tested.
 
+### MINI-030 - Later farmhand tutorial and simple melee foundation
+
+- Date: 2026-08-15
+- Owner: Codex
+- Implementation: Removed the farmhand assignment tutorial from M6. M6 now asks for a six-Bushers stock build. The assignment tutorial appears after M8's career choice in both M9L (tomato) and M9W (Bushers). Added F-key short-range melee against police with damage, cooldown, push, 12 heat per landed strike, temporary knockout and recovery. Updated H controls for F/G, crops 1-6 and blocked sea edges.
+- Scope decision: Melee is the mechanically simpler first combat layer. It intentionally has no final punch animation/combos yet. Shooting, aiming, ammunition, weapons, mobile aim controls and combat AI are deferred.
+- Verification: Compile clean; generated scene rebuilt; Windows build Success/return code 0. Logs: `MINI-030-Compile.log`, `MINI-030-BuildScene.log`, `MINI-030-WindowsBuild.log`.
+
 ## Required change-entry format
 
 

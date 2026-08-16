@@ -15,6 +15,7 @@ using UpIzUpMini.Interaction;
 using UpIzUpMini.Missions;
 using UpIzUpMini.UI;
 using UpIzUpMini.Progression;
+using UpIzUpMini.Combat;
 
 namespace UpIzUpMini.EditorTools
 {
@@ -1485,6 +1486,7 @@ namespace UpIzUpMini.EditorTools
             pcSo.FindProperty("vitals").objectReferenceValue = vitals;
             pcSo.ApplyModifiedPropertiesWithoutUndo();
             playerController.IsControlled = startActive;
+            go.AddComponent<SimpleMeleeCombat>();
 
             var farmhand = go.AddComponent<FarmhandController>();
             var companion = go.AddComponent<CompanionInteractable>();
@@ -1744,6 +1746,7 @@ namespace UpIzUpMini.EditorTools
 
                 if (role == NpcRole.Police)
                 {
+                    npcGo.AddComponent<NpcCombatHealth>();
                     // Officers pace the road by the sellers and give chase
                     // when heat is up; PoliceOfficer also steers around
                     // buildings, which plain patrolling did not.
@@ -2445,16 +2448,17 @@ namespace UpIzUpMini.EditorTools
                 new Mission
                 {
                     missionId = "M6",
-                    title = "Two Man Operation",
-                    briefing = "Allu cannot do every run alone. Put the next man to work up Montine.",
+                    title = "Build the Stock",
+                    briefing = "Keep working the Montine plots and build enough stock for the next move.",
                     rewardMoney = 100,
                     objectives = new List<MissionObjective>
                     {
                         new MissionObjective
                         {
-                            kind = ObjectiveKind.AssignFarmhand,
+                            kind = ObjectiveKind.HarvestCrop,
                             targetId = "bushers",
-                            instruction = "Select Bushers [4], then press G to leave the other boy farming",
+                            requiredCount = 6,
+                            instruction = "Grow and harvest 6 Bushers before expanding operations",
                             markerPosition = farmCenter,
                         },
                         new MissionObjective
@@ -2508,6 +2512,7 @@ namespace UpIzUpMini.EditorTools
                     missionId = "M9L", title = "Roots in the Soil", requiredPath = CareerPath.LegitimateFarmer,
                     briefing = "Build respect with farmers and expand without Boss K owning allu.", rewardMoney = 300,
                     objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.AssignFarmhand, targetId = "tomato", instruction = "Select Tomato [1], then ask the other boy to manage three plots", markerPosition = farmCenter },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "tomato", requiredCount = 9, instruction = "Harvest 9 tomato for the legitimate market", markerPosition = plotPos },
                         new MissionObjective { kind = ObjectiveKind.BuyItem, targetId = "land_hillside", instruction = "Buy the Hillside Survey Lot", markerPosition = roadPoints[Mathf.Clamp(14,1,roadPoints.Count-2)] }
                     }
@@ -2518,6 +2523,7 @@ namespace UpIzUpMini.EditorTools
                     briefing = "Boss K lower the price after allu take the risk. He say loyalty first, payment later.",
                     objectives = new List<MissionObjective> {
                         new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossK", instruction = "Return to Boss K for a worse job", markerPosition = bossPos },
+                        new MissionObjective { kind = ObjectiveKind.AssignFarmhand, targetId = "bushers", instruction = "Select Bushers [4], then assign the other boy to manage three plots", markerPosition = farmCenter },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "bushers", requiredCount = 3, instruction = "Grow and harvest 3 Bushers", markerPosition = plotPos },
                         new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver to Boss K - he is cutting your payment", markerPosition = bossPos }
                     }
