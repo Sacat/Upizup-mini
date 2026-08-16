@@ -63,8 +63,12 @@ namespace UpIzUpMini.Character
         private void HandleDeath(CharacterVitals deadVitals)
         {
             var dead = Array.Find(slots, s => s != null && s.vitals == deadVitals);
-            Missions.MissionSystem.Instance?.FailCurrentMission(
-                $"{dead?.displayName ?? "Player"} dead. Mission failed.");
+            RespawnAtSafehouse($"{dead?.displayName ?? "Player"} dead.");
+        }
+
+        public void RespawnAtSafehouse(string reason)
+        {
+            Missions.MissionSystem.Instance?.FailCurrentMission(reason);
             Economy.EconomyManager.Instance?.AddHeat(-Economy.EconomyManager.MaxHeat);
 
             for (int i = 0; i < slots.Length; i++)

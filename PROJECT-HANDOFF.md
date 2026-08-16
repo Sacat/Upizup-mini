@@ -521,6 +521,15 @@ After verification, append a change entry, update the verification results, and 
 - Known issues: Not hands-on playtested. Police stamina/rates and buyer multipliers are first-pass. Companion direct steering can still snag. Respawn is immediate, without a fade. Always-visible inventory may need a compact mobile toggle.
 - Next action: Play M4 through M7 and report chase feel, death/respawn, buyers, E companion order and HUD readability.
 
+### MINI-024 - Fast safety and character-trait build
+
+- Date: 2026-08-15
+- Owner: Codex
+- Implementation: Full-length invisible shoreline walls except for the jetty entrance; invisible north/south/hillside world-edge colliders; closed jetty side/end rails; fall detection that fails the mission and respawns both boys at the safehouse; Guadeloupe trip set to 600 seconds and 5x cargo value; Sacat earns 20% extra on Guadeloupe and 15% extra from local crop business; Franki runs at 5.85 m/s with 125 stamina and reduced drain.
+- Verification: Compile succeeded; generated scene rebuilt; Windows build succeeded with return code 0. Logs: `MINI-024-Compile.log`, `MINI-024-BuildScene.log`, `MINI-024-WindowsBuild.log`.
+- Deferred recommendations: character-required mission gating; faction reputation; arrests/injury consequences; unlockable Black Sugar/Purple progression; land raids/sabotage; vehicles and bike missions; richer Guadeloupe return presentation; boundary/fall visual screenshot and hands-on collision test.
+- Known issues: The build is mechanically verified but boundaries and balance still require a human playtest.
+
 ## Required change-entry format
 
 

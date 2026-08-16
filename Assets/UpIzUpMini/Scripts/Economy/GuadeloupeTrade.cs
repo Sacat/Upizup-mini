@@ -22,8 +22,8 @@ namespace UpIzUpMini.Economy
 
         [SerializeField] private CropDefinition[] sellableCrops;
         [SerializeField] private int captainFee = 500;
-        [SerializeField] private float tripSeconds = 90f;
-        [SerializeField] private float priceMultiplier = 3f;
+        [SerializeField] private float tripSeconds = 600f;
+        [SerializeField] private float priceMultiplier = 5f;
 
         public bool TripActive { get; private set; }
         public int AwayCharacterIndex { get; private set; } = -1;
@@ -70,7 +70,8 @@ namespace UpIzUpMini.Economy
             economy.AddMoney(-captainFee);
             ClearCargo(economy);
 
-            _cargoValue = Mathf.RoundToInt(cargo * priceMultiplier);
+            bool smartCourier = string.Equals(slot.displayName, "Sacat", System.StringComparison.OrdinalIgnoreCase);
+            _cargoValue = Mathf.RoundToInt(cargo * priceMultiplier * (smartCourier ? 1.2f : 1f));
             AwayCharacterIndex = away;
             TripActive = true;
             _returnAt = Time.time + tripSeconds;

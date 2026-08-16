@@ -70,6 +70,7 @@ namespace UpIzUpMini.EditorTools
             BuildVegetation(terrain, roadPoints);
 
             BuildBeachAndJetty(terrain);
+            BuildWorldBoundaries();
 
             CropDefinition[] crops = BuildEconomyAndCrops();
             BuildTownNPCs(terrain, roadPoints, locomotionController);
@@ -94,6 +95,13 @@ namespace UpIzUpMini.EditorTools
                 "Franki", "Franki", "Assets/UpIzUpMini/Art/Characters/Strong.fbx",
                 null, startPos + new Vector3(1.4f, 0f, -1.2f),
                 locomotionController, startActive: false);
+            var frankiMove = new SerializedObject(strong.playerController);
+            frankiMove.FindProperty("runSpeed").floatValue = 5.85f;
+            frankiMove.ApplyModifiedPropertiesWithoutUndo();
+            var frankiVitals = new SerializedObject(strong.vitals);
+            frankiVitals.FindProperty("maxStamina").floatValue = 125f;
+            frankiVitals.FindProperty("staminaDrainPerSecond").floatValue = 12f;
+            frankiVitals.ApplyModifiedPropertiesWithoutUndo();
             strong.followController.FollowTarget = smart.root.transform;
 
             ThirdPersonFollowCamera camera = BuildCamera(smart.root.transform);
@@ -111,6 +119,7 @@ namespace UpIzUpMini.EditorTools
 
             // Windowed by default so the game can be minimised/resized.
             new GameObject("WindowMode").AddComponent<WindowModeController>();
+            new GameObject("WorldSafety").AddComponent<WorldSafetyController>();
 
             // Heat is driven by proximity to officers, not a timer.
             var heatGo = new GameObject("PoliceHeatController");
@@ -483,6 +492,24 @@ namespace UpIzUpMini.EditorTools
             seaGo.GetComponent<Renderer>().sharedMaterial = mat;
         }
 
+        private static void BuildWorldBoundaries()
+        {
+            var root = new GameObject("InvisibleWorldBoundaries");
+            void Wall(string name, Vector3 position, Vector3 scale)
+            {
+                var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                wall.name = name;
+                wall.transform.SetParent(root.transform);
+                wall.transform.position = position;
+                wall.transform.localScale = scale;
+                Object.DestroyImmediate(wall.GetComponent<Renderer>());
+            }
+            const float height = 40f;
+            Wall("NorthBoundary", new Vector3(TerrainSize * .5f, height * .5f, TerrainSize + 1f), new Vector3(TerrainSize + 8f, height, 2f));
+            Wall("SouthBoundary", new Vector3(TerrainSize * .5f, height * .5f, -1f), new Vector3(TerrainSize + 8f, height, 2f));
+            Wall("HillBoundary", new Vector3(TerrainSize + 1f, height * .5f, TerrainSize * .5f), new Vector3(2f, height, TerrainSize + 8f));
+        }
+
         /// <summary>
         /// Sandy beach strip, a timber jetty running out over the water,
         /// and a small moored boat. The boat is scene dressing for now -
@@ -534,7 +561,7 @@ namespace UpIzUpMini.EditorTools
                 wall.name = $"ShorelineBarrier_{(side < 0 ? "A" : "B")}";
                 wall.transform.SetParent(parent.transform);
 
-                float halfSpan = (70f * 0.5f - gapHalfWidth) * 0.5f;
+                float halfSpan = (TerrainSize * 0.5f - gapHalfWidth) * 0.5f;
                 float centreZ = shoreZ + side * (gapHalfWidth + halfSpan);
 
                 wall.transform.position = new Vector3(wallX, SeaLevelY + wallHeight * 0.5f, centreZ);

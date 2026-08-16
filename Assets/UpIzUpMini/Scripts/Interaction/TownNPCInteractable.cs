@@ -170,6 +170,7 @@ namespace UpIzUpMini.Interaction
 
         private void SellCrops(bool illegalOnly, bool legalOnly, float multiplier, string buyerId)
         {
+            if (Character.CharacterSwitchManager.Instance?.Active?.displayName == "Sacat") multiplier *= 1.15f;
             if (EconomyManager.Instance != null && sellableCrops != null
                 && EconomyManager.Instance.TrySellCrops(sellableCrops, illegalOnly, legalOnly,
                     multiplier, out int earned, out bool soldIllegal))
