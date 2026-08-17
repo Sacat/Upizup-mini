@@ -2,6 +2,17 @@
 
 ## Done (pending user confirmation)
 
+### MINI-061 — Visible Gwada boat leave/return + police strength scaling (plot assembly chunk 6 / final)
+
+Goal: (a) the moored boat visibly leaves for Gwada on a dispatch and returns
+near completion ("SEE the boat leave, disappear, come back"); (b) police
+chase speed scales up with the fire/wanted level so beating ~6 officers is
+hard.
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt, Windows build succeeded, headless run zero errors. Not yet hands-on
+playtested. See the MINI-061 entry in `PROJECT-HANDOFF.md`.
+
 ### MINI-060 — Boss J exploitation arc surfaced (plot assembly chunk 5)
 
 Goal: make Boss J's skimp/exploitation visible so the player FEELS the

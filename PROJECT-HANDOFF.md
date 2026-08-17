@@ -26,22 +26,16 @@ reserved_files:
 ### Current claim
 
 ```yaml
-current_owner: OpenClaw
-active_task: MINI-060
-claimed_at: 2026-08-17T05:47:00-04:00
-reserved_files:
-  - Assets/UpIzUpMini/Scripts/**
-  - Assets/UpIzUpMini/Editor/**
-  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
-  - PROJECT-HANDOFF.md
-  - TASKS.md
+current_owner: None
+active_task: None
 ```
 
-### In-progress (plot assembly, chunk 5): MINI-060 — Boss J exploitation arc surfaced
-MINI-056/057/058/059 committed. Chunk 5 = surface Boss J's exploitation
-(BossKReputation / BossPayoutMultiplier worsening as you do more of his jobs)
-in dialogue/missions so the player actually FEELS the "he cuttin your payment"
-arc vs. the players becoming independent (per STORY.md).
+### Last completed: plot + gameplay assembly (MINI-056..061, 2026-08-17)
+All five assembly chunks committed: Gardey Zafeh theft-reveal, Normy missions
++ boss-target fix, Rasta strain-learning missions, Moutey granny quest +
+fire-emoji wanted, Boss J exploitation arc, visible Gwada boat + police
+strength scaling. Next per the user's roadmap: refinement
+(accessories/music/map polish).
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -1059,6 +1053,22 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0). Scene rebuilt clean. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
 - Known issues (honest): not hands-on playtested — the escalating Boss J lines need to be seen across exploitation stages in a real run. The dialogue is coded to the multiplier tiers but not tuned for exact feel. This surfaces the arc; the player-facing "break away from Boss J" choice/mission (M8-style) is the existing branching, not reworked here.
 - Next action: playtest. Then remaining plot beats (e.g. visible boat leave/return for Gwada, police-6-difficulty tuning) and final assembly polish.
+
+### MINI-061 - Visible Gwada boat leave/return + police strength scaling (plot assembly, chunk 6 / final)
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: Final plot-assembly chunk. (a) The moored boat should visibly leave for Gwada on a dispatch and return near completion (per the user's "you should SEE the boat leaving to go Guadeloupe... disappearing and coming back when the time is near"). (b) Police get stronger the more wanted (fire) they are, so beating ~6 officers is genuinely hard.
+- Acceptance criteria: starting a Gwada run visibly moves the boat out to sea and returns it as the run ends; police chase speed scales up with heat (max ~1.6x); compiles, scene builds, Windows build runs with zero errors.
+- Implementation:
+  - **Visible boat.** `Scripts/Vehicles/VisibleBoatController.cs` (new): reads `GuadeloupeTrade.TripActive`/`SecondsRemaining` and moves the moored boat along the jetty axis — slides dock→offshore on dispatch, holds while away, eases offshore→dock as completion nears (`returnLeadSeconds`), and snaps back fully when the trip finishes. Wired by the scene builder onto the existing `MooredBoat` with its dock + an offshore position passed in.
+  - **Police strength scaling.** `PoliceOfficer.cs`: chase speed now scales via new `HeatSpeedMultiplier()` (1x at low heat → ~1.6x at max heat 1.0), so the more fire/wanted the player has, the faster/tougher the officers are — beating a max-6-officer situation is harder.
+- Files changed: `Scripts/Vehicles/VisibleBoatController.cs` (new), `Scripts/Interaction/PoliceOfficer.cs`, `Editor/Mini011PhaseBSetup.cs` (boat wiring), `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt; the MooredBoat now carries `VisibleBoatController` (confirmed present in scene text).
+- Verification commands: `Logs/Mini061-Compile.log` (exit 0), `Logs/Mini061-BuildScene.log` (rebuilt and saved), `Logs/Mini061-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini061-PlayerRun.log` (headless).
+- Verification results: compile clean (exit 0). Scene rebuilt clean, VisibleBoatController confirmed present. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
+- Known issues (honest): not hands-on playtested — the boat's leave/return animation and the police speed scaling need a real run. The boat move is a transform tween (no wake/particles), and the offshore position is a fixed offset that assumes the jetty points toward open sea. Police speed scaling also increases their pursuit feel at high heat uniformly; stamina is not scaled (only speed), which keeps them beatable.
+- Next action: playtest the full assembled plot path. The five assembly chunks (MINI-056..061) are all committed. Remaining refinement (per the user's roadmap) is accessories/music/map polish.
 
 ## Required change-entry format
 

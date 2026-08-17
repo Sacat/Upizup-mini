@@ -757,6 +757,15 @@ namespace UpIzUpMini.EditorTools
             cabin.transform.localPosition = new Vector3(-1.1f, 0.7f, 0f);
             cabin.transform.localScale = new Vector3(1.3f, 0.85f, 1.25f);
             cabin.GetComponent<Renderer>().sharedMaterial = hullTrimMat;
+
+            // MINI-061: make the Gwada run visible — the boat leaves for
+            // Gwada on dispatch and returns near completion.
+            var boatLogic = boat.AddComponent<Vehicles.VisibleBoatController>();
+            var bso = new SerializedObject(boatLogic);
+            bso.FindProperty("dockPosition").vector3Value = boat.transform.position;
+            bso.FindProperty("offshorePosition").vector3Value = new Vector3(
+                boat.transform.position.x - 60f, boat.transform.position.y, shoreZ + 4.2f);
+            bso.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // ---------------------------------------------------------------

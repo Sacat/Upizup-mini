@@ -123,7 +123,10 @@ namespace UpIzUpMini.Interaction
                     return;
                 }
                 destination = player.transform.position;
-                speed = chaseSpeed;
+                // MINI-061: police get stronger as the wanted (fire) level
+                // rises - more heat means faster, harder-to-beat officers,
+                // so beating a max-6-police situation should be tough.
+                speed = chaseSpeed * HeatSpeedMultiplier();
 
                 if (distToPlayer <= stopDistance)
                 {
@@ -181,6 +184,19 @@ namespace UpIzUpMini.Interaction
         /// Without this officers walked into houses on the way to a
         /// waypoint.
         /// </summary>
+        /// <summary>
+        /// MINI-061. Police get stronger as the wanted (fire) level rises:
+        /// heat 0.0->0.25 = 1x, up to heat 1.0 = ~1.6x chase speed, so a
+        /// max-heat 6-officer situation is genuinely harder to beat/outrun.
+        /// </summary>
+        private float HeatSpeedMultiplier()
+        {
+            float heat01 = Economy.EconomyManager.Instance != null
+                ? Economy.EconomyManager.Instance.Heat / Economy.EconomyManager.MaxHeat
+                : 0f;
+            return 1f + Mathf.Clamp01(heat01) * 0.6f;
+        }
+
         private Vector3 AvoidObstacles(Vector3 desired)
         {
             Vector3 origin = transform.position + Vector3.up * 1.0f;
