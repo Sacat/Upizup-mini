@@ -59,6 +59,14 @@ namespace UpIzUpMini.Combat
             {
                 IsDown = true;
                 recoverAt = Time.time + recoverSeconds;
+                // MINI-062: beating a police officer brings rep up (per the
+                // user's rep rule) - only for officers, and only once per
+                // knockdown. Gang members don't pay rep (heh).
+                if (isOfficer)
+                {
+                    UpIzUpMini.Progression.ProgressionManager.Instance
+                        ?.AddReputation(UpIzUpMini.Progression.Faction.GrandBayGangs, 6);
+                }
                 // Held at full weight (no auto-fade, unlike a one-shot
                 // PlayAction) so the character stays lying down for the
                 // whole recovery window instead of springing back to idle

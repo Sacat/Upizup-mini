@@ -50,6 +50,32 @@ namespace UpIzUpMini.Progression
         public void ChoosePath(CareerPath path) { if (Path == CareerPath.Undecided) Path = path; OnChanged?.Invoke(); }
         public void AddReputation(Faction faction, int amount)
         {
+            // MINI-062: rep must be EARNED, not spiked - a soft brake that
+            // throttles how fast rep can climb per faction over a short
+            // window, so grinding one action can't rocket a faction to max.
+            // Negative movement (losing rep) is never throttled.
+            float now = Time.time;
+            if (amount > 0)
+            {
+                int idx = (int)faction;
+                if (now - _repGainAt[idx] < _repGainWindowSeconds)
+                {
+                    _repGainCount[idx]++;
+                    if (_repGainCount[idx] > _repMaxGainsPerWindow)
+                    {
+                        // Exceeded the per-window gain budget - swallow this
+                        // gain (still fire OnChanged? no - just return) to
+                        // enforce "must be earned slowly".
+                        return;
+                    }
+                }
+                else
+                {
+                    _repGainCount[idx] = 1;
+                }
+                _repGainAt[idx] = now;
+            }
+
             switch (faction) {
                 case Faction.BossK: BossKReputation = Mathf.Clamp(BossKReputation + amount, -100, 100); break;
                 case Faction.Farmers: FarmerReputation = Mathf.Clamp(FarmerReputation + amount, -100, 100); break;
@@ -58,6 +84,12 @@ namespace UpIzUpMini.Progression
             }
             OnChanged?.Invoke();
         }
+
+        // MINI-062: per-faction throttle state for the earned-not-fast brake.
+        [SerializeField] private float _repGainWindowSeconds = 10f;
+        [SerializeField] private int _repMaxGainsPerWindow = 2;
+        private readonly float[] _repGainAt = new float[4];
+        private readonly int[] _repGainCount = new int[4];
         public void RecordBossJob() { BossExploitationStage++; AddReputation(Faction.BossK, 10); AddReputation(Faction.Police, -8); AddReputation(Faction.GrandBayGangs, 5); }
         public void UnlockGuadeloupeCharacterCourier() { if (GuadeloupeCharacterCourierUnlocked) return; GuadeloupeCharacterCourierUnlocked = true; OnChanged?.Invoke(); }
 

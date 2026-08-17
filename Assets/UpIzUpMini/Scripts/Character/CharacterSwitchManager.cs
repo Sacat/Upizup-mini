@@ -75,6 +75,10 @@ namespace UpIzUpMini.Character
             // the same RespawnAtSafehouse but isn't a medical event, so the
             // charge lives here rather than in that shared method.
             Economy.EconomyManager.Instance?.AddMoney(-deathFee);
+            // MINI-062: dying is a set-back like getting busted - rep drops
+            // on death too (police + gangs), per the user's rep rule.
+            Progression.ProgressionManager.Instance?.AddReputation(Progression.Faction.Police, -10);
+            Progression.ProgressionManager.Instance?.AddReputation(Progression.Faction.GrandBayGangs, -10);
             RespawnAtSafehouse($"{dead?.displayName ?? "Player"} dead. ${deathFee} owed to the health center.");
         }
 

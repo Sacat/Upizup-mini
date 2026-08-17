@@ -30,12 +30,9 @@ current_owner: None
 active_task: None
 ```
 
-### Last completed: plot + gameplay assembly (MINI-056..061, 2026-08-17)
-All five assembly chunks committed: Gardey Zafeh theft-reveal, Normy missions
-+ boss-target fix, Rasta strain-learning missions, Moutey granny quest +
-fire-emoji wanted, Boss J exploitation arc, visible Gwada boat + police
-strength scaling. Next per the user's roadmap: refinement
-(accessories/music/map polish).
+### Last completed: MINI-062 — Rep fixes (2026-08-17)
+Down-on-death, up-on-beating-police, earned-not-fast brake — all wired.
+See the MINI-062 change entry.
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -1069,6 +1066,23 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0). Scene rebuilt clean, VisibleBoatController confirmed present. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
 - Known issues (honest): not hands-on playtested — the boat's leave/return animation and the police speed scaling need a real run. The boat move is a transform tween (no wake/particles), and the offshore position is a fixed offset that assumes the jetty points toward open sea. Police speed scaling also increases their pursuit feel at high heat uniformly; stamina is not scaled (only speed), which keeps them beatable.
 - Next action: playtest the full assembled plot path. The five assembly chunks (MINI-056..061) are all committed. Remaining refinement (per the user's roadmap) is accessories/music/map polish.
+
+### MINI-062 - Rep fixes: down-on-death, up-on-beating-police, earned-not-fast brake
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: User confirmed three rep-system rule fixes that were missing: (1) rep should go DOWN on death, not just on bust; (2) rep should go UP for beating/downing a police officer; (3) rep must be EARNED - it can't rise too fast (a soft brake).
+- Acceptance criteria: death drops Police+Gangs rep (matching the bust penalty); downing an officer grants gang rep; rep gain is throttled so grinding one action can't rocket a faction to max quickly; compiles, scene builds, Windows build runs with zero errors.
+- Implementation:
+  - **Rep down on death.** `CharacterSwitchManager.HandleDeath` now also calls `AddReputation(Police, -10)` and `AddReputation(GrandBayGangs, -10)` alongside the existing $500 health-centre death fee, so dying costs reputation the same way getting busted does.
+  - **Rep up on beating police.** `NpcCombatHealth.Hit` now, when an officer (isOfficer) is dropped (health <= 0 and not already down), grants `GrandBayGangs +6` once per knockdown. Gang members don't pay rep.
+  - **Earned-not-fast brake.** `ProgressionManager.AddReputation`: positive gains now pass through a per-faction throttle — max 2 gains per 10s window (`_repMaxGainsPerWindow` / `_repGainWindowSeconds`); any gain beyond the budget in the window is swallowed (not applied), so a single action can't spike rep. Losing rep (negative) is never throttled. Kept small so normal mission pacing is unaffected but rapid-spam grinding is capped.
+- Files changed: `Scripts/Character/CharacterSwitchManager.cs`, `Scripts/Combat/NpcCombatHealth.cs`, `Scripts/Progression/ProgressionManager.cs`; `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt via the scene builder (code-only change; kept in sync).
+- Verification commands: `Logs/Mini062-Compile.log` (exit 0), `Logs/Mini062-BuildScene.log` (rebuilt and saved), `Logs/Mini062-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini062-PlayerRun.log` (headless).
+- Verification results: compile clean (exit 0). Scene rebuilt clean. Windows build succeeded (161MB, current exe rebuilt for the user to test). Headless player run: zero error/exception/nullreference lines.
+- Known issues (honest): not hands-on playtested - the rep numbers (-10 on death / +6 per officer down / 2-per-10s brake) are first-pass tuning and should be felt in a real run. The throttle is per-faction and time-windowed, not a global economy; it prevents rapid spam without blocking steady mission progress. The death penalty applies to health-zero death only (WorldSafety out-of-bounds respawn is untouched, matching the death-fee precedent).
+- Next action: user tests the rebuilt exe (die to see rep drop, beat police to see rep rise, spam-sell to feel the brake).
 
 ## Required change-entry format
 

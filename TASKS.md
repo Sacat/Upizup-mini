@@ -2,6 +2,17 @@
 
 ## Done (pending user confirmation)
 
+### MINI-062 — Rep fixes: down-on-death, up-on-beating-police, earned-not-fast brake
+
+Goal: wire the three missing rep rules — rep drops on death (police+gangs),
+rep rises for downing a police officer, and rep is throttled so it can't
+rise too fast (earned-not-fast).
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt, Windows build succeeded (current exe), headless run zero errors.
+Not yet hands-on playtested. See the MINI-062 entry in
+`PROJECT-HANDOFF.md`.
+
 ### MINI-061 — Visible Gwada boat leave/return + police strength scaling (plot assembly chunk 6 / final)
 
 Goal: (a) the moored boat visibly leaves for Gwada on a dispatch and returns
