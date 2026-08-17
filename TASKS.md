@@ -2,6 +2,17 @@
 
 ## Done (pending user confirmation)
 
+### MINI-057 — Normy crooked-cop missions + stale boss-target fix (plot assembly chunk 2)
+
+Goal: give the crooked cop Normy a real mission ("Normy's Favour", N1) on
+the weed route; fix the stale M9W/M10W/M11W references to the removed
+BossK/BossM/BossP NPCs (MINI-053 consolidated to Boss J + Boss C) which
+were soft-locking the weed-route endgame.
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt, Windows build succeeded, headless run zero errors. Not yet hands-on
+playtested. See the MINI-057 entry in `PROJECT-HANDOFF.md`.
+
 ### MINI-056 — Dog Life Gardey Zafeh theft-reveal (plot assembly chunk 1)
 
 Goal: once the player ships zeb to Gwada after establishing the zeb route, a

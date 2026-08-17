@@ -585,6 +585,8 @@ namespace UpIzUpMini.EditorTools
         private static float _farmClearRadius = 22f;
         private static Vector3 _expansionPlotPos;
         private static Vector3 _bossPos;
+    // MINI-057: Normy the crooked cop's position, for his side missions.
+    private static Vector3 _normyPos;
 
         private static void BuildSea()
         {
@@ -1996,7 +1998,7 @@ namespace UpIzUpMini.EditorTools
             // MINI-053: Normy - a crooked cop who gives the player missions.
             BuildNpc(terrain, roadPoints, index: 12, sideMul: 1f, goName: "NPC_Normy",
                 modelPath: "Assets/Floreswa/Models/male01_2.fbx", role: NpcRole.Normy,
-                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+                cropsForBuyer: allCrops, animController: animController, patrols: false, reactsToHeat: false);
 
             // MINI-054: the Gwa Bay Health Center (heal/rest) and La Jol
             // (the police station you get taken to when busted).
@@ -2482,6 +2484,10 @@ namespace UpIzUpMini.EditorTools
             Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
             pos += right * sideMul * 3.8f;
             pos.y = SampleHeight(terrain, pos.x, pos.z);
+
+            // MINI-057: capture Normy's position so his side missions can
+            // point a marker at him.
+            if (role == NpcRole.Normy) _normyPos = pos;
 
             var npcGo = new GameObject(goName);
             npcGo.transform.position = pos;
@@ -3097,6 +3103,7 @@ namespace UpIzUpMini.EditorTools
             Vector3 policePos = roadPoints[Mathf.Clamp(3, 1, roadPoints.Count - 2)];
             Vector3 expansionPos = _expansionPlotPos != Vector3.zero ? _expansionPlotPos : farmCenter;
             Vector3 bossPos = _bossPos != Vector3.zero ? _bossPos : farmCenter;
+            Vector3 normyPos = _normyPos != Vector3.zero ? _normyPos : roadPoints[Mathf.Clamp(12, 1, roadPoints.Count - 2)];
 
             var missions = new List<Mission>
             {
@@ -3353,32 +3360,49 @@ namespace UpIzUpMini.EditorTools
                 new Mission
                 {
                     missionId = "M9W", title = "Boss K's Cut", requiredPath = CareerPath.WeedRoute,
-                    briefing = "Boss K lower the price after allu take the risk. He say loyalty first, payment later.",
+                    briefing = "Boss J lower the price after allu take the risk. He say loyalty first, payment later.",
                     objectives = new List<MissionObjective> {
-                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossK", instruction = "Return to Boss K for a worse job", markerPosition = bossPos },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Boss J", instruction = "Return to Boss J for a worse job", markerPosition = bossPos },
                         new MissionObjective { kind = ObjectiveKind.AssignFarmhand, targetId = "bushers", instruction = "Select Bushers [4], then assign the other boy to manage three plots", markerPosition = farmCenter },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "bushers", requiredCount = 3, instruction = "Grow and harvest 3 Bushers", markerPosition = plotPos },
-                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver to Boss K - he is cutting your payment", markerPosition = bossPos }
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "Boss J", instruction = "Deliver to Boss J - he is cutting your payment", markerPosition = bossPos }
                     }
                 },
                 new Mission
                 {
                     missionId = "M10W", title = "Black Sugar", requiredPath = CareerPath.WeedRoute,
-                    briefing = "Boss M will only release Black Sugar after Boss K use allu enough.",
+                    briefing = "Boss C will only release Black Sugar after Boss J use allu enough.",
                     objectives = new List<MissionObjective> {
-                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossM", instruction = "Meet Boss M and unlock Black Sugar [5]", markerPosition = roadPoints[Mathf.Clamp(10,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Boss C", instruction = "Meet Boss C and unlock Black Sugar [5]", markerPosition = roadPoints[Mathf.Clamp(10,1,roadPoints.Count-2)] },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "black_sugar", requiredCount = 3, instruction = "Grow and harvest Black Sugar [5]", markerPosition = plotPos },
-                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver it to Boss K - payment may be withheld", markerPosition = bossPos }
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "Boss J", instruction = "Deliver it to Boss J - payment may be withheld", markerPosition = bossPos }
                     }
                 },
                 new Mission
                 {
                     missionId = "M11W", title = "Purple Territory", requiredPath = CareerPath.WeedRoute,
-                    briefing = "Your gang reputation open a meeting with Boss P. Purple pays most and brings the most heat.",
+                    briefing = "Your gang reputation open a meeting with Boss C. Purple pays most and brings the most heat.",
                     objectives = new List<MissionObjective> {
-                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossP", instruction = "Meet Boss P and unlock Purple [6]", markerPosition = roadPoints[Mathf.Clamp(13,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Boss C", instruction = "Meet Boss C and unlock Purple [6]", markerPosition = roadPoints[Mathf.Clamp(13,1,roadPoints.Count-2)] },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "purple", requiredCount = 3, instruction = "Grow and harvest Purple [6]", markerPosition = plotPos },
                         new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BoatMan", instruction = "The Grand Bay route is established - meet the Boat Man", markerPosition = new Vector3(0f, SeaLevelY, TerrainSize*.5f) }
+                    }
+                },
+                // MINI-057: crooked cop Normy hands out a side mission once
+                // the zeb route is established - he pays you to "move" a
+                // parcel through the checkpoint quietly and looks the other
+                // way on low heat, feeding police/farmer reputation.
+                new Mission
+                {
+                    missionId = "N1", title = "Normy's Favour", requiredPath = CareerPath.WeedRoute,
+                    briefing = "Di badge doe stop Normy. He want a parcel carried past di checkpoint - quiet. He keep police off allu back.",
+                    rewardMoney = 160,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Normy", instruction = "Find Normy di crooked cop along di Lalay road", markerPosition = normyPos },
+                        new MissionObjective { kind = ObjectiveKind.AssignFarmhand, targetId = "bushers", instruction = "Select Bushers [4], leave di other boy to tend di plots", markerPosition = farmCenter },
+                        new MissionObjective { kind = ObjectiveKind.PlantCrop, targetId = "bushers", instruction = "Plant Bushers di parcel is built on", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "bushers", requiredCount = 3, instruction = "Harvest what Normy order", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "Normy", instruction = "Hand di parcel to Normy quietly", markerPosition = normyPos }
                     }
                 },
             };

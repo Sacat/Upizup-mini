@@ -200,8 +200,22 @@ namespace UpIzUpMini.Interaction
                     break;
 
                 case NpcRole.Normy:
-                    // Crooked cop; gives the player missions. Dominican accent.
+                    // Crooked cop; gives the player missions. Dominican
+                    // accent. When the player carries his ordered parcel
+                    // (has sellable crops), buys it quietly so his N1
+                    // mission completes; otherwise keeps talking.
                     _lastFeedback = normyLine;
+                    bool onNormy = Missions.MissionSystem.Instance != null
+                        && Missions.MissionSystem.Instance.IsCurrentObjective(Missions.ObjectiveKind.SellCrop, "Normy");
+                    if (onNormy && EconomyManager.Instance != null && sellableCrops != null
+                        && EconomyManager.Instance.TrySellCrops(sellableCrops, false, false, 1.1f,
+                            out int earnedN, out bool _))
+                    {
+                        _lastFeedback = earnedN > 0
+                            ? $"Quiet, quiet. Di parcel gone. ${earnedN} for allu - and I doe see nothing."
+                            : "Nothing to move right now, nuh. Go plant what I tell you.";
+                        Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.SellCrop, "Normy");
+                    }
                     break;
 
                 case NpcRole.StrainBoss:

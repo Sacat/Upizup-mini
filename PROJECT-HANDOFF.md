@@ -27,8 +27,8 @@ reserved_files:
 
 ```yaml
 current_owner: OpenClaw
-active_task: MINI-057
-claimed_at: 2026-08-17T05:29:00-04:00
+active_task: MINI-058
+claimed_at: 2026-08-17T05:45:00-04:00
 reserved_files:
   - Assets/UpIzUpMini/Scripts/**
   - Assets/UpIzUpMini/Editor/**
@@ -37,10 +37,10 @@ reserved_files:
   - TASKS.md
 ```
 
-### In-progress (plot assembly, chunk 2): MINI-057 — Normy crooked-cop missions
-MINI-056 (Gardey Zafeh theft-reveal, chunk 1) is committed. Chunk 2 = give
-the crooked cop Normy actual missions that feed reputation / police-
-favourable outcomes per the user's design.
+### In-progress (plot assembly, chunk 3): MINI-058 — Rasta strain-learning missions
+MINI-056 (Gardey Zafeh reveal) and MINI-057 (Normy missions + boss-target fix)
+are committed. Chunk 3 = the older Rasta StrainTeacher gives missions to
+learn/how-to-make each new strain; completing them unlocks the strain.
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -989,6 +989,23 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0; one unassigned-local `target` fixed in GangMemberMover during the pass). Scene rebuilt clean. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
 - Known issues (honest): not hands-on playtested — the seer reveal timing and Dog Life pursuit need a real run. Pursuit is direct-steering (can clip obstacles; uses AntiStuckSteering). The reveal triggers on ANY completed dispatch once the route is set — a natural, broad hook. Members chase within 30m; beyond that they resume block wander. No explicit "spark a war" UI/mission yet (rivalry just switches them hostile on reveal) — a dedicated optional war mission can be added later.
 - Next action: playtest (establish the zeb route, send a dispatch, see the Gardey Zafeh reveal, confirm Dog Life start chasing). Then continue assembly chunk 2: Normy crooked-cop missions.
+
+### MINI-057 - Normy crooked-cop missions + fix stale BossM/BossP/BossK mission targets (plot assembly, chunk 2)
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: Continue plot + gameplay assembly (chunk 2). Give the crooked cop Normy real missions, and fix the stale boss references in the weed-route missions (MINI-053 consolidated to only Boss J + Boss C, but M10W/M11W still targeted the removed "BossM"/"BossP" NPCs — a soft-lock).
+- Acceptance criteria: stale M9W/M10W/M11W boss targets updated to Boss J / Boss C; Normy gives and completes a side mission ("Normy's Favour", N1) on the weed route; compiles, scene builds, Windows build runs with zero errors.
+- Implementation:
+  - **Stale boss targets fixed (real bug).** M9W/M10W/M11W referenced `targetId = "BossK"`/`"BossM"`/`"BossP"` — NPCs that no longer exist after the MINI-053 two-boss consolidation. Retargeted: Boss K -> Boss J (talk + sell), Boss M/Boss P -> Boss C (the strong-strain boss). This un-soft-locks the weed-route endgame.
+  - **Normy side mission.** Added mission `N1` ("Normy's Favour") gated to `CareerPath.WeedRoute`: talk to Normy, assign the farmhand to Bushers, plant/harvest Bushers, then hand the parcel to Normy.
+  - **Normy becomes a quiet buyer.** `TownNPCInteractable`: the `Normy` role now — when the active mission objective is `SellCrop targetId = "Normy"` and the player carries sellable crops — buys them quietly (1.1x) and notifies the mission; otherwise keeps talking. Scene builder now hands Normy `sellableCrops` (allCrops) so the buy path works, and captures `_normyPos` so the mission marker points at him.
+- Files changed: `Editor/Mini011PhaseBSetup.cs` (boss target retargets, `_normyPos`, N1 mission, Normy crops), `Scripts/Interaction/TownNPCInteractable.cs` (Normy buyer path); `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt via the scene builder; Normy now carries sellable crops.
+- Verification commands: `Logs/Mini057-Compile.log` (exit 0), `Logs/Mini057-BuildScene.log` (rebuilt and saved), `Logs/Mini057-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini057-PlayerRun.log` (headless).
+- Verification results: compile clean (exit 0). Scene rebuilt clean. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
+- Known issues (honest): not hands-on playtested — Normy's mission flow (talk -> assign -> plant -> harvest -> hand over) needs a real run. The Normy buy only triggers when the `SellCrop/Normy` objective is current, which is correct for the mission but means he won't buy at other times (intended). Normy's uniform was already applied in MINI-053.
+- Next action: playtest. Then assembly chunk 3: Rasta strain-learning missions (learn each new strain via the Rasta teacher's missions).
 
 ## Required change-entry format
 
