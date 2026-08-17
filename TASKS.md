@@ -2,6 +2,16 @@
 
 ## Done (pending user confirmation)
 
+### MINI-058 — Rasta strain-learning missions (plot assembly chunk 3)
+
+Goal: the older Rasta StrainTeacher teaches each new strain — the player
+completes missions (talk -> get seed -> plant -> harvest) to learn Black
+Sugar, Purple, and Blue Cheese.
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt, Windows build succeeded, headless run zero errors. Not yet hands-on
+playtested. See the MINI-058 entry in `PROJECT-HANDOFF.md`.
+
 ### MINI-057 — Normy crooked-cop missions + stale boss-target fix (plot assembly chunk 2)
 
 Goal: give the crooked cop Normy a real mission ("Normy's Favour", N1) on

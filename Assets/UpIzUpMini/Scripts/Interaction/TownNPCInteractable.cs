@@ -195,8 +195,11 @@ namespace UpIzUpMini.Interaction
 
                 case NpcRole.StrainTeacher:
                     // Older Rasta who teaches new strains after you complete
-                    // his missions. Jamaican-sounding.
+                    // his missions. Jamaican-sounding. MINI-058: when his
+                    // teaching mission (R1/R2/R3) is current, he hands the
+                    // strain's starter seeds so the player can do the lesson.
                     _lastFeedback = NextLine(strainTeacherLines, "One love, bredren.");
+                    GrantTeachingSeeds();
                     break;
 
                 case NpcRole.Normy:
@@ -268,6 +271,34 @@ namespace UpIzUpMini.Interaction
 
             economy.AddSeeds(crop.cropId, 3);
             return seedPrice > 0 ? $"{successLine} That cost you ${seedPrice}." : successLine;
+        }
+
+        /// <summary>
+        /// MINI-058. When the Rasta's teaching mission (R1 Black Sugar,
+        /// R2 Purple, R3 Blue Cheese) is current and the player talks to
+        /// him, he hands over the strain's starter seeds so they can do the
+        /// lesson (plant + harvest it). Grants once; does nothing otherwise.
+        /// </summary>
+        private void GrantTeachingSeeds()
+        {
+            var missions = Missions.MissionSystem.Instance;
+            var current = missions?.Current;
+            if (current == null) return;
+
+            string strain = current.missionId switch
+            {
+                "R1" => "black_sugar",
+                "R2" => "purple",
+                "R3" => "blue_cheese",
+                _ => null
+            };
+            if (strain == null) return;
+
+            var economy = EconomyManager.Instance;
+            if (economy == null || economy.GetSeeds(strain) > 0) return;
+
+            economy.AddSeeds(strain, 3);
+            _lastFeedback += "\n(Ya, take di seed mon. Plant it, tend it, and learn di herb.)";
         }
 
         /// <summary>

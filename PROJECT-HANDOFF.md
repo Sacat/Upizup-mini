@@ -1007,6 +1007,23 @@ After verification, append a change entry, update the verification results, and 
 - Known issues (honest): not hands-on playtested — Normy's mission flow (talk -> assign -> plant -> harvest -> hand over) needs a real run. The Normy buy only triggers when the `SellCrop/Normy` objective is current, which is correct for the mission but means he won't buy at other times (intended). Normy's uniform was already applied in MINI-053.
 - Next action: playtest. Then assembly chunk 3: Rasta strain-learning missions (learn each new strain via the Rasta teacher's missions).
 
+### MINI-058 - Rasta strain-learning missions (plot assembly, chunk 3)
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: Continue plot + gameplay assembly (chunk 3). The older Rasta StrainTeacher should teach each new strain: the player completes missions for him to learn how to make each strain, per the user's design (add missions to learn how to make each new strain - an older npc rasta teaching how to do it after completing missions for him).
+- Acceptance criteria: three Rasta teaching missions (R1 Black Sugar, R2 Purple, R3 Blue Cheese) on the weed route; each requires talking to the Rasta, then planting + harvesting that strain (he hands over the starter seeds); compiles, scene builds, Windows build runs with zero errors.
+- Implementation:
+  - **Rasta teaching missions.** Added missions `R1`/`R2`/`R3` ("Rasta Teach: Black Sugar/Purple/Blue Cheese"), gated to `CareerPath.WeedRoute`, after the N1 mission. Each: talk to StrainTeacher, plant the strain, harvest 3 of it.
+  - **StrainTeacher grants teaching seeds.** `TownNPCInteractable`: the `StrainTeacher` case now calls `GrantTeachingSeeds()` — when the current mission is R1/R2/R3 and the player talks to him, he hands over 3 starter seeds of the taught strain (idempotent; no-op otherwise, with a Rasta-flavoured line). The Rasta still cycles his generic teaching lines otherwise.
+  - Position capture: `BuildNpc` records `_strainTeacherPos` so the Rasta mission markers point at him.
+- Files changed: `Editor/Mini011PhaseBSetup.cs` (R1/R2/R3 missions, `_strainTeacherPos`), `Scripts/Interaction/TownNPCInteractable.cs` (GrantTeachingSeeds), `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt via the scene builder.
+- Verification commands: `Logs/Mini058-Compile.log` (exit 0), `Logs/Mini058-BuildScene.log` (rebuilt and saved), `Logs/Mini058-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini058-PlayerRun.log` (headless).
+- Verification results: compile clean (exit 0). Scene rebuilt clean. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
+- Known issues (honest): not hands-on playtested — the Rasta teaching flow (talk -> get seed -> plant -> harvest) needs a real run. FarmPlot doesn't gate planting by unlock, so the missions work regardless of reputation gates; the Rasta is the intended learning path, while Boss C still sells strain seeds. The Rasta teaching missions sit after N1 in the sequence, so they play after Normy's favour (a reasonable order).
+- Next action: playtest. Then assembly chunk 4: Moutey (granny) chain quest + police fire-emoji wanted display.
+
 ## Required change-entry format
 
 

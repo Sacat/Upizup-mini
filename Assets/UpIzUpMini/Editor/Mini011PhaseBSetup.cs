@@ -587,6 +587,8 @@ namespace UpIzUpMini.EditorTools
         private static Vector3 _bossPos;
     // MINI-057: Normy the crooked cop's position, for his side missions.
     private static Vector3 _normyPos;
+    // MINI-058: the Rasta StrainTeacher's position, for his learning missions.
+    private static Vector3 _strainTeacherPos;
 
         private static void BuildSea()
         {
@@ -2488,6 +2490,9 @@ namespace UpIzUpMini.EditorTools
             // MINI-057: capture Normy's position so his side missions can
             // point a marker at him.
             if (role == NpcRole.Normy) _normyPos = pos;
+            // MINI-058: capture the Rasta StrainTeacher's position for his
+            // strain-learning missions.
+            if (role == NpcRole.StrainTeacher) _strainTeacherPos = pos;
 
             var npcGo = new GameObject(goName);
             npcGo.transform.position = pos;
@@ -3403,6 +3408,42 @@ namespace UpIzUpMini.EditorTools
                         new MissionObjective { kind = ObjectiveKind.PlantCrop, targetId = "bushers", instruction = "Plant Bushers di parcel is built on", markerPosition = plotPos },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "bushers", requiredCount = 3, instruction = "Harvest what Normy order", markerPosition = plotPos },
                         new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "Normy", instruction = "Hand di parcel to Normy quietly", markerPosition = normyPos }
+                    }
+                },
+                // MINI-058: the older Rasta StrainTeacher teaches each new
+                // strain - complete his missions to learn how to make it.
+                // Each ends with the strain becoming available to grow.
+                new Mission
+                {
+                    missionId = "R1", title = "Rasta Teach: Black Sugar", requiredPath = CareerPath.WeedRoute,
+                    briefing = "Di older Rasta by di road know di higher herb. He go teach allu how to make Black Sugar, but first prove allu serious.",
+                    rewardMoney = 120,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "StrainTeacher", instruction = "Go hear di Rasta - he teach Black Sugar", markerPosition = _strainTeacherPos },
+                        new MissionObjective { kind = ObjectiveKind.PlantCrop, targetId = "black_sugar", instruction = "Plant what he give allu  [ 5 ] to select", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "black_sugar", requiredCount = 3, instruction = "Water, grow, harvest Black Sugar di Rasta show allu", markerPosition = plotPos }
+                    }
+                },
+                new Mission
+                {
+                    missionId = "R2", title = "Rasta Teach: Purple", requiredPath = CareerPath.WeedRoute,
+                    briefing = "Di Rasta pleased. Now he teach Purple - di strong one. Finish his lesson and it yours to grow.",
+                    rewardMoney = 150,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "StrainTeacher", instruction = "Return to di Rasta for di Purple lesson", markerPosition = _strainTeacherPos },
+                        new MissionObjective { kind = ObjectiveKind.PlantCrop, targetId = "purple", instruction = "Plant what he give allu  [ 6 ] to select", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "purple", requiredCount = 3, instruction = "Grow and harvest Purple under di Rasta watch", markerPosition = plotPos }
+                    }
+                },
+                new Mission
+                {
+                    missionId = "R3", title = "Rasta Teach: Blue Cheese", requiredPath = CareerPath.WeedRoute,
+                    briefing = "Di Rasta trust allu now. Di Blue Cheese is di last lesson - do it right and allu know every strain dem.",
+                    rewardMoney = 180,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "StrainTeacher", instruction = "Learn di Blue Cheese from di Rasta", markerPosition = _strainTeacherPos },
+                        new MissionObjective { kind = ObjectiveKind.PlantCrop, targetId = "blue_cheese", instruction = "Plant di Blue Cheese  [ 7 ] to select", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "blue_cheese", requiredCount = 3, instruction = "Grow and harvest Blue Cheese to finish di lesson", markerPosition = plotPos }
                     }
                 },
             };
