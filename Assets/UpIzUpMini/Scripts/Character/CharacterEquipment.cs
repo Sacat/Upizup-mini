@@ -174,7 +174,9 @@ namespace UpIzUpMini.Character
                     t.localRotation = Quaternion.identity;
                     break;
                 case "chain_gold":
-                    t.localPosition = new Vector3(0f, 0.14f, 0.08f);
+                    // MINI-063: large puff mariner chain that fits on the
+                    // chest - wider spread, lower/snugger on the torso.
+                    t.localPosition = new Vector3(0f, 0.08f, 0.10f);
                     t.localRotation = Quaternion.identity;
                     break;
                 case "watch_rollie":
@@ -223,27 +225,49 @@ namespace UpIzUpMini.Character
 
         private static GameObject BuildChain()
         {
+            // MINI-063: a LARGE puff mariner chain that reads as a big gold
+            // chain on the chest. A "puff" is a thick rope-style chain built
+            // from a collar of overlapping spheres forming a wide "U" across
+            // the pecs, hanging to a leaf/pendant at the bottom. Bigger scale
+            // than the old tiny ring so it fits the chest like the user asked.
             var root = new GameObject("Chain");
-            var gold = Mat(new Color(0.95f, 0.78f, 0.2f));
+            var gold = Mat(new Color(0.96f, 0.80f, 0.25f));
+            var goldShade = Mat(new Color(0.82f, 0.60f, 0.12f));
 
-            // Ring of small spheres approximating a chain.
-            for (int i = 0; i < 10; i++)
+            // The "puff" chain: several thick strands, each a row of large
+            // spheres crossing the chest from left shoulder to right.
+            int strands = 3;          // 3 thick strands stacked
+            int linksPerStrand = 9;   // spheres along each strand
+            float widthX = 0.16f;     // spread across the pecs
+            float dropY = 0.10f;      // how far they hang
+
+            for (int s = 0; s < strands; s++)
             {
-                float a = (i / 10f) * Mathf.PI * 2f;
-                var link = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                link.transform.SetParent(root.transform, false);
-                link.transform.localPosition = new Vector3(Mathf.Sin(a) * 0.075f, -Mathf.Abs(Mathf.Cos(a)) * 0.05f, Mathf.Cos(a) * 0.045f);
-                link.transform.localScale = Vector3.one * 0.028f;
-                link.GetComponent<Renderer>().sharedMaterial = gold;
-                Destroy(link.GetComponent<Collider>());
+                float strandOffsetY = -0.02f * s;      // stack the strands
+                for (int i = 0; i < linksPerStrand; i++)
+                {
+                    float f = (i / (float)(linksPerStrand - 1)) * 2f - 1f; // -1..1
+                    var link = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    link.transform.SetParent(root.transform, false);
+                    // A shallow "U": left->bottom->right across the chest.
+                    float x = f * widthX;
+                    float dip = dropY * Mathf.Min(1f, Mathf.Abs(f) * 1.2f); // sag toward centre
+                    link.transform.localPosition = new Vector3(x, strandOffsetY - 0.06f + dip, 0.045f);
+                    link.transform.localScale = Vector3.one * 0.042f; // big puff links
+                    // Alternate gold/shade so it reads as a twisted rope chain.
+                    link.GetComponent<Renderer>().sharedMaterial = (i % 2 == 0) ? gold : goldShade;
+                    Destroy(link.GetComponent<Collider>());
+                }
             }
 
-            var pendant = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            pendant.transform.SetParent(root.transform, false);
-            pendant.transform.localPosition = new Vector3(0f, -0.09f, 0.05f);
-            pendant.transform.localScale = new Vector3(0.045f, 0.055f, 0.015f);
-            pendant.GetComponent<Renderer>().sharedMaterial = gold;
-            Destroy(pendant.GetComponent<Collider>());
+            // A thicker centre leaf/pendant hanging at the bottom.
+            var leaf = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            leaf.transform.SetParent(root.transform, false);
+            leaf.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            leaf.transform.localPosition = new Vector3(0f, -0.13f, 0.05f);
+            leaf.transform.localScale = new Vector3(0.06f, 0.10f, 0.02f);
+            leaf.GetComponent<Renderer>().sharedMaterial = gold;
+            Destroy(leaf.GetComponent<Collider>());
 
             return root;
         }

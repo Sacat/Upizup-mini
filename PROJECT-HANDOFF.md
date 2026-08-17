@@ -30,9 +30,9 @@ current_owner: None
 active_task: None
 ```
 
-### Last completed: MINI-062 — Rep fixes (2026-08-17)
-Down-on-death, up-on-beating-police, earned-not-fast brake — all wired.
-See the MINI-062 change entry.
+### Last completed: MINI-063 — Chain chest-fit to large puff mariner chain (accessory refinement chunk 1, 2026-08-17)
+Retuned the gold chain to a big puff-mariner chain on the chest + chest offset.
+See the MINI-063 change entry.
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -1083,6 +1083,23 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0). Scene rebuilt clean. Windows build succeeded (161MB, current exe rebuilt for the user to test). Headless player run: zero error/exception/nullreference lines.
 - Known issues (honest): not hands-on playtested - the rep numbers (-10 on death / +6 per officer down / 2-per-10s brake) are first-pass tuning and should be felt in a real run. The throttle is per-faction and time-windowed, not a global economy; it prevents rapid spam without blocking steady mission progress. The death penalty applies to health-zero death only (WorldSafety out-of-bounds respawn is untouched, matching the death-fee precedent).
 - Next action: user tests the rebuilt exe (die to see rep drop, beat police to see rep rise, spam-sell to feel the brake).
+
+### MINI-063 - Accessory refinement chunk 1: chain chest-fit to a large puff mariner chain
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: First chunk of the refinement phase (accessories). Per the user's design, the gold chain should be a LARGE puff mariner chain that fits snugly on the chest - the old one "doesn't fit properly" (a small 10-sphere ring at a loose offset). Research (via controlled-browser Google, ground-truth in-project) confirmed the static-bone-attachment pattern already used by CharacterEquipment is correct for a chain.
+- Acceptance criteria: the chain reads as a big gold puff-mariner chain across the chest (thick strands, wide pec spread, leaf pendant), sits snug on the chest bone, keeps its AccessorySwing swing, and compiles/built/runs with zero errors.
+- Implementation:
+  - `CharacterEquipment.cs`:
+    - `chain_gold` chest offset retuned from (0, 0.14, 0.08) to (0, 0.08, 0.10) so it sits lower/snugger on the torso.
+    - `BuildChain()` rewritten from a 10-sphere ring to a LARGE puff-mariner chain: 3 stacked strands of 9 big spheres each, spread ~±0.16 across the pecs with a centre sag toward the chest, alternating gold/goldShade so it reads as a twisted rope chain, plus a thick leaf pendant hanging at the bottom. Link scale upped ~0.028 -> 0.042 (a "big" chain). Keeps `AccessorySwing` (damped spring) from MINI-045 - the chain still swings.
+- Files changed: `Scripts/Character/CharacterEquipment.cs` (BuildChain + offset); `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt via the scene builder (the chain is runtime-generated on the character from the bought item, so the scene itself is unchanged structurally).
+- Verification commands: `Logs/Mini063-Compile.log` (exit 0), `Logs/Mini063-BuildScene.log` (rebuilt and saved), `Logs/Mini063-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini063-PlayerRun.log` (headless).
+- Verification results: compile clean (exit 0). Scene rebuilt clean. Windows build succeeded. Headless player run: zero error/exception/nullreference lines (the runtime-generated chain doesn't throw).
+- Known issues (honest): not hands-on playtested - the chain's look/size/fit on the actual character needs a real look. The puff is still a primitive-sphere approximation, not a sculpted mariner link mesh (a real mesh can drop in later via the slot system). The pendant adds a little clipping risk unless the character stands straight. TODO: a screenshot/snapshot of a character wearing the chain would be the proper visual proof (currently runtime-keyed on owning chain_gold).
+- Next action: user buys the Gold Chain (chain_gold) in-game and confirms the chest fit. Then accessory refinement chunk 2: a slot-based equipment system (WearableDefinition + bone-map equip/hide), per the researched plan.
 
 ## Required change-entry format
 

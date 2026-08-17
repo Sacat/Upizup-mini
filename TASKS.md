@@ -2,6 +2,16 @@
 
 ## Done (pending user confirmation)
 
+### MINI-063 — Chain chest-fit to large puff mariner chain (accessory refinement chunk 1)
+
+Goal: retune the gold chain so it reads as a LARGE puff mariner chain that
+fits snug on the chest (thick strands, wide pec spread, leaf pendant),
+keeping its swing.
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt, Windows build succeeded, headless run zero errors. Not yet hands-on
+playtested. See the MINI-063 entry in `PROJECT-HANDOFF.md`.
+
 ### MINI-062 — Rep fixes: down-on-death, up-on-beating-police, earned-not-fast brake
 
 Goal: wire the three missing rep rules — rep drops on death (police+gangs),
