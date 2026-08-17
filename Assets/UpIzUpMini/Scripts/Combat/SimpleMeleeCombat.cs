@@ -60,13 +60,13 @@ namespace UpIzUpMini.Combat
                 var target = hit.GetComponentInParent<NpcCombatHealth>();
                 if (target == null) continue;
                 target.Hit(appliedDamage, transform.forward * .8f);
-                // Only police carry NpcCombatHealth today, so landing any
-                // punch here is striking an officer - per the user's
-                // explicit ask, that's an instant max-heat escalation
-                // (GTA-style "you hit a cop"), not a gradual heat tick like
-                // proximity/contraband. AddHeat clamps at MaxHeat, so this
-                // jumps straight there regardless of the current value.
-                EconomyManager.Instance?.AddHeat(EconomyManager.MaxHeat);
+                // Only a police officer escalates police heat to max on a
+                // punch (GTA-style "you hit a cop"); rival gang members
+                // (MINI-054 Dog Life) fight without spiking police heat.
+                if (target.IsOfficer)
+                {
+                    EconomyManager.Instance?.AddHeat(EconomyManager.MaxHeat);
+                }
                 break;
             }
         }

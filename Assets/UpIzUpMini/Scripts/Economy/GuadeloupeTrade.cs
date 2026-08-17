@@ -54,7 +54,7 @@ namespace UpIzUpMini.Economy
         {
             if (UpIzUpMini.Progression.ProgressionManager.Instance != null
                 && !UpIzUpMini.Progression.ProgressionManager.Instance.GrandBayWeedRouteEstablished)
-                return "Captain doe know allu yet. Establish the Grand Bay weed route first.";
+                return "Captain doe know allu yet. Establish di Gwa Bay zeb route first.";
             if (TripActive)
             {
                 return $"Di boat still out. Back in about {Mathf.CeilToInt(SecondsRemaining)}s.";

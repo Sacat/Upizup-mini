@@ -21,6 +21,10 @@ namespace UpIzUpMini.Combat
 
         [SerializeField] float maxHealth = 100f;
         [SerializeField] float recoverSeconds = 12f;
+        // MINI-054: whether this target is a police officer. Hitting an
+        // officer escalates police heat to max (GTA-style); fighting a rival
+        // gang member does not. Set false on Dog Life gang members.
+        [SerializeField] bool isOfficer = true;
         [SerializeField] HumanoidAnimationManager animationManager;
         float health;
         float recoverAt;
@@ -30,6 +34,11 @@ namespace UpIzUpMini.Combat
         /// scripts (PoliceOfficer) check this and stop steering rather than
         /// fighting the sustained animation layer.</summary>
         public bool IsDown { get; private set; }
+
+        /// <summary>True when this target is a police officer (hitting them
+        /// escalates police heat to max). Set false on rival gang members so
+        /// gang fights do not spike police heat.</summary>
+        public bool IsOfficer => isOfficer;
 
         void Awake()
         {

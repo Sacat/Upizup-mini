@@ -114,6 +114,43 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "grandbay-overview-mid.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-053/Snapshot Bosses and Rival Gang")]
+        public static void SnapshotMini053Content()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            // Frame the Dog Life rival gang block (the newest landmark).
+            var gang = GameObject.Find("DogLifeGang");
+            Vector3 center = gang != null ? gang.transform.position : new Vector3(135f, 0f, 95f);
+
+            var camGo = new GameObject("Mini053Camera");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = center + new Vector3(0f, 26f, -30f);
+            camGo.transform.LookAt(center);
+            cam.fieldOfView = 55f;
+            cam.farClipPlane = 400f;
+
+            RenderAndSave(cam, "mini053-bosses-gang.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-053/Snapshot Boss J")]
+        public static void SnapshotBossJ()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var boss = GameObject.Find("NPC_BossJ");
+            Vector3 center = boss != null ? boss.transform.position : new Vector3(135f, 0f, 95f);
+
+            var camGo = new GameObject("BossJCamera");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = center + new Vector3(0f, 5f, -8f);
+            camGo.transform.LookAt(center + Vector3.up * 1.2f);
+            cam.fieldOfView = 55f;
+            cam.farClipPlane = 200f;
+
+            RenderAndSave(cam, "mini053-boss-j.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Pause Menu")]
         public static void SnapshotPauseMenu()
         {

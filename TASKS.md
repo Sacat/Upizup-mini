@@ -2,6 +2,33 @@
 
 ## Done (pending user confirmation)
 
+### MINI-054 — Fightable Dog Life rival gang, Gwa Bay Health Center, La Jol station + arrest
+
+Goal: fightable rival gang "Dog Life" (up to 10 on their Lalay block),
+Gwa Bay Health Center landmark, and a La Jol police station that is the
+arrest respawn target (busted → La Jol, not the safehouse; rep drops, heat
+clears, mission fails). Fighting gang members does NOT spike police heat
+(only hitting an officer does).
+
+Status: Built by OpenClaw on 2026-08-17 — compile clean, scene built,
+Windows build succeeded, headless run zero errors, visual snapshot
+confirms the 10-member gang block. Not yet hands-on playtested. See the
+MINI-054 entry in `PROJECT-HANDOFF.md`.
+
+### MINI-053 — Boss redesign (two bosses), seed dialogue, Rasta teacher, Normy, mission HUD + lexicon
+
+Goal: consolidate to TWO bosses — Boss J (vends Bushers, quietly volehing
+— inner monologue, never said) and Boss C (the bigger boss, vends the
+strong strain that breaks into black sugar / purple / blue cheese); a seed-
+buy dialogue box; an older Rasta NPC who teaches new strains after his
+missions; a crooked cop Normy; mission details HUD kept smaller and on
+screen longer; Gwa Bay / zeb / Gwada / volehing lexicon on player-facing
+strings.
+
+Status: Built by OpenClaw on 2026-08-17 — compile clean, scene built,
+Windows build succeeded, headless run zero errors. Not yet hands-on
+playtested. See the MINI-053 entry in `PROJECT-HANDOFF.md`.
+
 ### MINI-001 — 2.5D Grand Bay proof of concept
 
 Goal: Create one playable scene proving the visual and control direction.
@@ -219,7 +246,7 @@ out of scope here and tracked as its own later tasks below.
 ## Later
 
 - `MINI-032`: Modular wardrobe + accessory IK/physics (chain jiggle, etc.) — attachment already exists (MINI-022 `CharacterEquipment`), this adds swing/sway physics and separate garment geometry instead of material recolor.
-- `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed).
+- `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed). **Deferred by the user (2026-08-17) in favour of gangs/bosses/dialogue; user has a TMAX model; wheelie on an existing key, not too fast to wheelie.**
 - `MINI-034`: Car — buy/enter/exit/seated driving, real vehicle physics; depends on MINI-033's enter/exit pattern.
 - `MINI-035`: Rival gang faction — reuses `PoliceOfficer`'s chase/avoidance as a template; "stronger together"/companion auto-assist in a fight.
 - `MINI-036`: Shooting — aim/ammo/weapon-hold; needs a real animation clip (none imported yet) and mobile-friendly aim input; heat +100 on landing a hit once this exists.

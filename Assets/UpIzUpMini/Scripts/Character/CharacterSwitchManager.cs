@@ -91,6 +91,37 @@ namespace UpIzUpMini.Character
             }
         }
 
+        /// <summary>
+        /// MINI-054. When di police catch allu, they take allu to La Jol
+        /// (the police station) instead of back to the safehouse - the
+        /// arrest pain point the user asked for. Fail the mission, clear
+        /// heat, and drop reputation (getting busted is a set-back, per the
+        /// user's rep rules: rep goes down when you get busted by police).
+        /// </summary>
+        public void ArrestPlayer(string reason)
+        {
+            Missions.MissionSystem.Instance?.FailCurrentMission(reason);
+            Economy.EconomyManager.Instance?.AddHeat(-Economy.EconomyManager.MaxHeat);
+            Progression.ProgressionManager.Instance?.AddReputation(Progression.Faction.Police, -10);
+            Progression.ProgressionManager.Instance?.AddReputation(Progression.Faction.GrandBayGangs, -10);
+
+            Vector3 spawn = safehouseSpawn;
+            var laJol = Interaction.LaJolStation.Instance;
+            if (laJol != null) spawn = laJol.SpawnPosition;
+
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var slot = slots[i];
+                if (slot?.root == null) continue;
+                var cc = slot.root.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
+                slot.root.transform.position = spawn + new Vector3(i * 1.25f, 0.15f, 0f);
+                if (cc != null) cc.enabled = true;
+                slot.vitals?.Restore();
+                slot.root.GetComponent<FarmhandController>()?.SetWorking(false);
+            }
+        }
+
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.Tab) && slots.Length > 1)

@@ -1987,43 +1987,267 @@ namespace UpIzUpMini.EditorTools
                 modelPath: "Assets/Floreswa/Models/male02_3.fbx", role: NpcRole.BlackMarket,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
+            // MINI-053: StrainTeacher - an older Rasta who teaches each new
+            // strain after you complete his missions (Jamaican-sounding).
+            BuildNpc(terrain, roadPoints, index: 4, sideMul: 1f, goName: "NPC_StrainTeacher",
+                modelPath: "Assets/Floreswa/Models/male03_2.fbx", role: NpcRole.StrainTeacher,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+
+            // MINI-053: Normy - a crooked cop who gives the player missions.
+            BuildNpc(terrain, roadPoints, index: 12, sideMul: 1f, goName: "NPC_Normy",
+                modelPath: "Assets/Floreswa/Models/male01_2.fbx", role: NpcRole.Normy,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+
+            // MINI-054: the Gwa Bay Health Center (heal/rest) and La Jol
+            // (the police station you get taken to when busted).
+            BuildHealthCenter(terrain, roadPoints, animController, index: 10, sideMul: -1f);
+            BuildLaJol(terrain, roadPoints, animController, index: 3, sideMul: 1f);
+
             BuildMarketArea(terrain, roadPoints, index: 5, title: "FOOD", secondTitle: null);
             BuildMarketArea(terrain, roadPoints, index: 11, title: "PHARMACY", secondTitle: null);
             BuildMarketArea(terrain, roadPoints, index: 14, title: "LAND AND SURVEYS", secondTitle: null);
             BuildMarketArea(terrain, roadPoints, index: 15, title: "CAR DEALER", secondTitle: null);
 
             BuildBossNpc(terrain, roadPoints, allCrops, animController);
-            // MINI-039: seed prices scale with the strain's own sellPrice
-            // rarity ordering (bushers 22 < black_sugar 38 < purple 55) -
-            // per the user's "make them expensive" ask, each tier costs
-            // roughly 7x its own sell price rather than being free.
-            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossM", "black_sugar", 10, 1f, seedPrice: 320);
-            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossP", "purple", 13, 1f, seedPrice: 500);
-            // MINI-048: Blue Cheese - a new base strain, priced above
-            // Purple's own seed to match its deeper unlock tier.
-            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossQ", "blue_cheese", 8, -1f, seedPrice: 650);
+            // MINI-053 two-boss redesign: one Boss C replaces the old three
+            // strain bosses. He vends the strong strain (black sugar / purple
+            // / blue cheese) as a tier-ordered roster.
+            BuildBossC(terrain, roadPoints, allCrops, animController);
+            // MINI-054: the Dog Life rival gang (fightable, up to 10 on
+            // their block in Lalay).
+            BuildRivalGang(terrain, roadPoints, animController);
             BuildBoatMan(terrain, allCrops, animController);
         }
 
-        private static void BuildStrainBoss(Terrain terrain, List<Vector3> roadPoints,
-            CropDefinition[] crops, RuntimeAnimatorController controller, string bossName,
-            string cropId, int index, float side, int seedPrice)
+        /// <summary>
+        /// MINI-053. Boss C - the bigger boss. One NPC that vends the
+        /// strong strain as a tier-ordered roster (black sugar -> purple ->
+        /// blue cheese), replacing the old three separate strain bosses
+        /// (BossM/BossP/BossQ). He wears the most chains and stands near a
+        /// big black SUV.
+        /// </summary>
+        private static void BuildBossC(Terrain terrain, List<Vector3> roadPoints,
+            CropDefinition[] crops, RuntimeAnimatorController controller)
+        {
+            int index = roadPoints.Count / 2 + 2;
+            index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
+            Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3 pos = roadPoints[index] + right * -8f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+            var go = new GameObject("NPC_BossC");
+            go.transform.position = pos;
+            go.transform.rotation = Quaternion.LookRotation(right, Vector3.up);
+            InstantiateCharacter("Assets/Floreswa/Models/male02_1.fbx", go.transform, controller, null);
+
+            // Black SUV beside the boss (placeholder box, black painted).
+            var suv = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            suv.name = "BossC_Suv";
+            suv.transform.SetParent(go.transform.parent);
+            suv.transform.position = pos + right * 3.5f + Vector3.up * 0.5f;
+            suv.transform.localScale = new Vector3(2f, 1.4f, 4.2f);
+            suv.GetComponent<Renderer>().sharedMaterial = new Material(Shader.Find("Standard"))
+            { color = new Color(0.04f, 0.05f, 0.06f, 1f) };
+
+            var npc = go.AddComponent<TownNPCInteractable>();
+            var so = new SerializedObject(npc);
+            so.FindProperty("role").enumValueIndex = (int)NpcRole.StrainBoss;
+            so.FindProperty("npcName").stringValue = "Boss C";
+            // Seed price for the strong strain.
+            so.FindProperty("seedPrice").intValue = 500;
+
+            // Tier-ordered strain roster: black sugar -> purple -> blue cheese.
+            var rosterProp = so.FindProperty("strainRoster");
+            rosterProp.arraySize = 3;
+            string[] tiers = { "black_sugar", "purple", "blue_cheese" };
+            for (int i = 0; i < tiers.Length; i++)
+            {
+                CropDefinition c = System.Array.Find(crops, x => x != null && x.cropId == tiers[i]);
+                rosterProp.GetArrayElementAtIndex(i).objectReferenceValue = c;
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// MINI-054. The Dog Life rival gang - fightable, up to 10 on their
+        /// block in Lalay. Each member is a real Humanoid character with a
+        /// CharacterController, AntiStuckSteering, GangMemberMover and
+        /// NpcCombatHealth (isOfficer = false, so fighting them does not
+        /// spike police heat). Models recoloured to the gang look (brown
+        /// bandana/scarf, black shirt, brown pants).
+        /// </summary>
+        private static void BuildRivalGang(Terrain terrain, List<Vector3> roadPoints,
+            RuntimeAnimatorController animController)
+        {
+            // Dog Life block sits in Lalay near the road midpoint, offset
+            // from the main street.
+            int blockIndex = Mathf.Clamp(roadPoints.Count / 2 - 2, 1, roadPoints.Count - 2);
+            Vector3 dir = (roadPoints[blockIndex + 1] - roadPoints[blockIndex - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3 blockCenter = roadPoints[blockIndex] + right * 16f;
+            blockCenter.y = SampleHeight(terrain, blockCenter.x, blockCenter.z);
+
+            var controllerGo = new GameObject("DogLifeGang");
+            controllerGo.transform.position = blockCenter;
+            var rival = controllerGo.AddComponent<Gangs.RivalGangController>();
+            var rso = new SerializedObject(rival);
+            rso.FindProperty("maxMembers").intValue = Gangs.RivalGangController.MaxMembers;
+            rso.FindProperty("blockCenter").vector3Value = blockCenter;
+            rso.ApplyModifiedPropertiesWithoutUndo();
+
+            for (int i = 0; i < Gangs.RivalGangController.MaxMembers; i++)
+            {
+                BuildGangMember(terrain, blockCenter, i, animController, controllerGo.transform);
+            }
+        }
+
+        private static void BuildGangMember(Terrain terrain, Vector3 blockCenter, int i,
+            RuntimeAnimatorController animController, Transform parent)
+        {
+            var go = new GameObject($"DogLife_{i}");
+            go.transform.SetParent(parent, false);
+            go.transform.position = blockCenter + new Vector3(
+                (i % 5 - 2) * 2.2f, 0f, (i / 5 - 1) * 2.2f);
+            go.transform.rotation = Quaternion.Euler(0f, i * 37f, 0f);
+
+            // Alternate the two male model variants so they are not clones.
+            string model = (i % 2 == 0)
+                ? "Assets/Floreswa/Models/male01_2.fbx"
+                : "Assets/Floreswa/Models/male02_2.fbx";
+            var visual = InstantiateCharacter(model, go.transform, animController, null);
+
+            var cc = go.AddComponent<CharacterController>();
+            cc.center = new Vector3(0f, 0.95f, 0f);
+            cc.height = 1.85f;
+            cc.radius = 0.32f;
+
+            // Anti-stuck + movement + combat health (not an officer).
+            go.AddComponent<AntiStuckSteering>();
+            var mover = go.AddComponent<Gangs.GangMemberMover>();
+            var health = go.AddComponent<NpcCombatHealth>();
+            var hso = new SerializedObject(health);
+            hso.FindProperty("isOfficer").boolValue = false;
+            hso.ApplyModifiedPropertiesWithoutUndo();
+
+            // Dog Life look: brown scarf/bandana, black top, brown pants.
+            ApplyDogLifeLook(visual);
+        }
+
+        private static void ApplyDogLifeLook(GameObject visual)
+        {
+            if (visual == null) return;
+            foreach (var sr in visual.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                var mats = sr.sharedMaterials;
+                if (mats == null) continue;
+                bool changed = false;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null) continue;
+                    string n = mats[i].name.ToLowerInvariant();
+                    Color? recolor = null;
+                    if (n.Contains("top") || n.Contains("shirt") || n.Contains("upper"))
+                        recolor = new Color(0.05f, 0.05f, 0.06f, 1f);   // black shirt
+                    else if (n.Contains("pant") || n.Contains("leg") || n.Contains("lower"))
+                        recolor = new Color(0.4f, 0.28f, 0.12f, 1f);    // brown pants
+                    else if (n.Contains("scarf") || n.Contains("bandana") || n.Contains("head"))
+                        recolor = new Color(0.55f, 0.35f, 0.1f, 1f);    // brown bandana
+                    if (recolor == null) continue;
+                    var clone = new Material(mats[i]); // private clone - keeps the shared asset untouched
+                    clone.color = recolor.Value;
+                    mats[i] = clone;
+                    changed = true;
+                }
+                if (changed) sr.sharedMaterials = mats;
+            }
+        }
+
+        /// <summary>
+        /// MINI-054. The Gwa Bay Health Center - a rest/heal landmark in
+        /// town. A small white building with a cross over the door and a
+        /// HealthCenterInteractable on the threshold.
+        /// </summary>
+        private static void BuildHealthCenter(Terrain terrain, List<Vector3> roadPoints,
+            RuntimeAnimatorController animController, int index, float sideMul)
         {
             index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
             Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
             Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
-            Vector3 pos = roadPoints[index] + right * side * 6.5f;
+            Vector3 pos = roadPoints[index] + right * sideMul * 5.5f;
             pos.y = SampleHeight(terrain, pos.x, pos.z);
-            var go = new GameObject("NPC_" + bossName); go.transform.position = pos;
-            go.transform.rotation = Quaternion.LookRotation(-right * side, Vector3.up);
-            InstantiateCharacter("Assets/Floreswa/Models/male02_1.fbx", go.transform, controller, null);
-            CropDefinition crop = System.Array.Find(crops, c => c != null && c.cropId == cropId);
-            var npc = go.AddComponent<TownNPCInteractable>(); var so = new SerializedObject(npc);
-            so.FindProperty("role").enumValueIndex = (int)NpcRole.StrainBoss;
-            so.FindProperty("npcName").stringValue = bossName;
-            so.FindProperty("bossSeedCrop").objectReferenceValue = crop;
-            so.FindProperty("seedPrice").intValue = seedPrice;
-            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var parent = new GameObject("GwaBayHealthCenter");
+            parent.transform.position = pos;
+
+            // Simple white building with a pitched roof and a red cross.
+            Material white = GetOrCreateMaterial("HealthWhite", new Color(0.93f, 0.93f, 0.93f));
+            Material roof = GetOrCreateMaterial("HealthRoof", new Color(0.1f, 0.45f, 0.2f));
+            Material cross = GetOrCreateMaterial("HealthCross", new Color(0.8f, 0.1f, 0.1f));
+
+            var baseBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            baseBox.name = "HealthBuilding";
+            baseBox.transform.SetParent(parent.transform);
+            baseBox.transform.localPosition = new Vector3(0f, 1.1f, 0f);
+            baseBox.transform.localScale = new Vector3(5f, 2.2f, 4f);
+            baseBox.GetComponent<Renderer>().sharedMaterial = white;
+
+            var sign = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            sign.name = "HealthCross";
+            sign.transform.SetParent(parent.transform);
+            sign.transform.localPosition = new Vector3(0f, 3.1f, 2.05f);
+            sign.transform.localScale = new Vector3(0.5f, 1.2f, 0.2f);
+            sign.GetComponent<Renderer>().sharedMaterial = cross;
+
+            var rest = new GameObject("HealthCenter_Rest");
+            rest.transform.SetParent(parent.transform);
+            rest.transform.localPosition = new Vector3(0f, 0.3f, 2.4f);
+            rest.AddComponent<HealthCenterInteractable>();
+        }
+
+        /// <summary>
+        /// MINI-054. La Jol - the Gwa Bay police station. A plain police
+        /// building whose threshold is the arrest spawn point; add an
+        /// officer-styled NPC so it reads as a station.
+        /// </summary>
+        private static void BuildLaJol(Terrain terrain, List<Vector3> roadPoints,
+            RuntimeAnimatorController animController, int index, float sideMul)
+        {
+            index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
+            Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3 pos = roadPoints[index] + right * sideMul * 6f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+
+            var parent = new GameObject("LaJolStation");
+            parent.transform.position = pos;
+            parent.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+
+            Material grey = GetOrCreateMaterial("LaJolGrey", new Color(0.45f, 0.47f, 0.5f));
+            Material dark = GetOrCreateMaterial("LaJolDark", new Color(0.12f, 0.14f, 0.18f));
+
+            var baseBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            baseBox.name = "LaJolBuilding";
+            baseBox.transform.SetParent(parent.transform);
+            baseBox.transform.localPosition = new Vector3(0f, 1.2f, 0f);
+            baseBox.transform.localScale = new Vector3(6f, 2.4f, 5f);
+            baseBox.GetComponent<Renderer>().sharedMaterial = grey;
+
+            var bar = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bar.name = "LaJolBand";
+            bar.transform.SetParent(parent.transform);
+            bar.transform.localPosition = new Vector3(0f, 1.4f, 2.6f);
+            bar.transform.localScale = new Vector3(4f, 3f, 0.2f);
+            bar.GetComponent<Renderer>().sharedMaterial = dark;
+
+            // The arrest spawn marker lives just in front of the station.
+            var station = parent.AddComponent<LaJolStation>();
+
+            // A grumpy officer stands at the door so it reads as a station.
+            var npcGo = new GameObject("NPC_LaJolCop");
+            npcGo.transform.SetParent(parent.transform);
+            npcGo.transform.localPosition = new Vector3(0f, 0.25f, 3.4f);
+            npcGo.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            InstantiateCharacter("Assets/Floreswa/Models/male01_1.fbx", npcGo.transform, animController, null);
         }
 
         /// <summary>
@@ -2070,9 +2294,10 @@ namespace UpIzUpMini.EditorTools
         }
 
         /// <summary>
-        /// Boss K waits near the Montine turnoff, away from the market -
+        /// Boss J waits near the Montine turnoff, away from the market -
         /// per Docs/STORY.md he watches their deliveries and offers the
-        /// higher-paying illegal work.
+        /// higher-paying illegal work. Renamed from Boss K in the MINI-053
+        /// two-boss redesign (Boss J and Boss C).
         /// </summary>
         private static void BuildBossNpc(
             Terrain terrain, List<Vector3> roadPoints, CropDefinition[] allCrops,
@@ -2086,7 +2311,7 @@ namespace UpIzUpMini.EditorTools
             pos.y = SampleHeight(terrain, pos.x, pos.z);
             _bossPos = pos;
 
-            var go = new GameObject("NPC_BossK");
+            var go = new GameObject("NPC_BossJ");
             go.transform.position = pos;
             go.transform.rotation = Quaternion.LookRotation(-right, Vector3.up);
 
@@ -2101,7 +2326,7 @@ namespace UpIzUpMini.EditorTools
             var npc = go.AddComponent<TownNPCInteractable>();
             var so = new SerializedObject(npc);
             so.FindProperty("role").enumValueIndex = (int)NpcRole.Boss;
-            so.FindProperty("npcName").stringValue = "BossK";
+            so.FindProperty("npcName").stringValue = "Boss J";
             so.FindProperty("bossSeedCrop").objectReferenceValue = bushers;
             // MINI-039: first illegal strain, cheapest of the three -
             // see the seed-pricing note by the BossM/BossP calls.
@@ -2134,7 +2359,7 @@ namespace UpIzUpMini.EditorTools
             // the same idle/walk blend the players use.
             var npcVisual = InstantiateCharacter(modelPath, npcGo.transform, animController, null);
 
-            if (role == NpcRole.Police)
+            if (role == NpcRole.Police || role == NpcRole.Normy)
             {
                 ApplyPoliceUniform(npcVisual);
             }
@@ -3270,6 +3495,10 @@ namespace UpIzUpMini.EditorTools
             var pharmacyShop = BuildShopPanel(canvasGo, "PharmacyPanel", "PHARMACY", pharmacyStock, font);
             var blackMarket = BuildShopPanel(canvasGo, "BlackMarketPanel", "BLACK MARKET - SELL CLOTHES", apparelStock, font, true);
 
+            // MINI-053: a single seed-buy dialogue box (used by Boss J,
+            // Boss C and the Rasta strain teacher for buying strain seeds).
+            var seedBuy = BuildSeedBuyDialogue(canvasGo, font);
+
             // Hand each shopkeeper NPC its own shop panel.
             foreach (var npc in Object.FindObjectsByType<TownNPCInteractable>(FindObjectsSortMode.None))
             {
@@ -3289,6 +3518,13 @@ namespace UpIzUpMini.EditorTools
                 if (target == null) continue;
 
                 nso.FindProperty("shop").objectReferenceValue = target;
+
+                // MINI-053: give seed-selling NPCs the seed-buy dialogue box.
+                int ri = nso.FindProperty("role").enumValueIndex;
+                if (ri == (int)NpcRole.Boss || ri == (int)NpcRole.StrainBoss || ri == (int)NpcRole.StrainTeacher)
+                {
+                    nso.FindProperty("seedBuyDialogue").objectReferenceValue = seedBuy;
+                }
                 nso.ApplyModifiedPropertiesWithoutUndo();
             }
 
@@ -3309,11 +3545,13 @@ namespace UpIzUpMini.EditorTools
             bannerGo.transform.SetParent(canvasGo.transform, false);
             var bRect = bannerGo.AddComponent<RectTransform>();
             bRect.anchorMin = bRect.anchorMax = new Vector2(0.5f, 0.5f);
-            bRect.sizeDelta = new Vector2(1200f, 220f);
-            bRect.anchoredPosition = new Vector2(0f, 180f);
+            // MINI-053: banner made smaller and moved down so it does not
+            // swallow the screen; it also stays up longer (see MissionHUD).
+            bRect.sizeDelta = new Vector2(880f, 150f);
+            bRect.anchoredPosition = new Vector2(0f, 120f);
             var banner = bannerGo.AddComponent<Text>();
             banner.font = font;
-            banner.fontSize = 44;
+            banner.fontSize = 30;
             banner.fontStyle = FontStyle.Bold;
             banner.alignment = TextAnchor.MiddleCenter;
             banner.color = new Color(1f, 1f, 1f, 0f);
@@ -3389,6 +3627,25 @@ namespace UpIzUpMini.EditorTools
             }
             so.ApplyModifiedPropertiesWithoutUndo();
             return shop;
+        }
+
+        /// <summary>
+        /// MINI-053. Builds the single seed-buy dialogue box used by Boss J,
+        /// Boss C and the Rasta strain teacher. A centred panel that shows a
+        /// strain's seed offer/price and buys on E, echoes ShopPanelController's
+        /// lightweight keyboard-driven pattern for phone compatibility later.
+        /// </summary>
+        private static UpIzUpMini.UI.SeedBuyDialogue BuildSeedBuyDialogue(GameObject canvasGo, Font font)
+        {
+            var panel = CreateModalPanel(canvasGo.transform, "SeedBuyPanel", new Vector2(760f, 420f));
+            var text = CreateModalText(panel.transform, font, 26);
+
+            var seedBuy = canvasGo.AddComponent<UpIzUpMini.UI.SeedBuyDialogue>();
+            var so = new SerializedObject(seedBuy);
+            so.FindProperty("panel").objectReferenceValue = panel;
+            so.FindProperty("bodyText").objectReferenceValue = text;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return seedBuy;
         }
 
         private static GameObject CreateModalPanel(Transform parent, string name, Vector2 size)

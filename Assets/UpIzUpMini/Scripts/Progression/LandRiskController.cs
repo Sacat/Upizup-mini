@@ -38,7 +38,7 @@ namespace UpIzUpMini.Progression
             var e = EconomyManager.Instance;
             if (e == null || !e.OwnsItem("land_montine")) return;
             var p = ProgressionManager.Instance;
-            if (e.Heat >= 50f) { RemoveInventory(true, .5f); MissionSystem.Instance?.Alert("POLICE SEARCH\nPolice seize half the weed stored from your bought land."); }
+            if (e.Heat >= 50f) { RemoveInventory(true, .5f); MissionSystem.Instance?.Alert("POLICE SEARCH\nPolice seize half di zeb stored from your bought land."); }
             else if (p != null && p.GangReputation < 15 && Random.value < .35f) { RemoveInventory(false, .25f); MissionSystem.Instance?.Alert("RIVAL SABOTAGE\nThieves damage stock from your bought farm plots."); }
         }
 
@@ -63,7 +63,7 @@ namespace UpIzUpMini.Progression
 
                 nextProximityCheck = Time.time + proximityCooldownSeconds;
                 RemoveInventory(true, .4f);
-                MissionSystem.Instance?.Alert("POLICE NEAR THE PLANTATION\nAn officer got close enough to spot the weed - some of it is gone.");
+                MissionSystem.Instance?.Alert("POLICE NEAR DI PLANTATION\nAn officer get close enough to spot di zeb - some of it gone.");
                 return;
             }
         }

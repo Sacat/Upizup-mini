@@ -15,8 +15,10 @@ namespace UpIzUpMini.UI
         [SerializeField] private Text objectiveText;
         [SerializeField] private Text bannerText;
         [SerializeField] private GameObject objectivePanel;
-        [SerializeField] private float bannerHold = 3.2f;
-        [SerializeField] private float bannerFade = 1.2f;
+        // MINI-053: mission details stay on screen longer (banner hold
+        // upped from 3.2s) so players can actually read them.
+        [SerializeField] private float bannerHold = 6.5f;
+        [SerializeField] private float bannerFade = 1.8f;
 
         private void Update()
         {

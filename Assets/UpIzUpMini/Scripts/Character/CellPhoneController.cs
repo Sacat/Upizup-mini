@@ -50,7 +50,7 @@ namespace UpIzUpMini.Character
             int inactive = 1 - switcher.ActiveIndex;
             if (switcher.IsLocked(inactive))
             {
-                return "NO SIGNAL\nThey're away on the Guadeloupe run - can't reach them.";
+                return "NO SIGNAL\nThey away on the Gwada run - can't reach them.";
             }
 
             var activeSlot = switcher.Active;

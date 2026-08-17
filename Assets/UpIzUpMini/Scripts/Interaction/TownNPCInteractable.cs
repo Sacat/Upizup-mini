@@ -11,7 +11,8 @@ namespace UpIzUpMini.Interaction
     public enum NpcRole
     {
         Villager, Police, FarmShop, Buyer, ApparelShop, Boss,
-        LandOffice, CarDealer, BoatMan, FoodShop, Pharmacy, Vagrant, BlackMarket, StrainBoss
+        LandOffice, CarDealer, BoatMan, FoodShop, Pharmacy, Vagrant, BlackMarket, StrainBoss,
+        StrainTeacher, Normy
     }
 
     /// <summary>
@@ -47,16 +48,48 @@ namespace UpIzUpMini.Interaction
             "Yea mn, I have seed and ting. Take a look nuh.";
 
         [SerializeField] private UI.ShopPanelController shop;
+        [SerializeField] private UI.SeedBuyDialogue seedBuyDialogue;
 
         [TextArea(1, 3)]
         [SerializeField] private string bossOfferLine =
-            "Allu working hard for small money. Take dis Bushers seed - one harvest pay more than all dat tomato. But keep it far from di road, nuh.";
+            "Yea wii, wah is di word? Allu working hard for small money. Take dis Bushers seed - one harvest pay more than all dat tomato. But keep it far from di road, nuh.";
         [TextArea(1, 3)]
         [SerializeField] private string bossFollowUpLine =
             "Grow it good and bring it back. Police doe have to know nothing.";
+        // Boss J is quietly vollehing (stealing) from the player under the
+        // table, but per the user this is NEVER said directly in dialogue -
+        // the character notices it in his own mind. This inner-monologue
+        // line is where that unspoken suspicion lives.
+        [TextArea(1, 3)]
+        [SerializeField] private string bossInnerMonologue =
+            "(Somethin doh feel right with this man. He pay light, he laugh heavy. I watchin how much he keeps for heself...) ";
         [SerializeField] private CropDefinition bossSeedCrop;
         [Tooltip("MINI-039: charged when this boss grants the strain's starter seed - per the user's explicit \"make them expensive\" ask. 0 keeps the old free-grant behaviour for roles that shouldn't charge.")]
         [SerializeField] private int seedPrice;
+
+        // StrainTeacher - an older Rasta who teaches each new strain after
+        // you complete his missions. Jamaican-sounding, per the user
+        // (everyone else is Dominican).
+        [TextArea(1, 3)]
+        [SerializeField] private string[] strainTeacherLines =
+        {
+            "Selassie I, yute. Wah di word diah?",
+            "You wan learn di higher herb? First you prove yourself, mon.",
+            "Zeb is life, but respect it. Build your name, den we talk.",
+            "One love, bredren. Jah guide.",
+        };
+
+        // Boss C (StrainBoss) vends the strong strain which breaks down
+        // into the higher strains. He holds a roster of tier-ordered strain
+        // crops and serves whichever is lowest-tier/next, so one boss
+        // replaces the old three strain bosses.
+        [SerializeField] private CropDefinition[] strainRoster;
+
+        // Normy - a crooked cop who gives the player missions. Sounds
+        // Dominican like everyone else.
+        [TextArea(1, 3)]
+        [SerializeField] private string normyLine =
+            "Psst. Awa wii, doh look surprise. I Normy - I wear di badge but I got my own work. You help me, I help you, and police stay off your back. Wah is di word?";
 
         [TextArea(1, 3)]
         [SerializeField] private string[] buyerLines =
@@ -81,15 +114,17 @@ namespace UpIzUpMini.Interaction
             NpcRole.Buyer => "[ E ] Sell",
             NpcRole.FarmShop => "[ E ] Farm Shop",
             NpcRole.ApparelShop => "[ E ] Clothes Shop",
-            NpcRole.Boss => "[ E ] Talk to Boss K",
-            NpcRole.Vagrant => "[ E ] Sell weed quietly",
+            NpcRole.Boss => "[ E ] Talk to Boss J",
+            NpcRole.Vagrant => "[ E ] Sell zeb quietly",
             NpcRole.BlackMarket => "[ E ] Black Market",
             NpcRole.StrainBoss => $"[ E ] Talk to {npcName}",
+            NpcRole.StrainTeacher => "[ E ] Talk to Rasta",
+            NpcRole.Normy => "[ E ] Talk to Normy",
             NpcRole.LandOffice => "[ E ] Land and Surveys",
             NpcRole.CarDealer => "[ E ] Vehicles",
             NpcRole.FoodShop => "[ E ] Food",
             NpcRole.Pharmacy => "[ E ] Pharmacy",
-            NpcRole.BoatMan => "[ E ] Guadeloupe Run",
+            NpcRole.BoatMan => "[ E ] Gwada Run",
             _ => "[ E ] Talk"
         };
 
@@ -135,32 +170,56 @@ namespace UpIzUpMini.Interaction
                     break;
 
                 case NpcRole.Boss:
-                    // Boss K's offer - Docs/STORY.md Mission 5. Sells the
-                    // illegal strain's starter seeds (MINI-039: priced,
-                    // previously free) so the player can take the
-                    // higher-paying, higher-heat work.
+                    // Boss J's offer (renamed from Boss K per the user's
+                    // two-boss redesign). Sells the illegal strain's starter
+                    // seeds through a real seed-buy dialogue box (MINI-053).
+                    // The player's inner monologue quietly hints that Boss J
+                    // is vollehing, never said aloud.
+                    _lastFeedback = bossInnerMonologue;
                     if (bossSeedCrop != null && EconomyManager.Instance != null
                         && EconomyManager.Instance.GetSeeds(bossSeedCrop.cropId) <= 0)
                     {
-                        _lastFeedback = TryBuySeed(bossSeedCrop, bossOfferLine);
+                        if (seedBuyDialogue != null)
+                        {
+                            seedBuyDialogue.Open(bossSeedCrop, seedPrice, bossOfferLine, bossFollowUpLine);
+                        }
+                        else _lastFeedback = TryBuySeed(bossSeedCrop, bossOfferLine);
                     }
                     else
                     {
-                        int weedHeld = EconomyManager.Instance.GetCount(bossSeedCrop.cropId);
-                        if (weedHeld > 0) SellCrops(true, false, 1.35f, "BossK");
-                        else _lastFeedback = bossFollowUpLine;
+                        int zebHeld = EconomyManager.Instance.GetCount(bossSeedCrop.cropId);
+                        if (zebHeld > 0) SellCrops(true, false, 1.35f, "Boss J");
+                        else _lastFeedback += "\n" + bossFollowUpLine;
                     }
                     break;
 
+                case NpcRole.StrainTeacher:
+                    // Older Rasta who teaches new strains after you complete
+                    // his missions. Jamaican-sounding.
+                    _lastFeedback = NextLine(strainTeacherLines, "One love, bredren.");
+                    break;
+
+                case NpcRole.Normy:
+                    // Crooked cop; gives the player missions. Dominican accent.
+                    _lastFeedback = normyLine;
+                    break;
+
                 case NpcRole.StrainBoss:
+                    // Boss C (MINI-053 two-boss redesign) - vends the strong
+                    // strain that breaks down into black sugar / purple /
+                    // blue cheese. Uses the tier-ordered strain roster so one
+                    // boss serves the progressively stronger strains.
                     var prog = UpIzUpMini.Progression.ProgressionManager.Instance;
-                    bool unlocked = bossSeedCrop != null && prog != null && prog.IsCropUnlocked(bossSeedCrop.cropId);
-                    if (!unlocked) _lastFeedback = "You not ready for this strain yet. Build your name first, nuh.";
-                    else if (EconomyManager.Instance != null && EconomyManager.Instance.GetSeeds(bossSeedCrop.cropId) <= 0)
+                    CropDefinition offer = StrainForPlayer(prog);
+                    if (offer == null) _lastFeedback = "You not ready for this strain yet. Build your name first, nuh.";
+                    else if (EconomyManager.Instance != null && EconomyManager.Instance.GetSeeds(offer.cropId) <= 0)
                     {
-                        _lastFeedback = TryBuySeed(bossSeedCrop, $"Take three {bossSeedCrop.displayName} seed. This work carry more risk.");
+                        string pitch = $"Take three {offer.displayName} seed. This work carry more risk.";
+                        if (seedBuyDialogue != null)
+                            seedBuyDialogue.Open(offer, seedPrice, pitch, $"Bring back the {offer.displayName} when it ready.");
+                        else _lastFeedback = TryBuySeed(offer, pitch);
                     }
-                    else _lastFeedback = $"Bring back the {bossSeedCrop?.displayName ?? "crop"} when it ready.";
+                    else _lastFeedback = $"Bring back the {offer?.displayName ?? "crop"} when it ready.";
                     break;
 
                 default:
@@ -197,6 +256,35 @@ namespace UpIzUpMini.Interaction
             return seedPrice > 0 ? $"{successLine} That cost you ${seedPrice}." : successLine;
         }
 
+        /// <summary>
+        /// MINI-053. Boss C serves his strain roster in tier order: pick the
+        /// lowest-tier strain the player can access next (the first one they
+        /// don't already hold seeds for, or the lowest unowned one). Returns
+        /// null if none are available yet so the boss tells them to build
+        /// their name first.
+        /// </summary>
+        private CropDefinition StrainForPlayer(UpIzUpMini.Progression.ProgressionManager prog)
+        {
+            if (strainRoster == null || strainRoster.Length == 0)
+            {
+                // Fall back to the single legacy strain field.
+                return (prog == null || bossSeedCrop == null || prog.IsCropUnlocked(bossSeedCrop.cropId))
+                    ? bossSeedCrop : null;
+            }
+
+            var economy = EconomyManager.Instance;
+            foreach (var strain in strainRoster)
+            {
+                if (strain == null) continue;
+                bool unlocked = prog == null || prog.IsCropUnlocked(strain.cropId);
+                if (unlocked) return strain;
+            }
+            // Nothing unlocked yet - return the cheapest/first tier so the
+            // player has a clear next goal (the boss still withholds it
+            // behind the reputation/unlock check elsewhere).
+            return strainRoster[0];
+        }
+
         /// <summary>Cycles through an NPC's lines so repeat talks vary.</summary>
         private string NextLine(string[] lines, string fallback)
         {
@@ -212,7 +300,7 @@ namespace UpIzUpMini.Interaction
         {
             if (Character.CharacterSwitchManager.Instance?.Active?.displayName == "Sacat") multiplier *= 1.15f;
             var progression = UpIzUpMini.Progression.ProgressionManager.Instance;
-            bool bossSale = buyerId == "BossK";
+            bool bossSale = buyerId == "Boss J";
             if (bossSale && progression != null) multiplier *= progression.BossPayoutMultiplier;
             if (EconomyManager.Instance != null && sellableCrops != null
                 && EconomyManager.Instance.TrySellCrops(sellableCrops, illegalOnly, legalOnly,
@@ -230,7 +318,7 @@ namespace UpIzUpMini.Interaction
 
                 if (bossSale) progression?.RecordBossJob();
                 _lastFeedback = bossSale && earned <= 0
-                    ? "Boss K: Money tight. I holding your payment this time. Do the next job and we settle, nuh."
+                    ? "Boss J: Money tight. I holding your payment this time. Do the next job and we settle, nuh."
                     : $"Yea mn, sold for ${earned}.";
                 Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.SellCrop, buyerId);
             }

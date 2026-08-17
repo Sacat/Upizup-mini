@@ -127,9 +127,14 @@ namespace UpIzUpMini.Interaction
 
                 if (distToPlayer <= stopDistance)
                 {
-                    // Close enough - hold position rather than shoving.
-                    Face(player.transform.position);
-                    Animate(0f);
+                    // Close enough - the officer nabs the player. MINI-054:
+                    // that's an arrest (when it gets this close mid-chase and
+                    // the player has no counter), which sends them to La Jol
+                    // station instead of the safehouse and costs reputation.
+                    CharacterSwitchManager.Instance?.ArrestPlayer($"Busted by di police - taken to La Jol.");
+                    // Reset this officer's chase so it doesn't re-arrest every
+                    // frame while the player spawns.
+                    IsChasing = false;
                     return;
                 }
             }
