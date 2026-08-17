@@ -33,6 +33,11 @@ namespace UpIzUpMini.Character
         [SerializeField] private Vector3 safehouseSpawn;
         [Tooltip("Owed to the health center every time health hits 0 - per the user's explicit ask. AddMoney has no floor, so this can put Money negative (a debt) rather than being capped at what's on hand.")]
         [SerializeField] private int deathFee = 500;
+        // MINI-054 polish: avoids being re-arrested the instant you spawn
+        // at La Jol (an officer standing at the spawn point would otherwise
+        // catch you again next frame).
+        [SerializeField] private float arrestBufferSeconds = 4f;
+        private float _nextArrestAt = -1f;
 
         public int ActiveIndex { get; private set; }
         public CharacterSlot Active => slots[ActiveIndex];
@@ -97,9 +102,14 @@ namespace UpIzUpMini.Character
         /// arrest pain point the user asked for. Fail the mission, clear
         /// heat, and drop reputation (getting busted is a set-back, per the
         /// user's rep rules: rep goes down when you get busted by police).
+        /// MINI-054 polish: arrests are rate-limited so the player is not
+        /// instantly re-arrested the frame they spawn at La Jol.
         /// </summary>
         public void ArrestPlayer(string reason)
         {
+            if (Time.unscaledTime < _nextArrestAt) return;
+            _nextArrestAt = Time.unscaledTime + arrestBufferSeconds;
+
             Missions.MissionSystem.Instance?.FailCurrentMission(reason);
             Economy.EconomyManager.Instance?.AddHeat(-Economy.EconomyManager.MaxHeat);
             Progression.ProgressionManager.Instance?.AddReputation(Progression.Faction.Police, -10);

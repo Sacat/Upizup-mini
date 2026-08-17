@@ -30,12 +30,10 @@ current_owner: None
 active_task: None
 ```
 
-### Last completed (MINI-053 -> MINI-054, 2026-08-17)
-Boss redesign to Boss J / Boss C (two bosses), seed-buy dialogue box,
-Rasta strain-teacher, crooked cop Normy, mission details HUD smaller/longer,
-Gwa Bay lexicon pass, fightable Dog Life rival gang (up to 10), Gwa Bay
-Health Center, La Jol police station + arrest mechanic. Bike explicitly
-deferred per the user. See the MINI-053 and MINI-054 change entries below.
+### Last completed: MINI-054 polish (2026-08-17)
+Arrest buffer (no instant re-arrest at La Jol) + Dog Life look fix (brown
+bandana mesh + flat black-shirt/brown-pants materials, no green/yellow). See
+the MINI-054 polish change entry below.
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -916,6 +914,22 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean. Scene rebuilt with all new objects present (verified in scene file). Visual snapshot: the Dog Life block renders as ~10 dark-shirted character models in two rows beside the road — the fightable gang is real geometry, not abstracted. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
 - Known issues (honest): not hands-on playtested — gang fighting, arrest relocation, health-center heal all need a real run. The arrest triggers whenever an officer reaches the player mid-chase (no post-arrest immunity buffer yet, so other officers could re-arrest immediately on spawn — flagged). Dog Life members have block-wander only, no pursuit/plot-theft yet (that's the story-driven theft reveal, a later mission pass). La Jol/Health Center are simple box architecture, not textured buildings. Gang member bandana recolor reads green/yellow in snapshot on some members (material slot naming) — cosmetic. This pass does NOT include the bike (deferred by user), the Dog Life Gardey Zafeh theft-reveal story mission, or the police fire-emoji level display (all later refinement).
 - Next action: user playtests the compiled build (fight the Dog Life gang, get busted to La Jol, heal at the health center, buy seeds from Boss J/C with the dialogue box). Then the next priority per the user's roadmap is bikes (TMAX model) → overall plot/gameplay assembly, with accessories/music/map refinement after.
+
+### MINI-054 polish — arrest buffer + Dog Life bandana/shirt look fix
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: User asked to do the easier follow-up items from the MINI-053/054 pass: (1) a short no-re-arrest buffer so getting busted to La Jol doesn't instantly re-arrest you on spawn, and (2) fix the Dog Life bandana (was reading green/yellow on some members — material slot naming) so the gang reads as brown bandana / black shirt / brown pants.
+- Acceptance criteria: arrest is rate-limited (no instant re-arrest on spawn); the gang visibly shows brown bandana, black shirt, brown pants with no green/yellow clothing; compiles/builds/runs with zero errors.
+- Implementation:
+  - **Arrest buffer.** `CharacterSwitchManager`: added `arrestBufferSeconds = 4f` + `_nextArrestAt`, and `ArrestPlayer` early-returns if called again inside the buffer — so an officer standing at the La Jol spawn can't catch you again the frame you appear. (Arrest still fails the mission, clears heat, drops rep, relocates to La Jol.)
+  - **Bandana + shirt fix.** The Floreswa models have NO headwear material slot (probed: only tshirt/skin/hair/pants/shoes/etc.), so a recolor could never have put a bandana on them. `ApplyDogLifeLook` now (a) adds a real **brown bandana mesh** (a small thin box at the brow line, y≈1.72) to every member so the look is visible geometry, and (b) replaces each shirt/pant/shoe slot with a brand-new flat Standard material of the correct gang colour (black shirt, brown pants, dark shoes) — discarding the source material so the shared green/tan albedo can't leak through and read as green/yellow. Confirmed via rendered snapshots: shirts black, pants dark brown, brown bandanas visible, no green/yellow clothing on the gang.
+- Files changed: `Scripts/Character/CharacterSwitchManager.cs` (arrest buffer), `Editor/Mini011PhaseBSetup.cs` (ApplyDogLifeLook bandana mesh + flat-material recolour), `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt; each Dog Life member now carries a `DogLife_Bandana` head mesh; gang materials are flat black/brown/dark.
+- Verification commands: `Logs/Mini054p-Compile.log`, `Logs/Mini054p2-Compile.log`, `Logs/Mini054p3-Compile.log` (all exit 0), `Logs/Mini054p-BuildScene.log`, `Logs/Mini054p2-BuildScene.log`, `Logs/Mini054p3-BuildScene.log` (rebuilt and saved), snapshots `Logs/Snapshots/mini053-bosses-gang.png`, `Logs/Mini054p-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini054p-PlayerRun.log` (headless, zero error lines).
+- Verification results: compile clean (exit 0). Scene rebuilt. Windows build succeeded. Headless player run: zero error/exception/nullreference lines. Visual snapshots iterated and confirmed the gang look improved each pass: first the bandanas rendered brown but shirts were green (texture leak); after forcing flat materials, shirts black + pants brown + brown bandanas with no green/yellow clothing.
+- Known issues (honest): not hands-on playtested. The bandana is a thin floating box (a stylised headband, not a fully wrapped scarf) — a proper accessory mesh is a later task. Arrest buffer is a flat 4s cooldown (no per-officer tracking) — acceptable for the requested fix.
+- Next action: user playtests the compiled build. After that, per the user's roadmap: bikes (TMAX model) → overall plot/gameplay assembly, then accessories/music/map refinement.
 
 ## Required change-entry format
 

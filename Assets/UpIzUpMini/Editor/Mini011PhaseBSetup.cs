@@ -2129,11 +2129,11 @@ namespace UpIzUpMini.EditorTools
             hso.FindProperty("isOfficer").boolValue = false;
             hso.ApplyModifiedPropertiesWithoutUndo();
 
-            // Dog Life look: brown scarf/bandana, black top, brown pants.
-            ApplyDogLifeLook(visual);
+            // Dog Life look: brown bandana, black top, brown pants.
+            ApplyDogLifeLook(visual, go.transform);
         }
 
-        private static void ApplyDogLifeLook(GameObject visual)
+        private static void ApplyDogLifeLook(GameObject visual, Transform parent)
         {
             if (visual == null) return;
             foreach (var sr in visual.GetComponentsInChildren<SkinnedMeshRenderer>(true))
@@ -2146,20 +2146,42 @@ namespace UpIzUpMini.EditorTools
                     if (mats[i] == null) continue;
                     string n = mats[i].name.ToLowerInvariant();
                     Color? recolor = null;
-                    if (n.Contains("top") || n.Contains("shirt") || n.Contains("upper"))
+                    // The Floreswa models name their slots tshirt/pants/shoes
+                    // (and male01 also has shirt-ish names). No dedicated
+                    // headwear slot exists, so the bandana is added as a
+                    // separate mesh below.
+                    if (n.Contains("tshirt") || n.Contains("shirt") || n.Contains("top") || n.Contains("upper"))
                         recolor = new Color(0.05f, 0.05f, 0.06f, 1f);   // black shirt
                     else if (n.Contains("pant") || n.Contains("leg") || n.Contains("lower"))
                         recolor = new Color(0.4f, 0.28f, 0.12f, 1f);    // brown pants
-                    else if (n.Contains("scarf") || n.Contains("bandana") || n.Contains("head"))
-                        recolor = new Color(0.55f, 0.35f, 0.1f, 1f);    // brown bandana
+                    else if (n.Contains("shoe") || n.Contains("foot"))
+                        recolor = new Color(0.13f, 0.09f, 0.05f, 1f);   // dark shoes
                     if (recolor == null) continue;
-                    var clone = new Material(mats[i]); // private clone - keeps the shared asset untouched
-                    clone.color = recolor.Value;
-                    mats[i] = clone;
+                    // Replace the slot with a brand-new flat Standard
+                    // material of the gang colour, discarding the source
+                    // material entirely so no albedo texture can leak green
+                    // through the recolor (the Floreswa pants/shoes share
+                    // green/tan coloured materials).
+                    var flat = new Material(Shader.Find("Standard"));
+                    flat.color = recolor.Value;
+                    mats[i] = flat;
                     changed = true;
                 }
                 if (changed) sr.sharedMaterials = mats;
             }
+
+            // Add a visible brown bandana wrapped around the forehead so
+            // the gang reads as "brown bandanas/scarfs" per the user's look.
+            // The base models have no headwear slot, so it is a small thin
+            // brown box placed just above the brow line.
+            var bandana = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bandana.name = "DogLife_Bandana";
+            bandana.transform.SetParent(parent, false);
+            bandana.transform.localPosition = new Vector3(0f, 1.72f, 0.03f);
+            bandana.transform.localScale = new Vector3(0.34f, 0.09f, 0.32f);
+            var mat = bandana.GetComponent<Renderer>().sharedMaterial =
+                new Material(Shader.Find("Standard"));
+            mat.color = new Color(0.48f, 0.3f, 0.08f, 1f); // brown bandana
         }
 
         /// <summary>
