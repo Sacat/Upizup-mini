@@ -836,6 +836,22 @@ After verification, append a change entry, update the verification results, and 
 - Known issues (honest): the three `bananatree*.fbx` are decorative low-poly trees — they have a thin branching base and no thick pseudostem or distinct curved banana fingers, so up close it reads as a stylised tropical plant rather than a botanically-correct banana. The per-crop system is already down for a better model to be dropped in later (a swap needs no code change). Not hands-on playtested; the ripe-state render is the visual proof.
 - Next action: move to MINI-051 (weed bud colours — colour bud parts of the plant per strain so the ripe plant shows the strain's bud colour, verified by snapshot).
 
+### MINI-051 — Weed bud colours (mini-grape clusters, per-strain tint)
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: "not seeing the color of the weed buds on the plant. should look like mini grapes but with the designated colors of the weed" — visual verification required. Colour bud parts of the plant per strain.
+- Root cause: the weed crop visual was built with `fruitCount: 0`, so it had no bud objects at all — a ripe plant showed green foliage only, never the strain's bud colour.
+- Implementation:
+  - `Mini011PhaseBSetup.cs`: added `BuildWeedVisual` — builds the real decimated weed plant mesh plus a **dense 12-sphere mini-grape bud cluster** grouped in the plant's upper third (varied radius/height so it reads as a bud cluster, not loose tomato-style singles). Replaced both weed-visual call sites (`BuildCropVisual(..., fruitCount: 0)`) with it. The buds feed `CropStageVisual.fruitRenderers`, so `CropStageVisual.ApplyStage` tints them: green while unripe, then the strain's `ripeColor` (and `secondaryRipeColor` alternation for hybrids like Purple Black) when ripe.
+  - `Mini011AssetSnapshot.cs`: added `SnapshotWeedBuds` — forces three ripe illegal strains (black_sugar, purple, bushers) onto adjacent plots and renders them together for per-strain bud-colour verification.
+- Files changed: `Editor/Mini011PhaseBSetup.cs`, `Editor/Mini011AssetSnapshot.cs`, `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt; all farm + expansion plots now use the bud-cluster weed visual.
+- Verification commands: `Logs/MINI-051-Compile1.log`, `Logs/MINI-051-BuildScene1.log`, `Logs/MINI-051-WeedSnapshot.log`, `Logs/MINI-051-WeedSnapshot2.log`, `Logs/Snapshots/mini051-weed-buds.png`.
+- Verification results: compile clean, 0 `error CS`. Scene builder clean (`rebuilt and saved`, no exceptions). Visual snapshot confirmed the per-strain bud colour works: purple strain shows **purple** mini-grape buds, bushers shows **green** buds, black_sugar showed **orange** buds in the first render (the second, wider frame caught purple + green but the orange plant fell just outside frame — all three colour-correct per their crop data). The first snapshot's orange-bud plant is the key evidence the tint works.
+- Known issues (honest): the bud cluster is a stylised sphere cluster, not a photogrammetric bud scan — reads as mini-grapes as requested, but not a real bud texture. Only the three illegal strains were actively verified; hybrids (purple_black alternating orange+purple) rely on the same proven alternating logic from MINI-047/048. Not hands-on playtested.
+- Next action: MINI-052 (NPC/companion stuck-on-object fix — change direction after being stuck in the same obstacle too long).
+
 ## Required change-entry format
 
 

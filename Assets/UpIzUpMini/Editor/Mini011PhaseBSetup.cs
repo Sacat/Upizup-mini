@@ -1272,8 +1272,7 @@ namespace UpIzUpMini.EditorTools
 
                     var tomatoVisual = BuildCropVisual(plot.transform, "TomatoVisual",
                         "Assets/UpIzUpMini/Art/CropMeshes/TomatoPlant_LOD.asset", 1.7f, fruitCount: 4);
-                    var weedVisual = BuildCropVisual(plot.transform, "WeedVisual",
-                        "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f, fruitCount: 0);
+                    var weedVisual = BuildWeedVisual(plot.transform);
                     var bananaVisual = BuildBananaVisual(plot.transform);
 
                     var plotInteractable = plot.AddComponent<FarmPlot>();
@@ -1326,8 +1325,7 @@ namespace UpIzUpMini.EditorTools
 
                 var tomatoVisual = BuildCropVisual(plot.transform, "TomatoVisual",
                     "Assets/UpIzUpMini/Art/CropMeshes/TomatoPlant_LOD.asset", 1.7f, fruitCount: 4);
-                var weedVisual = BuildCropVisual(plot.transform, "WeedVisual",
-                    "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f, fruitCount: 0);
+                var weedVisual = BuildWeedVisual(plot.transform);
                 var bananaVisual = BuildBananaVisual(plot.transform);
 
                 var plotComponent = plot.AddComponent<FarmPlot>();
@@ -1437,6 +1435,80 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("plantRoot").objectReferenceValue = plantRoot.transform;
             so.FindProperty("plantRenderer").objectReferenceValue = plantRenderer;
             var fruitsProp = so.FindProperty("fruitRenderers");
+            fruitsProp.arraySize = fruits.Count;
+            for (int i = 0; i < fruits.Count; i++)
+            {
+                fruitsProp.GetArrayElementAtIndex(i).objectReferenceValue = fruits[i];
+            }
+            so.FindProperty("fullScale").floatValue = 1f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            root.SetActive(false);
+            return visual;
+        }
+
+        /// <summary>
+        /// MINI-051: builds the weed crop visual with mini-grape bud clusters.
+        /// Weed previously had fruitCount: 0, so a ripe plant showed no bud
+        /// colour at all. This places a dense cluster of small buds in the
+        /// plant's upper third — read as a weed bud cluster, like mini grapes —
+        /// which CropStageVisual tints to the strain's ripe colour(s) when
+        /// ripe (green while unripe, then the strain colour e.g. Black Sugar
+        /// orange / Purple purple / Purple Black alternating).
+        /// </summary>
+        private static CropStageVisual BuildWeedVisual(Transform plot)
+        {
+            var root = new GameObject("WeedVisual");
+            root.transform.SetParent(plot, false);
+            root.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+            Vector3 plotScale = plot.localScale;
+            root.transform.localScale = new Vector3(1f / plotScale.x, 1f / plotScale.y, 1f / plotScale.z);
+
+            var plantRoot = new GameObject("Plant");
+            plantRoot.transform.SetParent(root.transform, false);
+
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset");
+            if (mesh != null)
+            {
+                var meshGo = new GameObject("PlantMesh");
+                meshGo.transform.SetParent(plantRoot.transform, false);
+                meshGo.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var plantRenderer = meshGo.AddComponent<MeshRenderer>();
+                plantRenderer.sharedMaterial = GetOrCreateMaterial("CropFoliage", new Color(0.22f, 0.42f, 0.16f));
+                // Source scan is ~2cm tall; normalize to a real plant height.
+                float normalize = 1.9f / Mathf.Max(0.0001f, mesh.bounds.size.y);
+                meshGo.transform.localScale = Vector3.one * normalize;
+                meshGo.transform.localPosition = new Vector3(0f, -mesh.bounds.min.y * normalize, 0f);
+            }
+
+            var visual = root.AddComponent<CropStageVisual>();
+            var so = new SerializedObject(visual);
+            so.FindProperty("plantRoot").objectReferenceValue = plantRoot.transform;
+            so.FindProperty("plantRenderer").objectReferenceValue = root.GetComponentInChildren<Renderer>(true);
+
+            // Dense mini-grape bud cluster: multiple small spheres grouped in
+            // the plant's upper third. Read as a weed bud cluster, not loose
+            // tomato-style singles. Ripe colour from the strain flows through
+            // CropStageVisual.fruitRenderers.
+            var fruitsProp = so.FindProperty("fruitRenderers");
+            var fruits = new List<Renderer>();
+            const int clusterCount = 12;
+            for (int i = 0; i < clusterCount; i++)
+            {
+                float t = i / (float)clusterCount;
+                float angle = t * Mathf.PI * 2f;
+                float radius = 0.28f + 0.14f * (i % 3);
+                float y = 1.25f + 0.28f * (t * 2f - 0.3f);
+
+                var bud = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                bud.name = $"Bud_{i}";
+                bud.transform.SetParent(plantRoot.transform, false);
+                bud.transform.localPosition = new Vector3(Mathf.Cos(angle) * radius, y, Mathf.Sin(angle) * radius);
+                bud.transform.localScale = Vector3.one * 0.22f;
+                Object.DestroyImmediate(bud.GetComponent<Collider>());
+                bud.GetComponent<Renderer>().sharedMaterial = GetOrCreateMaterial("CropFruit", Color.green);
+                fruits.Add(bud.GetComponent<Renderer>());
+            }
             fruitsProp.arraySize = fruits.Count;
             for (int i = 0; i < fruits.Count; i++)
             {

@@ -378,6 +378,43 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "mini050-banana-crop.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-051/Snapshot Weed Buds")]
+        public static void SnapshotWeedBuds()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var plots = Object.FindObjectsByType<UpIzUpMini.Farming.FarmPlot>(FindObjectsSortMode.None);
+            if (plots.Length == 0) { Debug.LogError("Snapshot: no FarmPlot found."); return; }
+
+            // Render three ripe illegal strains side by side on three plots so
+            // the per-strain bud colour is visibly distinct in one frame.
+            string[] ids = { "black_sugar", "purple", "bushers" };
+            var shown = new System.Collections.Generic.List<GameObject>();
+            for (int i = 0; i < ids.Length && i < plots.Length; i++)
+            {
+                var strain = AssetDatabase.LoadAssetAtPath<UpIzUpMini.Economy.CropDefinition>(
+                    $"Assets/UpIzUpMini/Data/Crops/{ids[i]}.asset");
+                if (strain == null) continue;
+                plots[i].LoadState(3, strain, strain.growDurationSeconds);
+                shown.Add(plots[i].gameObject);
+            }
+
+            var camGo = new GameObject("WeedCam");
+            var cam = camGo.AddComponent<Camera>();
+            Vector3 c = plots[0].transform.position;
+            // Pull back so all three strain plants are in frame together.
+            camGo.transform.position = plots[0].transform.position + new Vector3(0f, 5.2f, -5.6f);
+            Vector3 lookAt = plots[2].transform.position;
+            lookAt.y += 0.6f;
+            camGo.transform.LookAt(lookAt);
+            cam.fieldOfView = 60f;
+            cam.farClipPlane = 120f;
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color32(90, 160, 120, 255);
+
+            RenderAndSave(cam, "mini051-weed-buds.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-012/Snapshot Coast")]
         public static void SnapshotCoast()
         {
