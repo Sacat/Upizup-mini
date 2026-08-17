@@ -853,6 +853,25 @@ After verification, append a change entry, update the verification results, and 
 - MINI-051 follow-up (bud size/placement, same day): user reported the buds were too big and appeared to float. Root cause confirmed by a bounds probe: the weed mesh at 1.9m is a wide bush (x/z extent ~0.84m, canopy top ~1.13m above base), but the first bud pass placed ~22cm spheres at y 1.0-1.5m (above the canopy top) on a narrow radius, so they read as large floating grapes. Fixed in `BuildWeedVisual`: 18 buds, each 8cm (down from 22cm), scattered pseudo-randomly INSIDE the measured canopy volume (y 0.4-1.0, radius 0.25-0.5, full arc) so they nestle among the broad leaves. Re-verified by snapshot: orange + purple buds now read small, attached, mini-grape style on both foreground plants. Scene rebuilt clean; fresh Windows build succeeded (`Logs/MINI-051-WindowsBuildFINAL.log`, `MINI-001 BUILD SUCCEEDED`).
 - Next action: MINI-052 (NPC/companion stuck-on-object fix — change direction after being stuck in the same obstacle too long).
 
+### MINI-052 — NPC/companion stuck-on-object fix (anti-stuck evasion)
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: "some npc's hit and continuously walk into the same objects, even the main character when following sometimes so put something where if he is walking hitting the same object for too long then change direction."
+- Root cause: `PatrolNPC` (waypoint patrols) and `FollowController` (companion follow) both drive straight toward a target via `CharacterController.SimpleMove` with no NavMesh and no unstick logic — a building collider blocks them and they push into the wall forever (the follow companion "gets stuck on obstacles" limitation noted in earlier MINI entries).
+- Implementation:
+  - `Scripts/Character/AntiStuckSteering.cs` (new, reusable): lightweight stuck detection + evasion. Tracks whether a moving character is actually progressing (position delta vs. a small threshold); if it's blocked (trying to move but not moving) for `stuckTimeout` (1.2s), it flips into an evasion state. `GetEvasionDirection(facing)` returns a perpendicular step direction, alternating side (left/right) each episode so if one side is also blocked it tries the other instead of oscillating. Real progress (or idle) fully resets it; `Clear()` resets on teleport/respawn. `Tick(speed, dt)` takes an optional dt so the logic is testable outside Play mode (where Time.deltaTime is 0).
+  - `PatrolNPC.cs`: calls `antiStuck.Tick(speed)` each frame before moving; when `IsEvading`, steers `dir` perpendicular to its facing instead of straight at the waypoint, so it walks around the building then resumes.
+  - `FollowController.cs`: same pattern — `Tick(speed)` before moving, evasion direction when blocked, so the companion sidesteps around obstacles instead of grinding.
+  - `Mini011PhaseBSetup.cs`: adds `AntiStuckSteering` to both controllable characters (Sacat/Franki, beside `FollowController`) and to every patrolling NPC (beside `PatrolNPC`); both scripts resolve it via `GetComponent`, so just adding the component is enough.
+  - `Mini052AntiStuckValidation.cs` (new, editor-only): drives a real `AntiStuckSteering` with explicit dt and asserts: blocked-with-speed enters evasion after timeout; evasion direction is perpendicular to facing; real movement cancels evasion; `Clear()` resets. All **PASS**.
+- Files changed: `Scripts/Character/AntiStuckSteering.cs` (new), `Scripts/Interaction/PatrolNPC.cs`, `Scripts/Character/FollowController.cs`, `Editor/Mini011PhaseBSetup.cs`, `Editor/Mini052AntiStuckValidation.cs` (new), `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt; both protagonists and all patrolling NPCs now carry `AntiStuckSteering` (verified present in the saved scene text beside FollowController/PatrolNPC).
+- Verification commands: `Logs/MINI-052-Compile1.log`, `Logs/MINI-052-Compile2.log`, `Logs/MINI-052-Validation.log`, `Logs/MINI-052-BuildScene.log`, `Logs/MINI-052-WindowsBuild.log`, `Logs/MINI-052-PlayerRun2.log`.
+- Verification results: compile clean, 0 `error CS`. Validation: **PASS** — all four assertions (evasion triggers on blockage, direction perpendicular, progress cancels, clear resets). Scene builder clean. Windows build succeeded. Fresh built-player headless run: zero error/exception/nullreference lines across ~14 seconds with the component active.
+- Known issues (honest): this is a whisker-style evasion, not NavMesh pathfinding — it gets a character around a single wall but can still stall in a genuine dead-end (it alternates sides rather than routing out). Not hands-on watched in real time; the validation proves the direction logic, not that the sidestep reads naturally at speed. Tuning (stuckThreshold 0.05, stuckTimeout 1.2s, evadeDistance 2.5, evadeDuration 1.0) are first-pass numbers. The farmhand (FarmhandController) has its own direct-steering walk to plots and was NOT given the component this pass — flagged if it also snags.
+- Next action: MINI-053 (mission details HUD — keep on screen smaller/longer — and shop dialogue).
+
 ## Required change-entry format
 
 

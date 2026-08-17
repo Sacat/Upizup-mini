@@ -25,6 +25,8 @@ namespace UpIzUpMini.Character
         private CharacterController _controller;
         private float _animSpeedBlend;
 
+        [SerializeField] private AntiStuckSteering antiStuck;
+
         public Transform FollowTarget { get; set; }
         public bool FollowingEnabled { get; set; } = true;
 
@@ -32,6 +34,7 @@ namespace UpIzUpMini.Character
         {
             _controller = GetComponent<CharacterController>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
+            if (antiStuck == null) antiStuck = GetComponent<AntiStuckSteering>();
         }
 
         private void Update()
@@ -52,6 +55,16 @@ namespace UpIzUpMini.Character
                 // Break into a run if we've fallen well behind, so the
                 // companion can actually catch up.
                 float speed = dist > followDistance * 3f ? 5.335f : moveSpeed;
+
+                // MINI-052: if blocked by a building while following, sidestep
+                // around it instead of pushing into the wall forever.
+                if (antiStuck != null) antiStuck.Tick(speed);
+                if (antiStuck != null && antiStuck.IsEvading)
+                {
+                    Vector3 evasion = antiStuck.GetEvasionDirection(transform.forward);
+                    if (evasion.sqrMagnitude > 0.0001f) dir = evasion.normalized;
+                }
+
                 _controller.SimpleMove(dir * speed);
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), turnSpeed * Time.deltaTime);
                 speedBlend = speed;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
 
 namespace UpIzUpMini.Interaction
@@ -39,6 +40,8 @@ namespace UpIzUpMini.Interaction
 
         private CharacterController _controller;
 
+        [SerializeField] private AntiStuckSteering antiStuck;
+
         private void Awake()
         {
             if (animator == null) animator = GetComponentInChildren<Animator>();
@@ -46,6 +49,7 @@ namespace UpIzUpMini.Interaction
             // Added by the scene builder so patrols are blocked by
             // building colliders instead of walking through walls.
             _controller = GetComponent<CharacterController>();
+            if (antiStuck == null) antiStuck = GetComponent<AntiStuckSteering>();
         }
 
         public void SetWaypoints(Vector3[] points)
@@ -82,6 +86,22 @@ namespace UpIzUpMini.Interaction
                         bool alert = IsAlert;
                         float speed = alert ? alertSpeed : walkSpeed;
                         Vector3 dir = toTarget.normalized;
+
+                        // MINI-052: track whether we're really moving toward
+                        // the waypoint (blocked by a wall, not making
+                        // progress). Called before moving so it accumulates
+                        // stationary time across frames.
+                        if (antiStuck != null) antiStuck.Tick(speed);
+
+                        // MINI-052: if pushing into a building, sidestep around
+                        // it instead of grinding against the wall. Anti-stuck
+                        // measures whether we're actually progressing toward
+                        // the waypoint; when blocked, steer perpendicular.
+                        if (antiStuck != null && antiStuck.IsEvading)
+                        {
+                            dir = antiStuck.GetEvasionDirection(transform.forward).normalized;
+                            if (dir.sqrMagnitude < 0.0001f) dir = toTarget.normalized;
+                        }
 
                         // Move through a CharacterController so patrols are
                         // blocked by building colliders instead of walking

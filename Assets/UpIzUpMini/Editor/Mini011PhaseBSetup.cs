@@ -1890,6 +1890,12 @@ namespace UpIzUpMini.EditorTools
             fcSo.ApplyModifiedPropertiesWithoutUndo();
             followController.FollowingEnabled = !startActive;
 
+            // MINI-052: lets the companion (and by extension any follower)
+            // sidestep around a building it's been pushing into, instead of
+            // grinding against the wall forever. FollowController/PatrolNPC
+            // resolve this via GetComponent, so just adding it is enough.
+            go.AddComponent<AntiStuckSteering>();
+
             // MINI-046: the other half of "stronger together" - while
             // this boy is the follower he throws his own punches at
             // whichever officer is already close, using the same
@@ -2192,6 +2198,9 @@ namespace UpIzUpMini.EditorTools
                 }
 
                 var patrol = npcGo.AddComponent<PatrolNPC>();
+                // MINI-052: patrolling NPCs also sidestep around buildings they
+                // push into, instead of grinding against a wall forever.
+                npcGo.AddComponent<AntiStuckSteering>();
                 Vector3 a = roadPoints[Mathf.Max(1, index - 2)] + right * sideMul * 3.8f;
                 Vector3 b = roadPoints[Mathf.Min(roadPoints.Count - 2, index + 2)] + right * sideMul * 3.8f;
                 a.y = SampleHeight(terrain, a.x, a.z);
