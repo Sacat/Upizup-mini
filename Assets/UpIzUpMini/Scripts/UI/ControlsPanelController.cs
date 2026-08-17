@@ -20,7 +20,8 @@ namespace UpIzUpMini.UI
             "R                  Clone a ripe plant for extra seed\n" +
             "F                  Simple melee strike\n" +
             "G                  Quick farmhand assignment\n" +
-            "1 - 6              Choose unlocked crop to plant\n" +
+            "C                  Call your partner over (needs a phone)\n" +
+            "1 - 9, 0           Choose unlocked crop to plant\n" +
             "F5 / F9            Save / Load\n" +
             "F11 / Alt+Enter    Fullscreen or windowed\n" +
             "H                  Show or hide this list\n" +

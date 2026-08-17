@@ -25,6 +25,17 @@ namespace UpIzUpMini.Farming
 
         /// <summary>Stage 0..3: seedling, small, grown (green fruit), ripe (red fruit).</summary>
         public void ApplyStage(int stage, Color unripeColor, Color ripeColor)
+            => ApplyStage(stage, unripeColor, ripeColor, default);
+
+        /// <summary>
+        /// MINI-047 overload. When <paramref name="secondaryRipeColor"/> has
+        /// alpha > 0 (CropDefinition.HasSecondaryRipeColor), ripe fruit
+        /// alternates between <paramref name="ripeColor"/> and it by index
+        /// instead of a single flat colour - Purple Black's orange+purple
+        /// buds, showing both parent strains at once rather than a blended
+        /// third colour.
+        /// </summary>
+        public void ApplyStage(int stage, Color unripeColor, Color ripeColor, Color secondaryRipeColor)
         {
             if (plantRoot != null)
             {
@@ -39,14 +50,20 @@ namespace UpIzUpMini.Farming
             }
 
             bool showFruit = stage >= 2;
-            Color fruitColor = stage >= 3 ? ripeColor : unripeColor;
+            bool ripe = stage >= 3;
+            bool twoTone = ripe && secondaryRipeColor.a > 0.001f;
 
             if (fruitRenderers == null) return;
-            foreach (var r in fruitRenderers)
+            for (int i = 0; i < fruitRenderers.Length; i++)
             {
+                var r = fruitRenderers[i];
                 if (r == null) continue;
                 r.gameObject.SetActive(showFruit);
                 if (!showFruit) continue;
+
+                Color fruitColor = !ripe
+                    ? unripeColor
+                    : (twoTone && i % 2 == 1 ? secondaryRipeColor : ripeColor);
 
                 _block ??= new MaterialPropertyBlock();
                 r.GetPropertyBlock(_block);

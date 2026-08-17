@@ -140,6 +140,18 @@ namespace UpIzUpMini.Character
                 go.name = $"Equip_{itemId}";
                 go.transform.SetParent(anchor, false);
                 PositionOnBone(go.transform, itemId);
+
+                // MINI-045: the chain hangs rather than sitting rigid on
+                // the bone. Capturing localPosition after PositionOnBone
+                // means AccessorySwing doesn't need its own copy of the
+                // per-item offset table above - it just settles wherever
+                // this method already decided the item's rest pose is.
+                if (itemId == "chain_gold")
+                {
+                    var swing = go.AddComponent<AccessorySwing>();
+                    swing.Initialize(anchor, go.transform.localPosition);
+                }
+
                 _spawned[itemId] = go;
             }
             else if (!owned && present)

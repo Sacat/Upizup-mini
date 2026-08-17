@@ -350,6 +350,34 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "montine-farm.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-050/Snapshot Banana Crop")]
+        public static void SnapshotBananaCrop()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            // Find the first plot and force a ripe banana onto it so the
+            // MINI-050 per-crop banana-tree visual (not the old tomato
+            // fallback) is actually visible in the frame.
+            var plots = Object.FindObjectsByType<UpIzUpMini.Farming.FarmPlot>(FindObjectsSortMode.None);
+            if (plots.Length == 0) { Debug.LogError("Snapshot: no FarmPlot found."); return; }
+
+            var banana = AssetDatabase.LoadAssetAtPath<UpIzUpMini.Economy.CropDefinition>(
+                "Assets/UpIzUpMini/Data/Crops/banana.asset");
+            if (banana == null) { Debug.LogError("Snapshot: banana.asset missing."); return; }
+
+            plots[0].LoadState(3, banana, banana.growDurationSeconds);
+
+            var camGo = new GameObject("BananaCam");
+            var cam = camGo.AddComponent<Camera>();
+            Vector3 c = plots[0].transform.position;
+            camGo.transform.position = c + new Vector3(-2.2f, 1.4f, -2.2f);
+            camGo.transform.LookAt(c + Vector3.up * 0.4f);
+            cam.fieldOfView = 50f;
+            cam.farClipPlane = 120f;
+
+            RenderAndSave(cam, "mini050-banana-crop.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-012/Snapshot Coast")]
         public static void SnapshotCoast()
         {

@@ -28,6 +28,13 @@ namespace UpIzUpMini.Character
         public bool IsDead => Health <= 0f;
         public event Action<CharacterVitals> OnDied;
 
+        // MINI-049 cheat code. Global rather than per-instance since both
+        // boys should be unstoppable together, and it needs to survive
+        // Tab-switching - CheatCodeController flips these once, not per
+        // character.
+        public static bool GlobalInvincible;
+        public static bool GlobalUnlimitedStamina;
+
         private bool _running;
 
         private void Awake()
@@ -48,7 +55,11 @@ namespace UpIzUpMini.Character
                 _boostEndsAt = -1f;
             }
 
-            if (_running)
+            if (GlobalUnlimitedStamina)
+            {
+                Stamina = maxStamina;
+            }
+            else if (_running)
             {
                 Stamina = Mathf.Max(0f, Stamina - staminaDrainPerSecond * Time.deltaTime);
             }
@@ -90,7 +101,7 @@ namespace UpIzUpMini.Character
 
         public void Damage(float amount)
         {
-            if (amount <= 0f || IsDead) return;
+            if (amount <= 0f || IsDead || GlobalInvincible) return;
             Health = Mathf.Max(0f, Health - amount);
             if (IsDead) OnDied?.Invoke(this);
         }

@@ -16,10 +16,25 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private float heatRemovedOnRest = 60f;
         [SerializeField] private bool savesOnRest = true;
 
+        // MINI-042: gates a second, purchasable safehouse (the Lalay
+        // house) the same way LockedFarmPlot gates bought land - empty
+        // keeps the original always-usable Montine farm safehouse
+        // behaviour unchanged.
+        [SerializeField] private string requiredItemId;
+
         private string _lastFeedback;
 
-        public override string PromptLabel =>
-            _menuOpen ? "[1] Rest  [2] Save  [3] Load  [E] Leave" : "[ E ] Use bed";
+        private bool Owned => string.IsNullOrEmpty(requiredItemId)
+            || (EconomyManager.Instance != null && EconomyManager.Instance.OwnsItem(requiredItemId));
+
+        public override string PromptLabel
+        {
+            get
+            {
+                if (!Owned) return "[ E ] House (locked)";
+                return _menuOpen ? "[1] Rest  [2] Save  [3] Load  [E] Leave" : "[ E ] Use bed";
+            }
+        }
 
         private bool _menuOpen;
 
@@ -43,6 +58,12 @@ namespace UpIzUpMini.Interaction
 
         public override void Interact(GameObject interactor)
         {
+            if (!Owned)
+            {
+                _lastFeedback = $"Dis house not yours yet. Buy the deed first, nuh.";
+                return;
+            }
+
             // E toggles the bed menu; the actual actions are 1/2/3 so
             // resting, saving and loading are separate deliberate choices.
             _menuOpen = !_menuOpen;

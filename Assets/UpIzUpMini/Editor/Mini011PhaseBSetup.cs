@@ -59,6 +59,15 @@ namespace UpIzUpMini.EditorTools
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             RuntimeAnimatorController locomotionController = LoadLocomotionController();
+            // MINI-031: bakes the shared Action/FullBodyOverride layers
+            // HumanoidAnimationManager drives at runtime into whichever
+            // controller every character is about to share. Idempotent -
+            // safe on every rebuild, never touches the base locomotion
+            // layer above.
+            if (locomotionController is AnimatorController animatorControllerAsset)
+            {
+                HumanoidAnimationLayerBuilder.EnsureActionLayers(animatorControllerAsset, GetSharedActionEntries());
+            }
 
             BuildLighting();
             Terrain terrain = BuildTerrain();
@@ -75,14 +84,20 @@ namespace UpIzUpMini.EditorTools
             BuildWorldBoundaries();
 
             CropDefinition[] crops = BuildEconomyAndCrops();
+            BuildBreedingStation(terrain, _farmCenter, crops);
             new GameObject("ProgressionManager").AddComponent<ProgressionManager>();
             new GameObject("ProgressionChoice").AddComponent<ProgressionChoiceController>();
             var risk = new GameObject("LandRisk").AddComponent<LandRiskController>();
             var riskSo = new SerializedObject(risk);
             var riskCrops = riskSo.FindProperty("crops"); riskCrops.arraySize = crops.Length;
             for (int i = 0; i < crops.Length; i++) riskCrops.GetArrayElementAtIndex(i).objectReferenceValue = crops[i];
+            // MINI-039: proximity confiscation radius centred on the
+            // starting Montine plots - farmPlot is the "out" Transform
+            // BuildFarmPathAndClearing just produced above.
+            if (farmPlot != null) riskSo.FindProperty("plantationCenter").vector3Value = farmPlot.position;
             riskSo.ApplyModifiedPropertiesWithoutUndo();
             BuildTownNPCs(terrain, roadPoints, locomotionController);
+            BuildLalayHouse(terrain, roadPoints);
 
             Vector3 startPos = _safehouseSpawn != Vector3.zero ? _safehouseSpawn : roadPoints[0];
             startPos.y = SampleHeight(terrain, startPos.x, startPos.z);
@@ -129,6 +144,11 @@ namespace UpIzUpMini.EditorTools
             // Windowed by default so the game can be minimised/resized.
             new GameObject("WindowMode").AddComponent<WindowModeController>();
             new GameObject("WorldSafety").AddComponent<WorldSafetyController>();
+            // MINI-040: C calls the inactive boy over, once phone_basic is owned.
+            new GameObject("CellPhone").AddComponent<CellPhoneController>();
+            // MINI-049: type C#0W@ anywhere for $100,000, every strain/
+            // route unlocked, and invincibility+unlimited stamina.
+            new GameObject("CheatCode").AddComponent<CheatCodeController>();
 
             // Heat is driven by proximity to officers, not a timer.
             var heatGo = new GameObject("PoliceHeatController");
@@ -233,6 +253,85 @@ namespace UpIzUpMini.EditorTools
             Debug.LogWarning($"Mini011PhaseBSetup: {StarterControllerPath} missing; " +
                              "falling back to the generated controller (locomotion will look worse).");
             return BuildAnimatorController();
+        }
+
+        /// <summary>
+        /// MINI-031/MINI-038: the full set of action clips baked into the
+        /// shared controller's Action/FullBodyOverride layers. Handed to
+        /// every HumanoidAnimationManager built into the scene, player and
+        /// NPC alike - a character not calling a given id simply never
+        /// plays it, so there is no harm in the list being shared rather
+        /// than curated per character type. Adding an eat/aim/vehicle
+        /// action later is exactly one more entry here plus whatever
+        /// gameplay script calls PlayAction/BeginSustainedAction with that
+        /// id - nothing else in this pipeline changes.
+        ///
+        /// "Melee" is a Kevin Iglesias one-handed sword-swing clip (no
+        /// unarmed punch clip exists in the imported packages) - it reads
+        /// as a believable punch/backhand with no weapon in hand since the
+        /// characters aren't holding anything, but it was authored for a
+        /// weapon and is a placeholder pending a real fist animation.
+        /// "HitReaction" and "KnockedDown" are real combat clips from the
+        /// same pack (CombatDamage01/Death01) - no placeholder caveat.
+        /// KnockedDown is full-body and driven via BeginSustainedAction
+        /// (see NpcCombatHealth), not PlayAction, since it must hold the
+        /// lying-down pose for the whole recovery window rather than
+        /// auto-fading out; its clip has Loop Time off, so Mecanim already
+        /// holds the last frame on its own once played through once.
+        /// </summary>
+        private static HumanoidAnimationManager.ActionEntry[] GetSharedActionEntries()
+        {
+            var meleeClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Combat/1H/HumanM@Attack1H01_R.fbx");
+            var hitReactionClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDamage01.fbx");
+            var knockedDownClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death01.fbx");
+            return new[]
+            {
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = SimpleMeleeCombat.ActionId,
+                    clip = meleeClip,
+                    fullBody = false,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = NpcCombatHealth.HitReactionActionId,
+                    clip = hitReactionClip,
+                    fullBody = true,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = NpcCombatHealth.KnockedDownActionId,
+                    clip = knockedDownClip,
+                    fullBody = true,
+                },
+            };
+        }
+
+        /// <summary>
+        /// Adds a HumanoidAnimationManager to <paramref name="go"/> wired
+        /// to <paramref name="animator"/> and populated with the full
+        /// shared action list. One place for the SerializedObject
+        /// boilerplate rather than repeating it at every call site (player
+        /// characters, police) - see GetSharedActionEntries for why the
+        /// list is shared rather than curated per character.
+        /// </summary>
+        private static HumanoidAnimationManager AddHumanoidAnimationManager(GameObject go, Animator animator)
+        {
+            var animationManager = go.AddComponent<HumanoidAnimationManager>();
+            var animSo = new SerializedObject(animationManager);
+            animSo.FindProperty("animator").objectReferenceValue = animator;
+            var actionsProp = animSo.FindProperty("actions");
+            var sharedActions = GetSharedActionEntries();
+            actionsProp.arraySize = sharedActions.Length;
+            for (int i = 0; i < sharedActions.Length; i++)
+            {
+                var element = actionsProp.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("id").stringValue = sharedActions[i].id;
+                element.FindPropertyRelative("clip").objectReferenceValue = sharedActions[i].clip;
+                element.FindPropertyRelative("fullBody").boolValue = sharedActions[i].fullBody;
+            }
+            animSo.ApplyModifiedPropertiesWithoutUndo();
+            return animationManager;
         }
 
         private static RuntimeAnimatorController BuildAnimatorController()
@@ -1175,6 +1274,7 @@ namespace UpIzUpMini.EditorTools
                         "Assets/UpIzUpMini/Art/CropMeshes/TomatoPlant_LOD.asset", 1.7f, fruitCount: 4);
                     var weedVisual = BuildCropVisual(plot.transform, "WeedVisual",
                         "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f, fruitCount: 0);
+                    var bananaVisual = BuildBananaVisual(plot.transform);
 
                     var plotInteractable = plot.AddComponent<FarmPlot>();
                     var so = new SerializedObject(plotInteractable);
@@ -1182,6 +1282,7 @@ namespace UpIzUpMini.EditorTools
                     so.FindProperty("tomatoVisual").objectReferenceValue = tomatoVisual;
                     so.FindProperty("weedVisual").objectReferenceValue = weedVisual;
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    RegisterCropVisual(plotInteractable, "banana", bananaVisual);
 
                     if (firstPlot == null) firstPlot = plot.transform;
                 }
@@ -1227,6 +1328,7 @@ namespace UpIzUpMini.EditorTools
                     "Assets/UpIzUpMini/Art/CropMeshes/TomatoPlant_LOD.asset", 1.7f, fruitCount: 4);
                 var weedVisual = BuildCropVisual(plot.transform, "WeedVisual",
                     "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f, fruitCount: 0);
+                var bananaVisual = BuildBananaVisual(plot.transform);
 
                 var plotComponent = plot.AddComponent<FarmPlot>();
                 var pso = new SerializedObject(plotComponent);
@@ -1234,6 +1336,7 @@ namespace UpIzUpMini.EditorTools
                 pso.FindProperty("tomatoVisual").objectReferenceValue = tomatoVisual;
                 pso.FindProperty("weedVisual").objectReferenceValue = weedVisual;
                 pso.ApplyModifiedPropertiesWithoutUndo();
+                RegisterCropVisual(plotComponent, "banana", bananaVisual);
 
                 // Simple fence marking the land as not yet owned.
                 var fence = new GameObject("LockedFence");
@@ -1346,6 +1449,108 @@ namespace UpIzUpMini.EditorTools
             return visual;
         }
 
+        /// <summary>
+        /// MINI-050: builds the banana crop visual from the real banana tree
+        /// model taken from the larger game (Tropical Nature Pack, already a
+        /// low-poly game mesh ~0.2-0.5MB - unlike the photogrammetry scans it
+        /// needs no decimation). Banana previously fell through to the tomato
+        /// shape recoloured yellow because FarmPlot only chose visual by
+        /// legality; this gives it its own tree. The tree is built through the
+        /// same CropStageVisual scaling path as tomato/weed and registers in
+        /// the new per-crop cropVisuals array keyed by cropId "banana".
+        /// </summary>
+        private static CropStageVisual BuildBananaVisual(Transform plot)
+        {
+            // bananatree2 is the highest-detail of the three (2781 verts vs
+            // 1477/1479), so it reads best as the crop plant.
+            const string meshPath = "Assets/UpIzUpMini/Art/BananaImported/bananatree2.fbx";
+            var root = new GameObject("BananaVisual");
+            root.transform.SetParent(plot, false);
+            root.transform.localPosition = new Vector3(0f, 0.4f, 0f);
+            Vector3 plotScale = plot.localScale;
+            root.transform.localScale = new Vector3(1f / plotScale.x, 1f / plotScale.y, 1f / plotScale.z);
+
+            var plantRoot = new GameObject("Plant");
+            plantRoot.transform.SetParent(root.transform, false);
+
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+            if (mesh == null)
+            {
+                Debug.LogWarning($"Mini011PhaseBSetup: banana tree mesh missing at {meshPath}");
+            }
+            else
+            {
+                var meshGo = new GameObject("PlantMesh");
+                meshGo.transform.SetParent(plantRoot.transform, false);
+                meshGo.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var plantRenderer = meshGo.AddComponent<MeshRenderer>();
+                plantRenderer.sharedMaterial = GetOrCreateMaterial("BananaTree", new Color(0.28f, 0.54f, 0.20f));
+
+                // The tree is a small decorative mesh (~0.35m); scale it up
+                // to a crop-scale plant (~2m tall when ripe).
+                float normalize = 2.0f / Mathf.Max(0.0001f, mesh.bounds.size.y);
+                meshGo.transform.localScale = Vector3.one * normalize;
+                meshGo.transform.localPosition = new Vector3(0f, -mesh.bounds.min.y * normalize, 0f);
+            }
+
+            var visual = root.AddComponent<CropStageVisual>();
+            var so = new SerializedObject(visual);
+            so.FindProperty("plantRoot").objectReferenceValue = plantRoot.transform;
+            so.FindProperty("plantRenderer").objectReferenceValue =
+                root.GetComponentInChildren<Renderer>(true);
+            var fruitsProp = so.FindProperty("fruitRenderers");
+            // Three hanging fruit spheres clustered at the top of the plant
+            // read as a banana bunch (they ripen to the crop's yellow via
+            // CropStageVisual). Staggered heights so it reads as a cluster,
+            // not a single floating ball.
+            fruitsProp.arraySize = 3;
+            float[] ys = { 1.45f, 1.30f, 1.18f };
+            float[] xs = { -0.30f, 0.00f, 0.28f };
+            for (int i = 0; i < 3; i++)
+            {
+                var fruit = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                fruit.name = $"BananaBunch_{i}";
+                fruit.transform.SetParent(plantRoot.transform, false);
+                fruit.transform.localPosition = new Vector3(xs[i], ys[i], 0f);
+                fruit.transform.localScale = new Vector3(0.34f, 0.50f, 0.34f);
+                Object.DestroyImmediate(fruit.GetComponent<Collider>());
+                fruit.GetComponent<Renderer>().sharedMaterial =
+                    GetOrCreateMaterial("CropFruit", Color.green);
+                fruitsProp.GetArrayElementAtIndex(i).objectReferenceValue =
+                    fruit.GetComponent<Renderer>();
+            }
+            so.FindProperty("fullScale").floatValue = 1f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            root.SetActive(false);
+            return visual;
+        }
+
+        /// <summary>
+        /// MINI-050: registers a per-crop visual on a FarmPlot's new
+        /// cropVisuals array, inserting/replacing the entry for cropId.
+        /// </summary>
+        private static void RegisterCropVisual(FarmPlot plot, string cropId, CropStageVisual visual)
+        {
+            var so = new SerializedObject(plot);
+            var arr = so.FindProperty("cropVisuals");
+            for (int i = 0; i < arr.arraySize; i++)
+            {
+                var el = arr.GetArrayElementAtIndex(i);
+                if (el.FindPropertyRelative("cropId").stringValue == cropId)
+                {
+                    el.FindPropertyRelative("visual").objectReferenceValue = visual;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    return;
+                }
+            }
+            arr.InsertArrayElementAtIndex(arr.arraySize);
+            var ne = arr.GetArrayElementAtIndex(arr.arraySize - 1);
+            ne.FindPropertyRelative("cropId").stringValue = cropId;
+            ne.FindPropertyRelative("visual").objectReferenceValue = visual;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         /// <summary>Simple enterable-looking safehouse beside the hillside farm.</summary>
         private static void BuildFarmSafehouse(Terrain terrain, Vector3 farmCenter, Vector3 right, Vector3 dir)
         {
@@ -1437,6 +1642,101 @@ namespace UpIzUpMini.EditorTools
             pillow.GetComponent<Renderer>().sharedMaterial = bedMat;
         }
 
+        /// <summary>
+        /// MINI-042. A second, purchasable safehouse in town - reuses the
+        /// same open-shelter geometry as the free Montine farm one
+        /// (BuildOpenSafehouse), gated on owning "prop_safehouse" (already
+        /// sold at the Land Office since MINI-013 but, until now, a pure
+        /// economy entry with no gameplay effect). Set back further from
+        /// the road than the shopfronts/houses to avoid overlapping the
+        /// dense house row lining the street.
+        /// </summary>
+        private static void BuildLalayHouse(Terrain terrain, List<Vector3> roadPoints)
+        {
+            int index = Mathf.Clamp(4, 1, roadPoints.Count - 2);
+            Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3 pos = roadPoints[index] + right * 13f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+            Quaternion rot = Quaternion.LookRotation(-right, Vector3.up);
+
+            var parent = new GameObject("LalayHouse");
+            parent.transform.position = pos;
+            parent.transform.rotation = rot;
+
+            BuildOpenSafehouse(parent.transform, pos, rot);
+
+            var restGo = new GameObject("LalayHouse_Rest");
+            restGo.transform.SetParent(parent.transform);
+            restGo.transform.position = pos + rot * new Vector3(0f, 0.6f, 0f);
+            var safehouse = restGo.AddComponent<SafehouseInteractable>();
+            var so = new SerializedObject(safehouse);
+            so.FindProperty("safehouseName").stringValue = "Lalay House";
+            so.FindProperty("requiredItemId").stringValue = "prop_safehouse";
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// MINI-047/MINI-048. A small bench beside the farm where paired
+        /// strains get interbred into a hybrid's seed - Purple Black,
+        /// Sugar Cheese, and Purple Cheese all live on this one station
+        /// (see CropBreedingStation.Recipe). Built after crops exist
+        /// (BuildFarmPathAndClearing itself runs before
+        /// BuildEconomyAndCrops, so this can't live there) - _farmCenter
+        /// is set during farm building and still valid by the time this
+        /// runs.
+        /// </summary>
+        private static void BuildBreedingStation(Terrain terrain, Vector3 farmCenter, CropDefinition[] crops)
+        {
+            if (farmCenter == Vector3.zero) return;
+
+            CropDefinition Find(string id) => System.Array.Find(crops, c => c != null && c.cropId == id);
+            CropDefinition purple = Find("purple");
+            CropDefinition blackSugar = Find("black_sugar");
+            CropDefinition purpleBlack = Find("purple_black");
+            CropDefinition blueCheese = Find("blue_cheese");
+            CropDefinition sugarCheese = Find("sugar_cheese");
+            CropDefinition purpleCheese = Find("purple_cheese");
+
+            var recipeList = new List<CropBreedingStation.Recipe>();
+            void AddRecipe(CropDefinition a, CropDefinition b, CropDefinition output)
+            {
+                if (a == null || b == null || output == null) return;
+                recipeList.Add(new CropBreedingStation.Recipe
+                {
+                    parentA = a, parentB = b, output = output, outputSeedCount = 2,
+                });
+            }
+            AddRecipe(purple, blackSugar, purpleBlack);
+            AddRecipe(blackSugar, blueCheese, sugarCheese);
+            AddRecipe(purple, blueCheese, purpleCheese);
+            if (recipeList.Count == 0) return;
+
+            Vector3 pos = farmCenter + new Vector3(-6f, 0f, 6f);
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+
+            var bench = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bench.name = "BreedingStation";
+            bench.transform.position = pos + Vector3.up * 0.4f;
+            bench.transform.localScale = new Vector3(1.6f, 0.8f, 0.9f);
+            bench.GetComponent<Renderer>().sharedMaterial =
+                GetOrCreateMaterial("BreedingBench", new Color(0.32f, 0.24f, 0.15f));
+
+            var station = bench.AddComponent<CropBreedingStation>();
+            var so = new SerializedObject(station);
+            var recipesProp = so.FindProperty("recipes");
+            recipesProp.arraySize = recipeList.Count;
+            for (int i = 0; i < recipeList.Count; i++)
+            {
+                var element = recipesProp.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("parentA").objectReferenceValue = recipeList[i].parentA;
+                element.FindPropertyRelative("parentB").objectReferenceValue = recipeList[i].parentB;
+                element.FindPropertyRelative("output").objectReferenceValue = recipeList[i].output;
+                element.FindPropertyRelative("outputSeedCount").intValue = recipeList[i].outputSeedCount;
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         // ---------------------------------------------------------------
         // Player / NPC / Camera
         // ---------------------------------------------------------------
@@ -1486,7 +1786,17 @@ namespace UpIzUpMini.EditorTools
             pcSo.FindProperty("vitals").objectReferenceValue = vitals;
             pcSo.ApplyModifiedPropertiesWithoutUndo();
             playerController.IsControlled = startActive;
-            go.AddComponent<SimpleMeleeCombat>();
+
+            // MINI-031: shared upper-body action layer. Both boys carry
+            // the same action list today - a future ability that only one
+            // of them has would simply pass a shorter list here, no change
+            // to HumanoidAnimationManager itself.
+            var animationManager = AddHumanoidAnimationManager(go, animator);
+
+            var meleeCombat = go.AddComponent<SimpleMeleeCombat>();
+            var meleeSo = new SerializedObject(meleeCombat);
+            meleeSo.FindProperty("animationManager").objectReferenceValue = animationManager;
+            meleeSo.ApplyModifiedPropertiesWithoutUndo();
 
             var farmhand = go.AddComponent<FarmhandController>();
             var companion = go.AddComponent<CompanionInteractable>();
@@ -1499,6 +1809,18 @@ namespace UpIzUpMini.EditorTools
             fcSo.FindProperty("animator").objectReferenceValue = animator;
             fcSo.ApplyModifiedPropertiesWithoutUndo();
             followController.FollowingEnabled = !startActive;
+
+            // MINI-046: the other half of "stronger together" - while
+            // this boy is the follower he throws his own punches at
+            // whichever officer is already close, using the same
+            // animation manager and melee action as the player's own F key.
+            var combatAssist = go.AddComponent<CompanionCombatAssist>();
+            var assistSo = new SerializedObject(combatAssist);
+            assistSo.FindProperty("animationManager").objectReferenceValue = animationManager;
+            assistSo.FindProperty("followController").objectReferenceValue = followController;
+            assistSo.FindProperty("farmhand").objectReferenceValue = farmhand;
+            assistSo.FindProperty("vitals").objectReferenceValue = vitals;
+            assistSo.ApplyModifiedPropertiesWithoutUndo();
 
             var interactionDetector = go.AddComponent<InteractionDetector>();
             interactionDetector.enabled = startActive;
@@ -1585,14 +1907,21 @@ namespace UpIzUpMini.EditorTools
             BuildMarketArea(terrain, roadPoints, index: 15, title: "CAR DEALER", secondTitle: null);
 
             BuildBossNpc(terrain, roadPoints, allCrops, animController);
-            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossM", "black_sugar", 10, 1f);
-            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossP", "purple", 13, 1f);
+            // MINI-039: seed prices scale with the strain's own sellPrice
+            // rarity ordering (bushers 22 < black_sugar 38 < purple 55) -
+            // per the user's "make them expensive" ask, each tier costs
+            // roughly 7x its own sell price rather than being free.
+            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossM", "black_sugar", 10, 1f, seedPrice: 320);
+            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossP", "purple", 13, 1f, seedPrice: 500);
+            // MINI-048: Blue Cheese - a new base strain, priced above
+            // Purple's own seed to match its deeper unlock tier.
+            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossQ", "blue_cheese", 8, -1f, seedPrice: 650);
             BuildBoatMan(terrain, allCrops, animController);
         }
 
         private static void BuildStrainBoss(Terrain terrain, List<Vector3> roadPoints,
             CropDefinition[] crops, RuntimeAnimatorController controller, string bossName,
-            string cropId, int index, float side)
+            string cropId, int index, float side, int seedPrice)
         {
             index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
             Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
@@ -1607,6 +1936,7 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("role").enumValueIndex = (int)NpcRole.StrainBoss;
             so.FindProperty("npcName").stringValue = bossName;
             so.FindProperty("bossSeedCrop").objectReferenceValue = crop;
+            so.FindProperty("seedPrice").intValue = seedPrice;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -1687,6 +2017,9 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("role").enumValueIndex = (int)NpcRole.Boss;
             so.FindProperty("npcName").stringValue = "BossK";
             so.FindProperty("bossSeedCrop").objectReferenceValue = bushers;
+            // MINI-039: first illegal strain, cheapest of the three -
+            // see the seed-pricing note by the BossM/BossP calls.
+            so.FindProperty("seedPrice").intValue = 150;
             var cropsProp = so.FindProperty("sellableCrops");
             cropsProp.arraySize = allCrops.Length;
             for (int i = 0; i < allCrops.Length; i++)
@@ -1746,7 +2079,17 @@ namespace UpIzUpMini.EditorTools
 
                 if (role == NpcRole.Police)
                 {
-                    npcGo.AddComponent<NpcCombatHealth>();
+                    // MINI-038: hit-reaction stagger + knockdown-and-lie-
+                    // down needs the same action layer the player's punch
+                    // does, and NpcCombatHealth needs a reference to it.
+                    var npcAnimator = npcVisual.GetComponentInChildren<Animator>();
+                    var npcAnimationManager = AddHumanoidAnimationManager(npcGo, npcAnimator);
+
+                    var combatHealth = npcGo.AddComponent<NpcCombatHealth>();
+                    var chSo = new SerializedObject(combatHealth);
+                    chSo.FindProperty("animationManager").objectReferenceValue = npcAnimationManager;
+                    chSo.ApplyModifiedPropertiesWithoutUndo();
+
                     // Officers pace the road by the sellers and give chase
                     // when heat is up; PoliceOfficer also steers around
                     // buildings, which plain patrolling did not.
@@ -1763,6 +2106,7 @@ namespace UpIzUpMini.EditorTools
                     var oso = new SerializedObject(officer);
                     oso.FindProperty("patrolA").vector3Value = beatStart;
                     oso.FindProperty("patrolB").vector3Value = beatEnd;
+                    oso.FindProperty("combatHealth").objectReferenceValue = combatHealth;
                     oso.ApplyModifiedPropertiesWithoutUndo();
                     return;
                 }
@@ -2071,14 +2415,36 @@ namespace UpIzUpMini.EditorTools
         // Economy / crops
         // ---------------------------------------------------------------
 
-        private static readonly (string id, string name, int price, bool illegal, string unripeHex, string ripeHex)[] CropSpecs =
+        private static readonly (string id, string name, int price, bool illegal, string unripeHex, string ripeHex, string secondaryRipeHex)[] CropSpecs =
         {
-            ("tomato", "Tomato", 5, false, "4D8C40", "BF1F1A"),
-            ("banana", "Banana", 6, false, "5C9E3E", "E8D23C"),
-            ("carrot", "Carrot", 4, false, "4D8C40", "E07A1F"),
-            ("bushers", "Bushers", 22, true, "3A6B2E", "5B7A2E"),
-            ("black_sugar", "Black Sugar", 38, true, "28351F", "443026"),
-            ("purple", "Purple", 55, true, "35402B", "6C3B78"),
+            ("tomato", "Tomato", 5, false, "4D8C40", "BF1F1A", null),
+            ("banana", "Banana", 6, false, "5C9E3E", "E8D23C", null),
+            ("carrot", "Carrot", 4, false, "4D8C40", "E07A1F", null),
+            ("bushers", "Bushers", 22, true, "3A6B2E", "5B7A2E", null),
+            // MINI-039: ripe hex recoloured per the user's explicit ask -
+            // Black Sugar shows orange buds, Purple shows (brighter)
+            // purple buds. This table is reapplied unconditionally on
+            // every scene build (see BuildEconomyAndCrops below), so it -
+            // not a one-off edit of the generated .asset files - is the
+            // actual source of truth; a direct .asset edit or a one-off
+            // AssetDatabase script both get silently overwritten the next
+            // time BuildScene runs.
+            ("black_sugar", "Black Sugar", 38, true, "28351F", "D97314", null),
+            ("purple", "Purple", 55, true, "35402B", "8C1FAD", null),
+            // MINI-047: Purple Black - interbred from Purple + Black
+            // Sugar (see CropBreedingStation). secondaryRipeHex set means
+            // ripe fruit alternates orange (Black Sugar's own colour) and
+            // purple (Purple's) instead of a single flat colour, so both
+            // parent strains show at once.
+            ("purple_black", "Purple Black", 90, true, "241A2B", "8C1FAD", "D97314"),
+            // MINI-048: Blue Cheese - a new base strain (boss-granted, like
+            // Black Sugar/Purple), single blue ripe colour. Its two hybrids
+            // both alternate blue with their other parent's own colour -
+            // Sugar Cheese with Black Sugar's orange, Purple Cheese with
+            // Purple's purple - in the order the user asked for them.
+            ("blue_cheese", "Blue Cheese", 65, true, "1E3550", "2E6BAD", null),
+            ("sugar_cheese", "Sugar Cheese", 110, true, "1E3550", "2E6BAD", "D97314"),
+            ("purple_cheese", "Purple Cheese", 130, true, "241A2B", "2E6BAD", "8C1FAD"),
         };
 
         private static CropDefinition[] BuildEconomyAndCrops()
@@ -2106,6 +2472,15 @@ namespace UpIzUpMini.EditorTools
                 ColorUtility.TryParseHtmlString("#" + spec.ripeHex, out var ripe);
                 crop.unripeColor = unripe;
                 crop.ripeColor = ripe;
+                if (!string.IsNullOrEmpty(spec.secondaryRipeHex))
+                {
+                    ColorUtility.TryParseHtmlString("#" + spec.secondaryRipeHex, out var secondary);
+                    crop.secondaryRipeColor = secondary; // parsed hex has alpha 1 - "set"
+                }
+                else
+                {
+                    crop.secondaryRipeColor = new Color(0f, 0f, 0f, 0f); // explicit "unset" - single-colour ripe
+                }
                 EditorUtility.SetDirty(crop);
 
                 crops[i] = crop;
@@ -2135,6 +2510,10 @@ namespace UpIzUpMini.EditorTools
             ("seed_tomato", "Tomato Seeds (x5)",   ShopCategory.Seed,      12,  "tomato", 5),
             ("seed_banana", "Banana Suckers (x3)", ShopCategory.Seed,      20,  "banana", 3),
             ("seed_carrot", "Carrot Seeds (x5)",   ShopCategory.Seed,      10,  "carrot", 5),
+            // MINI-040: one-time unlock for CellPhoneController's "call
+            // your partner" key - farm shop rather than a dedicated
+            // communications shop that doesn't otherwise exist.
+            ("phone_basic", "Basic Cell Phone",    ShopCategory.Communication, 200, null, 0),
         };
 
         // Land is sold from its own "Land and Surveys" office, not the
@@ -2260,6 +2639,13 @@ namespace UpIzUpMini.EditorTools
         {
             Vector3 marketPos = roadPoints[Mathf.Clamp(6, 1, roadPoints.Count - 2)];
             Vector3 apparelPos = roadPoints[Mathf.Clamp(12, 1, roadPoints.Count - 2)];
+            // MINI-039: NPC_LandOffice is built at road index 14 (see
+            // BuildNpc's LandOffice call) and land_montine is stocked in
+            // its own landShop, not the Farm Shop's - the M3 objective
+            // below used to send the player to marketPos/"Farm Shop"
+            // regardless, a stale leftover from before the Land Office
+            // existed. Land purchases now correctly route here.
+            Vector3 landOfficePos = roadPoints[Mathf.Clamp(14, 1, roadPoints.Count - 2)];
             Vector3 plotPos = firstPlot != null ? firstPlot.position : farmCenter;
             Vector3 policePos = roadPoints[Mathf.Clamp(3, 1, roadPoints.Count - 2)];
             Vector3 expansionPos = _expansionPlotPos != Vector3.zero ? _expansionPlotPos : farmCenter;
@@ -2372,8 +2758,8 @@ namespace UpIzUpMini.EditorTools
                         {
                             kind = ObjectiveKind.BuyItem,
                             targetId = "land_montine",
-                            instruction = "Buy the Montine Land Plot from the Farm Shop ($600)",
-                            markerPosition = marketPos,
+                            instruction = "Buy the Montine Land Plot at Land and Surveys ($600)",
+                            markerPosition = landOfficePos,
                         },
                         new MissionObjective
                         {

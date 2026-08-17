@@ -9,6 +9,8 @@ namespace UpIzUpMini.Economy
         Food,
         /// <summary>Pills/enhancements - temporary stamina boost. Consumed on purchase.</summary>
         Enhancement,
+        /// <summary>MINI-040. A one-time unlock, not consumed - owning it enables CellPhoneController's "call your partner" key.</summary>
+        Communication,
     }
 
     /// <summary>

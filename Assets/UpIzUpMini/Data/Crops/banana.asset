@@ -19,3 +19,4 @@ MonoBehaviour:
   growDurationSeconds: 18
   unripeColor: {r: 0.36078432, g: 0.61960787, b: 0.24313726, a: 1}
   ripeColor: {r: 0.9098039, g: 0.8235294, b: 0.23529412, a: 1}
+  secondaryRipeColor: {r: 0, g: 0, b: 0, a: 0}

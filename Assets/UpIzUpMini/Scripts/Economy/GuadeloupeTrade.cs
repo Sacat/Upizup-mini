@@ -6,13 +6,22 @@ namespace UpIzUpMini.Economy
     /// <summary>
     /// The Guadeloupe run, as an abstracted dispatch rather than a
     /// playable location - per DECISIONS.md D-007 and Docs/STORY.md
-    /// Chapter Five. Pay the captain a $500 fee, send the whole crop
-    /// inventory with the character who is NOT currently controlled, and
-    /// after a wait they return with three times the local value.
+    /// Chapter Five. Pay the captain a fee, send cargo across, and after a
+    /// wait it returns with several times the local value.
     ///
-    /// While away that character cannot be switched to, which is the
-    /// mechanically interesting part: the player gives up their second
-    /// body for the duration.
+    /// MINI-043: staged per the user's explicit ask - "first you may send
+    /// an npc but then if the mission is successful the other character
+    /// can go." The first run (and every run until one completes) uses an
+    /// NPC courier from the dock - no playable character is touched or
+    /// locked. The instant that first run completes, character dispatch
+    /// unlocks permanently (ProgressionManager.GuadeloupeCharacterCourierUnlocked)
+    /// and subsequent runs work the old way: the boy who is NOT currently
+    /// controlled is sent, and cannot be switched to while away - the
+    /// mechanically interesting part, giving up a second body for the
+    /// duration. There's no failure/interception mechanic modelled for the
+    /// trip itself, so "if the mission is successful" is satisfied by any
+    /// run completing, which under current mechanics is guaranteed once
+    /// started - not a real risk of losing the NPC courier.
     ///
     /// No Guadeloupe map, route, or evasion detail is modelled.
     /// </summary>
@@ -31,6 +40,7 @@ namespace UpIzUpMini.Economy
 
         private float _returnAt;
         private int _cargoValue;
+        private bool _npcCourierTrip;
 
         private void Awake() => Instance = this;
 
@@ -52,6 +62,7 @@ namespace UpIzUpMini.Economy
 
             var economy = EconomyManager.Instance;
             var switcher = CharacterSwitchManager.Instance;
+            var progression = UpIzUpMini.Progression.ProgressionManager.Instance;
             if (economy == null || switcher == null) return "Boat not running today.";
 
             int cargo = ValueCargo(economy, out int units);
@@ -65,6 +76,24 @@ namespace UpIzUpMini.Economy
                 return $"Di captain want ${captainFee} up front. Come back when you have it.";
             }
 
+            bool characterUnlocked = progression != null && progression.GuadeloupeCharacterCourierUnlocked;
+
+            if (!characterUnlocked)
+            {
+                // NPC courier - no playable character is touched or locked.
+                economy.AddMoney(-captainFee);
+                ClearCargo(economy);
+
+                _cargoValue = Mathf.RoundToInt(cargo * priceMultiplier);
+                AwayCharacterIndex = -1;
+                _npcCourierTrip = true;
+                TripActive = true;
+                _returnAt = Time.time + tripSeconds;
+
+                return $"One of di dock boys carrying it across for allu dis first time. " +
+                       $"${captainFee} paid. Back in about {Mathf.CeilToInt(tripSeconds)}s.";
+            }
+
             // The courier is whichever boy is not currently controlled.
             int away = 1 - switcher.ActiveIndex;
             var slot = switcher.Slots != null && away < switcher.Slots.Length ? switcher.Slots[away] : null;
@@ -76,6 +105,7 @@ namespace UpIzUpMini.Economy
             bool smartCourier = string.Equals(slot.displayName, "Sacat", System.StringComparison.OrdinalIgnoreCase);
             _cargoValue = Mathf.RoundToInt(cargo * priceMultiplier * (smartCourier ? 1.2f : 1f));
             AwayCharacterIndex = away;
+            _npcCourierTrip = false;
             TripActive = true;
             _returnAt = Time.time + tripSeconds;
 
@@ -89,6 +119,25 @@ namespace UpIzUpMini.Economy
         private void CompleteTrip()
         {
             TripActive = false;
+
+            if (_npcCourierTrip)
+            {
+                _npcCourierTrip = false;
+                EconomyManager.Instance?.AddMoney(_cargoValue);
+
+                var progression = UpIzUpMini.Progression.ProgressionManager.Instance;
+                bool firstSuccess = progression != null && !progression.GuadeloupeCharacterCourierUnlocked;
+                progression?.UnlockGuadeloupeCharacterCourier();
+
+                Debug.Log($"Guadeloupe (NPC courier): returned with ${_cargoValue}."
+                    + (firstSuccess ? " Character dispatch unlocked." : string.Empty));
+                Missions.MissionSystem.Instance?.Alert(firstSuccess
+                    ? $"BOAT BACK\nThe dock boy made it back safe with ${_cargoValue}. Allu can go yourself next time."
+                    : $"BOAT BACK\nThe dock boy made it back safe with ${_cargoValue}.");
+
+                _cargoValue = 0;
+                return;
+            }
 
             var switcher = CharacterSwitchManager.Instance;
             var slot = switcher?.Slots != null && AwayCharacterIndex >= 0 && AwayCharacterIndex < switcher.Slots.Length

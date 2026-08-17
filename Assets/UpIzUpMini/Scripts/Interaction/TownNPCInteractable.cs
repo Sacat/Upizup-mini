@@ -55,6 +55,8 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private string bossFollowUpLine =
             "Grow it good and bring it back. Police doe have to know nothing.";
         [SerializeField] private CropDefinition bossSeedCrop;
+        [Tooltip("MINI-039: charged when this boss grants the strain's starter seed - per the user's explicit \"make them expensive\" ask. 0 keeps the old free-grant behaviour for roles that shouldn't charge.")]
+        [SerializeField] private int seedPrice;
 
         [TextArea(1, 3)]
         [SerializeField] private string[] buyerLines =
@@ -133,14 +135,14 @@ namespace UpIzUpMini.Interaction
                     break;
 
                 case NpcRole.Boss:
-                    // Boss K's offer - Docs/STORY.md Mission 5. Grants the
-                    // illegal strain's seeds so the player can take the
+                    // Boss K's offer - Docs/STORY.md Mission 5. Sells the
+                    // illegal strain's starter seeds (MINI-039: priced,
+                    // previously free) so the player can take the
                     // higher-paying, higher-heat work.
                     if (bossSeedCrop != null && EconomyManager.Instance != null
                         && EconomyManager.Instance.GetSeeds(bossSeedCrop.cropId) <= 0)
                     {
-                        EconomyManager.Instance.AddSeeds(bossSeedCrop.cropId, 3);
-                        _lastFeedback = bossOfferLine;
+                        _lastFeedback = TryBuySeed(bossSeedCrop, bossOfferLine);
                     }
                     else
                     {
@@ -156,8 +158,7 @@ namespace UpIzUpMini.Interaction
                     if (!unlocked) _lastFeedback = "You not ready for this strain yet. Build your name first, nuh.";
                     else if (EconomyManager.Instance != null && EconomyManager.Instance.GetSeeds(bossSeedCrop.cropId) <= 0)
                     {
-                        EconomyManager.Instance.AddSeeds(bossSeedCrop.cropId, 3);
-                        _lastFeedback = $"Take three {bossSeedCrop.displayName} seed. This work carry more risk.";
+                        _lastFeedback = TryBuySeed(bossSeedCrop, $"Take three {bossSeedCrop.displayName} seed. This work carry more risk.");
                     }
                     else _lastFeedback = $"Bring back the {bossSeedCrop?.displayName ?? "crop"} when it ready.";
                     break;
@@ -168,6 +169,32 @@ namespace UpIzUpMini.Interaction
             }
 
             Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.TalkTo, npcName);
+        }
+
+        /// <summary>
+        /// MINI-039. Charges seedPrice for the strain's three starter
+        /// seeds rather than handing them over free - real money at risk
+        /// for a real illegal-strain unlock, matching the user's "make
+        /// them expensive" ask. Declines cleanly (no seed, no charge) if
+        /// the player can't afford it, rather than letting Money go
+        /// negative the way a death fee is allowed to.
+        /// </summary>
+        private string TryBuySeed(CropDefinition crop, string successLine)
+        {
+            var economy = EconomyManager.Instance;
+            if (economy == null) return successLine;
+
+            if (seedPrice > 0)
+            {
+                if (economy.Money < seedPrice)
+                {
+                    return $"{crop.displayName} seed cost ${seedPrice}. Allu short, nuh. Come back when you have it.";
+                }
+                economy.AddMoney(-seedPrice);
+            }
+
+            economy.AddSeeds(crop.cropId, 3);
+            return seedPrice > 0 ? $"{successLine} That cost you ${seedPrice}." : successLine;
         }
 
         /// <summary>Cycles through an NPC's lines so repeat talks vary.</summary>

@@ -182,6 +182,15 @@ namespace UpIzUpMini.Economy
             OnChanged?.Invoke();
         }
 
+        /// <summary>MINI-049. Sets an exact total rather than adding a
+        /// delta - used by the cheat code so re-entering it doesn't stack
+        /// money on top of itself.</summary>
+        public void SetMoney(int amount)
+        {
+            Money = amount;
+            OnChanged?.Invoke();
+        }
+
         public void AddHeat(float amount)
         {
             Heat = Mathf.Clamp(Heat + amount, 0f, MaxHeat);

@@ -1,0 +1,104 @@
+using UnityEngine;
+using UpIzUpMini.Combat;
+using UpIzUpMini.Economy;
+using UpIzUpMini.Interaction;
+
+namespace UpIzUpMini.Character
+{
+    /// <summary>
+    /// MINI-046. The "other member automatically helps in situation" half
+    /// of the user's ask. While this character is the follower (not the
+    /// one you're controlling) and not off farming or already down, it
+    /// throws its own punches at the nearest police officer already
+    /// within range - a second attacker, not a copy of the player's F-key
+    /// handling. It does not actively chase a target down; because it
+    /// follows the player everywhere, anything harassing the player is
+    /// usually already close enough. See SimpleMeleeCombat for the
+    /// complementary "stronger together" damage bonus this doesn't itself
+    /// grant - that lives on the player's own attack, not here.
+    /// </summary>
+    public class CompanionCombatAssist : MonoBehaviour
+    {
+        [SerializeField] private float engageRange = 6f;
+        [SerializeField] private float attackRange = 2.1f;
+        [SerializeField] private float damage = 30f; // a touch under the player's own 35 - a helper, not a replacement
+        [SerializeField] private float cooldown = 0.85f;
+        [SerializeField] private float officerRescanSeconds = 0.5f;
+        [SerializeField] private HumanoidAnimationManager animationManager;
+        [SerializeField] private FollowController followController;
+        [SerializeField] private FarmhandController farmhand;
+        [SerializeField] private CharacterVitals vitals;
+
+        private float _nextAttack;
+        private float _nextRescan;
+        private NpcCombatHealth[] _officers = System.Array.Empty<NpcCombatHealth>();
+
+        private void Awake()
+        {
+            if (animationManager == null) animationManager = GetComponent<HumanoidAnimationManager>();
+            if (followController == null) followController = GetComponent<FollowController>();
+            if (farmhand == null) farmhand = GetComponent<FarmhandController>();
+            if (vitals == null) vitals = GetComponent<CharacterVitals>();
+        }
+
+        private void Update()
+        {
+            if (followController == null || !followController.FollowingEnabled) return;
+            if (farmhand != null && farmhand.IsWorking) return;
+            if (vitals != null && vitals.IsDead) return;
+
+            if (Time.time >= _nextRescan)
+            {
+                RescanOfficers();
+                _nextRescan = Time.time + officerRescanSeconds;
+            }
+
+            NpcCombatHealth nearest = FindNearestLiveOfficer(out float nearestDist);
+            if (nearest == null || nearestDist > engageRange) return;
+
+            FaceTarget(nearest.transform.position);
+
+            if (nearestDist > attackRange || Time.time < _nextAttack) return;
+
+            _nextAttack = Time.time + cooldown;
+            animationManager?.PlayAction(SimpleMeleeCombat.ActionId);
+            nearest.Hit(damage, transform.forward * 0.8f);
+            EconomyManager.Instance?.AddHeat(EconomyManager.MaxHeat);
+        }
+
+        private void FaceTarget(Vector3 worldPos)
+        {
+            Vector3 toTarget = worldPos - transform.position;
+            toTarget.y = 0f;
+            if (toTarget.sqrMagnitude < 0.0001f) return;
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(toTarget), 10f * Time.deltaTime);
+        }
+
+        private NpcCombatHealth FindNearestLiveOfficer(out float nearestDist)
+        {
+            NpcCombatHealth nearest = null;
+            nearestDist = float.MaxValue;
+            foreach (var health in _officers)
+            {
+                if (health == null || health.IsDown) continue;
+                float d = Vector3.Distance(transform.position, health.transform.position);
+                if (d < nearestDist) { nearestDist = d; nearest = health; }
+            }
+            return nearest;
+        }
+
+        private void RescanOfficers()
+        {
+            var npcs = Object.FindObjectsByType<TownNPCInteractable>(
+                FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            var list = new System.Collections.Generic.List<NpcCombatHealth>(npcs.Length);
+            foreach (var npc in npcs)
+            {
+                if (npc.Role != NpcRole.Police) continue;
+                var health = npc.GetComponent<NpcCombatHealth>();
+                if (health != null) list.Add(health);
+            }
+            _officers = list.ToArray();
+        }
+    }
+}

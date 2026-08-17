@@ -23,6 +23,11 @@ namespace UpIzUpMini.Farming
         [SerializeField] private Renderer soilRenderer;
         [SerializeField] private CropStageVisual tomatoVisual;
         [SerializeField] private CropStageVisual weedVisual;
+        // MINI-050: per-crop visual registry so a crop is not forced onto the
+        // tomato/weed shape by legality alone (banana previously rendered as a
+        // tomato plant recoloured yellow). Unregistered crops fall back to the
+        // legal/illegal default, preserving every existing crop's look.
+        [SerializeField] private CropVisualEntry[] cropVisuals = System.Array.Empty<CropVisualEntry>();
         [SerializeField] private int harvestYield = 3;
 
         private PlotState _state = PlotState.Empty;
@@ -30,6 +35,14 @@ namespace UpIzUpMini.Farming
         private CropStageVisual _activeVisual;
         private float _growTimer;
         private string _lastFeedback;
+
+        [System.Serializable]
+        public struct CropVisualEntry
+        {
+            public string cropId;
+            public CropStageVisual visual;
+            public CropVisualEntry(string id, CropStageVisual v) { cropId = id; visual = v; }
+        }
 
         [SerializeField] private int seedsPerClone = 2;
         [SerializeField] private float cloneCooldownSeconds = 60f;
@@ -158,8 +171,7 @@ namespace UpIzUpMini.Farming
         private void Start()
         {
             SetSoilColor(DrySoilColor);
-            if (tomatoVisual != null) tomatoVisual.SetVisible(false);
-            if (weedVisual != null) weedVisual.SetVisible(false);
+            HideAllVisuals();
         }
 
         private void Update()
@@ -172,7 +184,7 @@ namespace UpIzUpMini.Farming
             // 4 discrete stages rather than a continuous scale, so growth
             // reads as a plant developing rather than something inflating.
             int stage = t >= 1f ? 3 : Mathf.Clamp(Mathf.FloorToInt(t * 3f), 0, 2);
-            _activeVisual?.ApplyStage(stage, _crop.unripeColor, _crop.ripeColor);
+            _activeVisual?.ApplyStage(stage, _crop.unripeColor, _crop.ripeColor, _crop.secondaryRipeColor);
 
             if (t >= 1f)
             {
@@ -214,12 +226,10 @@ namespace UpIzUpMini.Farming
                     Missions.MissionSystem.Instance?.Notify(
                         Missions.ObjectiveKind.PlantCrop, crop.cropId);
 
-                    _activeVisual = crop.isIllegal ? weedVisual : tomatoVisual;
-                    if (tomatoVisual != null) tomatoVisual.SetVisible(_activeVisual == tomatoVisual);
-                    if (weedVisual != null) weedVisual.SetVisible(_activeVisual == weedVisual);
-                    _activeVisual?.ApplyStage(0, crop.unripeColor, crop.ripeColor);
+                    _activeVisual = VisualFor(_crop);
+                    ApplyActiveVisual(0, _crop.unripeColor, _crop.ripeColor, _crop.secondaryRipeColor);
 
-                    _lastFeedback = $"Planted {crop.displayName}. It need water, nuh.";
+                    _lastFeedback = $"Planted {_crop.displayName}. It need water, nuh.";
                     break;
 
                 case PlotState.PlantedDry:
@@ -295,15 +305,12 @@ namespace UpIzUpMini.Farming
                 return;
             }
 
-            _activeVisual = _crop.isIllegal ? weedVisual : tomatoVisual;
-            if (tomatoVisual != null) tomatoVisual.SetVisible(_activeVisual == tomatoVisual);
-            if (weedVisual != null) weedVisual.SetVisible(_activeVisual == weedVisual);
-
             SetSoilColor(_state == PlotState.PlantedDry ? DrySoilColor : WateredSoilColor);
 
             float t = Mathf.Clamp01(_growTimer / Mathf.Max(0.1f, _crop.growDurationSeconds));
             int stage = _state == PlotState.Ripe ? 3 : Mathf.Clamp(Mathf.FloorToInt(t * 3f), 0, 2);
-            _activeVisual?.ApplyStage(stage, _crop.unripeColor, _crop.ripeColor);
+            _activeVisual = VisualFor(_crop);
+            ApplyActiveVisual(stage, _crop.unripeColor, _crop.ripeColor, _crop.secondaryRipeColor);
         }
 
         private void ResetPlot()
@@ -315,9 +322,45 @@ namespace UpIzUpMini.Farming
             _cloneReadyAt = 0f;
             _cloneQuality = 1f;
             SetSoilColor(DrySoilColor);
+            HideAllVisuals();
+            _activeVisual = null;
+        }
+
+        /// <summary>
+        /// Resolves which visual a crop should use. The per-crop registry wins
+        /// (e.g. banana -> banana tree); anything unregistered falls back to
+        /// weed for illegal crops and tomato for legal ones, matching the
+        /// previous hardcoded behaviour so no existing crop's look changes.
+        /// </summary>
+        private CropStageVisual VisualFor(CropDefinition crop)
+        {
+            if (crop != null && cropVisuals != null)
+            {
+                for (int i = 0; i < cropVisuals.Length; i++)
+                {
+                    if (cropVisuals[i].visual != null && cropVisuals[i].cropId == crop.cropId)
+                        return cropVisuals[i].visual;
+                }
+            }
+            return crop != null && crop.isIllegal ? weedVisual : tomatoVisual;
+        }
+
+        private void ApplyActiveVisual(int stage, Color unripe, Color ripe, Color secondary)
+        {
+            HideAllVisuals();
+            if (_activeVisual != null) _activeVisual.SetVisible(true);
+            _activeVisual?.ApplyStage(stage, unripe, ripe, secondary);
+        }
+
+        private void HideAllVisuals()
+        {
             if (tomatoVisual != null) tomatoVisual.SetVisible(false);
             if (weedVisual != null) weedVisual.SetVisible(false);
-            _activeVisual = null;
+            if (cropVisuals != null)
+            {
+                for (int i = 0; i < cropVisuals.Length; i++)
+                    if (cropVisuals[i].visual != null) cropVisuals[i].visual.SetVisible(false);
+            }
         }
 
         private void SetSoilColor(Color color)

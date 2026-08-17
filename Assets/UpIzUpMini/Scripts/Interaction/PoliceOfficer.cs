@@ -1,5 +1,6 @@
 using UnityEngine;
 using UpIzUpMini.Character;
+using UpIzUpMini.Combat;
 using UpIzUpMini.Economy;
 
 namespace UpIzUpMini.Interaction
@@ -43,6 +44,7 @@ namespace UpIzUpMini.Interaction
         [Header("Animation")]
         [SerializeField] private Animator animator;
         [SerializeField] private float turnSpeed = 8f;
+        [SerializeField] private NpcCombatHealth combatHealth;
 
         private CharacterController _controller;
         private bool _headingToB = true;
@@ -59,6 +61,7 @@ namespace UpIzUpMini.Interaction
             _controller = GetComponent<CharacterController>();
             _stamina = maxStamina;
             if (animator == null) animator = GetComponentInChildren<Animator>();
+            if (combatHealth == null) combatHealth = GetComponent<NpcCombatHealth>();
         }
 
         public void SetPatrol(Vector3 a, Vector3 b)
@@ -69,6 +72,17 @@ namespace UpIzUpMini.Interaction
 
         private void Update()
         {
+            // Lying down after a knockout - NpcCombatHealth is holding a
+            // sustained full-body pose on this character. Don't fight it
+            // by driving the base locomotion layer or calling SimpleMove
+            // on a CharacterController it has already disabled; just wait
+            // for it to get back up.
+            if (combatHealth != null && combatHealth.IsDown)
+            {
+                IsChasing = false;
+                return;
+            }
+
             float heat = EconomyManager.Instance != null ? EconomyManager.Instance.Heat : 0f;
             var player = CharacterSwitchManager.Instance?.Active?.root;
 

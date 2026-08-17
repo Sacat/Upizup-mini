@@ -31,6 +31,8 @@ namespace UpIzUpMini.Character
         [SerializeField] private CharacterSlot[] slots = new CharacterSlot[2];
         [SerializeField] private ThirdPersonFollowCamera followCamera;
         [SerializeField] private Vector3 safehouseSpawn;
+        [Tooltip("Owed to the health center every time health hits 0 - per the user's explicit ask. AddMoney has no floor, so this can put Money negative (a debt) rather than being capped at what's on hand.")]
+        [SerializeField] private int deathFee = 500;
 
         public int ActiveIndex { get; private set; }
         public CharacterSlot Active => slots[ActiveIndex];
@@ -63,7 +65,12 @@ namespace UpIzUpMini.Character
         private void HandleDeath(CharacterVitals deadVitals)
         {
             var dead = Array.Find(slots, s => s != null && s.vitals == deadVitals);
-            RespawnAtSafehouse($"{dead?.displayName ?? "Player"} dead.");
+            // Health-zero death specifically owes the health center a fee -
+            // WorldSafetyController's out-of-bounds respawn goes through
+            // the same RespawnAtSafehouse but isn't a medical event, so the
+            // charge lives here rather than in that shared method.
+            Economy.EconomyManager.Instance?.AddMoney(-deathFee);
+            RespawnAtSafehouse($"{dead?.displayName ?? "Player"} dead. ${deathFee} owed to the health center.");
         }
 
         public void RespawnAtSafehouse(string reason)
