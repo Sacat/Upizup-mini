@@ -27,8 +27,8 @@ reserved_files:
 
 ```yaml
 current_owner: OpenClaw
-active_task: MINI-058
-claimed_at: 2026-08-17T05:45:00-04:00
+active_task: MINI-059
+claimed_at: 2026-08-17T05:46:00-04:00
 reserved_files:
   - Assets/UpIzUpMini/Scripts/**
   - Assets/UpIzUpMini/Editor/**
@@ -37,10 +37,11 @@ reserved_files:
   - TASKS.md
 ```
 
-### In-progress (plot assembly, chunk 3): MINI-058 — Rasta strain-learning missions
-MINI-056 (Gardey Zafeh reveal) and MINI-057 (Normy missions + boss-target fix)
-are committed. Chunk 3 = the older Rasta StrainTeacher gives missions to
-learn/how-to-make each new strain; completing them unlocks the strain.
+### In-progress (plot assembly, chunk 4): MINI-059 — Moutey (granny) chain quest + police fire-emoji wanted display
+MINI-056/057/058 committed. Chunk 4 = (a) Moutey the granny quest (after
+buying your chain, go to granny to get stronger vs police / evade faster)
+and (b) the GTA-like police wanted display using the fire emoji instead of
+stars (more police = stronger).
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -1023,6 +1024,25 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0). Scene rebuilt clean. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
 - Known issues (honest): not hands-on playtested — the Rasta teaching flow (talk -> get seed -> plant -> harvest) needs a real run. FarmPlot doesn't gate planting by unlock, so the missions work regardless of reputation gates; the Rasta is the intended learning path, while Boss C still sells strain seeds. The Rasta teaching missions sit after N1 in the sequence, so they play after Normy's favour (a reasonable order).
 - Next action: playtest. Then assembly chunk 4: Moutey (granny) chain quest + police fire-emoji wanted display.
+
+### MINI-059 - Moutey (granny) chain quest + police fire-emoji wanted display (plot assembly, chunk 4)
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: Continue plot + gameplay assembly (chunk 4). Two beats from the user's design: (a) after buying your chain, go to Moutey (granny) to get stronger vs police / evade faster, as a mission; and (b) the GTA-like police wanted display shown with the FIRE emoji instead of stars (more police = stronger).
+- Acceptance criteria: Moutey NPC exists and, when the player owns the chain, blessing it grants a persistent evade/strength boost (both protagonists run/evade police better) and feeds gang rep; the HUD shows a 🔥 wanted display that scales with police heat; compiles, scene builds, Windows build runs with zero errors.
+- Implementation:
+  - **Moutey (granny) quest.** `Scripts/Interaction/MouteyInteractable.cs` (new): if the player doesn't own the chain, granny tells them to buy one; if owned but not yet blessed, she blesses it (a mission beat) — sets `ProgressionManager.ChainBlessed`, calls `CharacterVitals.BoostEvade(true)` on both boys (evade/flee faster), grants GrandBayGangs rep, and shows a mission alert. Idempotent thereafter.
+  - **Chain-blessed persistent flag.** `ProgressionManager.cs`: added `ChainBlessed` + `GetChainBlessed()`/`SetChainBlessed(bool)` so the boost survives respawn/switch.
+  - **Evade boost.** `CharacterVitals.cs`: added `EvadingBoosted` + `BoostEvade(bool)` — sets `_boostRegenMultiplier` to 2x (faster stamina regen = can flee police longer).
+  - **Fire-emoji wanted display.** `HUDController.cs`: added `wantedLabel`; heat now also renders 0-5 🔥 (`\U0001F525`) scaling with heat01 * 5. `Mini011PhaseBSetup.BuildHUD` wires a top-centre wanted label.
+  - Moutey build: `BuildMoutey` places `NPC_Moutey` (Floreswa stand-in) near index 9 (a shanty-house part of town) and attaches the interactable.
+- Files changed: `Scripts/Interaction/MouteyInteractable.cs` (new), `Scripts/Progression/ProgressionManager.cs` (ChainBlessed), `Scripts/Character/CharacterVitals.cs` (BoostEvade), `Scripts/UI/HUDController.cs` (wanted label), `Editor/Mini011PhaseBSetup.cs` (BuildMoutey + wanted wire), `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt with `NPC_Moutey`/`MouteyInteractable` (confirmed present in scene text) and the HUD wanted label.
+- Verification commands: `Logs/Mini059-Compile.log` (exit 0), `Logs/Mini059-BuildScene.log` (rebuilt and saved), `Logs/Mini059-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini059-PlayerRun.log` (headless).
+- Verification results: compile clean (exit 0). Scene rebuilt clean, Moutey confirmed present. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
+- Known issues (honest): not hands-on playtested — Moutey's bless flow and the 🔥 display need a real run. Moutey uses a male Floreswa body variant as a stand-in (no elder/female model in the pack yet). The evade boost only affects stamina regen (flee longer), not literal move speed, since police chase speed is separate — a gameplay-tuning decision. The 🔥 count (heat01*5) is a simple mapping; 5 = max heat.
+- Next action: playtest. Then continue assembly: Boss J exploitation arc surfaced in missions/dialogue, and any remaining plot beats.
 
 ## Required change-entry format
 

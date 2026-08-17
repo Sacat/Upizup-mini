@@ -2,6 +2,16 @@
 
 ## Done (pending user confirmation)
 
+### MINI-059 — Moutey (granny) chain quest + police fire-emoji wanted display (plot assembly chunk 4)
+
+Goal: (a) Moutey the granny — after you buy your chain she blesses it, making
+you stronger vs police / evade faster (a mission); (b) GTA-style police
+wanted display using the FIRE emoji (more police/heat = more 🔥).
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt, Windows build succeeded, headless run zero errors. Not yet hands-on
+playtested. See the MINI-059 entry in `PROJECT-HANDOFF.md`.
+
 ### MINI-058 — Rasta strain-learning missions (plot assembly chunk 3)
 
 Goal: the older Rasta StrainTeacher teaches each new strain — the player

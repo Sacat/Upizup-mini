@@ -1991,6 +1991,9 @@ namespace UpIzUpMini.EditorTools
                 modelPath: "Assets/Floreswa/Models/male02_3.fbx", role: NpcRole.BlackMarket,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
+            // MINI-059: Moutey (granny) - blesses your chain to dodge police
+            // faster, after you buy the chain. Placed by a shanty house.
+            BuildMoutey(terrain, roadPoints, animController);
             // MINI-053: StrainTeacher - an older Rasta who teaches each new
             // strain after you complete his missions (Jamaican-sounding).
             BuildNpc(terrain, roadPoints, index: 4, sideMul: 1f, goName: "NPC_StrainTeacher",
@@ -2230,6 +2233,31 @@ namespace UpIzUpMini.EditorTools
             rest.transform.SetParent(parent.transform);
             rest.transform.localPosition = new Vector3(0f, 0.3f, 2.4f);
             rest.AddComponent<HealthCenterInteractable>();
+        }
+
+        /// <summary>
+        /// MINI-059. Moutey (granny) - blesses your chain to dodge police
+        /// faster once you've bought it. Placed near a shanty house so she
+        /// reads as a family/community elder. See MouteyInteractable.
+        /// </summary>
+        private static void BuildMoutey(Terrain terrain, List<Vector3> roadPoints,
+            RuntimeAnimatorController animController)
+        {
+            int idx = Mathf.Clamp(9, 1, roadPoints.Count - 2);
+            Vector3 dir = (roadPoints[idx + 1] - roadPoints[idx - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3 pos = roadPoints[idx] + right * -6f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+
+            var go = new GameObject("NPC_Moutey");
+            go.transform.position = pos;
+            go.transform.rotation = Quaternion.LookRotation(right, Vector3.up);
+
+            // Use a female-looking Floreswa body variant (male03_3) as a
+            // stand-in for granny until a proper elder model exists.
+            InstantiateCharacter("Assets/Floreswa/Models/male03_3.fbx", go.transform, animController, null);
+
+            go.AddComponent<MouteyInteractable>();
         }
 
         /// <summary>
@@ -3648,6 +3676,14 @@ namespace UpIzUpMini.EditorTools
             nameLabel.rectTransform.anchorMin = nameLabel.rectTransform.anchorMax = new Vector2(0f, 1f);
             nameLabel.alignment = TextAnchor.MiddleLeft;
 
+            // MINI-059: GTA-style wanted display using the FIRE emoji,
+            // top-centre, scaling with police heat.
+            Text wantedLabel = CreateLabel(canvasGo.transform, "", 40, new Vector2(0f, 20f), font);
+            wantedLabel.rectTransform.anchorMin = wantedLabel.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+            wantedLabel.rectTransform.sizeDelta = new Vector2(400f, 60f);
+            wantedLabel.alignment = TextAnchor.MiddleCenter;
+            wantedLabel.color = new Color(1f, 0.55f, 0.1f, 1f);
+
             var hud = canvasGo.AddComponent<HUDController>();
             var so = new SerializedObject(hud);
             so.FindProperty("healthFill").objectReferenceValue = healthFill;
@@ -3663,6 +3699,7 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("healthPercent").objectReferenceValue = healthPct;
             so.FindProperty("staminaPercent").objectReferenceValue = staminaPct;
             so.FindProperty("heatPercent").objectReferenceValue = heatPct;
+            so.FindProperty("wantedLabel").objectReferenceValue = wantedLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

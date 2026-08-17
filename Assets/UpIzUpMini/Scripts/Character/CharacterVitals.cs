@@ -99,6 +99,17 @@ namespace UpIzUpMini.Character
             Stamina = Mathf.Min(maxStamina, Stamina + amount);
         }
 
+        // MINI-059: granny Moutey blesses your chain -> you evade/flee police
+        // faster by boosting stamina regen (you can keep running away longer)
+        // and adding a small unreserved stamina top-up once. Flag is permanent.
+        public bool EvadingBoosted { get; private set; }
+        public void BoostEvade(bool active)
+        {
+            if (active == EvadingBoosted) return;
+            EvadingBoosted = active;
+            _boostRegenMultiplier = active ? 2.0f : 1f;
+        }
+
         public void Damage(float amount)
         {
             if (amount <= 0f || IsDead || GlobalInvincible) return;

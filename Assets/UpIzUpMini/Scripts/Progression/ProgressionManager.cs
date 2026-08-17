@@ -24,6 +24,11 @@ namespace UpIzUpMini.Progression
         // after this reveal can gang rivalry begin (sparkable fights/wars).
         public bool DogLifeRivalryRevealed { get; private set; }
         public bool GrandBayWeedRouteEstablished => BossKReputation >= 20 && GangReputation >= 10;
+        // MINI-059: granny Moutey blessed your chain - a persistent flag that
+        // makes the protagonist(s) evade/flee police faster (see CharacterVitals).
+        public bool ChainBlessed { get; private set; }
+        public bool GetChainBlessed() => ChainBlessed;
+        public void SetChainBlessed(bool value) { ChainBlessed = value; OnChanged?.Invoke(); }
         public bool BlackSugarUnlocked => BossKReputation >= 20 && BossExploitationStage >= 2;
         public bool PurpleUnlocked => GangReputation >= 25 && BossExploitationStage >= 3;
         // MINI-047: further out than Purple alone - "a skill unlocked at a

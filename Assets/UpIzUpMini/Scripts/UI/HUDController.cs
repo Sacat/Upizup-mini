@@ -32,6 +32,7 @@ namespace UpIzUpMini.UI
         [SerializeField] private Text healthPercent;
         [SerializeField] private Text staminaPercent;
         [SerializeField] private Text heatPercent;
+        [SerializeField] private Text wantedLabel;
 
         [Header("Bar colours")]
         [SerializeField] private Color healthColor = new Color(0.20f, 0.80f, 0.25f);
@@ -115,6 +116,17 @@ namespace UpIzUpMini.UI
                 heatFill.color = c;
                 if (heatPercent != null)
                     heatPercent.text = $"Heat  {Mathf.RoundToInt(heat01 * 100f)}%";
+
+                // MINI-059: GTA-style wanted display using the FIRE emoji
+                // instead of stars - scales with how much police attention
+                // the player has drawn. More fires = stronger police level.
+                if (wantedLabel != null)
+                {
+                    int fires = Mathf.Clamp(Mathf.CeilToInt(heat01 * 5f), 0, 5);
+                    var sb = new System.Text.StringBuilder();
+                    for (int i = 0; i < fires; i++) sb.Append("\U0001F525"); // 🔥
+                    wantedLabel.text = sb.ToString();
+                }
             }
 
             if (moneyLabel != null && EconomyManager.Instance != null)
