@@ -2,6 +2,17 @@
 
 ## Done (pending user confirmation)
 
+### MINI-055 — Game-opening "kicked out of school" dialogue cutscene
+
+Goal: on game start, Sacat and Franki talk through the user's exact
+opening script (kicked out of school, hungry, going to Zion, planting
+normal crops first) before normal control takes over. E to advance;
+player control locked during the intro.
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt, Windows build succeeded, headless run zero errors. Not yet hands-
+on playtested. See the MINI-055 entry in `PROJECT-HANDOFF.md`.
+
 ### MINI-054 — Fightable Dog Life rival gang, Gwa Bay Health Center, La Jol station + arrest
 
 Goal: fightable rival gang "Dog Life" (up to 10 on their Lalay block),

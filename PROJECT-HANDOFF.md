@@ -30,10 +30,12 @@ current_owner: None
 active_task: None
 ```
 
-### Last completed: MINI-054 polish (2026-08-17)
-Arrest buffer (no instant re-arrest at La Jol) + Dog Life look fix (brown
-bandana mesh + flat black-shirt/brown-pants materials, no green/yellow). See
-the MINI-054 polish change entry below.
+### Last completed: MINI-055 - Game-opening "kicked out of school" dialogue cutscene (2026-08-17)
+Built while the TMAX mesh conversion is stalled. Sacat + Franki talk through
+the user's exact opening script on game start; E advances; player control
+locked during the intro. See the MINI-055 change entry below. Next:
+resume the TMAX bike per the user's decision (recommend building the
+rideable system with a clean scooter, swap in a real TMAX later).
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -930,6 +932,23 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0). Scene rebuilt. Windows build succeeded. Headless player run: zero error/exception/nullreference lines. Visual snapshots iterated and confirmed the gang look improved each pass: first the bandanas rendered brown but shirts were green (texture leak); after forcing flat materials, shirts black + pants brown + brown bandanas with no green/yellow clothing.
 - Known issues (honest): not hands-on playtested. The bandana is a thin floating box (a stylised headband, not a fully wrapped scarf) — a proper accessory mesh is a later task. Arrest buffer is a flat 4s cooldown (no per-officer tracking) — acceptable for the requested fix.
 - Next action: user playtests the compiled build. After that, per the user's roadmap: bikes (TMAX model) → overall plot/gameplay assembly, then accessories/music/map refinement.
+
+### MINI-055 - Game-opening "kicked out of school" dialogue cutscene
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: With the TMAX mesh conversion stalled (G-code is a 3D-print toolpath, not a game mesh - see memory), build an independent narrative feature while waiting. Most natural: the game-opening dialogue between the two protagonists using the user's exact script vocabulary (zeb, zion, gasah, fadah), shown before normal control takes over.
+- Acceptance criteria: on game start the two boys talk through the supplied lines; E advances the dialogue; player control is locked during the intro and freed at the end; compiles, scene builds, Windows build runs with zero errors.
+- Implementation:
+  - `Scripts/UI/OpeningDialogueController.cs` (new): a typewriter-free dialogue-step controller. Sets `playerController.IsControlled = false` on both protagonists while it plays, shows one line at a time on a panel, advances on E, holds briefly after the last line, then unlocks both protagonists and hides itself (`enabled = false`). Uses the user's exact script: Sacat/Franki talk about being kicked out of school, being hungry, going to Zion, planting normal crops first, "Boi i scrub wii fadah."
+  - `Mini011PhaseBSetup.cs`: `BuildOpeningDialogue` (new) builds the `OpeningDialoguePanel` on the existing GameplayUICanvas (bottom-centre card, E to advance) and fills the 7-line script with speakers/text per the user's wording. Wired at the end of `BuildExtraUI`.
+  - Player control locking uses the existing `PlayerController.IsControlled` gate; no gameplay systems touched.
+- Files changed: `Scripts/UI/OpeningDialogueController.cs` (new), `Editor/Mini011PhaseBSetup.cs` (BuildOpeningDialogue + call), `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt with `OpeningDialoguePanel` + `OpeningDialogueController` on the gameplay canvas.
+- Verification commands: `Logs/Mini055-Compile.log` (exit 0), `Logs/Mini055-BuildScene.log` (rebuilt and saved), scene-text check for `OpeningDialoguePanel`/`OpeningDialogueController`/"kick you out of school", `Logs/Mini055-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini055-PlayerRun.log` (headless).
+- Verification results: compile clean (exit 0). Scene rebuilt and verified to contain the opening panel, controller, and the exact opening line. Windows build succeeded (161MB). Headless player run: zero error/exception/nullreference lines.
+- Known issues (honest): not hands-on playtested - the dialogue advance, control lock/unlock, and panel look need a real run. No typewriter effect (text appears instantly per line). No sound/voice (none in project yet). Panel uses legacy UGUI Text like the rest of the HUD.
+- Next action: user playtests the opening cutscene. Then resume the TMAX bike per the user's decision (recommend building the rideable system with a clean scooter, swapping in a real game-format TMAX later).
 
 ## Required change-entry format
 

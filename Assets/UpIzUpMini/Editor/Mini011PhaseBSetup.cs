@@ -3626,6 +3626,52 @@ namespace UpIzUpMini.EditorTools
             montine.FindPropertyRelative("radius").floatValue = 55f;
 
             aso.ApplyModifiedPropertiesWithoutUndo();
+
+            // MINI-055: game-opening "kicked out of school" dialogue cutscene.
+            BuildOpeningDialogue(canvasGo, font);
+        }
+
+        /// <summary>
+        /// MINI-055. Builds the game-start dialogue cutscene panel and wires
+        /// the user's exact opening script (Sacat + Franki talking about
+        /// being kicked out of school, being hungry, going to Zion). E to
+        /// advance; the controller locks player control until it finishes.
+        /// </summary>
+        private static void BuildOpeningDialogue(GameObject canvasGo, Font font)
+        {
+            var panel = CreateModalPanel(canvasGo.transform, "OpeningDialoguePanel", new Vector2(900f, 260f));
+            panel.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -300f);
+
+            var text = CreateModalText(panel.transform, font, 30);
+            text.alignment = TextAnchor.MiddleLeft;
+
+            var opening = canvasGo.AddComponent<UI.OpeningDialogueController>();
+            var so = new SerializedObject(opening);
+            so.FindProperty("panel").objectReferenceValue = panel;
+            so.FindProperty("bodyText").objectReferenceValue = text;
+            so.FindProperty("holdAfterLast").floatValue = 1.2f;
+
+            // The user's exact opening script, in the supplied vocab.
+            var linesProp = so.FindProperty("lines");
+            linesProp.arraySize = 7;
+            string[] speakers = { "Sacat", "Franki", "Sacat", "Franki", "Sacat", "Franki", "Sacat" };
+            string[] texts =
+            {
+                "boi they kick you out of school",
+                "boi I hungry, me self doe even think i can go down diah",
+                "We need to make ah money wii gasah",
+                "boii let us go zion",
+                "boi i doe really want to plant zeb yea but we go see",
+                "we will plant normal crops and we will see how dat go",
+                "Boi i scrub wii fadah",
+            };
+            for (int i = 0; i < 7; i++)
+            {
+                var el = linesProp.GetArrayElementAtIndex(i);
+                el.FindPropertyRelative("speaker").stringValue = speakers[i];
+                el.FindPropertyRelative("text").stringValue = texts[i];
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static ShopPanelController BuildShopPanel(
