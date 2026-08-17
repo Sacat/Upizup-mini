@@ -2,6 +2,10 @@
 
 ## Done (pending user confirmation)
 
+### MINI-064 — Slot-based accessory/equipment system + chain visual verification
+
+Status: Implemented and verified on 2026-08-17. WearableDefinition + EquipmentSystem now attach owned accessories through Humanoid bone slots; the chain was visually inspected and rebuilt as a centered upper-chest gold chain with a distinct pendant. Compile, scene build, Windows build, and headless smoke test passed. Human playtest remains pending.
+
 ### MINI-063 — Chain chest-fit to large puff mariner chain (accessory refinement chunk 1)
 
 Goal: retune the gold chain so it reads as a LARGE puff mariner chain that
@@ -366,4 +370,3 @@ out of scope here and tracked as its own later tasks below.
 - `MINI-008`: Banana, carrot, Bushers, Black Sugar, and Purple progression.
 - `MINI-009`: Four-to-six-mission Grand Bay chapter.
 - `MINI-010`: Save/load, Windows build, and Android performance pass.
-

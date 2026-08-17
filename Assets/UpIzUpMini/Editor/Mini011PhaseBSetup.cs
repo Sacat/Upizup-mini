@@ -1873,6 +1873,20 @@ namespace UpIzUpMini.EditorTools
             eqSo.FindProperty("animator").objectReferenceValue = animator;
             eqSo.ApplyModifiedPropertiesWithoutUndo();
 
+            // MINI-064: slot-based equipment for bone-attached wearables
+            // (chain/shades/cap/watch). Loads the shared wearable catalog.
+            var eqSystem = go.AddComponent<EquipmentSystem>();
+            var esSo = new SerializedObject(eqSystem);
+            esSo.FindProperty("animator").objectReferenceValue = animator;
+            var catalog = LoadWearableCatalog();
+            if (catalog != null && catalog.Length > 0)
+            {
+                var catProp = esSo.FindProperty("catalog");
+                catProp.arraySize = catalog.Length;
+                for (int c = 0; c < catalog.Length; c++) catProp.GetArrayElementAtIndex(c).objectReferenceValue = catalog[c];
+            }
+            esSo.ApplyModifiedPropertiesWithoutUndo();
+
             var playerController = go.AddComponent<PlayerController>();
             var pcSo = new SerializedObject(playerController);
             pcSo.FindProperty("animator").objectReferenceValue = animator;
@@ -3061,6 +3075,56 @@ namespace UpIzUpMini.EditorTools
 
         private static ShopItemDefinition[] BuildShopStock(CropDefinition[] crops)
             => BuildStock(ShopSpecs, crops);
+
+        /// <summary>
+        /// MINI-064. Builds (or loads) the WearableDefinition catalogue used
+        /// by the slot-based EquipmentSystem on both protagonists. One
+        /// SerializedObject asset per owned wearable, created under
+        /// Assets/UpIzUpMini/Data/Wearables. The chain is the flagship item.
+        /// </summary>
+        private static Character.WearableDefinition[] LoadWearableCatalog()
+        {
+            EnsureFolder("Assets/UpIzUpMini/Data/Wearables");
+
+            // (itemId, slot, bone, localPos, localEuler, localScale, swings)
+            var specs = new (string id, Character.WearableDefinition.BodySlot slot, HumanBodyBones bone,
+                Vector3 pos, Vector3 euler, Vector3 scale, bool swings)[]
+            {
+                ("chain_gold", Character.WearableDefinition.BodySlot.Chest, HumanBodyBones.Chest,
+                    new Vector3(0f, 0.22f, 0.08f), Vector3.zero, Vector3.one, true),
+                ("cap_mike", Character.WearableDefinition.BodySlot.Head, HumanBodyBones.Head,
+                    new Vector3(0f, 0.16f, 0.01f), Vector3.zero, Vector3.one, false),
+                ("shades_ray", Character.WearableDefinition.BodySlot.Face, HumanBodyBones.Head,
+                    new Vector3(0f, 0.06f, 0.085f), Vector3.zero, Vector3.one, false),
+                ("watch_rollie", Character.WearableDefinition.BodySlot.Arm, HumanBodyBones.LeftLowerArm,
+                    new Vector3(0f, -0.22f, 0f), Vector3.zero, Vector3.one, false),
+            };
+
+            var list = new List<Character.WearableDefinition>();
+            foreach (var s in specs)
+            {
+                string path = $"Assets/UpIzUpMini/Data/Wearables/wearable_{s.id}.asset";
+                var def = AssetDatabase.LoadAssetAtPath<Character.WearableDefinition>(path);
+                if (def == null)
+                {
+                    def = ScriptableObject.CreateInstance<Character.WearableDefinition>();
+                    AssetDatabase.CreateAsset(def, path);
+                }
+                // Always overwrite so tuning to the code specs takes effect
+                // even on a previously-created asset (the chain-offset fix).
+                def.requiresItemId = s.id;
+                def.slot = s.slot;
+                def.bone = s.bone;
+                def.localPosition = s.pos;
+                def.localEulerAngles = s.euler;
+                def.localScale = s.scale;
+                def.swings = s.swings;
+                EditorUtility.SetDirty(def);
+                list.Add(def);
+            }
+            AssetDatabase.SaveAssets();
+            return list.ToArray();
+        }
 
         private static ShopItemDefinition[] BuildApparelStock(CropDefinition[] crops)
             => BuildStock(ApparelSpecs, crops);

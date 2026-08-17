@@ -30,9 +30,14 @@ current_owner: None
 active_task: None
 ```
 
-### Last completed: MINI-063 — Chain chest-fit to large puff mariner chain (accessory refinement chunk 1, 2026-08-17)
-Retuned the gold chain to a big puff-mariner chain on the chest + chest offset.
-See the MINI-063 change entry.
+### In-progress (accessory refinement, chunk 2): MINI-064 — slot-based equipment/accessory system
+Visual check confirmed the chain code works but the primitive sphere-
+scatter reads wrong (disconnected gold blobs on the ribs, no pendant). The
+researched slot/equipment system is the real fix: WearableDefinition per
+item (position/scale/rotation + optional mesh), bone-map dict, equip/hide
+per body slot. This replaces the hardcoded CharacterEquipment approach so
+accessories (chain/shirts/pants/shoes/shades) place correctly and are
+swap-able + data-driven. Chain becomes the first item in the system.
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -1100,6 +1105,20 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0). Scene rebuilt clean. Windows build succeeded. Headless player run: zero error/exception/nullreference lines (the runtime-generated chain doesn't throw).
 - Known issues (honest): not hands-on playtested - the chain's look/size/fit on the actual character needs a real look. The puff is still a primitive-sphere approximation, not a sculpted mariner link mesh (a real mesh can drop in later via the slot system). The pendant adds a little clipping risk unless the character stands straight. TODO: a screenshot/snapshot of a character wearing the chain would be the proper visual proof (currently runtime-keyed on owning chain_gold).
 - Next action: user buys the Gold Chain (chain_gold) in-game and confirms the chest fit. Then accessory refinement chunk 2: a slot-based equipment system (WearableDefinition + bone-map equip/hide), per the researched plan.
+
+### MINI-064 - Slot-based accessory/equipment system + visually verified chain
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: Build the researched free-tool accessory system and visually inspect/fix the chain before rebuilding the executable.
+- Acceptance criteria: data-driven wearable slots with Humanoid bone mapping; chain no longer uses the old hardcoded equipment path; chain is visible, centered high on the chest, cleanly materialized, and has a distinct pendant; compile, scene build, Windows build, and headless run pass.
+- Implementation: Added `WearableDefinition` ScriptableObjects and `EquipmentSystem` with body slots, bone-map attachment, ownership checks, equip/unequip replacement, and optional mesh/material support. `CharacterEquipment` now retains garment recolours while the new system owns bone accessories. The chain was refined to dense gold rows, narrowed and raised to the upper chest, with a separate pendant link/leaf shape. Existing wearable assets are overwritten by the scene builder so tuning changes apply reliably.
+- Files changed: `Scripts/Character/WearableDefinition.cs`, `Scripts/Character/EquipmentSystem.cs`, `Scripts/Character/CharacterEquipment.cs`, `Editor/Mini011PhaseBSetup.cs`, `Editor/Mini011AssetSnapshot.cs`, `Data/Wearables/*`, `Scenes/GrandBayProof.unity`.
+- Scene/prefab changes: GrandBayProof rebuilt with the wearable catalog and EquipmentSystem wired to both protagonists.
+- Verification commands: `Logs/MINI-064-Compile-final4.log`, `Logs/MINI-064-BuildScene-final5.log`, `Logs/MINI-064-SnapChain-final3.log` + `workspace/mini064-chain-final3.png`, `Logs/MINI-064-WindowsBuild-final.log`, `Logs/MINI-064-PlayerRun-final.log`.
+- Verification results: compile clean; scene rebuilt successfully; visual snapshot shows the centered upper-chest chain with no magenta artifacts and a visible pendant; Windows build succeeded; 12-second headless run produced zero exception/null-reference/compiler-error lines.
+- Known issues: chain links are still a stylized primitive approximation rather than a Blender-authored mariner-link mesh. The slot system now supports replacing it with a real mesh without changing gameplay code. Full human playtest remains outstanding.
+- Next action: user launches the rebuilt executable and checks the Gold Chain in-game; continue with real garment meshes and slot UI after approval.
 
 ## Required change-entry format
 

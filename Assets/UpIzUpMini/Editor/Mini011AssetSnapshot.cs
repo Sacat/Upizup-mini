@@ -15,6 +15,9 @@ namespace UpIzUpMini.EditorTools
     /// </summary>
     public static class Mini011AssetSnapshot
     {
+        // MINI-063: the chain GameObject found by SnapshotChain, so the
+        // camera can aim right at its world position for a clean render.
+        private static GameObject _snapChainGo;
         [MenuItem("Up Iz Up Mini/MINI-011/Snapshot Demo City Sample")]
         public static void SnapshotDemoCity()
         {
@@ -115,6 +118,100 @@ namespace UpIzUpMini.EditorTools
             cam.farClipPlane = 120f;
 
             RenderAndSave(cam, "mini033-bike.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-063/Snapshot Chain on Character")]
+        public static void SnapshotChain()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            // EconomyManager.Instance is NULL in edit-mode rendering, so
+            // CharacterEquipment.Refresh() bails before building anything.
+            // Construct a live edit-mode economy (same pattern as
+            // Mini028FarmhandValidation), own the chain, then force the
+            // equipment refresh.
+            var economyGo = new GameObject("SnapshotEconomy");
+            var economy = economyGo.AddComponent<Economy.EconomyManager>();
+            typeof(Economy.EconomyManager).GetMethod("Awake",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                ?.Invoke(economy, null);
+            var f = typeof(Economy.EconomyManager).GetField("_owned",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var set = f?.GetValue(economy) as System.Collections.Generic.HashSet<string>;
+            if (set != null) set.Add("chain_gold");
+
+            var mainCamGo = GameObject.FindWithTag("MainCamera");
+            var player = GameObject.FindWithTag("Player");
+            Debug.Log($"SNAPCHAIN player={(player!=null?player.name:"null")} tag-find-maincam={(mainCamGo!=null)}");
+
+            // The chain builds via CharacterEquipment.Refresh() (garments)
+            // and now EquipmentSystem.Refresh() (slot-based wearables). Force
+            // BOTH so the chain places via the new system in this snapshot.
+            var equipment = player != null ? player.GetComponent<Character.CharacterEquipment>() : null;
+            if (equipment == null && player != null)
+                equipment = player.GetComponentInChildren<Character.CharacterEquipment>(true);
+            var eqSystem = player != null ? player.GetComponent<Character.EquipmentSystem>() : null;
+            if (eqSystem == null && player != null)
+                eqSystem = player.GetComponentInChildren<Character.EquipmentSystem>(true);
+            Debug.Log($"SNAPCHAIN eqSystem={(eqSystem!=null?"yes":"NO")} equipment={(equipment!=null?"yes":"NO")} owned-chain={economy?.OwnsItem("chain_gold")} STATIC-Instance={(Economy.EconomyManager.Instance!=null?"set":"NULL")}");
+            if (eqSystem != null)
+            {
+                typeof(Character.EquipmentSystem).GetMethod("Refresh",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.Invoke(eqSystem, null);
+            }
+            if (equipment != null)
+            {
+                typeof(Character.CharacterEquipment).GetMethod("Refresh",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.Invoke(equipment, null);
+            }
+
+            // The chain is parented to the Chest BONE and named Wear_chain_gold
+            // (EquipmentSystem) - find it across the whole scene.
+            var found = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            int chainCount = 0; GameObject chainGo = null;
+            foreach (var t in found)
+            {
+                if (t.name.IndexOf("Wear_chain_gold", System.StringComparison.OrdinalIgnoreCase) >= 0
+                    || t.name.IndexOf("Equip_chain_gold", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                { chainCount++; chainGo = t.gameObject; }
+            }
+            Debug.Log($"SNAPCHAIN scene-wide chain 'Wear_chain_gold' found={chainCount}");
+            if (chainGo != null) Debug.Log($"SNAPCHAIN chain at {chainGo.transform.position} parent={chainGo.transform.parent?.name}");
+            _snapChainGo = chainGo;
+            if (eqSystem != null)
+            {
+                int slotKids = 0;
+                foreach (Transform c in eqSystem.transform) if (c.name.StartsWith("Wear_")) slotKids++;
+                Debug.Log($"SNAPCHAIN eqSystem Wear_* children={slotKids}");
+            }
+
+            var cam = mainCamGo != null ? mainCamGo.GetComponent<Camera>() : null;
+            if (cam == null || player == null) { Debug.LogError("Snapshot: no camera/player."); return; }
+
+            // Aim at the chest/chain from a safe distance in front of the
+            // character, backed off enough that the camera isn't clipping
+            // geometry. Frame the upper torso (chest + chain) with margin.
+            Vector3 focus;
+            if (_snapChainGo != null) focus = _snapChainGo.transform.position + Vector3.up * 0.05f;
+            else
+            {
+                var anim = player.GetComponentInChildren<Animator>();
+                var chestB = anim != null && anim.isHuman ? anim.GetBoneTransform(UnityEngine.HumanBodyBones.Chest) : null;
+                focus = (chestB != null ? chestB.position : player.transform.position + Vector3.up * 1.1f) + Vector3.up * 0.05f;
+            }
+
+            Vector3 fwd = Vector3.ProjectOnPlane(player.transform.forward, Vector3.up).normalized;
+            if (fwd.sqrMagnitude < 0.01f) fwd = Vector3.forward;
+            // Place the camera IN FRONT of where the character faces (the
+            // chest/chain are on the front). focus + fwd*1.6 puts us in front);
+            Vector3 camPos = focus + fwd * 1.6f + Vector3.up * 0.25f;
+            mainCamGo.transform.position = camPos;
+            mainCamGo.transform.LookAt(focus);
+            cam.fieldOfView = 48f;
+            cam.farClipPlane = 200f;
+            cam.nearClipPlane = 0.05f;
+
+            RenderAndSave(cam, "mini063-chain.png");
         }
 
         [MenuItem("Up Iz Up Mini/MINI-011/Snapshot GrandBayProof Mid Overview")]

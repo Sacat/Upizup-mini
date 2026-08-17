@@ -60,17 +60,11 @@ namespace UpIzUpMini.Character
                 if (pair.Key != null) pair.Key.sharedMaterials = pair.Value;
             }
 
-            Apply("cap_mike", HumanBodyBones.Head, economy.OwnsItem("cap_mike"),
-                () => BuildCap(new Color(0.85f, 0.15f, 0.15f)));
-
-            Apply("shades_ray", HumanBodyBones.Head, economy.OwnsItem("shades_ray"),
-                () => BuildShades());
-
-            Apply("chain_gold", HumanBodyBones.Chest, economy.OwnsItem("chain_gold"),
-                () => BuildChain());
-
-            Apply("watch_rollie", HumanBodyBones.LeftLowerArm, economy.OwnsItem("watch_rollie"),
-                () => BuildWatch());
+            // MINI-064: bone-attached wearables (chain/shades/cap/watch)
+            // are now owned by EquipmentSystem (slot-based), so skip the
+            // old hardcoded spawned primitives here. Clothing recolours
+            // stay here since they tint the model's garments, not bone
+            // geometry.
 
             // Clothing recolours the character's own garments rather than
             // adding geometry - the models default to black, so a bought
