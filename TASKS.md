@@ -2,6 +2,16 @@
 
 ## Done (pending user confirmation)
 
+### MINI-060 — Boss J exploitation arc surfaced (plot assembly chunk 5)
+
+Goal: make Boss J's skimp/exploitation visible so the player FEELS the
+"cuttin your payment" arc — his sale feedback and inner monologue escalate
+with BossPayoutMultiplier as you do more of his jobs, until you break away.
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt, Windows build succeeded, headless run zero errors. Not yet hands-on
+playtested. See the MINI-060 entry in `PROJECT-HANDOFF.md`.
+
 ### MINI-059 — Moutey (granny) chain quest + police fire-emoji wanted display (plot assembly chunk 4)
 
 Goal: (a) Moutey the granny — after you buy your chain she blesses it, making

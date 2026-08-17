@@ -27,8 +27,8 @@ reserved_files:
 
 ```yaml
 current_owner: OpenClaw
-active_task: MINI-059
-claimed_at: 2026-08-17T05:46:00-04:00
+active_task: MINI-060
+claimed_at: 2026-08-17T05:47:00-04:00
 reserved_files:
   - Assets/UpIzUpMini/Scripts/**
   - Assets/UpIzUpMini/Editor/**
@@ -37,11 +37,11 @@ reserved_files:
   - TASKS.md
 ```
 
-### In-progress (plot assembly, chunk 4): MINI-059 — Moutey (granny) chain quest + police fire-emoji wanted display
-MINI-056/057/058 committed. Chunk 4 = (a) Moutey the granny quest (after
-buying your chain, go to granny to get stronger vs police / evade faster)
-and (b) the GTA-like police wanted display using the fire emoji instead of
-stars (more police = stronger).
+### In-progress (plot assembly, chunk 5): MINI-060 — Boss J exploitation arc surfaced
+MINI-056/057/058/059 committed. Chunk 5 = surface Boss J's exploitation
+(BossKReputation / BossPayoutMultiplier worsening as you do more of his jobs)
+in dialogue/missions so the player actually FEELS the "he cuttin your payment"
+arc vs. the players becoming independent (per STORY.md).
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -1043,6 +1043,22 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0). Scene rebuilt clean, Moutey confirmed present. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
 - Known issues (honest): not hands-on playtested — Moutey's bless flow and the 🔥 display need a real run. Moutey uses a male Floreswa body variant as a stand-in (no elder/female model in the pack yet). The evade boost only affects stamina regen (flee longer), not literal move speed, since police chase speed is separate — a gameplay-tuning decision. The 🔥 count (heat01*5) is a simple mapping; 5 = max heat.
 - Next action: playtest. Then continue assembly: Boss J exploitation arc surfaced in missions/dialogue, and any remaining plot beats.
+
+### MINI-060 - Boss J exploitation arc surfaced in dialogue (plot assembly, chunk 5)
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: Continue plot + gameplay assembly (chunk 5). Surface Boss J's exploitation so the player actually feels the "cuttin your payment" arc (per STORY.md: the more jobs you do for him, the more he skims, until you break away / become independent). The machine already exists via `ProgressionManager.BossPayoutMultiplier` (1.0 → 0.75 → 0.4 → 0 as `BossExploitationStage` rises) — it just wasn't visible/felt in dialogue or sale feedback.
+- Acceptance criteria: Boss J's inner monologue and sale feedback sharpen as his exploitation deepens; the payout drop is surfaced in the sell line; compiles, scene builds, Windows build runs with zero errors.
+- Implementation:
+  - `SellCrops` (Boss J sale): payout line now reflects `BossPayoutMultiplier` — full price early ("don't get used to it"), a visible cut mid-exploitation ("I take meh cut... dat cuttin now. Build allu own ting if allu fed up."), and withholding once fully gamed ("I keeping dis one as loyalty fee."). Still calls `RecordBossJob()` to advance the stage.
+  - Boss J talk: `bossInnerMonologue` sharpens to note the money "choker up / he own every cut" when `BossPayoutMultiplier <= 0`, keeping the vollehing-only-in-the-mind rule but letting the exploitation arc read.
+- Files changed: `Scripts/Interaction/TownNPCInteractable.cs`; `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt via the scene builder.
+- Verification commands: `Logs/Mini060-Compile.log` (exit 0), `Logs/Mini060-BuildScene.log` (rebuilt and saved), `Logs/Mini060-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini060-PlayerRun.log` (headless).
+- Verification results: compile clean (exit 0). Scene rebuilt clean. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
+- Known issues (honest): not hands-on playtested — the escalating Boss J lines need to be seen across exploitation stages in a real run. The dialogue is coded to the multiplier tiers but not tuned for exact feel. This surfaces the arc; the player-facing "break away from Boss J" choice/mission (M8-style) is the existing branching, not reworked here.
+- Next action: playtest. Then remaining plot beats (e.g. visible boat leave/return for Gwada, police-6-difficulty tuning) and final assembly polish.
 
 ## Required change-entry format
 

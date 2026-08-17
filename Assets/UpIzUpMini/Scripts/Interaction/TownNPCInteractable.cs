@@ -174,8 +174,13 @@ namespace UpIzUpMini.Interaction
                     // two-boss redesign). Sells the illegal strain's starter
                     // seeds through a real seed-buy dialogue box (MINI-053).
                     // The player's inner monologue quietly hints that Boss J
-                    // is vollehing, never said aloud.
-                    _lastFeedback = bossInnerMonologue;
+                    // is vollehing, never said aloud. MINI-060: the monologue
+                    // sharpens as Boss J's exploitation deepens.
+                    string mono = bossInnerMonologue;
+                    var prog60 = UpIzUpMini.Progression.ProgressionManager.Instance;
+                    if (prog60 != null && prog60.BossPayoutMultiplier <= 0f)
+                        mono += " (...de money choker up now. He own every cut. Not Ah Word doe owe him everyting.). ";
+                    _lastFeedback = mono;
                     if (bossSeedCrop != null && EconomyManager.Instance != null
                         && EconomyManager.Instance.GetSeeds(bossSeedCrop.cropId) <= 0)
                     {
@@ -183,7 +188,7 @@ namespace UpIzUpMini.Interaction
                         {
                             seedBuyDialogue.Open(bossSeedCrop, seedPrice, bossOfferLine, bossFollowUpLine);
                         }
-                        else _lastFeedback = TryBuySeed(bossSeedCrop, bossOfferLine);
+                        else _lastFeedback += TryBuySeed(bossSeedCrop, bossOfferLine);
                     }
                     else
                     {
@@ -362,9 +367,22 @@ namespace UpIzUpMini.Interaction
                 else progression?.AddReputation(UpIzUpMini.Progression.Faction.Farmers, 4);
 
                 if (bossSale) progression?.RecordBossJob();
-                _lastFeedback = bossSale && earned <= 0
-                    ? "Boss J: Money tight. I holding your payment this time. Do the next job and we settle, nuh."
-                    : $"Yea mn, sold for ${earned}.";
+                if (bossSale && progression != null)
+                {
+                    // MINI-060: surface Boss J's exploitation so the player
+                    // FEELS the "cuttin your payment" arc (payout shrinks the
+                    // more jobs they do).
+                    float cut = progression.BossPayoutMultiplier;
+                    _lastFeedback = cut <= 0f
+                        ? "Boss J: I keeping dis one as loyalty fee. Do di next job and maybe I settle, nuh."
+                        : cut < 0.9f
+                            ? $"Boss J: I take meh cut, yah wii. ${earned} for allu - dat cuttin now. Build allu own ting if allu fed up."
+                            : $"Boss J: Fair price today, boy. ${earned}. Don't get used to it.";
+                }
+                else
+                {
+                    _lastFeedback = $"Yea mn, sold for ${earned}.";
+                }
                 Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.SellCrop, buyerId);
             }
             else _lastFeedback = NextLine(buyerLines, "Nothing for me right now, nuh.");
