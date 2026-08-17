@@ -120,12 +120,25 @@ namespace UpIzUpMini.Economy
         {
             TripActive = false;
 
+            // MINI-056: once the player has sent someone to Gwada and the
+            // trip completes, a Gardey Zafeh (seer) there reveals Dog Life
+            // was stealing their zeb - the story beat that triggers gang
+            // rivalry. Gated on the zeb route being established and the
+            // reveal not having happened yet.
+            var progression = UpIzUpMini.Progression.ProgressionManager.Instance;
+            if (progression != null && !progression.DogLifeRivalryRevealed
+                && progression.GrandBayWeedRouteEstablished)
+            {
+                progression.RevealDogLifeRivalry();
+                Missions.MissionSystem.Instance?.Alert(
+                    "GARDEY ZAFEH\nDi seer in Gwada see it clear: it was DOG LIFE all along -\ndi gang deh steal allu zeb while allu plot left lone.");
+            }
+
             if (_npcCourierTrip)
             {
                 _npcCourierTrip = false;
                 EconomyManager.Instance?.AddMoney(_cargoValue);
 
-                var progression = UpIzUpMini.Progression.ProgressionManager.Instance;
                 bool firstSuccess = progression != null && !progression.GuadeloupeCharacterCourierUnlocked;
                 progression?.UnlockGuadeloupeCharacterCourier();
 

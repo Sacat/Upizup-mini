@@ -26,15 +26,21 @@ reserved_files:
 ### Current claim
 
 ```yaml
-current_owner: None
-active_task: None
+current_owner: OpenClaw
+active_task: MINI-057
+claimed_at: 2026-08-17T05:29:00-04:00
+reserved_files:
+  - Assets/UpIzUpMini/Scripts/**
+  - Assets/UpIzUpMini/Editor/**
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - PROJECT-HANDOFF.md
+  - TASKS.md
 ```
 
-### Last completed: MINI-033 - Rideable bike (TMAX-style scooter), 2026-08-17
-Built the first vehicle: a mesh-agnostic rideable scooter (E mount/dismount,
-WASD camera-relative ride, Space wheelie at speed, up to 10 m/s). Real TMAX
-can drop in later by swapping the bike's Visual child. See the MINI-033
-change entry below.
+### In-progress (plot assembly, chunk 2): MINI-057 — Normy crooked-cop missions
+MINI-056 (Gardey Zafeh theft-reveal, chunk 1) is committed. Chunk 2 = give
+the crooked cop Normy actual missions that feed reputation / police-
+favourable outcomes per the user's design.
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -965,6 +971,24 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0). Scene rebuilt and verified to contain the bike + vehicle logic. Windows build succeeded (161MB). Headless player run: zero error/exception/nullreference lines. Visual snapshot confirms the scooter renders (red body, dark seat, handlebar, wheels) - blocky/simplified, expected for a primitive placeholder.
 - Known issues (honest): not hands-on playtested - mounting/dismounting, wheelie feel, and riding are unconfirmed by a human. Visual is a blocky primitive scooter, not the real TMAX (the G-code can't be a game mesh; swap in a real game-format TMAX later by replacing the bike's `Visual` child - logic is unchanged). No ride animation clip is baked, so the seated pose falls back to idle/sustained overlay no-op until a ride clip is added. Wheelie is a visual pitch, not a physics wheelie (no wheel/tire physics). The bike has no dedicated navigation/avoidance - it drives straight/TurnControl and can clip obstacles. Dismount position could intersect geometry. Speed/accel/turn are first-pass numbers.
 - Next action: user playtests the bike (mount near the Car Dealer, ride, wheelie with Space at speed, dismount). Then per the user's roadmap: overall plot/gameplay assembly, then accessories/music/map refinement.
+
+### MINI-056 - Dog Life Gardey Zafeh theft-reveal story beat (assembled plot, chunk 1)
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: First chunk of the "overall plot + gameplay assembly" work (user: do it in chunks but keep going and testing). The core story beat from the user's design: once the player ships zeb business to Gwada, a Gardey Zafeh (seer) reveals Dog Life was stealing the zeb while plots were left alone — and only after that reveal can gang rivalry begin (spark fights/wars with Dog Life).
+- Acceptance criteria: sending a Gwada dispatch after the zeb route is established reveals Dog Life's theft via a seer line; that reveal activates Dog Life rivalry so members become hostile and pursue the player (spark-able fights); compiles, scene builds, Windows build runs with zero errors.
+- Implementation:
+  - `ProgressionManager.cs`: added `DogLifeRivalryRevealed` bool + idempotent `RevealDogLifeRivalry()`.
+  - `Economy/GuadeloupeTrade.cs`: `CompleteTrip()` now, when the zeb route is established and the reveal hasn't happened yet, calls `RevealDogLifeRivalry()` and shows a seer line ("GARDEY ZAFEH / Di seer in Gwada see it clear: it was DOG LIFE all along...") on any completed Gwada run (NPC courier or character).
+  - `Gangs/RivalGangController.cs`: `Update()` now auto-sets `RivalryActive = true` when `ProgressionManager.DogLifeRivalryRevealed` is true; passes `RivalryActive` into each member's `Tick`.
+  - `Gangs/GangMemberMover.cs`: `Tick(...)` gained a `hostile` bool — when true (rivalry active), members pursue the active player within 30m instead of wandering; otherwise normal block wander. This is the "spark fights/wars" behaviour.
+- Files changed: `Scripts/Progression/ProgressionManager.cs`, `Scripts/Economy/GuadeloupeTrade.cs`, `Scripts/Gangs/RivalGangController.cs`, `Scripts/Gangs/GangMemberMover.cs`; `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt via the scene builder (no structural change, but kept in sync).
+- Verification commands: `Logs/Mini056-Compile.log` + `Mini056-Compile2.log` (exit 0), `Logs/Mini056-BuildScene.log` (rebuilt and saved), `Logs/Mini056-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini056-PlayerRun.log` (headless).
+- Verification results: compile clean (exit 0; one unassigned-local `target` fixed in GangMemberMover during the pass). Scene rebuilt clean. Windows build succeeded. Headless player run: zero error/exception/nullreference lines.
+- Known issues (honest): not hands-on playtested — the seer reveal timing and Dog Life pursuit need a real run. Pursuit is direct-steering (can clip obstacles; uses AntiStuckSteering). The reveal triggers on ANY completed dispatch once the route is set — a natural, broad hook. Members chase within 30m; beyond that they resume block wander. No explicit "spark a war" UI/mission yet (rivalry just switches them hostile on reveal) — a dedicated optional war mission can be added later.
+- Next action: playtest (establish the zeb route, send a dispatch, see the Gardey Zafeh reveal, confirm Dog Life start chasing). Then continue assembly chunk 2: Normy crooked-cop missions.
 
 ## Required change-entry format
 

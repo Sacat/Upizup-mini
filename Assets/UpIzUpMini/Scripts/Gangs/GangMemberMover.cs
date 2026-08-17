@@ -31,12 +31,14 @@ namespace UpIzUpMini.Gangs
 
         /// <summary>Drives a member's behaviour for one frame. Called by
         /// RivalGangController (kept out of Update so the controller owns
-        /// the tick, and dt can be injected by tests later).</summary>
-        public void Tick(Vector3 blockCenter, float blockRadius, float speed)
+        /// the tick, and dt can be injected by tests later). When
+        /// <paramref name="hostile"/> is true (Dog Life rivalry revealed),
+        /// members pursue the active player instead of wandering - the
+        /// "spark fights/wars" beat.</summary>
+        public void Tick(Vector3 blockCenter, float blockRadius, float speed, bool hostile)
         {
             if (_health != null && _health.IsDown)
             {
-                // Knocked out - do not steer while lying down.
                 SetAnim(0f);
                 return;
             }
@@ -44,16 +46,28 @@ namespace UpIzUpMini.Gangs
             if (_controller == null) return;
             if (_controller.enabled == false) { SetAnim(0f); return; }
 
-            // Pick a fresh wander target periodically or when still.
-            if (Time.time >= _retargetAt ||
-                Vector3.Distance(transform.position, _wanderTarget) < 0.8f)
+            // Hostile pursuit: chase the active player once rivalry starts;
+            // otherwise wander within the block.
+            Vector3 target = _wanderTarget;
+            if (hostile)
+            {
+                var player = Character.CharacterSwitchManager.Instance?.Active?.root;
+                if (player != null && Vector3.Distance(transform.position, player.transform.position) < 30f)
+                {
+                    target = player.transform.position;
+                }
+            }
+
+            // Wander refill (only relevant when not pursuing the player).
+            if (!hostile && (Time.time >= _retargetAt ||
+                Vector3.Distance(transform.position, _wanderTarget) < 0.8f))
             {
                 _wanderTarget = blockCenter + RandomOnDisc(blockRadius * 0.7f);
                 _retargetAt = Time.time + Random.Range(3f, 6f);
                 if (_antiStuck != null) _antiStuck.Clear();
             }
 
-            Vector3 dir = (_wanderTarget - transform.position);
+            Vector3 dir = (target - transform.position);
             dir.y = 0f;
             if (dir.sqrMagnitude > 0.01f) dir.Normalize();
 
@@ -64,7 +78,6 @@ namespace UpIzUpMini.Gangs
                 if (_antiStuck.IsEvading) dir = _antiStuck.GetEvasionDirection(transform.forward);
             }
 
-            // Face travel direction, then move.
             if (dir.sqrMagnitude > 0.01f)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation,

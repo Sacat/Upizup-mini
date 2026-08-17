@@ -2,6 +2,17 @@
 
 ## Done (pending user confirmation)
 
+### MINI-056 — Dog Life Gardey Zafeh theft-reveal (plot assembly chunk 1)
+
+Goal: once the player ships zeb to Gwada after establishing the zeb route, a
+Gardey Zafeh (seer) reveals Dog Life was stealing their zeb — which activates
+Dog Life rivalry so gang members become hostile and pursue the player
+(spark-able fights/wars).
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt, Windows build succeeded, headless run zero errors. Not yet hands-on
+playtested. See the MINI-056 entry in `PROJECT-HANDOFF.md`.
+
 ### MINI-033 — Rideable bike (TMAX-style scooter)
 
 Goal: first vehicle - a rideable motorcycle/scooter with E mount/dismount,

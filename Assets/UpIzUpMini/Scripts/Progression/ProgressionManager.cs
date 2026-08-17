@@ -19,6 +19,10 @@ namespace UpIzUpMini.Progression
         // sending one of the two playable boys yourself unlocks after the
         // first NPC run completes. See GuadeloupeTrade.
         public bool GuadeloupeCharacterCourierUnlocked { get; private set; }
+        // MINI-056: once the player sends someone to Gwada to a Gardey
+        // Zafeh (seer), they learn Dog Life was stealing their zeb. Only
+        // after this reveal can gang rivalry begin (sparkable fights/wars).
+        public bool DogLifeRivalryRevealed { get; private set; }
         public bool GrandBayWeedRouteEstablished => BossKReputation >= 20 && GangReputation >= 10;
         public bool BlackSugarUnlocked => BossKReputation >= 20 && BossExploitationStage >= 2;
         public bool PurpleUnlocked => GangReputation >= 25 && BossExploitationStage >= 3;
@@ -51,6 +55,19 @@ namespace UpIzUpMini.Progression
         }
         public void RecordBossJob() { BossExploitationStage++; AddReputation(Faction.BossK, 10); AddReputation(Faction.Police, -8); AddReputation(Faction.GrandBayGangs, 5); }
         public void UnlockGuadeloupeCharacterCourier() { if (GuadeloupeCharacterCourierUnlocked) return; GuadeloupeCharacterCourierUnlocked = true; OnChanged?.Invoke(); }
+
+        /// <summary>
+        /// MINI-056. Called when the player sends someone to Gwada to a
+        /// Gardey Zafeh (seer) - they learn Dog Life was stealing their zeb.
+        /// This is the story reveal that unlocks gang rivalry (sparkable
+        /// fights/wars). Idempotent.
+        /// </summary>
+        public void RevealDogLifeRivalry()
+        {
+            if (DogLifeRivalryRevealed) return;
+            DogLifeRivalryRevealed = true;
+            OnChanged?.Invoke();
+        }
 
         /// <summary>
         /// MINI-049 cheat code. Directly sets every backing field high

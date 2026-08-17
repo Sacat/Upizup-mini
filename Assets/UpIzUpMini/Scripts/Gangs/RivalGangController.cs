@@ -50,14 +50,19 @@ namespace UpIzUpMini.Gangs
 
         private void Update()
         {
-            // Behaviour update: wandering members drift within their block.
-            // (Full pursuit/theft logic is mission-scoped; this keeps them
-            // alive, animated and fightable on the block.)
+            // MINI-056: auto-activate rivalry once the Gardey Zafeh reveal
+            // has happened (player learned Dog Life was stealing zeb) - only
+            // then can fights/wars be sparked.
+            var prog = UpIzUpMini.Progression.ProgressionManager.Instance;
+            if (prog != null && prog.DogLifeRivalryRevealed) RivalryActive = true;
+
+            // Behaviour update: members wander (or pursue once rivalry is
+            // active - the spark-fights beat after the Gardey Zafeh reveal).
             foreach (var member in _members)
             {
                 if (member == null) continue;
                 var mover = member.GetComponent<GangMemberMover>();
-                if (mover != null) mover.Tick(blockCenter, blockRadius, wanderSpeed);
+                if (mover != null) mover.Tick(blockCenter, blockRadius, wanderSpeed, RivalryActive);
             }
         }
     }
