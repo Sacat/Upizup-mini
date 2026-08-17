@@ -30,12 +30,11 @@ current_owner: None
 active_task: None
 ```
 
-### Last completed: MINI-055 - Game-opening "kicked out of school" dialogue cutscene (2026-08-17)
-Built while the TMAX mesh conversion is stalled. Sacat + Franki talk through
-the user's exact opening script on game start; E advances; player control
-locked during the intro. See the MINI-055 change entry below. Next:
-resume the TMAX bike per the user's decision (recommend building the
-rideable system with a clean scooter, swap in a real TMAX later).
+### Last completed: MINI-033 - Rideable bike (TMAX-style scooter), 2026-08-17
+Built the first vehicle: a mesh-agnostic rideable scooter (E mount/dismount,
+WASD camera-relative ride, Space wheelie at speed, up to 10 m/s). Real TMAX
+can drop in later by swapping the bike's Visual child. See the MINI-033
+change entry below.
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
 
@@ -949,6 +948,23 @@ After verification, append a change entry, update the verification results, and 
 - Verification results: compile clean (exit 0). Scene rebuilt and verified to contain the opening panel, controller, and the exact opening line. Windows build succeeded (161MB). Headless player run: zero error/exception/nullreference lines.
 - Known issues (honest): not hands-on playtested - the dialogue advance, control lock/unlock, and panel look need a real run. No typewriter effect (text appears instantly per line). No sound/voice (none in project yet). Panel uses legacy UGUI Text like the rest of the HUD.
 - Next action: user playtests the opening cutscene. Then resume the TMAX bike per the user's decision (recommend building the rideable system with a clean scooter, swapping in a real game-format TMAX later).
+
+### MINI-033 - Rideable bike (TMAX-style scooter)
+
+- Date: 2026-08-17
+- Owner: OpenClaw
+- Request: Build the first vehicle - a rideable motorcycle/scooter that captures the TMAX silhouette. Skip waiting on the G-code mesh (it is a 3D-print toolpath, not a usable game mesh); build the system mesh-agnostic so a real TMAX drops in later with zero rework. Controls: E to mount/dismount, WASD camera-relative ride, Space WHEELIE (reusing an existing key - Space doubles as the wheelie key while riding), bike not too fast so it can wheelie.
+- Acceptance criteria: a visible scooter in the world; rider mounts (parents to seat) and dismounts; riding moves camera-relative; wheelie lifts the front when moving fast enough; compiles, scene builds, Windows build runs with zero errors.
+- Implementation:
+  - `Scripts/Vehicles/BikeVehicle.cs` (new): full rideable-bike logic. Camera-relative steering/throttle, maxSpeed 10 m/s, acceleration/braking, gravity + terrain ground-snap (no physics body needed, mobile-friendly). Wheelie = Space held + speed >= threshold, visually pitches the nose up via a rotational blend on the visual root; E toggles mount/dismount (E is also the walk-interact key, per the user's "use an existing key already"). Mount parents the active protagonist onto the rider seat (`riderMount`), disables their CharacterController/PlayerController input/FollowController, retargets the camera to the bike, and asks the MINI-031 `HumanoidAnimationManager` for a sustained "Ride" full-body pose (safe no-op until a ride clip is baked). Dismount restores them beside the bike (`DismountPosition`), re-enables their controller/input, ends the pose, and returns the camera to the character. Wheels spin visually; front/back wheel refs drive that.
+  - `Mini011PhaseBSetup.cs`: `BuildBike` (new) builds the scooter from primitives beside the Car Dealer - red body tub, front cowl, dark seat, floorboard, handlebar stem+bar, windscreen, and two cylinder wheels (front + rear as separate children so they spin and the front can lift on a wheelie). Adds the `RiderMount`, attaches `BikeVehicle`, wires the serialized refs. The bike visual lives under a single `Visual` child so a real TMAX mesh can replace it by swapping that child - no logic change.
+  - `Mini011AssetSnapshot.cs`: added `SnapshotBike` to visually verify the scooter.
+- Files changed: `Scripts/Vehicles/BikeVehicle.cs` (new), `Editor/Mini011PhaseBSetup.cs` (BuildBike + call), `Editor/Mini011AssetSnapshot.cs` (SnapshotBike), `Scenes/GrandBayProof.unity` (rebuilt).
+- Scene/prefab changes: GrandBayProof rebuilt with `TMAX_Bike` (visual + two wheels + RiderMount + BikeVehicle) parked near the Car Dealer.
+- Verification commands: `Logs/Mini033-Compile.log` (exit 0), `Logs/Mini033-BuildScene.log` (rebuilt and saved; scene-text confirmed `TMAX_Bike`/`BikeVehicle`/`RiderMount`), `Logs/Mini033-WindowsBuild.log` (BUILD SUCCEEDED), `Logs/Mini033-PlayerRun.log` (headless), `Logs/Mini033-SnapBike.log` + `Logs/Snapshots/mini033-bike.png`.
+- Verification results: compile clean (exit 0). Scene rebuilt and verified to contain the bike + vehicle logic. Windows build succeeded (161MB). Headless player run: zero error/exception/nullreference lines. Visual snapshot confirms the scooter renders (red body, dark seat, handlebar, wheels) - blocky/simplified, expected for a primitive placeholder.
+- Known issues (honest): not hands-on playtested - mounting/dismounting, wheelie feel, and riding are unconfirmed by a human. Visual is a blocky primitive scooter, not the real TMAX (the G-code can't be a game mesh; swap in a real game-format TMAX later by replacing the bike's `Visual` child - logic is unchanged). No ride animation clip is baked, so the seated pose falls back to idle/sustained overlay no-op until a ride clip is added. Wheelie is a visual pitch, not a physics wheelie (no wheel/tire physics). The bike has no dedicated navigation/avoidance - it drives straight/TurnControl and can clip obstacles. Dismount position could intersect geometry. Speed/accel/turn are first-pass numbers.
+- Next action: user playtests the bike (mount near the Car Dealer, ride, wheelie with Space at speed, dismount). Then per the user's roadmap: overall plot/gameplay assembly, then accessories/music/map refinement.
 
 ## Required change-entry format
 

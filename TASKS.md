@@ -2,6 +2,19 @@
 
 ## Done (pending user confirmation)
 
+### MINI-033 — Rideable bike (TMAX-style scooter)
+
+Goal: first vehicle - a rideable motorcycle/scooter with E mount/dismount,
+WASD camera-relative ride, Space WHEELIE at speed, max 10 m/s. Built
+mesh-agnostic so a real TMAX model can replace the bike's Visual child
+later with no logic change.
+
+Status: Built and verified by OpenClaw on 2026-08-17 — compile clean, scene
+rebuilt (TMAX_Bike/BikeVehicle/RiderMount confirmed), Windows build
+succeeded, headless run zero errors, visual snapshot renders the scooter.
+Not yet hands-on playtested. See the MINI-033 entry in
+`PROJECT-HANDOFF.md`.
+
 ### MINI-055 — Game-opening "kicked out of school" dialogue cutscene
 
 Goal: on game start, Sacat and Franki talk through the user's exact

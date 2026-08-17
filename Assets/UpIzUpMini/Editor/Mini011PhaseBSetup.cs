@@ -2017,6 +2017,8 @@ namespace UpIzUpMini.EditorTools
             // their block in Lalay).
             BuildRivalGang(terrain, roadPoints, animController);
             BuildBoatMan(terrain, allCrops, animController);
+            // MINI-033: the TMAX-style scooter (buildable/rideable bike).
+            BuildBike(terrain, roadPoints, animController);
         }
 
         /// <summary>
@@ -2313,6 +2315,115 @@ namespace UpIzUpMini.EditorTools
                 cropsProp.GetArrayElementAtIndex(i).objectReferenceValue = allCrops[i];
             }
             tso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// MINI-033. The TMAX-style scooter — first rideable vehicle. Built
+        /// from primitives as a clean low-poly scooter (body tub, front
+        /// cowl, seat, handlebar, two wheels, rear mudguard), the visual is
+        /// mesh-agnostic so a real TMAX drop-in replaces the render child
+        /// later with no logic change. The BikeVehicle component handles
+        /// enter/exit, camera-relative riding, and the wheelie (Space).
+        /// </summary>
+        private static void BuildBike(Terrain terrain, List<Vector3> roadPoints,
+            RuntimeAnimatorController animController)
+        {
+            // Park the bike next to the Car Dealer (index 15) so it reads as
+            // a vehicle lot, just off the road.
+            int idx = Mathf.Clamp(15, 1, roadPoints.Count - 2);
+            Vector3 dir = (roadPoints[idx + 1] - roadPoints[idx - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3 pos = roadPoints[idx] + right * 6f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z) + 0.25f;
+
+            var bikeGo = new GameObject("TMAX_Bike");
+            bikeGo.transform.position = pos;
+            bikeGo.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+
+            // Visual root (all bike geometry lives here so a swap is easy).
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(bikeGo.transform, false);
+
+            Material bodyMat = GetOrCreateMaterial("TMAX_Red", new Color(0.75f, 0.12f, 0.1f));
+            Material darkMat = GetOrCreateMaterial("TMAX_Dark", new Color(0.08f, 0.09f, 0.1f));
+            Material tyreMat = GetOrCreateMaterial("TMAX_Tyre", new Color(0.03f, 0.03f, 0.03f));
+            Material chromeMat = GetOrCreateMaterial("TMAX_Chrome", new Color(0.75f, 0.78f, 0.82f));
+
+            // Main body tub (the maxi-scooter hull).
+            AddBox(visual.transform, "Body", new Vector3(0.34f, 0.30f, 1.25f), new Vector3(0f, 0.55f, -0.1f), bodyMat);
+            // Front cowl rise.
+            AddBox(visual.transform, "Cowl", new Vector3(0.30f, 0.5f, 0.30f), new Vector3(0f, 0.55f, 0.65f), bodyMat);
+            // Seat (rider sits here).
+            var seat = AddBox(visual.transform, "Seat", new Vector3(0.22f, 0.10f, 0.50f), new Vector3(0f, 0.78f, -0.05f), darkMat);
+            // Floorboard / foot rest.
+            AddBox(visual.transform, "Floorboard", new Vector3(0.28f, 0.06f, 0.60f), new Vector3(0f, 0.32f, 0.15f), darkMat);
+            // Handlebar stem + bar.
+            AddBox(visual.transform, "HandlebarStem", new Vector3(0.05f, 0.35f, 0.05f), new Vector3(0f, 1.0f, 0.72f), darkMat);
+            AddBox(visual.transform, "Handlebar", new Vector3(0.42f, 0.05f, 0.05f), new Vector3(0f, 1.18f, 0.74f), chromeMat);
+            // Windscreen.
+            AddBox(visual.transform, "Screen", new Vector3(0.28f, 0.30f, 0.04f), new Vector3(0f, 0.95f, 0.80f), chromeMat);
+
+            // Two wheels (front + rear) as separate children so they spin and
+            // the front can visually lift on a wheelie.
+            var frontWheel = MakeWheel(visual.transform, "FrontWheel", new Vector3(0f, 0.32f, 0.80f), tyreMat, chromeMat);
+            var backWheel = MakeWheel(visual.transform, "BackWheel", new Vector3(0f, 0.32f, -0.72f), tyreMat, chromeMat);
+
+            // Rider mount; the player parents onto this to sit.
+            var riderMount = new GameObject("RiderMount");
+            riderMount.transform.SetParent(bikeGo.transform, false);
+            riderMount.transform.localPosition = new Vector3(0f, 0.82f, -0.05f);
+
+            // The vehicle logic.
+            var bike = bikeGo.AddComponent<Vehicles.BikeVehicle>();
+            var so = new SerializedObject(bike);
+            so.FindProperty("riderMount").objectReferenceValue = riderMount.transform;
+            so.FindProperty("frontWheel").objectReferenceValue = frontWheel.transform;
+            so.FindProperty("backWheel").objectReferenceValue = backWheel.transform;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static GameObject AddBox(Transform parent, string name, Vector3 scale, Vector3 localPos, Material mat)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = name;
+            go.transform.SetParent(parent, false);
+            go.transform.localScale = scale;
+            go.transform.localPosition = localPos;
+            go.GetComponent<Renderer>().sharedMaterial = mat;
+            // Bikes don't need solid colliders on every part; a single box
+            // collider on the body is enough (added by the scene builder if
+            // needed). Primitives get a BoxCollider by default; remove it so
+            // the whole-vehicle collider isn't doubled.
+            var bc = go.GetComponent<Collider>();
+            if (bc != null) Object.DestroyImmediate(bc);
+            return go;
+        }
+
+        private static GameObject MakeWheel(Transform parent, string name, Vector3 localPos, Material tyreMat, Material hubMat)
+        {
+            var wheel = new GameObject(name);
+            wheel.transform.SetParent(parent, false);
+            wheel.transform.localPosition = localPos;
+
+            var tyre = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            tyre.name = name + "_Tyre";
+            tyre.transform.SetParent(wheel.transform, false);
+            tyre.transform.localScale = new Vector3(0.34f, 0.18f, 0.34f);
+            tyre.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            tyre.GetComponent<Renderer>().sharedMaterial = tyreMat;
+            var tc = tyre.GetComponent<Collider>();
+            if (tc != null) Object.DestroyImmediate(tc);
+
+            var hub = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            hub.name = name + "_Hub";
+            hub.transform.SetParent(wheel.transform, false);
+            hub.transform.localScale = new Vector3(0.14f, 0.20f, 0.14f);
+            hub.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            hub.GetComponent<Renderer>().sharedMaterial = hubMat;
+            var hc = hub.GetComponent<Collider>();
+            if (hc != null) Object.DestroyImmediate(hc);
+
+            return wheel;
         }
 
         /// <summary>

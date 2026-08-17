@@ -99,6 +99,24 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "grandbay-overview-wide.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-033/Snapshot Bike")]
+        public static void SnapshotBike()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var bike = GameObject.Find("TMAX_Bike");
+            Vector3 center = bike != null ? bike.transform.position : new Vector3(135f, 0f, 95f);
+
+            var camGo = new GameObject("BikeCamera");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = center + new Vector3(-2.4f, 1.4f, -2.0f);
+            camGo.transform.LookAt(center + Vector3.up * 0.6f);
+            cam.fieldOfView = 50f;
+            cam.farClipPlane = 120f;
+
+            RenderAndSave(cam, "mini033-bike.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-011/Snapshot GrandBayProof Mid Overview")]
         public static void SnapshotGrandBayProofMid()
         {
