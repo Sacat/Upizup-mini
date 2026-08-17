@@ -1486,25 +1486,33 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("plantRoot").objectReferenceValue = plantRoot.transform;
             so.FindProperty("plantRenderer").objectReferenceValue = root.GetComponentInChildren<Renderer>(true);
 
-            // Dense mini-grape bud cluster: multiple small spheres grouped in
-            // the plant's upper third. Read as a weed bud cluster, not loose
-            // tomato-style singles. Ripe colour from the strain flows through
-            // CropStageVisual.fruitRenderers.
+            // Dense mini-grape bud cluster placed INSIDE the real weed canopy.
+            // Measured (Mini051WeedBoundsProbe): at 1.9m plant height the mesh
+            // is a wide bush ~1.7m x 1.9m x 1.64m (x/z extent to ~0.84m, top at
+            // ~1.13m above base). Buds are therefore scattered across the upper
+            // half of that canopy (y 0.4-1.0) and out to ~0.5m radius so they
+            // nestle among the broad leaves rather than floating above/beside
+            // the plant (the previous bug: buds at y 1.0-1.5, above the 1.13m
+            // canopy top, at a narrow radius, read as floating grapes).
             var fruitsProp = so.FindProperty("fruitRenderers");
             var fruits = new List<Renderer>();
-            const int clusterCount = 12;
+            const int clusterCount = 18;
             for (int i = 0; i < clusterCount; i++)
             {
+                // Pseudo-random but stable scatter inside the canopy volume:
+                // height between 0.4 and 1.0 (upper half of the bush), radius
+                // 0.25-0.5 (within the wide foliage), full arc around the stem.
                 float t = i / (float)clusterCount;
-                float angle = t * Mathf.PI * 2f;
-                float radius = 0.28f + 0.14f * (i % 3);
-                float y = 1.25f + 0.28f * (t * 2f - 0.3f);
+                float y = 0.40f + 0.60f * (0.5f + 0.5f * Mathf.Sin(t * 19.7f));
+                float radial = 0.25f + 0.25f * (0.5f + 0.5f * Mathf.Sin(t * 41.3f + 2.1f));
+                float angle = t * Mathf.PI * 2f + i * 1.3f;
 
                 var bud = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 bud.name = $"Bud_{i}";
                 bud.transform.SetParent(plantRoot.transform, false);
-                bud.transform.localPosition = new Vector3(Mathf.Cos(angle) * radius, y, Mathf.Sin(angle) * radius);
-                bud.transform.localScale = Vector3.one * 0.22f;
+                bud.transform.localPosition = new Vector3(Mathf.Cos(angle) * radial, y, Mathf.Sin(angle) * radial);
+                // Small ~8cm buds for a tight mini-grape look.
+                bud.transform.localScale = Vector3.one * 0.08f;
                 Object.DestroyImmediate(bud.GetComponent<Collider>());
                 bud.GetComponent<Renderer>().sharedMaterial = GetOrCreateMaterial("CropFruit", Color.green);
                 fruits.Add(bud.GetComponent<Renderer>());
