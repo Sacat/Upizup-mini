@@ -3184,6 +3184,10 @@ namespace UpIzUpMini.EditorTools
             go.transform.position = pos;
             go.transform.rotation = Quaternion.LookRotation(-right * side, Vector3.up);
             var visual = InstantiateCharacter("Assets/Floreswa/Models/male02_1.fbx", go.transform, controller, null);
+            var bossVisualProfile = AssetDatabase.LoadAssetAtPath<CharacterVisualProfile>(
+                "Assets/UpIzUpMini/Data/Character/BossCVisualProfile.asset");
+            if (bossVisualProfile != null && bossVisualProfile.useManualScale)
+                visual.transform.localScale = bossVisualProfile.localScale;
 
             var cropRefs = new CropDefinition[cropIds.Length];
             for (int i = 0; i < cropIds.Length; i++)
@@ -3257,15 +3261,27 @@ namespace UpIzUpMini.EditorTools
                 var worn = (GameObject)PrefabUtility.InstantiatePrefab(chainPrefab);
                 worn.name = "BossChain_18k";
                 worn.transform.SetParent(chest, worldPositionStays: true);
-                worn.transform.rotation = instance.transform.rotation
-                    * Quaternion.Euler(CharacterEquipment.BossChainTilt, 0f, 0f);
-                worn.transform.position = chest.position
-                    + instance.transform.forward * CharacterEquipment.BossChainForward
-                    + instance.transform.up * CharacterEquipment.BossChainUp;
-                // Boss C's chest bone scale differs from the player's, so the
-                // same prefab measured 0.068m on him against 0.308m on Sacat.
-                CharacterEquipment.NormaliseAccessoryScale(
-                    worn.transform, chest, CharacterEquipment.ChainWidth);
+                var manual = AssetDatabase.LoadAssetAtPath<AccessoryPlacementProfile>(
+                    "Assets/UpIzUpMini/Data/Equipment/BossCChainPlacement.asset");
+                if (manual != null && manual.useManualPlacement)
+                {
+                    worn.transform.localPosition = manual.localPosition;
+                    worn.transform.localRotation = Quaternion.Euler(manual.localEulerAngles);
+                    worn.transform.localScale = manual.localScale;
+                    ApplyAccessoryFittedChildren(worn.transform, manual);
+                }
+                else
+                {
+                    worn.transform.rotation = instance.transform.rotation
+                        * Quaternion.Euler(CharacterEquipment.BossChainTilt, 0f, 0f);
+                    worn.transform.position = chest.position
+                        + instance.transform.forward * CharacterEquipment.BossChainForward
+                        + instance.transform.up * CharacterEquipment.BossChainUp;
+                    // Boss C's chest bone scale differs from the player's, so the
+                    // same prefab measured 0.068m on him against 0.308m on Sacat.
+                    CharacterEquipment.NormaliseAccessoryScale(
+                        worn.transform, chest, CharacterEquipment.ChainWidth);
+                }
                 foreach (var col in worn.GetComponentsInChildren<Collider>(true))
                     Object.DestroyImmediate(col);
                 return;
@@ -3319,6 +3335,35 @@ namespace UpIzUpMini.EditorTools
                     Object.DestroyImmediate(bead.GetComponent<Collider>());
                     bead.GetComponent<Renderer>().sharedMaterial = chainMat;
                 }
+            }
+        }
+
+        private static void ApplyAccessoryFittedChildren(Transform root, AccessoryPlacementProfile profile)
+        {
+            if (profile.fittedChildren == null) return;
+            foreach (var pose in profile.fittedChildren)
+            {
+                if (pose == null || string.IsNullOrEmpty(pose.relativePath)) continue;
+                var child = root.Find(pose.relativePath);
+                if (child == null)
+                {
+                    int slash = pose.relativePath.LastIndexOf('/');
+                    string parentPath = slash >= 0 ? pose.relativePath.Substring(0, slash) : string.Empty;
+                    string name = slash >= 0 ? pose.relativePath.Substring(slash + 1) : pose.relativePath;
+                    int suffix = name.LastIndexOf(" (", System.StringComparison.Ordinal);
+                    var parent = string.IsNullOrEmpty(parentPath) ? root : root.Find(parentPath);
+                    var source = suffix > 0 && parent != null ? parent.Find(name.Substring(0, suffix)) : null;
+                    if (source != null)
+                    {
+                        var copy = Object.Instantiate(source.gameObject, parent, false);
+                        copy.name = name;
+                        child = copy.transform;
+                    }
+                }
+                if (child == null) continue;
+                child.localPosition = pose.localPosition;
+                child.localRotation = Quaternion.Euler(pose.localEulerAngles);
+                child.localScale = pose.localScale;
             }
         }
 

@@ -84,3 +84,33 @@ user_words: "Sacat chain done" / "i made a duplicate of the chain as well so sav
 supersedes: VA-001
 notes: This is a user-authored visual lock. Do not recalculate the root or either fitted child transform. The duplicated nape piece is profile data and is recreated at runtime; it is not a source-prefab edit.
 ```
+
+```yaml
+id: VA-003
+status: APPROVED
+date: 2026-08-20
+task: MINI-088
+subject: Boss C body width and two-piece GoldChain18k fit
+scene_or_prefab:
+  - Assets/UpIzUpMini/Data/Character/BossCVisualProfile.asset
+  - Assets/UpIzUpMini/Data/Equipment/BossCChainPlacement.asset
+evidence:
+  - E:\Unity\Up Iz Up Mini\Logs\Snapshots\MINI-088-BossC-Body-Manual.png
+  - E:\Unity\Up Iz Up Mini\Logs\Snapshots\MINI-088-BossC-Chain-Manual.png
+  - E:\Unity\Up Iz Up Mini\Logs\MINI-088-Validate.log
+approved_aspects:
+  - Boss C visual-root scale (1.4496428, 1, 1)
+  - 1.85 m height preserved
+  - 0.4403 m shoulder width matching Sacat
+  - front-to-back depth preserved
+  - chain root local position (-0.035, 0.093, -0.423)
+  - chain root local rotation (280.99878, 179.99992, 180.00008)
+  - chain root local scale (0.7353191, 0.7353193, 0.73531926)
+  - original front mesh and duplicated nape/back mesh fitted transforms
+still_editable:
+  - runtime animation deformation after hands-on movement observation
+  - a future canonical shared rig/body project only with a new explicit approval
+user_words: "i placed it manually so you can save it"
+supersedes: null
+notes: User manual placement is authoritative. Do not replace this with calculated bounds or Sacat's bone-local root numbers. Sacat VA-002 remains independently locked.
+```

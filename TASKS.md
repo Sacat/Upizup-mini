@@ -1433,6 +1433,12 @@ Goal: Reopen Sacat's VA-001 chain placement from its saved profile, let the user
 
 Status: Evidence ready. User approved Sacat's revised fit and requested that the duplicated nape/back piece be preserved. Root plus both child transforms are locked in `VA-002`; scene rebuild, exact runtime equipment validation, and Windows build pass. Waiting only for the user's walking/running clipping check. Boss C remains a separate next visual task.
 
+### MINI-088 — Boss C two-piece chain fit
+
+Goal: Preserve Boss C and Sacat's existing measured 1.85 m height match; match Boss C's shoulder/body width to Sacat while preserving depth; give Boss C the same front-plus-nape chain presentation; and capture separate Boss C body/chain settings without changing Sacat's VA-002 lock.
+
+Status: Complete. User manually placed and approved Boss C. Body scale and every chain hierarchy transform are captured in separate profiles; canonical rebuild and exact validation pass; Boss C and Sacat shoulder widths both measure 0.4403 m; Sacat VA-002 is unchanged; Windows build succeeded.
+
 - `MINI-032`: Modular wardrobe + accessory IK/physics (chain jiggle, etc.) — attachment already exists (MINI-022 `CharacterEquipment`), this adds swing/sway physics and separate garment geometry instead of material recolor.
 - `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed).
 - `MINI-034`: Car — buy/enter/exit/seated driving, real vehicle physics; depends on MINI-033's enter/exit pattern.

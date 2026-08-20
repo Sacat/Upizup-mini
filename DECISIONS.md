@@ -37,4 +37,8 @@ Boss K is the premium Grand Bay weed buyer, the vagrant is a lower-paying altern
 
 ## D-010 — Chain ownership and boss distribution
 
-Gold-chain purchases belong to the active protagonist only and must refresh visibly at purchase time. Sacat's approved manual transform is authoritative (`VA-001`); Franki may receive a separate fit profile later. Boss C wears the same cleaned `GoldChain18k` prefab as a status item with rig-specific placement. Boss J wears no chain.
+Gold-chain purchases belong to the active protagonist only and must refresh visibly at purchase time. Sacat's approved manual transform is authoritative (`VA-002`); Franki may receive a separate fit profile later. Boss C wears the same cleaned `GoldChain18k` prefab as a status item with rig-specific placement. Boss J wears no chain.
+
+## D-011 — Boss C uses an independent manual body/chain profile
+
+Boss C keeps the existing 1.85 m cast height and front-to-back depth, but his visual root is widened on X to the user's approved scale `(1.4496428, 1, 1)`, producing the same measured 0.4403 m shoulder width as Sacat. His two-piece front/nape chain fit is stored separately as `VA-003` because Boss C's metarig bone axes and scale are not compatible with Sacat's bone-local placement. Future rebuilds must load these profiles rather than recalculate them.

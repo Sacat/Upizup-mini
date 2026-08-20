@@ -42,6 +42,16 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-088 — Boss C manual body width and two-piece chain lock
+
+- Date: 2026-08-20
+- Owner: Codex + user manual placement
+- Request: Match Boss C to Sacat in height and body width, fit the chain manually, preserve all edits, and show screenshots in chat before moving on.
+- Implementation: Kept the existing 1.85 m height and depth; captured the user's Boss C visual-root scale `(1.4496428,1,1)` in `BossCVisualProfile`; captured the chain root and all four descendant transforms in `BossCChainPlacement`; canonical builder now reloads both profiles and recreates the duplicate nape piece.
+- Visual evidence: `Logs/Snapshots/MINI-088-BossC-Body-Manual.png` and `MINI-088-BossC-Chain-Manual.png` were shown in chat before integration. Visual lock `VA-003` records the manual result.
+- Verification: capture log `MINI-088-CaptureApproved.log`; successful canonical rebuild `MINI-088-Rebuild.log`; `MINI-088-Validate.log` pass proving exact profile reproduction, Boss C/Sacat shoulder widths both 0.4403 m, and Sacat VA-002 unchanged; Windows build `MINI-088-Build.log` succeeded at 407,521,243 bytes.
+- Remaining honest gate: watch Boss C animate and move in a live build; static/manual screenshots cannot prove non-uniform-scale deformation during animation.
+
 ### MINI-087 — Sacat two-piece chain visual lock
 
 - Date: 2026-08-20
