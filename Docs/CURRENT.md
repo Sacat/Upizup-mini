@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: work through `MINI-083` exists in the working tree, but much of MINI-052 onward is uncommitted/untracked and not hands-on accepted.
+- Current production state: work through `MINI-084` is preserved by the deliberate baseline commit `b367fc5` on `codex/mini-085-baseline-20260820`. MINI-085 compiled, rebuilt, validated, built, smoke-tested, and inspected the live opening; most later motion/feel remains not hands-on accepted.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known committed checkpoint shown by Git during MINI-084 audit: `42efdf3` (`MINI-050`).
 
@@ -31,7 +31,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 ## Highest risks
 
-1. Dirty working tree: MINI-084 preflight counted 169 modified/untracked paths. Do not commit, rebuild over, or absorb unrelated work without first creating a deliberate checkpoint.
+1. Visual acceptance: MINI-085 preserved the prior working tree and verified the build, but no appearance is user-locked. The active-player name is missing from the live HUD and the opening camera can be blocked by the safehouse roof.
 2. Visual debt: many changes compile or pass harnesses but have not been watched in real Play Mode. Static screenshots cannot prove animation, combat, riding, driving, NPC movement, or UI timing.
 3. Map fidelity: existing Lalay-to-beach layout has no defensible geographic source data.
 4. Mobile architecture: Built-in RP, legacy Input Manager, no touch/safe-area layer, no Android build gate.
@@ -51,11 +51,11 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 ## Recommended next sequence
 
-1. User plays the current build while Codex/Claude record a short accepted/rejected visual and motion baseline.
-2. Create a deliberate Git checkpoint for the large MINI-052–083 batch after review; do not let two agents keep building on an uncommitted pile.
-3. In parallel: collect/verify Lalay-to-beach map anchors and prepare one Hitem3D character reference card. No paid generation yet.
+1. Make one small packet for the missing active-player name and obstructed opening camera; then ask the user to play the current build and accept/reject movement and presentation.
+2. Collect and verify Lalay-to-beach map anchors, then build a separate map-lab graybox without destroying the working gameplay scene.
+3. Prepare one Hitem3D character reference card. No paid generation until the user approves the reference.
 4. Integrator: introduce an input facade and asset-size/performance report before touch UI or more vehicles.
-5. Build a separate map-lab graybox from approved Map Truth; preserve the current gameplay scene until the new layout is accepted.
+5. Preserve the current gameplay scene until the separate map-lab layout is accepted.
 6. Prove one canonical modular body + one shirt/short/shoe set before generating a wardrobe.
 7. Compress vehicle payloads, then improve per-character bike fit, mount/dismount sequencing, and proper riding clips.
 8. Fix combat contact timing and one polished unarmed hit/knockdown loop before combos, ragdolls, or shooting.

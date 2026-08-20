@@ -26,11 +26,10 @@ reserved_files:
 ### Current claim
 
 ```yaml
-current_owner: Codex
-active_task: MINI-085
-claimed_at: 2026-08-20T07:26:08-04:00
-reserved_files:
-  - "**"
+current_owner: None
+active_task: None
+claimed_at: None
+reserved_files: []
 ```
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
@@ -2192,6 +2191,20 @@ built with both the radio and the missions included.
 - Verification results: Preflight passed its ownership/required-file checks and correctly counted 169 pre-existing/current dirty or untracked paths on its first detailed run. The official skill quick-validator could not start because both available Python runtimes lack the `yaml` module; no dependency was installed merely to validate two simple frontmatter fields. Manual structural checks passed. The workflow docs require no Unity compile because no Unity-consumed file changed.
 - Known issues: The repository remains heavily dirty from the earlier MINI-052–083 batch. This task was deliberately not committed because `PROJECT-HANDOFF.md` and `TASKS.md` already contain unrelated uncommitted history, so a commit would mix ownership. Many prior motion/feel changes still need hands-on play testing. `Docs/VISUAL-APPROVAL-REGISTER.md` starts empty rather than guessing past approvals without evidence.
 - Next action: User runs/plays the current build and marks accepted/rejected visual and motion items. Then make a deliberate checkpoint of the existing MINI-052–083 batch before map or character production. In parallel, prepare verified Lalay-to-beach map anchors and one no-cost Hitem3D reference/asset card; do not spend generation credits until the reference is approved.
+
+### MINI-085 — Current-build regression baseline and safety checkpoint
+
+- Date: 2026-08-20
+- Owner: Codex (released)
+- Request: Execute the next recommended step: preserve the current Mini project, verify it comprehensively, inspect the actual player, and establish an evidence-backed starting point before further production.
+- Acceptance criteria: Dedicated safety branch/checkpoint; compile; rebuild; high-value validators; Windows build; built-player smoke; static evidence; live opening inspection; findings classified without redesign; no Hitem3D credit use.
+- Implementation: Created `codex/mini-085-baseline-20260820` and committed the complete pre-test state as `b367fc5`. Rebuilt the generated Grand Bay scene and prepared vehicle prefabs, ran the existing validation harnesses, made a fresh Windows build, ran a clean headless player smoke, generated fixed screenshots, and opened the 1280x720 player for a targeted live inspection.
+- Files changed: Documentation, task records, evidence logs, and the baseline checkpoint only. No gameplay, generated-world implementation, scene/prefab design, packages, settings, or imported asset content was intentionally changed by this task.
+- Scene/prefab changes: The canonical builder regenerated existing authored content; this task made no design changes.
+- Verification commands: Unity batch compile; `Mini064TmaxAssetPrep.BuildPrefab`; `Mini065TmaxPhysicsTest.WireController/BuildTestScene`; `Mini071RoverVehiclePrep.BuildVehicle`; `Mini011PhaseBSetup.BuildScene`; TMAX/Rover/gang/faction/chain validators; `Mini001Build.BuildWindowsPlayer`; 15-second headless built-player smoke; snapshot render methods; live Computer Use inspection.
+- Verification results: All invoked automated steps passed. Windows build is about 388.9 MB and the 15-second player smoke contains no error/exception/assertion/crash/null-reference. Live: H tutorial, Tab switch/objective advance, inventory/HUD, companion/bed E prompts, camera orbit, basic movement, and non-T-pose hero idle all worked. Needs revision: no active-player name appears in the HUD; the opening camera can be obscured by the safehouse roof. World, vehicle size/style, and unexercised motion remain unapproved.
+- Known issues: Held sprint/stamina, jump timing, NPC patrols, combat, farming, riding, driving, police, later missions, and save/load were not reliably exercised through discrete UI automation. No visual lock was created because the user has not yet accepted evidence.
+- Next action: A small separate fix packet for active-player naming and opening-camera obstruction, followed by a user playtest. Then start Map Truth/map-lab work; prepare but do not spend Hitem3D credits before reference approval.
 
 ## Required change-entry format
 

@@ -1409,23 +1409,7 @@ Acceptance criteria:
 
 Goal: Preserve the complete current MINI-052–084 working state on a safety branch, compile and run the existing validation/build pipeline, inspect the built game live, and record accepted/rejected visual and motion evidence before starting map or Hitem3D production.
 
-Status: In progress.
-
-Acceptance criteria:
-
-- A dedicated safety branch preserves the complete current working tree without deleting or rewriting prior work.
-- Unity compiles and the established high-value validation harnesses run, with failures recorded rather than hidden.
-- A current Windows player is built and smoke-tested.
-- Static screenshots and a live gameplay inspection cover player locomotion, NPC movement, interaction UI, farming, combat, TMAX riding/wheelie, and Range Rover driving where reachable.
-- Findings are classified as accepted, needs revision, blocked, or not exercised; visual locks are added only for explicitly user-approved results.
-- No Hitem3D credits are spent and no map/character/gameplay redesign is performed in this task.
-- The verified state is committed as an explicit baseline checkpoint; ownership is released.
-
-### MINI-085 — Current-build regression baseline and safety checkpoint
-
-Goal: Preserve the complete current MINI-052–084 working state on a safety branch, compile and run the existing validation/build pipeline, inspect the built game live, and record accepted/rejected visual and motion evidence before starting map or Hitem3D production.
-
-Status: In progress.
+Status: Evidence ready; automated pipeline passed and live opening inspected. Awaiting user play feedback for visual/motion acceptance.
 
 Acceptance criteria:
 
