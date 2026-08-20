@@ -2484,6 +2484,10 @@ namespace UpIzUpMini.EditorTools
                 modelPath: "Assets/Floreswa/Models/male01_2.fbx", role: NpcRole.Police,
                 cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: true);
 
+            BuildNpc(terrain, roadPoints, index: 10, sideMul: 1f, goName: "NPC_PoliceEast",
+                modelPath: "Assets/Floreswa/Models/male01_1.fbx", role: NpcRole.Police,
+                cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: true);
+
             // Farm shop, crop buyer, and the separate apparel shop each get
             // their own stall and stay put beside it.
             BuildNpc(terrain, roadPoints, index: 6, sideMul: 1f, goName: "NPC_FarmShop",
@@ -5025,7 +5029,7 @@ namespace UpIzUpMini.EditorTools
             mapRect.anchorMin = Vector2.zero;
             mapRect.anchorMax = Vector2.one;
             mapRect.offsetMin = new Vector2(7f, 24f);
-            mapRect.offsetMax = new Vector2(-7f, -7f);
+            mapRect.offsetMax = new Vector2(-7f, -28f);
             RawImage mapImage = mapObject.GetComponent<RawImage>();
             mapImage.color = new Color(1f, 1f, 1f, 0.82f);
             mapImage.raycastTarget = false;
@@ -5063,6 +5067,14 @@ namespace UpIzUpMini.EditorTools
             wanted.color = new Color(1f, 0.86f, 0.86f);
             wanted.gameObject.SetActive(false);
 
+            Text missionHint = CreateLabel(panelRect, "YELLOW = CURRENT MISSION", 14, new Vector2(0f, -3f), font);
+            missionHint.name = "MissionMarkerHint";
+            missionHint.rectTransform.anchorMin = missionHint.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+            missionHint.rectTransform.pivot = new Vector2(0.5f, 1f);
+            missionHint.rectTransform.sizeDelta = new Vector2(290f, 22f);
+            missionHint.alignment = TextAnchor.MiddleCenter;
+            missionHint.color = new Color(1f, 0.78f, 0.12f);
+
             GameObject cameraObject = new GameObject("GTA_MinimapCamera");
             Camera miniCamera = cameraObject.AddComponent<Camera>();
             miniCamera.enabled = true;
@@ -5097,6 +5109,7 @@ namespace UpIzUpMini.EditorTools
             AddMiniMapMarker("NPC_Normy", MiniMapMarkerKind.Person, "Normy", police, "M12");
             AddMiniMapMarker("NPC_Police", MiniMapMarkerKind.Police, "Police", police);
             AddMiniMapMarker("NPC_PoliceShops", MiniMapMarkerKind.Police, "Police", police);
+            AddMiniMapMarker("NPC_PoliceEast", MiniMapMarkerKind.Police, "Police", police);
             AddMiniMapMarker("FarmSafehouse_Building", MiniMapMarkerKind.Safehouse, "Highland Safehouse", property);
             AddMiniMapMarker("LalayHouse", MiniMapMarkerKind.Safehouse, "Lalay Safehouse", property, "M12");
             AddMiniMapMarker("FarmPlot_00", MiniMapMarkerKind.Farm, "Highland Farm", shop);

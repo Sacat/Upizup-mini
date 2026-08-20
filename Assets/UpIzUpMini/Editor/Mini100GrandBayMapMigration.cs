@@ -58,7 +58,7 @@ namespace UpIzUpMini.EditorTools
             PlaceLalayGameplay(gameplayScene);
             PlaceRoadsideBuilding(gameplayScene, "LalayHouse", 48f, 1, 15.5f, 8f);
             PlaceRoadsideBuilding(gameplayScene, "LalayEstate", 24f, -1, 17f, 9f);
-            MoveVehicleAlongRoad("BossC_SUV", 145f, -1, 9.2f);
+            MoveVehicleAlongRoad("BossC_SUV", 151f, -1, 12.5f);
             PlaceGangBlocks();
             PlaceChurchAndJettyRoles(gameplayScene, oldBoat);
             MoveNamed(gameplayScene, "Sacat", new Vector3(48.5f, 0f, -159f));
@@ -120,10 +120,10 @@ namespace UpIzUpMini.EditorTools
             foreach ((string stall, string npc, float x, int side) shop in shops)
             {
                 Vector3 road = RoadCentre(shop.x);
-                Vector3 stallTarget = RoadsidePosition(shop.x, shop.side, 14.0f);
-                ClearHouseLots(stallTarget, 7.5f);
+                Vector3 stallTarget = RoadsidePosition(shop.x, shop.side, 9.2f);
+                ClearHouseLots(stallTarget, 6.0f);
                 MoveAnywhere(shop.stall, stallTarget, road);
-                MoveAnywhere(shop.npc, RoadsidePosition(shop.x, shop.side, 10.2f), stallTarget);
+                MoveAnywhere(shop.npc, RoadsidePosition(shop.x, shop.side, 7.2f), stallTarget);
             }
 
             // Other stationary sellers/story contacts use the same roadside-lot rule.
@@ -134,21 +134,24 @@ namespace UpIzUpMini.EditorTools
             PlaceRoadsideNpc("NPC_BossC", 145f, -1, true);
             PlaceRoadsideNpc("NPC_GangRecruiter", 169f, -1, true);
             PlaceRoadsideNpc("NPC_Villager", 18f, -1, false);
-            PlaceRoadsideNpc("NPC_Police", 43f, -1, false);
-            PlaceRoadsideNpc("NPC_PoliceShops", 102f, -1, false);
+            ConfigurePolicePatrol("NPC_Police", -45f, 30f, 1);
+            ConfigurePolicePatrol("NPC_PoliceShops", 35f, 100f, -1);
+            ConfigurePolicePatrol("NPC_PoliceEast", 108f, 178f, 1);
+        }
 
-            foreach (PoliceOfficer officer in UnityEngine.Object.FindObjectsByType<PoliceOfficer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            {
-                Vector3 a = RoadsidePosition(18f, -1, 7.0f);
-                Vector3 b = RoadsidePosition(132f, -1, 7.0f);
-                officer.SetPatrol(Ground(a), Ground(b));
-                SerializedObject so = new SerializedObject(officer);
-                SerializedProperty patrolA = so.FindProperty("patrolA");
-                SerializedProperty patrolB = so.FindProperty("patrolB");
-                if (patrolA != null) patrolA.vector3Value = Ground(a);
-                if (patrolB != null) patrolB.vector3Value = Ground(b);
-                so.ApplyModifiedPropertiesWithoutUndo();
-            }
+        private static void ConfigurePolicePatrol(string name, float startX, float endX, int side)
+        {
+            Vector3 a = RoadsidePosition(startX, side, 7.2f);
+            Vector3 b = RoadsidePosition(endX, side, 7.2f);
+            MoveAnywhere(name, Vector3.Lerp(a, b, 0.5f), RoadCentre((startX + endX) * 0.5f));
+            Transform npc = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(t => t.name == name);
+            PoliceOfficer officer = npc != null ? npc.GetComponent<PoliceOfficer>() : null;
+            if (officer == null) return;
+            officer.SetPatrol(Ground(a), Ground(b));
+            SerializedObject so = new SerializedObject(officer);
+            if (so.FindProperty("patrolA") is SerializedProperty pa) pa.vector3Value = Ground(a);
+            if (so.FindProperty("patrolB") is SerializedProperty pb) pb.vector3Value = Ground(b);
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void PlaceRoadsideNpc(string name, float x, int side, bool clearLot)
@@ -176,22 +179,22 @@ namespace UpIzUpMini.EditorTools
 
         private static void PlaceGangBlocks()
         {
-            Vector3 dogLifeCentre = RoadsidePosition(-32f, -1, 11.5f);
+            Vector3 dogLifeCentre = RoadsidePosition(-32f, -1, 7.8f);
             RivalGangSpawner spawner = UnityEngine.Object.FindFirstObjectByType<RivalGangSpawner>(FindObjectsInactive.Include);
             spawner?.SetBlockCentre(dogLifeCentre);
             for (int i = 0; i < 4; i++)
             {
-                float angle = i * Mathf.PI * 0.5f;
-                Vector3 position = Ground(dogLifeCentre + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * 3.2f);
-                MoveAnywhere($"NPC_DogLife_{i}", position, RoadCentre(-32f));
+                float x = -38f + i * 4f;
+                MoveAnywhere($"NPC_DogLife_{i}", RoadsidePosition(x, -1, 7.8f), RoadCentre(x));
             }
 
-            Vector3 playerBlock = RoadsidePosition(154f, -1, 12.0f);
-            PlaceRoadsideNpc("NPC_GangRecruiter", 154f, -1, true);
+            Vector3 playerBlock = RoadsidePosition(154f, -1, 7.8f);
+            PlaceRoadsideNpc("NPC_GangRecruiter", 166f, -1, false);
             string[] names = { "Zoomy", "Deluxe", "Draco", "Rio" };
             for (int i = 0; i < names.Length; i++)
             {
-                Vector3 position = Ground(playerBlock + new Vector3((i - 1.5f) * 1.8f, 0f, -2.2f));
+                float x = 148f + i * 4f;
+                Vector3 position = RoadsidePosition(x, -1, 7.8f);
                 Transform member = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
                     .FirstOrDefault(transform => transform.name == $"NotAhWord_{names[i]}");
                 if (member == null) continue;
@@ -252,11 +255,9 @@ namespace UpIzUpMini.EditorTools
                 .FirstOrDefault(transform => transform.name == name);
             if (vehicle == null) return;
             Vector3 target = RoadsidePosition(x, side, offset);
-            // On a sharp bend the sideways sidewalk offset also changes X.
-            // Use the visible vehicle centre's target X, not the road query X,
-            // so its long axis follows the road beside the actual parking lot.
-            Vector3 before = RoadCentre(target.x - 2f);
-            Vector3 after = RoadCentre(target.x + 2f);
+            // Keep the vehicle parallel to the road station it is parked beside.
+            Vector3 before = RoadCentre(x - 2f);
+            Vector3 after = RoadCentre(x + 2f);
             Vector3 forward = after - before; forward.y = 0f;
             if (forward.sqrMagnitude > 0.01f) vehicle.rotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
             // Rotate first: changing the long vehicle's orientation changes

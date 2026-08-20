@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UpIzUpMini.Missions;
+using UpIzUpMini.InputSystem;
 
 namespace UpIzUpMini.Dialogue
 {
@@ -60,8 +61,16 @@ namespace UpIzUpMini.Dialogue
                 string shown = string.IsNullOrEmpty(line.speaker) ? line.text : $"{line.speaker}: {line.text}";
                 MissionSystem.Instance?.Alert(shown);
 
-                yield return new WaitForSeconds(ReadingHold(line.text));
+                float hold = ReadingHold(line.text);
+                float elapsed = 0f;
+                while (elapsed < hold)
+                {
+                    if (GameInput.WasPressed(GameAction.Interact)) break;
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
             }
+            MissionSystem.Instance?.FinishOpeningConversation();
         }
 
         private static float ReadingHold(string text)

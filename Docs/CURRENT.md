@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-102` adds the user-marked south-side Backstreet, deliberate Lalay mission/gang/police blocks, Brakes at the church, the Paro and jetty route, and a GTA-style minimap with a transparent 50%+ police-heat overlay. Static/map gates pass; final Windows build and hands-on movement/traffic acceptance are the remaining gate.
+- Current production state: systems 1–3 are integrated. `MINI-103` puts shops and gangs at accessible Lalay sidewalk frontage, parks Boss C's Rover clear and parallel, adds three distinct sidewalk police patrols, a yellow live-objective minimap marker/hint, and E-fast-forward for the Sacat/Franki intro. Static/map gates and the Windows build pass; hands-on movement/traffic acceptance remains.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `3adb5c0` (`MINI-093` police melee retaliation; focused validation passed, no new Windows build).
 

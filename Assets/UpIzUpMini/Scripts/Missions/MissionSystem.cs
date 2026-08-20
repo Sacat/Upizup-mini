@@ -317,6 +317,13 @@ namespace UpIzUpMini.Missions
 
         public void Alert(string text) => ShowBanner(text);
 
+        public void FinishOpeningConversation()
+        {
+            if (string.IsNullOrEmpty(_pendingBriefing)) return;
+            ShowBanner(_pendingBriefing);
+            _pendingBriefing = null;
+        }
+
         public void SetMissions(List<Mission> newMissions)
         {
             missions = newMissions;

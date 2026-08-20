@@ -42,6 +42,14 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-103 — Lalay roadside access and mission guidance
+
+- Date: 2026-08-20
+- Owner: Codex (released; user runtime acceptance pending)
+- Result: Moved all seven shops to sidewalk frontage, kept sellers accessible at the front, moved both gangs onto sidewalk blocks, parked Boss C's Rover outside and parallel to the road, and created three separate Lalay sidewalk police patrols. The active mission destination now has a dedicated yellow minimap blip and on-screen legend. E advances each Sacat/Franki opening line and immediately releases the deferred first mission briefing after the conversation.
+- Verification: map migration validation and district migration gate pass; Direct3D 11 fixed screenshots captured under `Logs/Tasks/MINI-103`; Windows build succeeded at 387,522,526 bytes. Runtime movement/patrol timing remains the user's acceptance gate.
+- Build: `Builds/GrandBayProof/UpIzUpMini.exe`.
+
 ### MINI-102 — South Backstreet, Lalay mission layout and GTA minimap
 
 - Date: 2026-08-20

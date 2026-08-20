@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
+using UpIzUpMini.Missions;
 
 namespace UpIzUpMini.UI
 {
@@ -25,6 +26,7 @@ namespace UpIzUpMini.UI
         private readonly List<(GtaMiniMapMarker marker, RectTransform icon)> _blips = new();
         private RenderTexture _texture;
         private Sprite _dotSprite;
+        private RectTransform _objectiveIcon;
 
         private void Start()
         {
@@ -90,6 +92,14 @@ namespace UpIzUpMini.UI
                 image.raycastTarget = false;
                 _blips.Add((marker, icon));
             }
+            GameObject objective = new GameObject("Blip_CurrentMission", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            _objectiveIcon = objective.GetComponent<RectTransform>();
+            _objectiveIcon.SetParent(blipRoot, false);
+            _objectiveIcon.sizeDelta = new Vector2(19f, 19f);
+            Image objectiveImage = objective.GetComponent<Image>();
+            objectiveImage.sprite = _dotSprite;
+            objectiveImage.color = new Color(1f, 0.78f, 0.12f, 1f);
+            objectiveImage.raycastTarget = false;
         }
 
         private void UpdateBlips()
@@ -109,6 +119,20 @@ namespace UpIzUpMini.UI
                 }
                 icon.gameObject.SetActive(visible);
             }
+            MissionObjective active = MissionSystem.Instance?.CurrentObjective;
+            bool showObjective = active != null && active.hasMarker;
+            if (showObjective) showObjective = PositionIcon(_objectiveIcon, active.markerPosition);
+            if (_objectiveIcon != null) _objectiveIcon.gameObject.SetActive(showObjective);
+        }
+
+        private bool PositionIcon(RectTransform icon, Vector3 worldPosition)
+        {
+            if (icon == null || mapCamera == null) return false;
+            Vector3 viewport = mapCamera.WorldToViewportPoint(worldPosition + Vector3.up * 1.5f);
+            if (viewport.z <= 0f || viewport.x < 0f || viewport.x > 1f || viewport.y < 0f || viewport.y > 1f) return false;
+            Rect rect = blipRoot.rect;
+            icon.anchoredPosition = new Vector2((viewport.x - 0.5f) * rect.width, (viewport.y - 0.5f) * rect.height);
+            return true;
         }
 
         private void UpdateWantedOverlay()
