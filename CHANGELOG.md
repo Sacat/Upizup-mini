@@ -62,3 +62,8 @@
 - Kept the cleaned real chain on Boss C and removed Boss J's chain at the generated-scene source.
 - Added a transaction/distribution validator proving Sacat's purchase equips only Sacat, Boss C has the real chain, and Boss J has none.
 - Rebuilt and statically validated GrandBayProof, produced a fresh Windows build, and completed a clean 12-second headless player smoke.
+
+## 2026-08-20 — MINI-089 dialogue wording
+
+- Replaced the generic locked-progression response with the user's exact line: `Keep doing your ting. I'll maybe organize you when you build up ur self`.
+- Added a focused locked-Boss-C validator, rebuilt the generated scene, and produced a successful Windows build.

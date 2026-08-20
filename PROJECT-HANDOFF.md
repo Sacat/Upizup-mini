@@ -42,6 +42,14 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-089 — Locked-progression dialogue wording
+
+- Date: 2026-08-20
+- Owner: Codex
+- Request: Replace `Come back when allu make more progress, nuh.` with the user's exact line: `Keep doing your ting. I'll maybe organize you when you build up ur self`.
+- Implementation: Updated only the generic locked-role feedback in `TownNPCInteractable`; no progression gates or other dialogue changed.
+- Verification: `MINI-089-Validate.log` instantiated a locked Boss C path and confirmed the exact returned string; `MINI-089-Rebuild.log` rebuilt the canonical scene; `MINI-089-Build.log` produced a successful 407,521,243-byte Windows build.
+
 ### MINI-088 — Boss C manual body width and two-piece chain lock
 
 - Date: 2026-08-20

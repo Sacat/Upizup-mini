@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: work through `MINI-088` is implemented on `codex/mini-085-baseline-20260820`. Boss C now uses the user's approved manual body-width profile and independent two-piece chain profile (`VA-003`); Sacat's `VA-002` remains unchanged. Automated checks and Windows build pass; movement/animation deformation still needs hands-on acceptance.
+- Current production state: work through `MINI-089` is implemented on `codex/mini-085-baseline-20260820`. Boss C uses the user's approved manual body/chain profile, and locked progression interactions now use the user's exact `Keep doing your ting...` dialogue. Automated checks and Windows build pass; movement/animation deformation still needs hands-on acceptance.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `866ab18` (`MINI-088` Boss C body and chain visual lock).
 

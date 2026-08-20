@@ -1439,6 +1439,12 @@ Goal: Preserve Boss C and Sacat's existing measured 1.85 m height match; match B
 
 Status: Complete. User manually placed and approved Boss C. Body scale and every chain hierarchy transform are captured in separate profiles; canonical rebuild and exact validation pass; Boss C and Sacat shoulder widths both measure 0.4403 m; Sacat VA-002 is unchanged; Windows build succeeded.
 
+### MINI-089 — Locked-progression dialogue wording
+
+Goal: Replace the generic locked-character response with the user's exact Dominican line: `Keep doing your ting. I'll maybe organize you when you build up ur self`.
+
+Status: Complete. Exact requested text returned by a locked Boss C validation; canonical rebuild and Windows build succeeded. No other dialogue, progression gates, or visual profiles changed.
+
 - `MINI-032`: Modular wardrobe + accessory IK/physics (chain jiggle, etc.) — attachment already exists (MINI-022 `CharacterEquipment`), this adds swing/sway physics and separate garment geometry instead of material recolor.
 - `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed).
 - `MINI-034`: Car — buy/enter/exit/seated driving, real vehicle physics; depends on MINI-033's enter/exit pattern.

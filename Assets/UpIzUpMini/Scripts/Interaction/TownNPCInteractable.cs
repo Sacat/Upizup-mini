@@ -305,7 +305,7 @@ namespace UpIzUpMini.Interaction
 
         private bool CanUseCurrentRole(out string feedback)
         {
-            feedback = "Come back when allu make more progress, nuh.";
+            feedback = "Keep doing your ting. I'll maybe organize you when you build up ur self";
             switch (role)
             {
                 case NpcRole.Boss: return ProgressionGate.CanUseBossJ;
