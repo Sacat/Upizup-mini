@@ -124,3 +124,9 @@
 - Registered Lalay/Highland as `dm-dom-grand-bay-lalay-highland-v1` with sources, bounds, anchors, grading, connections, passability, approvals, rejected evidence, budgets and migration state.
 - Proved a fresh scaffold validates, incomplete map truth is rejected, existing districts cannot be overwritten, and Lalay cannot advance past graybox until its corrected player-height view is approved.
 - No Unity scene, prefab, package, project setting or production map data changed.
+## 2026-08-20 — MINI-099 accepted map graybox
+
+- Curated the phase-one Grand Bay world to nine connected, collidable roads and four centered two-vehicle bridges.
+- Corrected road/terrain conformity, Lalay and Highland grades, coastal sand/no-house land use and jetty reach.
+- Built 115 Lalay houses and 18 Highland buildings; registered one active and seven inactive farm parcels.
+- Added `VA-005`, advanced the district to `approved_graybox`, and documented the reusable Caribbean map recipe.

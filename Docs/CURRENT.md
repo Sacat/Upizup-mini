@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-098` is the latest separate Lalay/Highland map-lab inspection candidate: user-routed inland/coastal connector, dense regular-house-dominant Lalay rows, eastern coastal house exclusion, and sand/stone bay. The playable generated scene remains unchanged until explicit graybox approval and a separate migration task.
+- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-099` is the user-approved separate Lalay/Highland map-lab (`VA-005`): nine connected road ribbons, dense Lalay, moderately populated Highland, church/beach/jetty correction and eight farm parcel IDs. The user explicitly authorized a rollback-safe gameplay migration as the next task.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `3adb5c0` (`MINI-093` police melee retaliation; focused validation passed, no new Windows build).
 
@@ -24,7 +24,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 - `Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs` generates `GrandBayProof.unity`. Manual scene edits are overwritten.
 - The current world is a 320m procedural prototype, not measured Grand Bay: sinusoidal road, algorithmic houses, straight Montine spur, synthetic coast/jetty.
-- `Docs/MAP-ANCHORS.json` and compact Unity map/height data now exist. `VA-004` locks the approved OSM road network and Lalay street scale; the map-lab remains separate from gameplay.
+- `Docs/MAP-ANCHORS.json` and compact Unity map/height data now exist. `VA-004` locks the source road/street target and `VA-005` locks the corrected migration graybox; the map-lab remains the rollback backup.
 - `Docs/WORLD-EXPANSION-WORKFLOW.md` is mandatory for all map work. The first live manifest is `dm-dom-grand-bay-lalay-highland-v1`, currently at `graybox`; it cannot advance until a corrected player-height Lalay view is approved.
 - Locomotion uses the authored StarterAssets controller and `MotionSpeed`; do not regenerate it casually.
 - `HumanoidAnimationManager` is the reusable action-layer foundation.
@@ -54,7 +54,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 ## Recommended next sequence
 
 1. User checks the updated chain while walking/running, then accepts or reports only concrete fit/swing changes.
-2. Migrate the accepted `VA-004` Lalay/Highland map-lab into the generated gameplay world in a separate task, preserving all missions, NPCs, vehicles, farms and safehouses.
+2. Run MINI-100: migrate accepted `VA-005` into the generated gameplay world, preserving all missions, NPCs, vehicles, farms, safehouses, save IDs and the isolated map-lab backup.
 3. Prepare one Hitem3D character reference card. No paid generation until the user approves the reference.
 4. Integrator: introduce an input facade and asset-size/performance report before touch UI or more vehicles.
 5. Preserve the current gameplay scene until the separate map-lab layout is accepted.

@@ -12,7 +12,13 @@
 
 ## Current gate
 
-Map truth is approved. Graybox passability checks pass, but `grayboxStatus` remains `pending` until a corrected player-height Lalay view is accepted. Final houses, vegetation, drains, landmark art and placeholder colors remain editable.
+Map truth and the corrected graybox are approved. The user described the simplified result as “exactly what i want” and then authorized transfer into Up Iz Up Mini. Final house meshes, vegetation, drains, landmark art and placeholder colors remain editable; topology, road width/continuity, Lalay density relationship, Highland connection, church/beach relationship and jetty-to-sea placement are locked for migration.
+
+## MINI-099 accepted graybox
+
+- Evidence: `Logs/Tasks/MINI-099/MapLab-Overview-1600x1000.png`, `MapLab-Lalay-1280x720.png`, `MapLab-Highland-1280x720.png`, and `MapLab-Bay-1280x720.png`.
+- User: “this is a lot better ... this exactly what i want” and “i am ready to transfer the map to my upizup mini game and hold the map as a backup.”
+- Final static gate: 9 collidable road ribbons, 4 validated bridge groups, 115 Lalay houses, 18 Highland buildings, one active farm and seven inactive future farm parcel IDs.
 
 ## MINI-097 inspection candidate
 

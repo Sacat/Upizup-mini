@@ -15,8 +15,20 @@ namespace UpIzUpMini.Editor
         private const string HeightPath = "Assets/UpIzUpMini/Maps/GrandBayPhase1Height.json";
         private const string ScenePath = "Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity";
         private const string MaterialFolder = "Assets/UpIzUpMini/Maps/MapLab/Materials";
-        private const string EvidenceFolder = "Logs/Tasks/MINI-098";
+        private const string EvidenceFolder = "Logs/Tasks/MINI-099";
         private static readonly Rect PhaseOneBounds = new Rect(-75f, -225f, 350f, 210f);
+        private static readonly HashSet<string> PhaseOneSupportingRoadIds = new HashSet<string>
+        {
+            // A deliberately small, connected phase-one network. The full OSM road
+            // catalogue stays in JSON for future districts but is not mass-rendered.
+            "user/lalay_inland_coastal_connector",
+            "user/highland_lalay_inroad",
+            "user/highland_farm_spur",
+            "way/254679575",
+            "way/25802980",
+            "way/180962530",
+            "way/387239000"
+        };
         private static readonly int[] ShantyVariants = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
         private const float ShantyScale = 2.1f;
 
@@ -52,6 +64,7 @@ namespace UpIzUpMini.Editor
         private static HeightData s_heightData;
         private static float s_compression = 0.3333333f;
         private static readonly List<Vector3[]> s_lalayGradeLines = new List<Vector3[]>();
+        private static readonly List<Vector3[]> s_driveableGradeLines = new List<Vector3[]>();
         private static readonly List<(Vector3[] points, float halfWidth)> s_roadClearances = new List<(Vector3[], float)>();
         private static float s_lalayBaseHeight;
 
@@ -103,6 +116,7 @@ namespace UpIzUpMini.Editor
             GameObject boundaryRoot = Child(root, "PhaseOne_Boundaries");
             GameObject districtRoot = Child(root, "Approved_Districts_And_Lots");
             GameObject housesRoot = Child(root, "Lalay_Dense_House_Massing");
+            GameObject highlandHousesRoot = Child(root, "Highland_Sparse_House_Massing");
             GameObject bayShoreRoot = Child(root, "Bay_Sand_And_Stones");
             GameObject labelsRoot = Child(root, "Labels");
 
@@ -113,15 +127,15 @@ namespace UpIzUpMini.Editor
             HashSet<string> lalayIds = new HashSet<string>(data.lalayRoadIds ?? Array.Empty<string>());
             foreach (RoadData road in data.roads ?? Array.Empty<RoadData>())
             {
-                if (road.points == null || road.points.Length < 2) continue;
+                if (!ShouldRenderRoad(data, road, lalayIds)) continue;
                 bool lalay = lalayIds.Contains(road.id);
                 float width = RoadWidth(road.roadClass, lalay);
                 Material material = road.roadClass == "track" || road.roadClass == "path" ? trackMat : (lalay || road.roadClass == "secondary" || road.roadClass == "tertiary" ? mainRoadMat : sideRoadMat);
-                CreateRibbon("Road_" + SafeName(road.id), road.points, data.compression, width, 0f, 0.42f, material, roadRoot.transform, true);
+                CreateRibbon("Road_" + SafeName(road.id), road.points, data.compression, width, 0f, 0.62f, material, roadRoot.transform, true, lalay ? 0.015f : IsDriveableRoad(road) ? 0.10f : -1f);
                 if (lalay)
                 {
-                    CreateRibbon("Lalay_Sidewalk_Left_" + SafeName(road.id), road.points, data.compression, 1.25f, 3.85f, 0.58f, sidewalkMat, sidewalkRoot.transform, true);
-                    CreateRibbon("Lalay_Sidewalk_Right_" + SafeName(road.id), road.points, data.compression, 1.25f, -3.85f, 0.58f, sidewalkMat, sidewalkRoot.transform, true);
+                    CreateRibbon("Lalay_Sidewalk_Left_" + SafeName(road.id), road.points, data.compression, 1.25f, 3.85f, 0.76f, sidewalkMat, sidewalkRoot.transform, true, 0.015f);
+                    CreateRibbon("Lalay_Sidewalk_Right_" + SafeName(road.id), road.points, data.compression, 1.25f, -3.85f, 0.76f, sidewalkMat, sidewalkRoot.transform, true, 0.015f);
                 }
             }
             int connectorCount = BuildRoadGapConnectors(data, sideRoadMat, roadRoot.transform);
@@ -142,6 +156,7 @@ namespace UpIzUpMini.Editor
             BuildChurch(anchors, data.compression, churchWallMat, churchRoofMat, districtRoot.transform, labelsRoot.transform);
             BuildBayShoreline(baySandMat, bayStoneMat, bayShoreRoot.transform);
             BuildDenseLalayHouses(data, lalayIds, anchors, wallMats, roofMats, housesRoot.transform);
+            BuildSparseHighlandHouses(data, anchors, wallMats, roofMats, highlandHousesRoot.transform);
 
             BuildLighting();
             BuildCameras(data, anchors, data.compression, bounds);
@@ -153,7 +168,7 @@ namespace UpIzUpMini.Editor
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"MINI-095 MAP LAB BUILD PASS: {data.roads.Length} sourced road polylines + {connectorCount} gap connectors, {bridgeCount} bridges, {blockedExitCount} future exits blocked, {housesRoot.transform.childCount} dense house masses, separate scene {ScenePath}.");
+            Debug.Log($"MINI-095 MAP LAB BUILD PASS: {data.roads.Length} sourced road polylines + {connectorCount} gap connectors, {bridgeCount} bridges, {blockedExitCount} future exits blocked, {housesRoot.transform.childCount} Lalay houses, {highlandHousesRoot.transform.childCount} Highland houses, separate scene {ScenePath}.");
         }
 
         [MenuItem("Up Iz Up Mini/MINI-095/Validate Map Lab")]
@@ -172,26 +187,45 @@ namespace UpIzUpMini.Editor
             int roads = GameObject.Find("Roads_OSM")?.transform.childCount ?? 0;
             int sidewalks = GameObject.Find("Lalay_Sidewalks")?.transform.childCount ?? 0;
             int houses = GameObject.Find("Lalay_Dense_House_Massing")?.transform.childCount ?? 0;
+            int highlandHouses = GameObject.Find("Highland_Sparse_House_Massing")?.transform.childCount ?? 0;
             int roadColliders = GameObject.Find("Roads_OSM")?.GetComponentsInChildren<MeshCollider>(true).Length ?? 0;
             int bridges = GameObject.Find("Bridges")?.transform.childCount ?? 0;
             int bridgeColliders = GameObject.Find("Bridges")?.GetComponentsInChildren<Collider>(true).Length ?? 0;
             int blockedExits = GameObject.Find("PhaseOne_Boundaries")?.transform.Cast<Transform>().Count(child => child.name.StartsWith("FutureExitBarrier_", StringComparison.Ordinal)) ?? 0;
-            Require(roads >= 80, $"Too few roads: {roads}");
+            Require(roads >= 8 && roads <= 12, $"Curated phase-one network must stay simple: {roads}");
             Require(roadColliders == roads, $"Every road must remain passable/collidable: roads={roads}, colliders={roadColliders}");
             Require(bridges >= 1 && bridgeColliders >= bridges, $"River crossings need collidable bridges: bridges={bridges}, colliders={bridgeColliders}");
+            foreach (Transform bridge in GameObject.Find("Bridges").transform)
+            {
+                Transform deck = bridge.Find("Driveable_Deck");
+                Transform left = bridge.Find("Guard_Rail_Left");
+                Transform right = bridge.Find("Guard_Rail_Right");
+                Require(deck != null && left != null && right != null, $"Bridge parts missing on {bridge.name}");
+                Require(deck.GetComponent<MeshCollider>() != null, $"Bridge deck must be driveable on {bridge.name}");
+                Require(Mathf.Abs(left.localScale.z - right.localScale.z) < 0.01f && Mathf.Abs(left.localScale.x - right.localScale.x) < 0.01f,
+                    $"Bridge rails must have equal spacing/length on {bridge.name}");
+                Vector3 railMidpoint = (left.position + right.position) * 0.5f;
+                Vector3 deckCentre = deck.GetComponent<Renderer>().bounds.center;
+                Require(HorizontalDistance(railMidpoint, deckCentre) < 1.5f, $"Bridge rails must be centred evenly around {bridge.name}");
+            }
             Require(blockedExits >= 1, "Later-version road exits must be visibly blocked");
             Require(sidewalks >= 2, $"Lalay sidewalks missing: {sidewalks}");
-            Require(houses >= 55, $"Dense Lalay massing too sparse: {houses}");
+            Require(houses >= 105 && houses <= 125, $"Dense Lalay massing must fill both sides without exceeding the mobile graybox budget: {houses}");
+            Require(highlandHouses >= 10 && highlandHouses <= 18, $"Highland housing should be moderately populated without matching Lalay density: {highlandHouses}");
+            int highlandApartments = GameObject.Find("Highland_Sparse_House_Massing")?.transform.Cast<Transform>().Count(child => child.name.Contains("SmallApartment")) ?? 0;
+            int highlandTallHomes = GameObject.Find("Highland_Sparse_House_Massing")?.transform.Cast<Transform>().Count(child => child.name.Contains("TwoStorey") || child.name.Contains("SmallApartment")) ?? 0;
+            Require(highlandApartments >= 3, $"Highland needs several small apartment houses: {highlandApartments}");
+            Require(highlandTallHomes >= highlandHouses / 2, $"Most Highland buildings should be two-storey or small apartments: tall={highlandTallHomes}, total={highlandHouses}");
             int shanties = GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().Count(child => child.name.Contains("Shanty")) ?? 0;
             Require(shanties >= 15 && shanties <= houses / 2, $"Shanties should remain a minority but still be represented: shanties={shanties}, houses={houses}");
             int sideA = GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().Count(child => child.name.Contains("_SideA_")) ?? 0;
             int sideB = GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().Count(child => child.name.Contains("_SideB_")) ?? 0;
-            Require(sideA >= 30 && sideB >= 30 && Mathf.Max(sideA, sideB) <= Mathf.Min(sideA, sideB) * 1.5f, $"Both sides of Lalay must be dense and reasonably balanced around real intersections: SideA={sideA}, SideB={sideB}");
+            Require(sideA >= 36 && sideB >= 36 && Mathf.Max(sideA, sideB) <= Mathf.Min(sideA, sideB) * 1.5f, $"Both sides of Lalay must be dense and reasonably balanced around real intersections: SideA={sideA}, SideB={sideB}");
             Require(GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().All(child => !(child.position.x > 165f && child.position.z < -140f)) ?? false, "Lower bay/jetty exclusion must contain no houses");
             Require(GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().All(child => child.position.x <= 200f) ?? false, "Eastern coastal no-house strip must contain no houses");
             int meshes = UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
             int materials = UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None).Select(r => r.sharedMaterial).Where(m => m != null).Distinct().Count();
-            Debug.Log($"MINI-095 MAP LAB VALIDATION PASS: roads={roads}, roadColliders={roadColliders}, bridges={bridges}, bridgeColliders={bridgeColliders}, blockedExits={blockedExits}, sidewalks={sidewalks}, houseRoots={houses}, meshRenderers={meshes}, sharedMaterials={materials}, scene={scene.path}.");
+            Debug.Log($"MINI-095 MAP LAB VALIDATION PASS: roads={roads}, roadColliders={roadColliders}, bridges={bridges}, bridgeColliders={bridgeColliders}, blockedExits={blockedExits}, sidewalks={sidewalks}, LalayHouses={houses}, HighlandHouses={highlandHouses}, meshRenderers={meshes}, sharedMaterials={materials}, scene={scene.path}.");
         }
 
         [MenuItem("Up Iz Up Mini/MINI-095/Capture Map Lab Screenshots")]
@@ -241,11 +275,9 @@ namespace UpIzUpMini.Editor
         private static float HeightAt(float x, float z)
         {
             float rawHeight = RawHeightAt(x, z);
-            if (s_lalayGradeLines.Count == 0) return rawHeight;
-
+            Vector3 query = new Vector3(x, 0f, z);
             float closestDistance = float.MaxValue;
             float roadHeight = rawHeight;
-            Vector3 query = new Vector3(x, 0f, z);
             foreach (Vector3[] line in s_lalayGradeLines)
             for (int i = 1; i < line.Length; i++)
             {
@@ -258,9 +290,26 @@ namespace UpIzUpMini.Editor
 
             // Preserve Dominica's surrounding relief, but make the narrow Lalay corridor
             // gentler for walking, bikes and mobile steering. The blend also grades yards.
-            if (closestDistance >= 45f) return rawHeight;
-            float blend = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(12f, 45f, closestDistance));
-            return Mathf.Lerp(rawHeight, roadHeight, blend);
+            if (closestDistance < 45f)
+            {
+                float lalayBlend = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(12f, 45f, closestDistance));
+                return Mathf.Lerp(rawHeight, roadHeight, lalayBlend);
+            }
+
+            closestDistance = float.MaxValue;
+            roadHeight = rawHeight;
+            foreach (Vector3[] line in s_driveableGradeLines)
+            for (int i = 1; i < line.Length; i++)
+            {
+                float t;
+                float distance = DistanceToSegmentXZ(query, line[i - 1], line[i], out t);
+                if (distance >= closestDistance) continue;
+                closestDistance = distance;
+                roadHeight = Mathf.Lerp(line[i - 1].y, line[i].y, t);
+            }
+            if (closestDistance >= 22f) return rawHeight;
+            float roadBlend = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(8f, 22f, closestDistance));
+            return Mathf.Lerp(rawHeight, roadHeight, roadBlend);
         }
 
         private static float RawHeightAt(float x, float z)
@@ -284,11 +333,12 @@ namespace UpIzUpMini.Editor
         private static void PrepareRoadGeometry(MapData data)
         {
             s_lalayGradeLines.Clear();
+            s_driveableGradeLines.Clear();
             s_roadClearances.Clear();
             HashSet<string> lalayIds = new HashSet<string>(data.lalayRoadIds ?? Array.Empty<string>());
             foreach (RoadData road in data.roads ?? Array.Empty<RoadData>())
             {
-                if (road.points == null || road.points.Length < 2) continue;
+                if (!ShouldRenderRoad(data, road, lalayIds)) continue;
                 Vector3[] points = road.points.Select(p =>
                 {
                     float x = p.x * data.compression;
@@ -303,7 +353,38 @@ namespace UpIzUpMini.Editor
                 if (!lalay) s_roadClearances.Add((points, RoadWidth(road.roadClass, false) * 0.5f));
             }
             SmoothLalayGradeLines();
+            foreach (Vector3[] line in s_lalayGradeLines) s_driveableGradeLines.Add(line);
+            foreach (RoadData road in (data.roads ?? Array.Empty<RoadData>()).Where(r => ShouldRenderRoad(data, r, lalayIds) && IsDriveableRoad(r) && !lalayIds.Contains(r.id)))
+            {
+                Vector3[] raw = road.points.Select(p =>
+                {
+                    float x = p.x * data.compression;
+                    float z = p.z * data.compression;
+                    return new Vector3(x, RawHeightAt(x, z), z);
+                }).ToArray();
+                float maximumSlope = road.id == "user/lalay_inland_coastal_connector" ? 0.045f
+                    : road.id == "user/highland_lalay_inroad" ? 0.055f
+                    : 0.08f;
+                s_driveableGradeLines.Add(SmoothRoadGrade(raw, maximumSlope));
+            }
             s_lalayBaseHeight = s_lalayGradeLines.SelectMany(line => line).Min(point => point.y);
+        }
+
+        private static Vector3[] SmoothRoadGrade(Vector3[] raw, float maximumSlope)
+        {
+            float length = LineLength(raw);
+            float startHeight = raw[0].y;
+            float endHeight = startHeight + Mathf.Clamp(raw[raw.Length - 1].y - startHeight, -length * maximumSlope, length * maximumSlope);
+            Vector3[] line = new Vector3[raw.Length];
+            float travelled = 0f;
+            line[0] = new Vector3(raw[0].x, startHeight, raw[0].z);
+            for (int i = 1; i < raw.Length; i++)
+            {
+                travelled += HorizontalDistance(raw[i - 1], raw[i]);
+                float t = length > 0.001f ? travelled / length : 0f;
+                line[i] = new Vector3(raw[i].x, Mathf.Lerp(startHeight, endHeight, t), raw[i].z);
+            }
+            return line;
         }
 
         private static void SmoothLalayGradeLines()
@@ -393,16 +474,17 @@ namespace UpIzUpMini.Editor
 
         private static Bounds CalculateBounds(MapData data)
         {
-            IEnumerable<Vector3> points = data.roads.SelectMany(r => r.points ?? Array.Empty<PointData>()).Select(p => World(p, data.compression));
+            HashSet<string> lalayIds = new HashSet<string>(data.lalayRoadIds ?? Array.Empty<string>());
+            IEnumerable<Vector3> points = data.roads.Where(r => ShouldRenderRoad(data, r, lalayIds)).SelectMany(r => r.points ?? Array.Empty<PointData>()).Select(p => World(p, data.compression));
             Bounds bounds = new Bounds(points.First(), Vector3.zero);
             foreach (Vector3 point in points) bounds.Encapsulate(point);
-            bounds.Expand(new Vector3(80f, 0f, 80f));
+            bounds.Expand(new Vector3(45f, 0f, 45f));
             return bounds;
         }
 
         private static void BuildTerrain(Bounds bounds, Material material, Transform parent)
         {
-            const int resolution = 65;
+            const int resolution = 129;
             Vector3[] vertices = new Vector3[resolution * resolution];
             Vector2[] uv = new Vector2[vertices.Length];
             int[] triangles = new int[(resolution - 1) * (resolution - 1) * 6];
@@ -440,9 +522,9 @@ namespace UpIzUpMini.Editor
             CreateMeshObject("Caribbean_Sea", vertices.ToArray(), triangles, vertices.Select(v => new Vector2(v.x, v.z)).ToArray(), material, parent, false);
         }
 
-        private static GameObject CreateRibbon(string name, PointData[] source, float compression, float width, float lateralOffset, float yOffset, Material material, Transform parent, bool collider)
+        private static GameObject CreateRibbon(string name, PointData[] source, float compression, float width, float lateralOffset, float yOffset, Material material, Transform parent, bool collider, float maximumGrade = -1f)
         {
-            Vector3[] centres = TerrainConformingCentres(source, compression, yOffset, 3.5f);
+            Vector3[] centres = TerrainConformingCentres(source, compression, yOffset, 3.5f, maximumGrade);
             Vector3[] vertices = new Vector3[centres.Length * 2];
             Vector2[] uv = new Vector2[vertices.Length];
             int[] triangles = new int[(centres.Length - 1) * 6];
@@ -469,7 +551,7 @@ namespace UpIzUpMini.Editor
             return CreateMeshObject(name, vertices, triangles, uv, material, parent, collider);
         }
 
-        private static Vector3[] TerrainConformingCentres(PointData[] source, float compression, float yOffset, float maximumSpacing)
+        private static Vector3[] TerrainConformingCentres(PointData[] source, float compression, float yOffset, float maximumSpacing, float maximumGrade = -1f)
         {
             List<Vector3> centres = new List<Vector3>();
             for (int i = 1; i < source.Length; i++)
@@ -481,6 +563,9 @@ namespace UpIzUpMini.Editor
                 for (int step = start; step <= steps; step++)
                 {
                     Vector3 centre = Vector3.Lerp(a, b, step / (float)steps);
+                    // Use the same analytically graded surface that builds the terrain.
+                    // Independent road grading made ribbons float over or sink beneath
+                    // the terrain when two corridors were close together.
                     centre.y = HeightAt(centre.x, centre.z) + yOffset;
                     centres.Add(centre);
                 }
@@ -496,8 +581,9 @@ namespace UpIzUpMini.Editor
 
         private static int BuildRoadGapConnectors(MapData data, Material material, Transform parent)
         {
+            HashSet<string> lalayIds = new HashSet<string>(data.lalayRoadIds ?? Array.Empty<string>());
             RoadData[] driveable = (data.roads ?? Array.Empty<RoadData>())
-                .Where(IsDriveableRoad).ToArray();
+                .Where(r => ShouldRenderRoad(data, r, lalayIds) && IsDriveableRoad(r)).ToArray();
             HashSet<string> connectedPairs = new HashSet<string>();
             int count = 0;
             foreach (RoadData road in driveable)
@@ -509,7 +595,9 @@ namespace UpIzUpMini.Editor
                     if (!PhaseOneBounds.Contains(new Vector2(endpoint.x, endpoint.z))) continue;
                     RoadData bestRoad = null;
                     Vector3 bestPoint = Vector3.zero;
-                    float bestDistance = 7.5f;
+                    // Only seal tiny digitising seams. Larger auto-links created the
+                    // spiderweb seen in Highland and must be explicit map data instead.
+                    float bestDistance = 0.65f;
                     foreach (RoadData other in driveable)
                     {
                         if (other == road) continue;
@@ -542,9 +630,10 @@ namespace UpIzUpMini.Editor
 
         private static int BuildBridges(MapData data, Material deckMaterial, Material railMaterial, Transform parent)
         {
+            HashSet<string> lalayIds = new HashSet<string>(data.lalayRoadIds ?? Array.Empty<string>());
             HashSet<string> bridgePairs = new HashSet<string>();
             int count = 0;
-            foreach (RoadData road in (data.roads ?? Array.Empty<RoadData>()).Where(IsDriveableRoad))
+            foreach (RoadData road in (data.roads ?? Array.Empty<RoadData>()).Where(r => ShouldRenderRoad(data, r, lalayIds) && IsDriveableRoad(r)))
             foreach (WaterwayData waterway in data.waterways ?? Array.Empty<WaterwayData>())
             {
                 Vector3[] roadPoints = road.points.Select(p => World(p, data.compression)).ToArray();
@@ -589,8 +678,9 @@ namespace UpIzUpMini.Editor
 
         private static int BuildPhaseOneBoundaries(MapData data, Material material, Transform parent)
         {
+            HashSet<string> lalayIds = new HashSet<string>(data.lalayRoadIds ?? Array.Empty<string>());
             int count = 0;
-            foreach (RoadData road in (data.roads ?? Array.Empty<RoadData>()).Where(IsDriveableRoad))
+            foreach (RoadData road in (data.roads ?? Array.Empty<RoadData>()).Where(r => ShouldRenderRoad(data, r, lalayIds) && IsDriveableRoad(r)))
             for (int i = 1; i < road.points.Length; i++)
             {
                 Vector3 a = World(road.points[i - 1], data.compression);
@@ -652,16 +742,16 @@ namespace UpIzUpMini.Editor
         {
             Vector2[] footprint =
             {
-                new Vector2(158f, -218f), new Vector2(232f, -220f), new Vector2(270f, -194f),
-                new Vector2(274f, -154f), new Vector2(238f, -132f), new Vector2(196f, -137f),
-                new Vector2(168f, -157f), new Vector2(154f, -187f)
+                new Vector2(218f, -220f), new Vector2(274f, -220f), new Vector2(274f, -128f),
+                new Vector2(247f, -128f), new Vector2(232f, -148f), new Vector2(216f, -177f),
+                new Vector2(214f, -202f)
             };
             const float cell = 5f;
             List<Vector3> sandVertices = new List<Vector3>();
             List<Vector2> sandUv = new List<Vector2>();
             List<int> sandTriangles = new List<int>();
             for (float z = -220f; z < -132f; z += cell)
-            for (float x = 154f; x < 274f; x += cell)
+            for (float x = 212f; x < 274f; x += cell)
             {
                 if (!PointInPolygon(new Vector2(x + cell * 0.5f, z + cell * 0.5f), footprint)) continue;
                 int first = sandVertices.Count;
@@ -686,8 +776,8 @@ namespace UpIzUpMini.Editor
             int attempts = 0;
             while (placed < 26 && attempts++ < 160)
             {
-                float x = Mathf.Lerp(166f, 263f, (float)random.NextDouble());
-                float z = Mathf.Lerp(-211f, -142f, (float)random.NextDouble());
+                float x = Mathf.Lerp(218f, 267f, (float)random.NextDouble());
+                float z = Mathf.Lerp(-211f, -134f, (float)random.NextDouble());
                 Vector2 point = new Vector2(x, z);
                 if (!PointInPolygon(point, footprint)) continue;
                 Vector3 world = new Vector3(x, HeightAt(x, z), z);
@@ -740,6 +830,12 @@ namespace UpIzUpMini.Editor
 
         private static bool IsDriveableRoad(RoadData road) => road?.points != null && road.points.Length >= 2 && road.roadClass != "path" && road.roadClass != "track";
 
+        private static bool ShouldRenderRoad(MapData data, RoadData road, HashSet<string> lalayIds)
+        {
+            if (road?.points == null || road.points.Length < 2) return false;
+            return lalayIds.Contains(road.id) || PhaseOneSupportingRoadIds.Contains(road.id);
+        }
+
         private static bool TrySegmentIntersectionXZ(Vector3 a, Vector3 b, Vector3 c, Vector3 d, out Vector3 intersection)
         {
             Vector2 p = new Vector2(a.x, a.z); Vector2 r = new Vector2(b.x - a.x, b.z - a.z);
@@ -758,24 +854,25 @@ namespace UpIzUpMini.Editor
         private static void BuildLandmarkLots(Dictionary<string, AnchorData> anchors, float compression, Transform parent, Transform labels, Material farmMat, Material jettyMat)
         {
             AddLot(anchors, "highland_first_farm", "Highland_First_Farm", new Vector3(30f, 0.45f, 22f), farmMat, compression, parent, labels);
-            AddLot(anchors, "upizup_block", "Up_Iz_Up_Block", new Vector3(18f, 0.55f, 13f), ColorMaterial("UpIzUpBlock", new Color(0.17f, 0.48f, 0.67f)), compression, parent, labels);
-            AddLot(anchors, "dog_life_block", "Dog_Life_Block", new Vector3(20f, 0.55f, 13f), ColorMaterial("DogLifeBlock", new Color(0.55f, 0.16f, 0.14f)), compression, parent, labels);
-            AddLot(anchors, "car_dealer", "Car_Dealer_Lot", new Vector3(24f, 0.45f, 17f), ColorMaterial("DealerLot", new Color(0.34f, 0.34f, 0.38f)), compression, parent, labels);
             AddLot(anchors, "grand_bay_primary_school", "Primary_School_Lot", new Vector3(32f, 0.55f, 22f), ColorMaterial("SchoolLot", new Color(0.12f, 0.48f, 0.43f)), compression, parent, labels);
-            AddLot(anchors, "pierre_charles_secondary_school", "Secondary_School_Lot", new Vector3(38f, 0.55f, 26f), ColorMaterial("SecondarySchoolLot", new Color(0.11f, 0.40f, 0.38f)), compression, parent, labels);
-            AddLot(anchors, "farmers_cooperative", "Farmers_Cooperative_Lot", new Vector3(21f, 0.55f, 14f), ColorMaterial("FarmersCoop", new Color(0.73f, 0.48f, 0.16f)), compression, parent, labels);
             Material futureLand = ColorMaterial("FutureFarmLand", new Color(0.27f, 0.43f, 0.20f));
             AddSilentLot(anchors, "highland_future_plot_02", "Future_Farm_Parcel_02_HiddenAtStart", new Vector3(27f, 0.22f, 20f), futureLand, compression, parent);
             AddSilentLot(anchors, "highland_future_plot_03", "Future_Farm_Parcel_03_HiddenAtStart", new Vector3(29f, 0.22f, 21f), futureLand, compression, parent);
             AddSilentLot(anchors, "highland_future_plot_04", "Future_Farm_Parcel_04_HiddenAtStart", new Vector3(25f, 0.22f, 19f), futureLand, compression, parent);
+            AddSilentLot(anchors, "highland_future_plot_05", "Future_Farm_Parcel_05_HiddenAtStart", new Vector3(26f, 0.22f, 19f), futureLand, compression, parent);
+            AddSilentLot(anchors, "highland_future_plot_06", "Future_Farm_Parcel_06_HiddenAtStart", new Vector3(28f, 0.22f, 20f), futureLand, compression, parent);
+            AddSilentLot(anchors, "highland_future_plot_07", "Future_Farm_Parcel_07_HiddenAtStart", new Vector3(25f, 0.22f, 18f), futureLand, compression, parent);
+            AddSilentLot(anchors, "highland_future_plot_08", "Future_Farm_Parcel_08_HiddenAtStart", new Vector3(24f, 0.22f, 18f), futureLand, compression, parent);
 
             Vector3 jetty = AnchorPosition(anchors, "story_jetty", compression);
             GameObject pier = GameObject.CreatePrimitive(PrimitiveType.Cube);
             pier.name = "Story_Jetty";
             pier.transform.SetParent(parent, false);
-            pier.transform.position = jetty + new Vector3(8f, 1.1f, -8f);
-            pier.transform.rotation = Quaternion.Euler(0f, -42f, 0f);
-            pier.transform.localScale = new Vector3(4f, 1.2f, 30f);
+            // Run from the landward jetty anchor, across the beach, and beyond the
+            // sand edge into open water so the boat route reads clearly.
+            pier.transform.position = jetty + new Vector3(25f, 1.1f, -5f);
+            pier.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+            pier.transform.localScale = new Vector3(4.5f, 1.2f, 72f);
             pier.GetComponent<Renderer>().sharedMaterial = jettyMat;
             CreateGroundLabel("JETTY / GUADELOUPE BOAT", jetty + new Vector3(-5f, 0f, 13f), Color.white, labels, 4.5f);
 
@@ -795,7 +892,7 @@ namespace UpIzUpMini.Editor
         {
             List<(Vector3 point, Vector3 forward)> samples = new List<(Vector3, Vector3)>();
             foreach (RoadData lalayRoad in data.roads.Where(r => lalayIds.Contains(r.id) && r.points != null && r.points.Length >= 2))
-                samples.AddRange(SamplePolyline(lalayRoad.points.Select(p => World(p, data.compression, 0f)).ToList(), 4.2f));
+                samples.AddRange(SamplePolyline(lalayRoad.points.Select(p => World(p, data.compression, 0f)).ToList(), 4.15f));
             if (samples.Count == 0) return;
             System.Random random = new System.Random(98);
             int houseIndex = 0;
@@ -814,7 +911,7 @@ namespace UpIzUpMini.Editor
                     if (position.x > 200f || (position.x > 165f && position.z < -140f)) continue;
                     Vector3 houseForward = -side * sideSign;
                     if (OverlapsNonLalayRoad(position, width, depth, houseForward, data, lalayIds)) continue;
-                    string[] protectedLots = { "highland_first_farm", "highland_future_plot_02", "highland_future_plot_03", "highland_future_plot_04", "upizup_block", "dog_life_block", "car_dealer", "grand_bay_primary_school", "farmers_cooperative", "grand_bay_catholic_church" };
+                    string[] protectedLots = { "highland_first_farm", "highland_future_plot_02", "highland_future_plot_03", "highland_future_plot_04", "grand_bay_primary_school", "grand_bay_catholic_church" };
                     if (protectedLots.Any(id => HorizontalDistance(position, AnchorPosition(anchors, id, data.compression)) < (id == "highland_first_farm" ? 23f : id == "grand_bay_catholic_church" ? 18f : 15f))) continue;
                     position.y = HeightAt(position.x, position.z);
                     Quaternion facingRoad = Quaternion.LookRotation(houseForward, Vector3.up) * Quaternion.Euler(0f, (float)(random.NextDouble() - 0.5f) * 6f, 0f);
@@ -848,10 +945,83 @@ namespace UpIzUpMini.Editor
             }
         }
 
-        private static void BuildProceduralHouse(Transform parent, string sideLabel, int index, Vector3 position, Quaternion rotation, float width, float depth, bool twoStorey, Material wall, Material roofMaterial)
+        private static void BuildSparseHighlandHouses(MapData data, Dictionary<string, AnchorData> anchors, Material[] walls, Material[] roofs, Transform parent)
+        {
+            string[] housingRoadIds = { "user/lalay_inland_coastal_connector", "user/highland_lalay_inroad" };
+            Rect highlandHousingBounds = new Rect(28f, -166f, 165f, 94f);
+            string[] protectedAnchors =
+            {
+                "highland_first_farm", "highland_future_plot_02", "highland_future_plot_03",
+                "highland_future_plot_04", "highland_future_plot_05", "highland_future_plot_06",
+                "highland_future_plot_07", "highland_future_plot_08", "grand_bay_primary_school"
+            };
+            List<Vector3> placed = new List<Vector3>();
+            System.Random random = new System.Random(991);
+            int candidateIndex = 0;
+            foreach (RoadData road in data.roads.Where(r => housingRoadIds.Contains(r.id)))
+            foreach ((Vector3 point, Vector3 forward) sample in SamplePolyline(road.points.Select(p => World(p, data.compression)).ToList(), 13f))
+            {
+                if (placed.Count >= 18) return;
+                if (!highlandHousingBounds.Contains(new Vector2(sample.point.x, sample.point.z))) continue;
+                Vector3 side = new Vector3(-sample.forward.z, 0f, sample.forward.x).normalized;
+                for (int sideSign = -1; sideSign <= 1; sideSign += 2)
+                {
+                    if (placed.Count >= 18) return;
+                    candidateIndex++;
+                    Vector3 position = sample.point + side * sideSign * (10.8f + (float)random.NextDouble() * 2.2f);
+                    float width = 4.6f + (float)random.NextDouble() * 1.2f;
+                    float depth = 4.1f + (float)random.NextDouble() * 1.0f;
+                    Vector3 houseForward = -side * sideSign;
+                    if (!highlandHousingBounds.Contains(new Vector2(position.x, position.z))) continue;
+                    if (OverlapsAnyRoad(position, width, depth, houseForward)) continue;
+                    if (placed.Any(existing => HorizontalDistance(existing, position) < 8.5f)) continue;
+                    if (protectedAnchors.Any(id => HorizontalDistance(position, AnchorPosition(anchors, id, data.compression)) < 12f)) continue;
+                    position.y = HeightAt(position.x, position.z);
+                    Quaternion rotation = Quaternion.LookRotation(houseForward, Vector3.up) * Quaternion.Euler(0f, (float)(random.NextDouble() - 0.5f) * 5f, 0f);
+                    Material wall = walls[random.Next(walls.Length)];
+                    Material roof = roofs[random.Next(roofs.Length)];
+                    if (placed.Count % 4 == 1)
+                        BuildSmallApartment(parent, placed.Count, position, rotation, wall, roof);
+                    else
+                        BuildProceduralHouse(parent, "Highland", placed.Count, position, rotation, width, depth, random.NextDouble() < 0.78,
+                            wall, roof, "Highland");
+                    placed.Add(position);
+                }
+            }
+        }
+
+        private static void BuildSmallApartment(Transform parent, int index, Vector3 position, Quaternion rotation, Material wall, Material roofMaterial)
+        {
+            GameObject root = Child(parent.gameObject, $"Highland_SmallApartment_{index:000}");
+            root.transform.position = position;
+            root.transform.rotation = rotation;
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            body.name = "TwoStorey_Apartment_Body";
+            body.transform.SetParent(root.transform, false);
+            body.transform.localPosition = new Vector3(0f, 3.7f, 0f);
+            body.transform.localScale = new Vector3(7.2f, 7.4f, 5.6f);
+            body.GetComponent<Renderer>().sharedMaterial = wall;
+            GameObject roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roof.name = "Corrugated_Roof";
+            roof.transform.SetParent(root.transform, false);
+            roof.transform.localPosition = new Vector3(0f, 7.75f, 0f);
+            roof.transform.localScale = new Vector3(7.9f, 0.35f, 6.3f);
+            roof.GetComponent<Renderer>().sharedMaterial = roofMaterial;
+            for (int floor = 0; floor < 2; floor++)
+            {
+                GameObject balcony = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                balcony.name = $"Front_Balcony_{floor + 1}";
+                balcony.transform.SetParent(root.transform, false);
+                balcony.transform.localPosition = new Vector3(0f, 2.2f + floor * 3.2f, -3.15f);
+                balcony.transform.localScale = new Vector3(6.5f, 0.22f, 0.9f);
+                balcony.GetComponent<Renderer>().sharedMaterial = roofMaterial;
+            }
+        }
+
+        private static void BuildProceduralHouse(Transform parent, string sideLabel, int index, Vector3 position, Quaternion rotation, float width, float depth, bool twoStorey, Material wall, Material roofMaterial, string district = "Lalay")
         {
             float height = twoStorey ? 6.4f : 3.5f;
-            GameObject houseRoot = Child(parent.gameObject, $"Lalay_House_{sideLabel}_{index:000}_{(twoStorey ? "TwoStorey" : "OneStorey")}");
+            GameObject houseRoot = Child(parent.gameObject, $"{district}_House_{sideLabel}_{index:000}_{(twoStorey ? "TwoStorey" : "OneStorey")}");
             houseRoot.transform.position = position;
             houseRoot.transform.rotation = rotation;
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -915,7 +1085,7 @@ namespace UpIzUpMini.Editor
             Vector3 houseRight = new Vector3(houseForward.z, 0f, -houseForward.x);
             foreach (RoadData road in data.roads ?? Array.Empty<RoadData>())
             {
-                if (!IsDriveableRoad(road) || lalayIds.Contains(road.id)) continue;
+                if (!ShouldRenderRoad(data, road, lalayIds) || !IsDriveableRoad(road) || lalayIds.Contains(road.id)) continue;
                 Vector3[] points = road.points.Select(p => World(p, data.compression)).ToArray();
                 float halfWidth = RoadWidth(road.roadClass, false) * 0.5f;
                 for (int i = 1; i < points.Length; i++)
@@ -1032,7 +1202,7 @@ namespace UpIzUpMini.Editor
 
         private static void BuildCameras(MapData data, Dictionary<string, AnchorData> anchors, float compression, Bounds bounds)
         {
-            string[] focusIds = { "dog_life_block", "car_dealer", "upizup_block", "highland_first_farm", "grand_bay_primary_school", "story_jetty", "pierre_charles_secondary_school" };
+            string[] focusIds = { "dog_life_block", "car_dealer", "upizup_block", "highland_first_farm", "grand_bay_primary_school", "story_jetty", "grand_bay_catholic_church" };
             Vector3[] focusPoints = focusIds.Select(id => AnchorPosition(anchors, id, compression)).ToArray();
             Bounds focus = new Bounds(focusPoints[0], Vector3.zero);
             foreach (Vector3 point in focusPoints) focus.Encapsulate(point);
@@ -1053,7 +1223,7 @@ namespace UpIzUpMini.Editor
             CreateCamera("Camera_Lalay", lalay - lalayForward * 14f + lalaySide * 1.2f + Vector3.up * 5.2f, lalayPoints[ahead] + Vector3.up * 2.2f, false);
 
             Vector3 farm = AnchorPosition(anchors, "highland_first_farm", compression);
-            CreateCamera("Camera_Highland", farm + new Vector3(-30f, 17f, 26f), farm + new Vector3(22f, 2f, -8f), false);
+            CreateCamera("Camera_Highland", farm + new Vector3(-55f, 72f, 58f), farm + new Vector3(18f, 1f, -5f), false);
 
             Vector3 church = AnchorPosition(anchors, "grand_bay_catholic_church", compression);
             Vector3 jetty = AnchorPosition(anchors, "story_jetty", compression);
@@ -1089,8 +1259,10 @@ namespace UpIzUpMini.Editor
 
         private static float RoadWidth(string roadClass, bool lalay)
         {
-            if (lalay) return 6.2f;
-            return roadClass switch { "secondary" => 6.5f, "tertiary" => 5.8f, "residential" => 4.2f, "unclassified" => 3.8f, "track" => 3.2f, "path" => 1.5f, _ => 2.8f };
+            if (roadClass == "path") return 1.5f;
+            if (roadClass == "track") return 4.8f;
+            // Every paved phase-one road uses the same two-vehicle width.
+            return 6.2f;
         }
 
         private static Material ColorMaterial(string name, Color color) => MaterialAsset(name, color);

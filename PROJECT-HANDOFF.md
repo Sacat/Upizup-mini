@@ -28,7 +28,7 @@ reserved_files:
 ```yaml
 current_owner: None
 active_task: None
-claimed_at: null
+claimed_at: None
 reserved_files: []
 ```
 
@@ -41,6 +41,15 @@ After verification, append a change entry, update the verification results, and 
 - **Missions are not implemented.** The user asked for full missions (planting/selling/police/bosses/buying land). The underlying systems exist (economy, shop, seeds, heat, land item) but there is no mission/objective state machine, no boss NPCs, and buying land has no gameplay effect yet. This needs its own task.
 
 ## Change record
+
+### MINI-099 — Accepted simplified Lalay/Highland graybox
+
+- Date: 2026-08-20
+- Owner: Codex (released)
+- Result: Replaced the cluttered source-road mass with nine curated connected road ribbons, uniform 6.2 m paved widths, four validated centered bridges, exact endpoint junctions, smooth 1.5% Lalay grading and gentler 4.5%/5.5% Highland connections. Lalay now has 115 houses; Highland has 18 homes including five small apartments. The church remains landward, the sand/no-house zone remains across the coastal road, and the jetty reaches the sea. One farm starts active and seven stable future farm parcels remain inactive.
+- Verification: `Logs/Tasks/MINI-099/BuildValidateCapture.log` and four fixed screenshots passed. User said the corrected structure was “exactly what i want” and authorized gameplay transfer. Registered `VA-005`; map manifest advanced to `approved_graybox`.
+- Backup: The isolated `MapLab_LalayHighland.unity`, source JSON/height data, fixed evidence and this Git checkpoint are the rollback-safe map backup.
+- Next: MINI-100 migrates the accepted map into the generated playable scene while preserving gameplay IDs and regressions.
 
 ### MINI-098 — User-confirmed connector, dense Lalay rows and sandy bay
 

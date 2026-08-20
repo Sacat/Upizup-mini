@@ -109,6 +109,23 @@ Show an overhead network view, player-height main street, player-height destinat
 
 Exit check: `grayboxStatus` is `approved`; topology/grade/scale locks are named; placeholder art remains listed as editable.
 
+## Reusable Caribbean road-and-settlement recipe
+
+MINI-099 established the default method for later Grand Bay districts, the rest of Dominica, Guadeloupe and other Caribbean maps:
+
+1. Retain the complete licensed source catalogue in compact data, but render only a curated phase network. A small connected spine is preferable to every OSM spur appearing at once.
+2. Name the required district connections first. Snap road endpoints to exact shared junction coordinates; never cover a visible gap with a decorative mesh.
+3. Disable automatic long gap connectors. Only repair sub-metre digitising seams automatically; every larger link must be a reviewed stable road ID.
+4. Give paved phase roads one consistent two-vehicle width unless local evidence requires a narrower class. Bridges inherit that width, use centered equal-length rails and exist only where a retained road intersects a retained waterway.
+5. Grade the terrain corridor and road from the same canonical height function. The road surface must never use an independent height calculation that can float above or sink below terrain.
+6. Use district-specific slopes: very mild main streets, gentler farm/inland connectors, and wider terrain blending around steep approaches. Preserve recognizable relief outside those corridors.
+7. Encode land use separately from roads: dense close-built town rows, moderately populated hillside/farming districts, and explicit coast/no-house polygons. Houses use footprint clearance and cannot sit on roads, bridges, sand or protected parcels.
+8. Keep landmark and future-property IDs even when their visible placeholder is removed. Colored planning slabs do not enter gameplay; future farms remain inactive stable anchors until progression unlocks them.
+9. End beach geometry at the shoreline. Jetties begin on accessible land, cross sand/stone, and visibly extend into navigable water.
+10. Validate counts, colliders, bridge symmetry, grades, no-build zones and fixed cameras before migration. Then require live walking and two-way driving after migration.
+
+This recipe is parameterized by each district manifest: road widths, grade caps, density classes, coast polygons, travel compression, materials, budgets and progression visibility change per map; the sequence and gates do not.
+
 ## Stage 6 — Migration into gameplay
 
 Migration is a separate Class C task with its own rollback commit.
@@ -152,4 +169,3 @@ Codex and Claude may research non-overlapping data in parallel, but one integrat
 ## Definition of done
 
 A district is done only at `runtime_acceptance`: the user accepted walking/driving, required gameplay roles are mapped, passability/regressions pass, mobile budgets and credits attribution are recorded, the handoff is current and ownership is released.
-

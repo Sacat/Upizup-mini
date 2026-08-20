@@ -139,3 +139,31 @@ user_words: "this image looks just like the lalay road" / "this image you gave m
 supersedes: null
 notes: Preserve the road topology, width, sidewalks, bay orientation and dense settlement scale. Do not trace or ship satellite pixels. Houses may be upgraded but cannot be placed across any mapped road. The later intermediate screenshot questioned by the user (`codex-clipboard-a1692bce-5179-4110-85ed-4d2b5a94d026.png`) is explicitly rejected and is not part of this lock.
 ```
+
+```yaml
+id: VA-005
+status: APPROVED
+date: 2026-08-20
+task: MINI-099
+subject: Corrected Lalay–Highland phase-one graybox
+scene_or_prefab: Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity
+evidence:
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-099\MapLab-Overview-1600x1000.png
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-099\MapLab-Lalay-1280x720.png
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-099\MapLab-Highland-1280x720.png
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-099\MapLab-Bay-1280x720.png
+approved_aspects:
+  - curated connected nine-road phase-one topology
+  - uniform 6.2 metre paved-road width and centered two-vehicle bridges
+  - smooth Lalay and gentler Highland connections
+  - dense houses on both sides of Lalay and moderate Highland settlement
+  - church on land with beach across the road and jetty extending into sea
+  - no houses on the beach/sand exclusion
+still_editable:
+  - final building meshes, vegetation, drains, props and material consolidation
+  - inactive future farm parcel dressing when progression unlocks it
+  - runtime-only adjustments found during walking/driving acceptance
+user_words: "this is a lot better ... this exactly what i want" / "i am ready to transfer the map to my upizup mini game"
+supersedes: null
+notes: Map-lab remains the rollback-safe visual backup. Migration must preserve stable gameplay/save IDs.
+```

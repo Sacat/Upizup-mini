@@ -1506,3 +1506,8 @@ Status: Evidence ready. Police now retaliate through timed forward contact for 1
 - `MINI-008`: Banana, carrot, Bushers, Black Sugar, and Purple progression.
 - `MINI-009`: Four-to-six-mission Grand Bay chapter.
 - `MINI-010`: Save/load, Windows build, and Android performance pass.
+### MINI-099 — Accepted simplified Lalay/Highland graybox
+
+Goal: Correct the map-lab into a simple connected, driveable phase-one network with dense Lalay, gentler Highland roads, correct church/beach/jetty land use, sparse-to-moderate Highland housing and progression-safe farm parcels.
+
+Status: **Complete and approved for migration.** Nine road/collider roots, four bridge groups, 115 Lalay houses, 18 Highland buildings and eight total farm parcel IDs pass the static gate. `VA-005` records user acceptance; the isolated map-lab remains the backup.
