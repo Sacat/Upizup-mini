@@ -9,7 +9,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
 - Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. The reported retaliation gap is addressed by `MINI-093`: chasing police now use timed forward melee contact and damage `CharacterVitals`, reaching the existing death/safehouse flow. Script validation passes; police attack feel awaits the user's Unity Hub test. No rebuild was made for this small adjustment by user request.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
-- Last known good gameplay checkpoint: `75b1404` (`MINI-092` combined systems 1–3 build: input, NPC intelligence, and combat contact).
+- Last known good gameplay checkpoint: `3adb5c0` (`MINI-093` police melee retaliation; focused validation passed, no new Windows build).
 
 ## What exists
 
