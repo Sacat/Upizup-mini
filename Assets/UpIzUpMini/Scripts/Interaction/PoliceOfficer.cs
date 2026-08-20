@@ -6,6 +6,8 @@ using UpIzUpMini.Navigation;
 
 namespace UpIzUpMini.Interaction
 {
+    public enum PoliceMovementState { Patrol, Chase, Search, Recover, Down }
+
     /// <summary>
     /// Police behaviour: paces a stretch of the Lalay road near the
     /// sellers, and switches to pursuing the player once heat is high.
@@ -33,6 +35,8 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private float chaseSpeed = 4.35f;
         [SerializeField] private float giveUpDistance = 45f;
         [SerializeField] private float stopDistance = 2.0f;
+        [SerializeField] private float searchSeconds = 4.5f;
+        [SerializeField] private float searchSpeed = 2.6f;
 
         [Header("Police stamina")]
         [SerializeField] private float maxStamina = 100f;
@@ -51,15 +55,20 @@ namespace UpIzUpMini.Interaction
         private float _animBlend;
         private float _stamina;
         private bool _exhausted;
+        private float _searchUntil;
+        private Vector3 _lastKnownPlayerPosition;
+        private float _sideSign;
         private readonly NavPathSteerer _steerer = new NavPathSteerer();
 
         public bool IsChasing { get; private set; }
         public float Stamina => _stamina;
+        public PoliceMovementState CurrentState { get; private set; } = PoliceMovementState.Patrol;
 
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
             _stamina = maxStamina;
+            _sideSign = (GetInstanceID() & 1) == 0 ? 1f : -1f;
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (combatHealth == null) combatHealth = GetComponent<NpcCombatHealth>();
         }
@@ -80,6 +89,8 @@ namespace UpIzUpMini.Interaction
             if (combatHealth != null && combatHealth.IsDown)
             {
                 IsChasing = false;
+                CurrentState = PoliceMovementState.Down;
+                Animate(0f);
                 return;
             }
 
@@ -90,14 +101,25 @@ namespace UpIzUpMini.Interaction
                 ? Vector3.Distance(transform.position, player.transform.position)
                 : float.MaxValue;
 
-            // Chase while heat is up and the player is still in reach.
+            // A chase begins only when the officer can actually see the
+            // wanted player. Losing sight transitions to a short search at
+            // the last known position instead of giving officers wall vision.
             // MINI-060: Gardey Zafeh's PoliceImmunity reading - "police
             // would not trouble you" - blocks a new chase outright for its
             // duration.
-            bool wantsChase = player != null
+            bool eligibleForPursuit = player != null
                         && heat >= chaseHeatThreshold
                         && distToPlayer <= giveUpDistance
                         && !GardeyZafehBuffState.IsActive(GardeyZafehBuff.PoliceImmunity);
+            bool canSeePlayer = eligibleForPursuit && HasLineOfSight(player);
+            bool wasPursuing = CurrentState == PoliceMovementState.Chase
+                               || CurrentState == PoliceMovementState.Search;
+
+            if (canSeePlayer)
+            {
+                _lastKnownPlayerPosition = player.transform.position;
+                _searchUntil = Time.time + searchSeconds;
+            }
 
             if (_exhausted)
             {
@@ -106,12 +128,20 @@ namespace UpIzUpMini.Interaction
                 else
                 {
                     IsChasing = false;
+                    CurrentState = PoliceMovementState.Recover;
                     Animate(0f);
                     return;
                 }
             }
 
-            IsChasing = wantsChase;
+            if (canSeePlayer)
+                CurrentState = PoliceMovementState.Chase;
+            else if (eligibleForPursuit && wasPursuing && Time.time < _searchUntil)
+                CurrentState = PoliceMovementState.Search;
+            else
+                CurrentState = PoliceMovementState.Patrol;
+
+            IsChasing = CurrentState == PoliceMovementState.Chase;
 
             Vector3? relocate = _steerer.ConsumeRelocation();
             if (relocate.HasValue) Relocate(relocate.Value);
@@ -119,13 +149,14 @@ namespace UpIzUpMini.Interaction
             Vector3 destination;
             float speed;
 
-            if (IsChasing)
+            if (CurrentState == PoliceMovementState.Chase)
             {
                 _stamina = Mathf.Max(0f, _stamina - chaseDrainPerSecond * Time.deltaTime);
                 if (_stamina <= 0f)
                 {
                     _exhausted = true;
                     IsChasing = false;
+                    CurrentState = PoliceMovementState.Recover;
                     Animate(0f);
                     return;
                 }
@@ -139,6 +170,12 @@ namespace UpIzUpMini.Interaction
                     Animate(0f);
                     return;
                 }
+            }
+            else if (CurrentState == PoliceMovementState.Search)
+            {
+                _stamina = Mathf.Min(maxStamina, _stamina + recoveryPerSecond * 0.3f * Time.deltaTime);
+                destination = _lastKnownPlayerPosition;
+                speed = searchSpeed;
             }
             else
             {
@@ -158,7 +195,7 @@ namespace UpIzUpMini.Interaction
 
             if (arrived)
             {
-                if (!IsChasing)
+                if (CurrentState == PoliceMovementState.Patrol)
                 {
                     _headingToB = !_headingToB;
                     _pauseTimer = pauseAtEndSeconds;
@@ -169,9 +206,28 @@ namespace UpIzUpMini.Interaction
 
             if (!dir.HasValue) { Animate(0f); return; }
 
-            _controller.SimpleMove(dir.Value * speed);
-            Face(transform.position + dir.Value);
+            Transform avoidanceTarget = CurrentState == PoliceMovementState.Chase ? player?.transform : null;
+            Vector3 safeDirection = dir.Value;
+            if (!LocalSteeringSafety.TryDirection(
+                    transform, _controller, safeDirection, avoidanceTarget, _sideSign, out safeDirection))
+            {
+                Animate(0f);
+                return;
+            }
+
+            _controller.SimpleMove(safeDirection * speed);
+            Face(transform.position + safeDirection);
             Animate(speed);
+        }
+
+        private bool HasLineOfSight(GameObject player)
+        {
+            if (player == null) return false;
+            Vector3 from = transform.position + Vector3.up * 1.35f;
+            Vector3 to = player.transform.position + Vector3.up * 1.1f;
+            if (!Physics.Linecast(from, to, out RaycastHit hit, ~0, QueryTriggerInteraction.Ignore)) return true;
+            Transform seen = hit.transform;
+            return seen == player.transform || (seen != null && seen.IsChildOf(player.transform));
         }
 
         /// <summary>CharacterController rejects direct transform writes

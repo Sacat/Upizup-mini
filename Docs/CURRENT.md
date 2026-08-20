@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: work through `MINI-090` is implemented on `codex/mini-085-baseline-20260820`. Core on-foot controls now use a named, touch-ready input facade while preserving the current PC keys. Automated checks and Windows build pass; movement/animation deformation still needs hands-on acceptance.
+- Current production state: `MINI-090` input foundation is complete and `MINI-091` NPC intelligence is evidence-ready on `codex/mini-085-baseline-20260820`. Followers use formations/separation/waiting, patrols use dynamic avoidance, and police have chase/search/recovery states. Automated checks pass; the combined hands-on movement test is deliberately waiting until MINI-092 combat contact is integrated.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `f77cb16` (`MINI-090` input and interaction foundation).
 

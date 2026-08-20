@@ -73,3 +73,11 @@
 - Added one named-action input facade over the unchanged Legacy Input Manager, with injectable virtual movement, look, and button state for future mobile controls.
 - Migrated core on-foot movement, run, jump, camera look, interaction, cloning, farmhand assignment, character switching, tutorial, and melee while preserving every existing PC key.
 - Passed focused validation, canonical scene rebuild, Windows build, and a 15-second headless player smoke.
+
+## 2026-08-20 — MINI-091 NPC and companion intelligence
+
+- Added stable trailing formations and stop/resume hysteresis for the inactive hero and recruited followers.
+- Added bounded, allocation-free nearby-character separation plus blocked wait/retry behavior while retaining terrain-friendly direct companion steering.
+- Applied dynamic safety and staggered timing to patrol NPCs.
+- Added explicit police Patrol, Chase, Search, Recover, and Down states with line-of-sight and last-known-position searching while preserving police stamina.
+- Preserved and validated the existing last-rival escape, defeated-rival despawn, and distance-pool respawn lifecycle.

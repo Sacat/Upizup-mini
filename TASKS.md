@@ -1451,6 +1451,12 @@ Goal: Introduce one keyboard-compatible, touch-ready input facade and route the 
 
 Status: Complete. Move/run/jump/look, interact/clone/farmhand, character switching, tutorial, and melee now use the touch-ready `GameInput` facade with unchanged PC keys. Focused validation, canonical rebuild, Windows build, and headless smoke passed. Vehicles and menu numeric selections remain later migrations over the same facade.
 
+### MINI-091 — NPC and companion intelligence
+
+Goal: Improve companion/recruit formation spacing, dynamic character avoidance, obstacle waiting, patrol crowd behavior, and police chase/search/recovery states while preserving the existing terrain-friendly movement and pooled gang behavior.
+
+Status: Evidence ready. Formation spacing/hysteresis, character separation, blocked waiting, staggered patrols, and police Patrol/Chase/Search/Recover/Down states pass focused validation and canonical rebuild. Motion quality remains for the combined hands-on test after MINI-092 combat contact.
+
 - `MINI-032`: Modular wardrobe + accessory IK/physics (chain jiggle, etc.) — attachment already exists (MINI-022 `CharacterEquipment`), this adds swing/sway physics and separate garment geometry instead of material recolor.
 - `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed).
 - `MINI-034`: Car — buy/enter/exit/seated driving, real vehicle physics; depends on MINI-033's enter/exit pattern.

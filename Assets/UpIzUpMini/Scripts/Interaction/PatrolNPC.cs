@@ -1,6 +1,7 @@
 using UnityEngine;
 using UpIzUpMini.Economy;
 using UpIzUpMini.Navigation;
+using UpIzUpMini.Character;
 
 namespace UpIzUpMini.Interaction
 {
@@ -38,6 +39,8 @@ namespace UpIzUpMini.Interaction
         private int _target;
         private float _animBlend;
         private float _pauseTimer;
+        private float _blockedTimer;
+        private float _sideSign;
         private readonly NavPathSteerer _steerer = new NavPathSteerer();
 
         public bool IsAlert => reactsToHeat
@@ -53,6 +56,10 @@ namespace UpIzUpMini.Interaction
             // Added by the scene builder so patrols are blocked by
             // building colliders instead of walking through walls.
             _controller = GetComponent<CharacterController>();
+            _sideSign = (GetInstanceID() & 1) == 0 ? 1f : -1f;
+            // Stagger identical patrols so a row of NPCs does not begin
+            // walking and stopping in mechanical lockstep.
+            _pauseTimer = Mathf.Abs(GetInstanceID() % 100) / 100f * pauseAtWaypointSeconds;
         }
 
         public void SetWaypoints(Vector3[] points)
@@ -91,20 +98,35 @@ namespace UpIzUpMini.Interaction
                     }
                     else if (dir.HasValue)
                     {
+                        Vector3 safeDirection = dir.Value;
+                        if (_controller != null && !LocalSteeringSafety.TryDirection(
+                                transform, _controller, safeDirection, null, _sideSign, out safeDirection))
+                        {
+                            _blockedTimer += Time.deltaTime;
+                            if (_blockedTimer >= 0.9f)
+                            {
+                                _sideSign *= -1f;
+                                _blockedTimer = 0f;
+                            }
+                            ApplyAnimation(0f);
+                            return;
+                        }
+                        _blockedTimer = 0f;
+
                         // Move through a CharacterController so patrols are
                         // blocked by building colliders instead of walking
                         // straight through walls.
                         if (_controller != null && _controller.enabled)
                         {
-                            _controller.SimpleMove(dir.Value * speed);
+                            _controller.SimpleMove(safeDirection * speed);
                         }
                         else
                         {
-                            transform.position += dir.Value * speed * Time.deltaTime;
+                            transform.position += safeDirection * speed * Time.deltaTime;
                         }
 
                         transform.rotation = Quaternion.Slerp(
-                            transform.rotation, Quaternion.LookRotation(dir.Value), turnSpeed * Time.deltaTime);
+                            transform.rotation, Quaternion.LookRotation(safeDirection), turnSpeed * Time.deltaTime);
 
                         // Real m/s, matching the blend tree thresholds.
                         desiredBlend = speed;
@@ -112,6 +134,11 @@ namespace UpIzUpMini.Interaction
                 }
             }
 
+            ApplyAnimation(desiredBlend);
+        }
+
+        private void ApplyAnimation(float desiredBlend)
+        {
             if (animator != null)
             {
                 _animBlend = Mathf.Lerp(_animBlend, desiredBlend, 10f * Time.deltaTime);

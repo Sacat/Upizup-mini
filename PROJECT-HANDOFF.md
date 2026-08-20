@@ -42,6 +42,15 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-091 — NPC and companion intelligence
+
+- Date: 2026-08-20
+- Owner: Codex
+- Request: Autonomously complete the recommended NPC/companion intelligence system, then continue to combat before asking the user to test.
+- Implementation: Main companion and recruited followers now target stable leader-relative trailing slots with stop/resume hysteresis instead of crowding one point. The shared non-alloc local steering layer adds nearby-character separation and checks every forward obstruction hit. Blocked followers pause/retry and change side rather than continuously pushing. Patrols use the same dynamic safety and stagger their initial pauses. Police now expose Patrol/Chase/Search/Recover/Down states, require line of sight to start/refresh a chase, search the last known location, and retain the existing stamina drain/recovery behavior. Existing last-rival retreat, defeat despawn, and distance-pool respawn behavior was preserved.
+- Verification: `MINI-091-Validate.log` passed formation geometry, hysteresis, physics-based separation, police configuration/state set, integration, and gang lifecycle checks; `MINI-091-Rebuild.log` rebuilt the canonical scene successfully.
+- Human check owed: Motion cannot be approved from batch tests. Companion spacing, obstacle waiting, patrol separation, and police search/recovery will be checked in the combined player test after MINI-092.
+
 ### MINI-090 — Input and interaction foundation
 
 - Date: 2026-08-20

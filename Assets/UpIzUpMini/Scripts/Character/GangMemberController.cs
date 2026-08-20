@@ -31,6 +31,10 @@ namespace UpIzUpMini.Character
         [SerializeField] private float arriveDistance = 1.5f;
         [SerializeField] private float moveSpeed = 2.0f;
         [SerializeField] private float turnSpeed = 8f;
+        [SerializeField] private float formationSideOffset = 1.4f;
+        [SerializeField] private float slotStopDistance = 0.7f;
+        [SerializeField] private float slotResumeDistance = 1.35f;
+        [SerializeField] private float blockedRetrySeconds = 0.3f;
         [SerializeField] private Animator animator;
         [SerializeField] private string speedParam = "Speed";
         [SerializeField] private Vector3 guardPosition;
@@ -41,6 +45,9 @@ namespace UpIzUpMini.Character
         private NpcCombatHealth _combatHealth;
         private float _sideSign;
         private float _blockedFor;
+        private float _retryAt;
+        private int _formationRow;
+        private bool _movingToSlot;
 
         public string MemberName = "Recruit";
         public GangAssignment Assignment { get; private set; } = GangAssignment.Follow;
@@ -66,6 +73,7 @@ namespace UpIzUpMini.Character
             if (animator == null) animator = GetComponentInChildren<Animator>();
             _combatHealth = GetComponent<NpcCombatHealth>();
             _sideSign = (GetInstanceID() & 1) == 0 ? 1f : -1f;
+            _formationRow = Mathf.Abs(GetInstanceID()) % 3;
         }
 
         /// <summary>
@@ -137,7 +145,10 @@ namespace UpIzUpMini.Character
 
             Vector3? target = Assignment switch
             {
-                GangAssignment.Follow => FollowTarget != null ? FollowTarget.position : (Vector3?)null,
+                GangAssignment.Follow => FollowTarget != null
+                    ? LocalSteeringSafety.TrailingSlot(
+                        FollowTarget, followDistance + _formationRow * 1.25f, formationSideOffset, _sideSign)
+                    : (Vector3?)null,
                 GangAssignment.GuardPlantation => guardPosition,
                 GangAssignment.StayAtHome => homePosition,
                 _ => null
@@ -150,14 +161,29 @@ namespace UpIzUpMini.Character
             Vector3 toTarget = target.Value - transform.position;
             toTarget.y = 0f;
             float dist = toTarget.magnitude;
-
-            if (dist > arrive)
+            if (Assignment == GangAssignment.Follow)
             {
+                _movingToSlot = LocalSteeringSafety.ShouldMoveToSlot(
+                    dist, _movingToSlot, slotStopDistance, slotResumeDistance);
+            }
+            else
+            {
+                _movingToSlot = dist > arrive;
+            }
+
+            if (_movingToSlot)
+            {
+                if (Time.time < _retryAt)
+                {
+                    Animate(0f);
+                    return;
+                }
                 Vector3 dir = toTarget.normalized;
                 if (!LocalSteeringSafety.TryDirection(transform, _controller, dir, FollowTarget, _sideSign, out dir))
                 {
                     Animate(0f);
                     _blockedFor += Time.deltaTime;
+                    _retryAt = Time.time + blockedRetrySeconds;
                     if (_blockedFor >= 1.2f)
                     {
                         _sideSign *= -1f;
