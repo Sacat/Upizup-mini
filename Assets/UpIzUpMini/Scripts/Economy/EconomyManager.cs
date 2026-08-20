@@ -17,9 +17,41 @@ namespace UpIzUpMini.Economy
 
         private readonly Dictionary<string, int> _inventory = new Dictionary<string, int>();
 
+        // MINI-073: "make the pharmacy items be able to store in your
+        // inventory and able to use after even food as well." Food/pill
+        // purchases used to be consumed the instant you bought them - now
+        // they stash here and are used on demand later (InventoryPanelController,
+        // opened with I). _consumableCatalog is a lookup back to the full
+        // ShopItemDefinition (heal amount, boost numbers, display name) since
+        // the stash itself only remembers id->count, the same way _seeds only
+        // remembers cropId->count and relies on CropDefinition lookups elsewhere.
+        private readonly Dictionary<string, int> _consumables = new Dictionary<string, int>();
+        private readonly Dictionary<string, ShopItemDefinition> _consumableCatalog = new Dictionary<string, ShopItemDefinition>();
+
         public int Money { get; private set; }
         public float Heat { get; private set; }
         public const float MaxHeat = 100f;
+
+        // MINI-060 follow-up-2 cheat code: "heat stays 0" - a hard lock
+        // rather than a one-off AddHeat(-Heat), so nothing (police
+        // proximity, a mission event) can push it back up afterward.
+        public bool HeatLocked { get; private set; }
+
+        public void LockHeatAtZero()
+        {
+            HeatLocked = true;
+            Heat = 0f;
+            OnChanged?.Invoke();
+        }
+
+        /// <summary>Reverses LockHeatAtZero() - used by the "000000" cheat's
+        /// own toggle-off. Heat stays at 0 (where the lock left it) rather
+        /// than jumping anywhere; normal AddHeat() calls resume affecting it.</summary>
+        public void UnlockHeat()
+        {
+            HeatLocked = false;
+            OnChanged?.Invoke();
+        }
 
         public event Action OnChanged;
 
@@ -104,34 +136,110 @@ namespace UpIzUpMini.Economy
             }
             else if (item.category == ShopCategory.Food || item.category == ShopCategory.Enhancement)
             {
-                // Used on the spot by whoever is currently controlled.
-                var vitals = Character.CharacterSwitchManager.Instance?.Active?.vitals;
-                if (vitals == null)
-                {
-                    message = "Nobody here to take it.";
-                    Money += item.price; // refund - nothing happened
-                    return false;
-                }
-
-                if (item.healAmount > 0f) vitals.Heal(item.healAmount);
-                if (item.staminaBoost > 0f || item.regenMultiplier > 1f)
-                {
-                    vitals.ApplyBoost(item.staminaBoost, item.regenMultiplier, item.boostSeconds);
-                }
-                else
-                {
-                    vitals.RestoreStamina(item.healAmount * 0.5f);
-                }
-
-                message = item.category == ShopCategory.Food
-                    ? $"Ate {item.displayName}. Feeling better."
-                    : $"Took {item.displayName}. Boost for {Mathf.RoundToInt(item.boostSeconds)}s.";
+                // MINI-073: stashed rather than used immediately - see the
+                // class-level remark above _consumables.
+                AddConsumable(item);
+                message = $"Bought {item.displayName} for ${item.price} - press [ I ] to use it.";
             }
             else
             {
                 _owned.Add(item.itemId);
                 message = $"Bought {item.displayName} for ${item.price}.";
             }
+
+            OnChanged?.Invoke();
+            return true;
+        }
+
+        /// <summary>
+        /// Called once at scene build time with every Food/Pharmacy item that
+        /// exists, so UseConsumable can look effect numbers back up from a
+        /// bare item id. Safe to call repeatedly (e.g. once per shop) -
+        /// re-registering the same id just overwrites with the same def.
+        /// </summary>
+        public void RegisterConsumableCatalog(IEnumerable<ShopItemDefinition> items)
+        {
+            if (items == null) return;
+            foreach (var item in items)
+            {
+                if (item == null || string.IsNullOrEmpty(item.itemId)) continue;
+                _consumableCatalog[item.itemId] = item;
+            }
+        }
+
+        private void AddConsumable(ShopItemDefinition item)
+        {
+            _consumableCatalog[item.itemId] = item;
+            _consumables.TryGetValue(item.itemId, out int current);
+            _consumables[item.itemId] = current + 1;
+        }
+
+        public int GetConsumableCount(string itemId) =>
+            _consumables.TryGetValue(itemId, out int c) ? c : 0;
+
+        /// <summary>Every stashed item id with a count > 0 and its catalog
+        /// definition, for the inventory panel to list. A List snapshot
+        /// rather than yielding live off the dictionary, since UseConsumable
+        /// mutates _consumables and a caller iterating while using would
+        /// otherwise be modifying the collection it is enumerating.</summary>
+        public List<(ShopItemDefinition item, int count)> GetConsumablesInCategory(ShopCategory category)
+        {
+            var result = new List<(ShopItemDefinition, int)>();
+            foreach (var kv in _consumables)
+            {
+                if (kv.Value <= 0) continue;
+                if (!_consumableCatalog.TryGetValue(kv.Key, out var def) || def == null) continue;
+                if (def.category != category) continue;
+                result.Add((def, kv.Value));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// MINI-073: applies a stashed item's effect to whoever is currently
+        /// controlled, and consumes one from the stash. Reasonable, meaningful
+        /// effects per the user's ask - food heals (and gives a small stamina
+        /// top-up, same 0.5x-of-heal convention the old instant-use path had),
+        /// pharmacy items give a genuine timed stamina/regen boost. Nothing
+        /// invented here: these are the same healAmount/staminaBoost/
+        /// regenMultiplier/boostSeconds numbers the item already carried -
+        /// only WHEN they apply changed, not what they do.
+        /// </summary>
+        public bool UseConsumable(string itemId, out string message)
+        {
+            if (!_consumableCatalog.TryGetValue(itemId, out var item) || item == null)
+            {
+                message = "Don't have that.";
+                return false;
+            }
+            if (GetConsumableCount(itemId) <= 0)
+            {
+                message = $"Out of {item.displayName}.";
+                return false;
+            }
+
+            var vitals = Character.CharacterSwitchManager.Instance?.Active?.vitals;
+            if (vitals == null)
+            {
+                message = "Nobody here to take it.";
+                return false;
+            }
+
+            if (item.healAmount > 0f) vitals.Heal(item.healAmount);
+            if (item.staminaBoost > 0f || item.regenMultiplier > 1f)
+            {
+                vitals.ApplyBoost(item.staminaBoost, item.regenMultiplier, item.boostSeconds);
+            }
+            else
+            {
+                vitals.RestoreStamina(item.healAmount * 0.5f);
+            }
+
+            _consumables[itemId] = GetConsumableCount(itemId) - 1;
+
+            message = item.category == ShopCategory.Food
+                ? $"Ate {item.displayName}. Feeling better."
+                : $"Took {item.displayName}. Boost for {Mathf.RoundToInt(item.boostSeconds)}s.";
 
             OnChanged?.Invoke();
             return true;
@@ -178,6 +286,12 @@ namespace UpIzUpMini.Economy
 
         public void AddMoney(int amount)
         {
+            // MINI-060: Gardey Zafeh's DoubleMoney reading - only doubles
+            // actual income, never a cost/fee (those pass negative amounts
+            // through this same method), so a purchase during the buff
+            // isn't accidentally doubled in the player's favour or against
+            // them.
+            if (amount > 0 && GardeyZafehBuffState.IsActive(GardeyZafehBuff.DoubleMoney)) amount *= 2;
             Money += amount;
             OnChanged?.Invoke();
         }
@@ -193,6 +307,7 @@ namespace UpIzUpMini.Economy
 
         public void AddHeat(float amount)
         {
+            if (HeatLocked) { Heat = 0f; return; }
             Heat = Mathf.Clamp(Heat + amount, 0f, MaxHeat);
             OnChanged?.Invoke();
         }
@@ -206,6 +321,31 @@ namespace UpIzUpMini.Economy
                 seedCounts.Add(kv.Value);
             }
             ownedIds.AddRange(_owned);
+        }
+
+        /// <summary>MINI-073: snapshot the stashed consumables for saving.
+        /// Kept as a separate method (rather than folding into CaptureExtras)
+        /// so SaveLoadSystem's existing call site did not need its signature
+        /// changed - callers that don't care about consumables (none exist
+        /// yet, but future ones might) are unaffected.</summary>
+        public void CaptureConsumables(List<string> ids, List<int> counts)
+        {
+            foreach (var kv in _consumables)
+            {
+                if (kv.Value <= 0) continue;
+                ids.Add(kv.Key);
+                counts.Add(kv.Value);
+            }
+        }
+
+        public void LoadConsumables(IReadOnlyList<string> ids, IReadOnlyList<int> counts)
+        {
+            _consumables.Clear();
+            if (ids == null || counts == null) return;
+            for (int i = 0; i < ids.Count && i < counts.Count; i++)
+            {
+                _consumables[ids[i]] = counts[i];
+            }
         }
 
         /// <summary>Restore saved state - see SaveLoadSystem.</summary>

@@ -13,6 +13,17 @@ namespace UpIzUpMini.Farming
     /// the whole plant red (which would recolour the foliage too), ripeness
     /// is shown with dedicated fruit objects layered on the plant. Those
     /// are hidden until the plant is grown enough to bear fruit.
+    ///
+    /// MINI-051: for Zeb (weed), "fruit" means bud/cola clusters, not a
+    /// single tinted sphere. Added two more optional layers so a strain's
+    /// designated colour actually reads: pistil accents (the hair-like
+    /// strands real buds carry - cream while flowering, rust-orange once
+    /// mature, independent of the strain's own bud colour) and an optional
+    /// frost/trichome tint applied to the bud colour itself at full
+    /// ripeness (a slight lighten + a glossier surface, standing in for
+    /// the frosted-crystal look of a ripe cola without needing a custom
+    /// shader). Both are opt-in via serialized arrays/flag so tomato/
+    /// banana/carrot, which don't set them, are visually unchanged.
     /// </summary>
     public class CropStageVisual : MonoBehaviour
     {
@@ -20,6 +31,17 @@ namespace UpIzUpMini.Farming
         [SerializeField] private Renderer plantRenderer;
         [SerializeField] private Renderer[] fruitRenderers;
         [SerializeField] private float fullScale = 1f;
+
+        [Header("MINI-051 bud detail (weed only - leave empty elsewhere)")]
+        [Tooltip("Pistil-hair accents. Cream while flowering, rust-orange once ripe, independent of the strain's own bud colour.")]
+        [SerializeField] private Renderer[] pistilRenderers;
+        [Tooltip("Lightens ripe bud colour slightly and adds a glossier surface, standing in for a frosted/trichome look.")]
+        [SerializeField] private bool applyFrostEffect;
+
+        private static readonly Color PistilCream = new Color(0.90f, 0.85f, 0.72f);
+        private static readonly Color PistilMature = new Color(0.74f, 0.36f, 0.12f);
+        private const float FrostBlend = 0.22f;
+        private const float FrostSmoothness = 0.62f;
 
         private MaterialPropertyBlock _block;
 
@@ -53,23 +75,48 @@ namespace UpIzUpMini.Farming
             bool ripe = stage >= 3;
             bool twoTone = ripe && secondaryRipeColor.a > 0.001f;
 
-            if (fruitRenderers == null) return;
-            for (int i = 0; i < fruitRenderers.Length; i++)
+            _block ??= new MaterialPropertyBlock();
+
+            if (fruitRenderers != null)
             {
-                var r = fruitRenderers[i];
-                if (r == null) continue;
-                r.gameObject.SetActive(showFruit);
-                if (!showFruit) continue;
+                for (int i = 0; i < fruitRenderers.Length; i++)
+                {
+                    var r = fruitRenderers[i];
+                    if (r == null) continue;
+                    r.gameObject.SetActive(showFruit);
+                    if (!showFruit) continue;
 
-                Color fruitColor = !ripe
-                    ? unripeColor
-                    : (twoTone && i % 2 == 1 ? secondaryRipeColor : ripeColor);
+                    Color fruitColor = !ripe
+                        ? unripeColor
+                        : (twoTone && i % 2 == 1 ? secondaryRipeColor : ripeColor);
 
-                _block ??= new MaterialPropertyBlock();
-                r.GetPropertyBlock(_block);
-                _block.SetColor("_Color", fruitColor);
-                _block.SetColor("_BaseColor", fruitColor);
-                r.SetPropertyBlock(_block);
+                    if (ripe && applyFrostEffect)
+                        fruitColor = Color.Lerp(fruitColor, Color.white, FrostBlend);
+
+                    r.GetPropertyBlock(_block);
+                    _block.SetColor("_Color", fruitColor);
+                    _block.SetColor("_BaseColor", fruitColor);
+                    if (ripe && applyFrostEffect)
+                        _block.SetFloat("_Glossiness", FrostSmoothness);
+                    r.SetPropertyBlock(_block);
+                }
+            }
+
+            if (pistilRenderers != null)
+            {
+                Color pistilColor = ripe ? PistilMature : PistilCream;
+                for (int i = 0; i < pistilRenderers.Length; i++)
+                {
+                    var r = pistilRenderers[i];
+                    if (r == null) continue;
+                    r.gameObject.SetActive(showFruit);
+                    if (!showFruit) continue;
+
+                    r.GetPropertyBlock(_block);
+                    _block.SetColor("_Color", pistilColor);
+                    _block.SetColor("_BaseColor", pistilColor);
+                    r.SetPropertyBlock(_block);
+                }
             }
         }
 

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: prop_safehouse
   m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Economy.ShopItemDefinition
   itemId: prop_safehouse
-  displayName: Montine Safehouse Deed
+  displayName: Lalay House Deed
   category: 6
   price: 2200
   description: 

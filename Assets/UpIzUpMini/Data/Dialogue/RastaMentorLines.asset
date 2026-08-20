@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb1924c10a81b134595f12c3f40dac5d, type: 3}
+  m_Name: RastaMentorLines
+  m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Dialogue.DialogueSet
+  lines:
+  - speaker: Rasta
+    category: 5
+    text: Blue Cheese a di top a di mountain, Iyah. I an' I see how far yuh come
+      - from likkle Bushers to dis. Yuh reach real strain work now, seen.
+    conditions:
+    - type: 4
+      faction: 0
+      threshold: 0
+      careerPath: 0
+      cropId: black_sugar
+    - type: 4
+      faction: 0
+      threshold: 0
+      careerPath: 0
+      cropId: purple
+    - type: 4
+      faction: 0
+      threshold: 0
+      careerPath: 0
+      cropId: blue_cheese
+  - speaker: Rasta
+    category: 4
+    text: Purple work no easy, bredrin, but yuh show seen. Di plant know when a man
+      serious.
+    conditions:
+    - type: 4
+      faction: 0
+      threshold: 0
+      careerPath: 0
+      cropId: black_sugar
+    - type: 4
+      faction: 0
+      threshold: 0
+      careerPath: 0
+      cropId: purple
+  - speaker: Rasta
+    category: 0
+    text: Black Sugar a grow good in yuh hand now, Iyah. Dat a real start.
+    conditions:
+    - type: 4
+      faction: 0
+      threshold: 0
+      careerPath: 0
+      cropId: black_sugar
+  - speaker: Rasta
+    category: 1
+    text: Walk good, likkle bredrin. Di ganja work teach patience - Zion nah run
+      from yuh.
+    conditions: []
+  - speaker: Rasta
+    category: 0
+    text: I an' I watch dis field long time. Every plant have him own time, nuh true?
+    conditions: []

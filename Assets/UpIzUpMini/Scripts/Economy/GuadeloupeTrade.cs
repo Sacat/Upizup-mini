@@ -34,6 +34,16 @@ namespace UpIzUpMini.Economy
         [SerializeField] private float tripSeconds = 600f;
         [SerializeField] private float priceMultiplier = 5f;
 
+        // MINI-081, user: "few times Guadeloupe sells may go bad and
+        // returns less money because of Jadame which is Guadeloupe
+        // police." A real risk on the abstracted run - previously every
+        // trip was guaranteed to return the full multiplied value (see
+        // this class's own header note on that). Rolled once per
+        // completed trip, not per attempt, so it can't be scouted or
+        // avoided - it's just sometimes bad luck on the crossing.
+        [SerializeField, Range(0f, 1f)] private float jadameBadSaleChance = 0.2f;
+        [SerializeField, Range(0f, 1f)] private float jadameBadSaleFraction = 0.5f; // fraction of value KEPT
+
         public bool TripActive { get; private set; }
         public int AwayCharacterIndex { get; private set; } = -1;
         public float SecondsRemaining => TripActive ? Mathf.Max(0f, _returnAt - Time.time) : 0f;
@@ -48,6 +58,13 @@ namespace UpIzUpMini.Economy
         {
             if (!TripActive || Time.time < _returnAt) return;
             CompleteTrip();
+        }
+
+        /// <summary>MINI-060 follow-up-2 cheat code support: fast-forwards
+        /// an in-progress trip's return time. No-op if nothing is running.</summary>
+        public void SkipTime(float seconds)
+        {
+            if (TripActive) _returnAt -= seconds;
         }
 
         public string Interact()
@@ -120,6 +137,12 @@ namespace UpIzUpMini.Economy
         {
             TripActive = false;
 
+            bool badSale = Random.value < jadameBadSaleChance;
+            if (badSale)
+            {
+                _cargoValue = Mathf.RoundToInt(_cargoValue * jadameBadSaleFraction);
+            }
+
             if (_npcCourierTrip)
             {
                 _npcCourierTrip = false;
@@ -130,10 +153,13 @@ namespace UpIzUpMini.Economy
                 progression?.UnlockGuadeloupeCharacterCourier();
 
                 Debug.Log($"Guadeloupe (NPC courier): returned with ${_cargoValue}."
+                    + (badSale ? " (Jadame took a cut.)" : string.Empty)
                     + (firstSuccess ? " Character dispatch unlocked." : string.Empty));
-                Missions.MissionSystem.Instance?.Alert(firstSuccess
-                    ? $"BOAT BACK\nThe dock boy made it back safe with ${_cargoValue}. Allu can go yourself next time."
-                    : $"BOAT BACK\nThe dock boy made it back safe with ${_cargoValue}.");
+                Missions.MissionSystem.Instance?.Alert(badSale
+                    ? $"BOAT BACK\nJadame nearly caught di dock boy on di crossing - had to dump some cargo. Only ${_cargoValue} made it back."
+                    : firstSuccess
+                        ? $"BOAT BACK\nThe dock boy made it back safe with ${_cargoValue}. Allu can go yourself next time."
+                        : $"BOAT BACK\nThe dock boy made it back safe with ${_cargoValue}.");
 
                 _cargoValue = 0;
                 return;
@@ -160,7 +186,10 @@ namespace UpIzUpMini.Economy
             }
 
             EconomyManager.Instance?.AddMoney(_cargoValue);
-            Debug.Log($"Guadeloupe: returned with ${_cargoValue}");
+            Debug.Log($"Guadeloupe: returned with ${_cargoValue}." + (badSale ? " (Jadame took a cut.)" : string.Empty));
+            Missions.MissionSystem.Instance?.Alert(badSale
+                ? $"BOAT BACK\nJadame stopped di boat on di crossing - had to dump some cargo. Only ${_cargoValue} made it back."
+                : $"BOAT BACK\n${_cargoValue} made it back safe.");
 
             AwayCharacterIndex = -1;
             _cargoValue = 0;

@@ -2,6 +2,7 @@ using UnityEngine;
 using UpIzUpMini.Character;
 using UpIzUpMini.Combat;
 using UpIzUpMini.Economy;
+using UpIzUpMini.Navigation;
 
 namespace UpIzUpMini.Interaction
 {
@@ -9,10 +10,13 @@ namespace UpIzUpMini.Interaction
     /// Police behaviour: paces a stretch of the Lalay road near the
     /// sellers, and switches to pursuing the player once heat is high.
     ///
-    /// Movement goes through a CharacterController and steers around
-    /// obstacles with a short forward whisker cast, because the previous
-    /// straight-line patrol drove officers into houses whenever a building
-    /// sat between them and their next waypoint.
+    /// Movement goes through a CharacterController.
+    ///
+    /// MINI-052: steering now routes through NavPathSteerer (real NavMesh
+    /// pathing around houses, with a recompute/nearby-point/rotate/relocate
+    /// stuck-recovery ladder) instead of the previous short forward-whisker
+    /// raycast, which only reacted to an obstacle directly ahead one probe
+    /// at a time and had no actual recovery if an officer still got wedged.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class PoliceOfficer : MonoBehaviour
@@ -36,11 +40,6 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private float recoveryPerSecond = 28f;
         [SerializeField] private float minimumResumeStamina = 55f;
 
-        [Header("Obstacle avoidance")]
-        [SerializeField] private float whiskerLength = 2.4f;
-        [SerializeField] private float avoidTurnDegrees = 55f;
-        [SerializeField] private LayerMask obstacleMask = ~0;
-
         [Header("Animation")]
         [SerializeField] private Animator animator;
         [SerializeField] private float turnSpeed = 8f;
@@ -52,6 +51,7 @@ namespace UpIzUpMini.Interaction
         private float _animBlend;
         private float _stamina;
         private bool _exhausted;
+        private readonly NavPathSteerer _steerer = new NavPathSteerer();
 
         public bool IsChasing { get; private set; }
         public float Stamina => _stamina;
@@ -91,9 +91,13 @@ namespace UpIzUpMini.Interaction
                 : float.MaxValue;
 
             // Chase while heat is up and the player is still in reach.
+            // MINI-060: Gardey Zafeh's PoliceImmunity reading - "police
+            // would not trouble you" - blocks a new chase outright for its
+            // duration.
             bool wantsChase = player != null
                         && heat >= chaseHeatThreshold
-                        && distToPlayer <= giveUpDistance;
+                        && distToPlayer <= giveUpDistance
+                        && !GardeyZafehBuffState.IsActive(GardeyZafehBuff.PoliceImmunity);
 
             if (_exhausted)
             {
@@ -108,6 +112,9 @@ namespace UpIzUpMini.Interaction
             }
 
             IsChasing = wantsChase;
+
+            Vector3? relocate = _steerer.ConsumeRelocation();
+            if (relocate.HasValue) Relocate(relocate.Value);
 
             Vector3 destination;
             float speed;
@@ -144,67 +151,36 @@ namespace UpIzUpMini.Interaction
                 }
 
                 destination = _headingToB ? patrolB : patrolA;
-
-                Vector3 flat = destination - transform.position;
-                flat.y = 0f;
-                if (flat.magnitude <= arriveDistance)
-                {
-                    _headingToB = !_headingToB;
-                    _pauseTimer = pauseAtEndSeconds;
-                    Animate(0f);
-                    return;
-                }
-
                 speed = patrolSpeed;
             }
 
-            Vector3 dir = destination - transform.position;
-            dir.y = 0f;
-            if (dir.sqrMagnitude < 0.0001f) { Animate(0f); return; }
-            dir.Normalize();
+            Vector3? dir = _steerer.Steer(transform.position, destination, speed, arriveDistance, out bool arrived);
 
-            dir = AvoidObstacles(dir);
+            if (arrived)
+            {
+                if (!IsChasing)
+                {
+                    _headingToB = !_headingToB;
+                    _pauseTimer = pauseAtEndSeconds;
+                }
+                Animate(0f);
+                return;
+            }
 
-            _controller.SimpleMove(dir * speed);
-            Face(transform.position + dir);
+            if (!dir.HasValue) { Animate(0f); return; }
+
+            _controller.SimpleMove(dir.Value * speed);
+            Face(transform.position + dir.Value);
             Animate(speed);
         }
 
-        /// <summary>
-        /// Steers around whatever is directly ahead by testing a short cast
-        /// forward, then to each side, and taking the first clear heading.
-        /// Without this officers walked into houses on the way to a
-        /// waypoint.
-        /// </summary>
-        private Vector3 AvoidObstacles(Vector3 desired)
+        /// <summary>CharacterController rejects direct transform writes
+        /// while enabled, so it's briefly disabled to relocate.</summary>
+        private void Relocate(Vector3 position)
         {
-            Vector3 origin = transform.position + Vector3.up * 1.0f;
-
-            if (!Physics.Raycast(origin, desired, whiskerLength, obstacleMask, QueryTriggerInteraction.Ignore))
-            {
-                return desired;
-            }
-
-            // Try progressively wider turns to each side.
-            for (int step = 1; step <= 3; step++)
-            {
-                float angle = avoidTurnDegrees * step;
-
-                Vector3 left = Quaternion.Euler(0f, -angle, 0f) * desired;
-                if (!Physics.Raycast(origin, left, whiskerLength, obstacleMask, QueryTriggerInteraction.Ignore))
-                {
-                    return left;
-                }
-
-                Vector3 right = Quaternion.Euler(0f, angle, 0f) * desired;
-                if (!Physics.Raycast(origin, right, whiskerLength, obstacleMask, QueryTriggerInteraction.Ignore))
-                {
-                    return right;
-                }
-            }
-
-            // Boxed in - back off rather than grinding into the wall.
-            return -desired;
+            _controller.enabled = false;
+            transform.position = position;
+            _controller.enabled = true;
         }
 
         private void Face(Vector3 worldPoint)

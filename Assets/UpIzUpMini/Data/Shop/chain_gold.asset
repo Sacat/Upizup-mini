@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: chain_gold
   m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Economy.ShopItemDefinition
   itemId: chain_gold
-  displayName: Gold Chain
+  displayName: Gucci Law
   category: 3
-  price: 320
+  price: 6000
   description: 
   grantsCrop: {fileID: 0}
   seedQuantity: 0

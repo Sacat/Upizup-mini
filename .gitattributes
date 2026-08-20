@@ -8,3 +8,4 @@
 /Assets/UpIzUpMini/Art/Characters/Ch28_1001_Normal.png filter=lfs diff=lfs merge=lfs -text
 /Assets/UpIzUpMini/Art/Characters/Mainchar.fbx filter=lfs diff=lfs merge=lfs -text
 /Assets/UpIzUpMini/Art/Characters/Strong.fbx filter=lfs diff=lfs merge=lfs -text
+/Assets/Tmax[[:space:]]560.glb filter=lfs diff=lfs merge=lfs -text

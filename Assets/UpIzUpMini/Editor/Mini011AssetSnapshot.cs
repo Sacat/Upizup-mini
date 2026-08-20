@@ -378,6 +378,305 @@ namespace UpIzUpMini.EditorTools
             RenderAndSave(cam, "mini050-banana-crop.png");
         }
 
+        [MenuItem("Up Iz Up Mini/MINI-051/Snapshot Weed Bud Closeup")]
+        public static void SnapshotWeedBudCloseup()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var plots = Object.FindObjectsByType<UpIzUpMini.Farming.FarmPlot>(FindObjectsSortMode.None);
+            if (plots.Length == 0) { Debug.LogError("Snapshot: no FarmPlot found."); return; }
+
+            var purple = AssetDatabase.LoadAssetAtPath<UpIzUpMini.Economy.CropDefinition>(
+                "Assets/UpIzUpMini/Data/Crops/purple.asset");
+            if (purple == null) { Debug.LogError("Snapshot: purple.asset missing."); return; }
+
+            plots[0].LoadState(3, purple, purple.growDurationSeconds);
+
+            var camGo = new GameObject("WeedBudCam");
+            var cam = camGo.AddComponent<Camera>();
+            Vector3 c = plots[0].transform.position;
+            camGo.transform.position = c + new Vector3(-1.1f, 1.9f, -1.1f);
+            camGo.transform.LookAt(c + Vector3.up * 1.4f);
+            cam.fieldOfView = 35f;
+            cam.farClipPlane = 120f;
+
+            RenderAndSave(cam, "mini051-weed-bud-closeup.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-051/Snapshot Weed Strains Side By Side")]
+        public static void SnapshotWeedStrainsSideBySide()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var plots = Object.FindObjectsByType<UpIzUpMini.Farming.FarmPlot>(FindObjectsSortMode.None);
+            if (plots.Length < 4) { Debug.LogError("Snapshot: need at least 4 FarmPlots."); return; }
+
+            string[] strainIds = { "bushers", "black_sugar", "purple", "blue_cheese" };
+            for (int i = 0; i < strainIds.Length && i < plots.Length; i++)
+            {
+                var crop = AssetDatabase.LoadAssetAtPath<UpIzUpMini.Economy.CropDefinition>(
+                    $"Assets/UpIzUpMini/Data/Crops/{strainIds[i]}.asset");
+                if (crop == null) { Debug.LogError($"Snapshot: {strainIds[i]}.asset missing."); continue; }
+                plots[i].LoadState(3, crop, crop.growDurationSeconds);
+            }
+
+            Vector3 center = Vector3.zero;
+            for (int i = 0; i < strainIds.Length && i < plots.Length; i++)
+                center += plots[i].transform.position;
+            center /= Mathf.Min(strainIds.Length, plots.Length);
+
+            var camGo = new GameObject("WeedStrainsCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = center + new Vector3(0f, 6.5f, -8.5f);
+            camGo.transform.LookAt(center + Vector3.up * 0.6f);
+            cam.fieldOfView = 45f;
+            cam.farClipPlane = 200f;
+
+            RenderAndSave(cam, "mini051-weed-strains-side-by-side.png");
+        }
+
+        // MINI-055: split into two menu items rather than one method calling
+        // RenderAndSave twice - RenderAndSave calls EditorApplication.Exit(0)
+        // right after the first save when running in batch mode (by design,
+        // so every other one-shot snapshot method here terminates cleanly),
+        // so a second call in the same invocation would never actually run.
+        [MenuItem("Up Iz Up Mini/MINI-055/Snapshot Boss C Closeup")]
+        public static void SnapshotBossCCloseup()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var bossC = GameObject.Find("NPC_BossC");
+            if (bossC == null) { Debug.LogError("Snapshot: NPC_BossC not found."); return; }
+            Vector3 c = bossC.transform.position;
+
+            // Standing where the boss is facing TOWARD (position + his own
+            // forward * distance) and looking back at him shows his front
+            // - two earlier attempts (an arbitrary offset, then the sign
+            // flipped the wrong way) both rendered the back of his shirt.
+            var closeGo = new GameObject("BossCCloseCam");
+            var closeCam = closeGo.AddComponent<Camera>();
+            closeGo.transform.position = c + bossC.transform.forward * 1.3f + Vector3.up * 1.5f;
+            closeGo.transform.LookAt(c + Vector3.up * 1.4f);
+            closeCam.fieldOfView = 35f;
+            closeCam.farClipPlane = 120f;
+            RenderAndSave(closeCam, "mini055-boss-c-closeup.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-055/Snapshot Boss C Wide")]
+        public static void SnapshotBossCWide()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var bossC = GameObject.Find("NPC_BossC");
+            if (bossC == null) { Debug.LogError("Snapshot: NPC_BossC not found."); return; }
+            Vector3 c = bossC.transform.position;
+
+            var wideGo = new GameObject("BossCWideCam");
+            var wideCam = wideGo.AddComponent<Camera>();
+            wideGo.transform.position = c + new Vector3(-10f, 4.5f, -10f);
+            wideGo.transform.LookAt(c + Vector3.up * 0.5f);
+            wideCam.fieldOfView = 60f;
+            wideCam.farClipPlane = 150f;
+            RenderAndSave(wideCam, "mini055-boss-c-wide.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-056/Snapshot Rasta Mentor")]
+        public static void SnapshotRastaMentor()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var mentor = GameObject.Find("NPC_RastaMentor");
+            if (mentor == null) { Debug.LogError("Snapshot: NPC_RastaMentor not found."); return; }
+            Vector3 c = mentor.transform.position;
+
+            var camGo = new GameObject("RastaMentorCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = c + mentor.transform.forward * 2.2f + Vector3.up * 1.5f;
+            camGo.transform.LookAt(c + Vector3.up * 1.3f);
+            cam.fieldOfView = 45f;
+            cam.farClipPlane = 120f;
+
+            RenderAndSave(cam, "mini056-rasta-mentor.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-057/Snapshot Real Police Closeup")]
+        public static void SnapshotRealPoliceCloseup()
+        {
+            // Kept (not removed) after MINI-057's police-cap fix - this is
+            // the exact view that caught the pre-existing floating-cap bug
+            // affecting every officer, not just Normy; worth keeping as a
+            // quick visual regression check for ApplyPoliceUniform.
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+            var officer = GameObject.Find("NPC_Police");
+            if (officer == null) { Debug.LogError("Snapshot: NPC_Police not found."); return; }
+            Vector3 c = officer.transform.position;
+            var camGo = new GameObject("PoliceDebugCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = c + officer.transform.forward * 2.2f + Vector3.up * 1.5f;
+            camGo.transform.LookAt(c + Vector3.up * 1.3f);
+            cam.fieldOfView = 45f;
+            cam.farClipPlane = 120f;
+            RenderAndSave(cam, "mini057-real-police-closeup.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-057/Snapshot Normy")]
+        public static void SnapshotNormy()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var normy = GameObject.Find("NPC_Normy");
+            if (normy == null) { Debug.LogError("Snapshot: NPC_Normy not found."); return; }
+            Vector3 c = normy.transform.position;
+
+            var camGo = new GameObject("NormyCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = c + normy.transform.forward * 2.2f + Vector3.up * 1.5f;
+            camGo.transform.LookAt(c + Vector3.up * 1.3f);
+            cam.fieldOfView = 45f;
+            cam.farClipPlane = 120f;
+
+            RenderAndSave(cam, "mini057-normy.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-058/Snapshot Dog Life")]
+        public static void SnapshotDogLife()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var spawnerGo = GameObject.Find("DogLifeSpawner");
+            if (spawnerGo == null) { Debug.LogError("Snapshot: DogLifeSpawner not found."); return; }
+
+            // Pool members start inactive (real distance-based pooling) -
+            // force one on for the shot the same way crop snapshots force
+            // a plant to ripe.
+            var poolField = typeof(UpIzUpMini.Interaction.RivalGangSpawner).GetField("_pool",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var pool = poolField?.GetValue(spawnerGo.GetComponent<UpIzUpMini.Interaction.RivalGangSpawner>()) as System.Collections.Generic.List<GameObject>;
+            if (pool == null || pool.Count == 0) { Debug.LogError("Snapshot: Dog Life pool is empty."); return; }
+            foreach (var member in pool) member.SetActive(true);
+
+            Vector3 c = pool[0].transform.position;
+            var camGo = new GameObject("DogLifeCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = c + new Vector3(0f, 4f, -6f);
+            camGo.transform.LookAt(c + Vector3.up * 1f);
+            cam.fieldOfView = 55f;
+            cam.farClipPlane = 120f;
+
+            RenderAndSave(cam, "mini058-dog-life.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-058/Snapshot Chevy By Boss C")]
+        public static void SnapshotChevyByBossC()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var chevy = GameObject.Find("NotAhWord_Chevy");
+            var bossC = GameObject.Find("NPC_BossC");
+            if (chevy == null || bossC == null) { Debug.LogError("Snapshot: NotAhWord_Chevy or NPC_BossC not found."); return; }
+
+            Vector3 mid = (chevy.transform.position + bossC.transform.position) * 0.5f;
+            var camGo = new GameObject("ChevyBossCCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = mid + new Vector3(0f, 4.5f, -8f);
+            camGo.transform.LookAt(mid + Vector3.up * 1f);
+            cam.fieldOfView = 55f;
+            cam.farClipPlane = 120f;
+
+            RenderAndSave(cam, "mini058-chevy-by-bossc.png");
+        }
+
+        /// <summary>MINI-060 follow-up-2: confirms the recruiter's
+        /// reposition next to Boss C/Chevy (previously overlapping Dog
+        /// Life's block) - "bring him to the boss C by chevy area."</summary>
+        [MenuItem("Up Iz Up Mini/MINI-060/Snapshot Gang Recruiter By Boss C")]
+        public static void SnapshotGangRecruiterByBossC()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var recruiter = GameObject.Find("NPC_GangRecruiter");
+            var chevy = GameObject.Find("NotAhWord_Chevy");
+            var bossC = GameObject.Find("NPC_BossC");
+            if (recruiter == null || chevy == null || bossC == null)
+            {
+                Debug.LogError("Snapshot: NPC_GangRecruiter, NotAhWord_Chevy, or NPC_BossC not found.");
+                return;
+            }
+
+            Vector3 mid = (recruiter.transform.position + chevy.transform.position + bossC.transform.position) / 3f;
+            var camGo = new GameObject("GangRecruiterBossCCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = mid + new Vector3(0f, 9f, -16f);
+            camGo.transform.LookAt(mid + Vector3.up * 1f);
+            cam.fieldOfView = 60f;
+            cam.farClipPlane = 150f;
+
+            RenderAndSave(cam, "mini060-gang-recruiter-by-bossc.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-058/Snapshot Gang Member")]
+        public static void SnapshotGangMember()
+        {
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var recruiter = GameObject.Find("NPC_GangRecruiter")?.GetComponent<UpIzUpMini.Interaction.TownNPCInteractable>();
+            var actor = GameObject.Find("Sacat");
+            var economy = GameObject.Find("EconomyManager")?.GetComponent<UpIzUpMini.Economy.EconomyManager>();
+            if (recruiter == null || actor == null || economy == null)
+            {
+                Debug.LogError("Snapshot: NPC_GangRecruiter, Sacat, or EconomyManager not found.");
+                return;
+            }
+
+            // Same as every other validation/snapshot in this project:
+            // AddComponent-time scene objects don't run Awake outside Play
+            // Mode, so EconomyManager.Instance/Money would otherwise be
+            // unset and the recruit silently fails.
+            typeof(UpIzUpMini.Economy.EconomyManager).GetMethod("Awake",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                ?.Invoke(economy, null);
+            // MINI-060 follow-up-2: recruitCost raised 150 -> 2000/member.
+            economy.AddMoney(2000);
+
+            recruiter.Interact(actor); // recruits the first roster member
+
+            var chevy = GameObject.Find("NotAhWord_Chevy");
+            if (chevy == null) { Debug.LogError("Snapshot: NotAhWord_Chevy not found after recruiting."); return; }
+
+            Vector3 c = chevy.transform.position;
+            var camGo = new GameObject("GangMemberCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = c + new Vector3(0f, 1.6f, -2.5f);
+            camGo.transform.LookAt(c + Vector3.up * 1f);
+            cam.fieldOfView = 45f;
+            cam.farClipPlane = 120f;
+
+            RenderAndSave(cam, "mini058-gang-member.png");
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-060/Snapshot Boat Man")]
+        public static void SnapshotGardeyZafeh()
+        {
+            // MINI-060 follow-up: Gardey Zafeh no longer has her own NPC -
+            // the boat man now handles her reveal/readings too (see
+            // TownNPCInteractable.InteractGardeyZafeh). Retargeted rather
+            // than deleted, so the menu path stays under a stable name.
+            EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
+
+            var gardey = GameObject.Find("NPC_BoatMan");
+            if (gardey == null) { Debug.LogError("Snapshot: NPC_BoatMan not found."); return; }
+            Vector3 c = gardey.transform.position;
+
+            var camGo = new GameObject("GardeyZafehCam");
+            var cam = camGo.AddComponent<Camera>();
+            camGo.transform.position = c + gardey.transform.forward * 2.5f + Vector3.up * 1.5f;
+            camGo.transform.LookAt(c + Vector3.up * 1.3f);
+            cam.fieldOfView = 50f;
+            cam.farClipPlane = 120f;
+
+            RenderAndSave(cam, "mini060-boatman.png");
+        }
+
         [MenuItem("Up Iz Up Mini/MINI-012/Snapshot Coast")]
         public static void SnapshotCoast()
         {

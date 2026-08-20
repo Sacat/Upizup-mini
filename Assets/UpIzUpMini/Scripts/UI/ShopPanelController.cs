@@ -26,6 +26,19 @@ namespace UpIzUpMini.UI
         [SerializeField] private ShopItemDefinition[] stock;
         [SerializeField] private bool resaleMode;
 
+        // MINI-082, user: "I still have to press E to close the shops box
+        // I should just walk and it fades." The panel now fades itself out
+        // (via CanvasGroup) both on E/Esc AND the moment the player walks
+        // more than autoCloseRange from the NPC who opened it - no more
+        // hard requirement to press E just to leave.
+        [SerializeField] private CanvasGroup canvasGroup;
+        [SerializeField] private float autoCloseRange = 4.5f;
+        [SerializeField] private float fadeSeconds = 0.35f;
+
+        private Transform _anchor;
+        private float _targetAlpha;
+        private bool _pendingDeactivate;
+
         private string _message;
         private float _messageTime;
 
@@ -36,19 +49,39 @@ namespace UpIzUpMini.UI
             if (panel != null) panel.SetActive(false);
         }
 
-        public void Open()
+        /// <summary>Opens the shop, fading in. <paramref name="anchor"/> is
+        /// the NPC's own transform - walking more than autoCloseRange from
+        /// it fades the panel shut on its own. Null (e.g. legacy callers)
+        /// disables the auto-close check, same as before this change.</summary>
+        public void Open(Transform anchor = null)
         {
             if (panel == null) return;
+            _anchor = anchor;
+            _pendingDeactivate = false;
+            _targetAlpha = 1f;
             panel.SetActive(true);
+            if (canvasGroup != null) canvasGroup.alpha = 0f;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             Refresh();
         }
 
+        /// <summary>Closes instantly - used once a fade-out finishes, and
+        /// still available directly for anything that wants no animation.</summary>
         public void Close()
         {
             if (panel == null) return;
             panel.SetActive(false);
+            if (canvasGroup != null) canvasGroup.alpha = 1f;
+            _pendingDeactivate = false;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
+        private void BeginClose()
+        {
+            _pendingDeactivate = true;
+            _targetAlpha = 0f;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
@@ -57,10 +90,34 @@ namespace UpIzUpMini.UI
         {
             if (!IsOpen) return;
 
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = Mathf.MoveTowards(
+                    canvasGroup.alpha, _targetAlpha,
+                    Time.unscaledDeltaTime / Mathf.Max(0.01f, fadeSeconds));
+            }
+
+            if (_pendingDeactivate)
+            {
+                if (canvasGroup == null || canvasGroup.alpha <= 0.001f) Close();
+                return;
+            }
+
             if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.E))
             {
-                Close();
+                BeginClose();
                 return;
+            }
+
+            if (_anchor != null)
+            {
+                var player = Character.CharacterSwitchManager.Instance?.Active?.root;
+                if (player != null
+                    && Vector3.Distance(player.transform.position, _anchor.position) > autoCloseRange)
+                {
+                    BeginClose();
+                    return;
+                }
             }
 
             for (int i = 0; i < stock.Length && i < 9; i++)
@@ -90,6 +147,17 @@ namespace UpIzUpMini.UI
                         }
                         Missions.MissionSystem.Instance?.Notify(
                             Missions.ObjectiveKind.BuyItem, stock[i].itemId);
+
+                        // MINI-065: a vehicle purchase (currently just the
+                        // TMAX) also spawns the real thing in the world -
+                        // SpawnPurchasedVehicle no-ops (returns null) for
+                        // every item it doesn't recognise, so this is a
+                        // no-op for every other shop's stock.
+                        string spawnFeedback = Vehicles.VehicleSpawnController.Instance?.SpawnPurchasedVehicle(stock[i].itemId);
+                        if (!string.IsNullOrEmpty(spawnFeedback))
+                        {
+                            _message = $"{_message} {spawnFeedback}";
+                        }
                     }
                 }
 
@@ -103,7 +171,7 @@ namespace UpIzUpMini.UI
             if (bodyText == null) return;
 
             var sb = new StringBuilder();
-            sb.AppendLine($"<b>{shopTitle}</b>   (number key to {(resaleMode ? "sell" : "buy")}, E or Esc to leave)");
+            sb.AppendLine($"<b>{shopTitle}</b>   (number key to {(resaleMode ? "sell" : "buy")} - walk away, E, or Esc to leave)");
             sb.AppendLine();
             sb.AppendLine($"Money: ${(EconomyManager.Instance != null ? EconomyManager.Instance.Money : 0)}");
             sb.AppendLine();

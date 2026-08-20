@@ -1,6 +1,7 @@
 using UnityEngine;
 using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
+using UpIzUpMini.Interaction;
 using UpIzUpMini.Missions;
 using UpIzUpMini.Progression;
 
@@ -25,7 +26,28 @@ namespace UpIzUpMini.UI
         private const string Code = "C#0W@";
         private const int CheatMoney = 100000;
 
+        // MINI-060 follow-up-2: a second cheat, six consecutive "0" presses
+        // -> invincible, $100,000, stamina stays full, heat locked at 0,
+        // and a 600s time-skip applied to the two currently-live timed
+        // systems (the Boat Man's away timer, any in-progress
+        // GuadeloupeTrade run) - per the user's "press '0' 6 times i am
+        // invincible with $100,000 heat stays 0 which skips time by 600s."
+        // Matched independently via EndsWith rather than an exact-length
+        // buffer compare, since it's a different length to Code and both
+        // need to keep matching off the same rolling buffer.
+        //
+        // Toggle, not one-shot: pressing "000000" again turns invincibility/
+        // full-stamina/the heat lock back off, per the user's explicit
+        // "can be disabled by pressing 0 6 times again." Money already
+        // granted and time already skipped are one-time effects that don't
+        // (and can't sensibly) reverse - there's no "undo" for cash spent
+        // or a trip that already returned early.
+        private const string HeatCode = "000000";
+        private const float HeatCheatTimeSkip = 600f;
+
+        private bool _heatCheatActive;
         private string _buffer = string.Empty;
+        private int MaxCodeLength => Mathf.Max(Code.Length, HeatCode.Length);
 
         private void Update()
         {
@@ -43,14 +65,19 @@ namespace UpIzUpMini.UI
         public void FeedTypedCharacters(string typed)
         {
             _buffer += typed;
-            if (_buffer.Length > Code.Length)
+            if (_buffer.Length > MaxCodeLength)
             {
-                _buffer = _buffer.Substring(_buffer.Length - Code.Length);
+                _buffer = _buffer.Substring(_buffer.Length - MaxCodeLength);
             }
 
-            if (_buffer == Code)
+            if (_buffer.EndsWith(Code))
             {
                 Activate();
+                _buffer = string.Empty;
+            }
+            else if (_buffer.EndsWith(HeatCode))
+            {
+                ToggleHeatCheat();
                 _buffer = string.Empty;
             }
         }
@@ -65,6 +92,36 @@ namespace UpIzUpMini.UI
             MissionSystem.Instance?.Alert(
                 $"CHEAT ACTIVATED\n${CheatMoney:N0} in hand. Every strain and route unlocked. Unstoppable.");
             Debug.Log("MINI-049: cheat code activated.");
+        }
+
+        private void ToggleHeatCheat()
+        {
+            if (!_heatCheatActive)
+            {
+                _heatCheatActive = true;
+                CharacterVitals.GlobalInvincible = true;
+                CharacterVitals.GlobalUnlimitedStamina = true;
+                EconomyManager.Instance?.SetMoney(CheatMoney);
+                EconomyManager.Instance?.LockHeatAtZero();
+
+                var boatManGo = GameObject.Find("NPC_BoatMan");
+                boatManGo?.GetComponent<TownNPCInteractable>()?.SkipTravelTime(HeatCheatTimeSkip);
+                GuadeloupeTrade.Instance?.SkipTime(HeatCheatTimeSkip);
+
+                MissionSystem.Instance?.Alert(
+                    $"CHEAT ACTIVATED\nInvincible. Stamina full. ${CheatMoney:N0} in hand. Heat locked at 0. Time skipped {HeatCheatTimeSkip:N0}s.");
+                Debug.Log("MINI-060 follow-up-2: heat cheat code activated.");
+            }
+            else
+            {
+                _heatCheatActive = false;
+                CharacterVitals.GlobalInvincible = false;
+                CharacterVitals.GlobalUnlimitedStamina = false;
+                EconomyManager.Instance?.UnlockHeat();
+
+                MissionSystem.Instance?.Alert("CHEAT DEACTIVATED\nInvincibility, full stamina, and the heat lock are off.");
+                Debug.Log("MINI-060 follow-up-2: heat cheat code deactivated.");
+            }
         }
     }
 }

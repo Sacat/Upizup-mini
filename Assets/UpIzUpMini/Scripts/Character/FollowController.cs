@@ -3,13 +3,20 @@ using UnityEngine;
 namespace UpIzUpMini.Character
 {
     /// <summary>
-    /// Simple follow behaviour for the currently-inactive boy (per
-    /// Docs/STORY.md: "the inactive boy must remain a real world
-    /// character... he follows the active boy at a sensible distance").
-    /// Deliberately simple - direct steering toward the target with
-    /// CharacterController.SimpleMove, not a NavMesh agent. Good enough for
-    /// open ground; may cut corners around obstacles. Only active while
-    /// this character is not the player-controlled one.
+    /// Follow behaviour for the currently-inactive boy (per Docs/STORY.md:
+    /// "the inactive boy must remain a real world character... he follows
+    /// the active boy at a sensible distance"). Only active while this
+    /// character is not the player-controlled one.
+    ///
+    /// Reverted from MINI-052's NavPathSteerer-based steering back to
+    /// simple direct steering, per the user's explicit report: "characters
+    /// not following me properly, they are glitching especially by a hill
+    /// i prefer the old follow system." The NavMesh-based path/stuck-
+    /// recovery logic was producing worse real-world behaviour near sloped
+    /// terrain than the straight-line approach it replaced, not better -
+    /// simplicity wins here. Deliberately simple - direct steering toward
+    /// the target with CharacterController.SimpleMove, not pathfinding.
+    /// Good enough for open ground; may cut corners around obstacles.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class FollowController : MonoBehaviour

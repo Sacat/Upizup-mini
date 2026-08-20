@@ -1,14 +1,17 @@
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UpIzUpMini.Cameras;
 using UpIzUpMini.Character;
+using UpIzUpMini.Dialogue;
 using UpIzUpMini.Economy;
 using UpIzUpMini.Farming;
 using UpIzUpMini.Interaction;
@@ -16,6 +19,7 @@ using UpIzUpMini.Missions;
 using UpIzUpMini.UI;
 using UpIzUpMini.Progression;
 using UpIzUpMini.Combat;
+using UpIzUpMini.Vehicles;
 
 namespace UpIzUpMini.EditorTools
 {
@@ -98,9 +102,18 @@ namespace UpIzUpMini.EditorTools
             riskSo.ApplyModifiedPropertiesWithoutUndo();
             BuildTownNPCs(terrain, roadPoints, locomotionController);
             BuildLalayHouse(terrain, roadPoints);
+            BuildLalayEstate(terrain, roadPoints);
 
             Vector3 startPos = _safehouseSpawn != Vector3.zero ? _safehouseSpawn : roadPoints[0];
-            startPos.y = SampleHeight(terrain, startPos.x, startPos.z);
+            // MINI-062: only re-sample ground height for the roadPoints[0]
+            // fallback - _safehouseSpawn already carries a real sampled
+            // terrain height (see BuildFarmSafehouse) plus a small fixed
+            // offset, so resampling it here at very slightly different X/Z
+            // used to silently drift its Y a few centimetres away from the
+            // exact value FarmSafehouse_Rest's own spawnPoint field uses,
+            // making "select the farm as your respawn" a not-quite-no-op
+            // even though it's the same point.
+            if (_safehouseSpawn == Vector3.zero) startPos.y = SampleHeight(terrain, startPos.x, startPos.z);
 
             // Franki and Sacat use the larger project's own character
             // models. Measured reason (MINI-016): those avatars map 52
@@ -114,11 +127,13 @@ namespace UpIzUpMini.EditorTools
             // Sacat is player one (smart) and Franki player two (strong).
             CharacterSlot smart = BuildControllableCharacter(
                 "Sacat", "Sacat", "Assets/UpIzUpMini/Art/Characters/Mainchar.fbx",
-                null, startPos, locomotionController, startActive: true);
+                null, startPos, locomotionController, startActive: true,
+                visualScale: TargetCharacterHeightM / SacatMeasuredHeightM);
             CharacterSlot strong = BuildControllableCharacter(
                 "Franki", "Franki", "Assets/UpIzUpMini/Art/Characters/Strong.fbx",
                 null, startPos + new Vector3(1.4f, 0f, -1.2f),
-                locomotionController, startActive: false);
+                locomotionController, startActive: false,
+                visualScale: TargetCharacterHeightM / FrankiMeasuredHeightM);
             var frankiMove = new SerializedObject(strong.playerController);
             frankiMove.FindProperty("runSpeed").floatValue = 5.85f;
             frankiMove.ApplyModifiedPropertiesWithoutUndo();
@@ -190,8 +205,30 @@ namespace UpIzUpMini.EditorTools
             ShopItemDefinition[] dealerStock = BuildStock(DealerSpecs, crops);
             ShopItemDefinition[] foodStock = BuildStock(FoodSpecs, crops);
             ShopItemDefinition[] pharmacyStock = BuildStock(PharmacySpecs, crops);
+
+            // MINI-073: register the full Food/Pharmacy catalog with the
+            // economy so a later UseConsumable(itemId) can look effect
+            // numbers back up from a bare id, and give the inventory panel
+            // the crop list so it can show what is held. EconomyManager was
+            // already built by BuildEconomyAndCrops above; found by name
+            // rather than threading a reference through, matching the
+            // project's existing GameObject.Find(dealerNpcName) pattern.
+            var economyGoRef = GameObject.Find("EconomyManager");
+            var economyRef = economyGoRef != null ? economyGoRef.GetComponent<EconomyManager>() : null;
+            economyRef?.RegisterConsumableCatalog(foodStock);
+            economyRef?.RegisterConsumableCatalog(pharmacyStock);
+
+            var invGo = new GameObject("InventoryPanel");
+            var invPanel = invGo.AddComponent<InventoryPanelController>();
+            var invSo = new SerializedObject(invPanel);
+            var invCropsProp = invSo.FindProperty("allCrops");
+            invCropsProp.arraySize = crops.Length;
+            for (int i = 0; i < crops.Length; i++) invCropsProp.GetArrayElementAtIndex(i).objectReferenceValue = crops[i];
+            invSo.ApplyModifiedPropertiesWithoutUndo();
+
             BuildStreetSigns(terrain, roadPoints, _farmCenter);
             BuildExtraUI(farmStock, apparelStock, landStock, dealerStock, foodStock, pharmacyStock, roadPoints, _farmCenter);
+            BuildVehicleSpawner();
             BuildMissions(terrain, roadPoints, _farmCenter, farmPlot);
 
             // Starting seeds so the player can plant before their first
@@ -209,6 +246,16 @@ namespace UpIzUpMini.EditorTools
 
             BuildHUD(crops);
             BuildPauseMenu();
+
+            // MINI-059: every FarmPlot (main + expansion) already exists by
+            // this point - collects them all for the plantation theft risk.
+            BuildPlantationTheft();
+
+            // MINI-052: bake last, after every static obstacle (buildings,
+            // terrain, farm, coast) is in place, so NavPathSteerer (the
+            // companion/villager/police steering) has real path coverage
+            // around houses instead of a straight line.
+            BuildNavigationMesh();
 
             EnsureFolder("Assets/UpIzUpMini/Scenes");
             bool saved = EditorSceneManager.SaveScene(scene, ScenePath);
@@ -279,6 +326,12 @@ namespace UpIzUpMini.EditorTools
         /// auto-fading out; its clip has Loop Time off, so Mecanim already
         /// holds the last frame on its own once played through once.
         /// </summary>
+        /// <summary>Exposes the shared action list so other build tools (the
+        /// MINI-066 test-scene rider) populate a character with exactly the
+        /// same clips the real game characters get, rather than a
+        /// hand-maintained subset that could drift.</summary>
+        public static HumanoidAnimationManager.ActionEntry[] GetSharedActionEntriesPublic() => GetSharedActionEntries();
+
         private static HumanoidAnimationManager.ActionEntry[] GetSharedActionEntries()
         {
             var meleeClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Combat/1H/HumanM@Attack1H01_R.fbx");
@@ -304,7 +357,164 @@ namespace UpIzUpMini.EditorTools
                     clip = knockedDownClip,
                     fullBody = true,
                 },
+
+                // MINI-066 motorcycle riding, from the purchased Animo Mocap
+                // pack. Every one of these is fullBody: sitting on a bike must
+                // replace locomotion entirely, not layer over a walk cycle -
+                // exactly the case HumanoidAnimationManager's FullBodyOverride
+                // layer was built for.
+                //
+                // The pack names transition clips "<from>_<to>", which is how
+                // the mount/dismount were found: "Idle_MOTOIdle01" is standing
+                // idle INTO the seated bike pose (5.33s) and "MOTOIdle01_Idle"
+                // is the reverse (6.33s). Every other transition in the pack is
+                // 0.33-2s because it only shifts between seated poses; these
+                // two are long because they are whole-body get-on/get-off
+                // moves. So no clip needed reversing after all.
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = MountActionId,
+                    clip = LoadNamedClip(MotoIdleFbx, "AA_MOTO_Idle_MOTOIdle01"),
+                    fullBody = true,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = DismountActionId,
+                    clip = LoadNamedClip(MotoIdleFbx, "AA_MOTO_MOTOIdle01_Idle"),
+                    fullBody = true,
+                },
+                // Riding pose is MOTOIdle02, not MOTOIdle01 - the user
+                // identified MOTOIdle01 as the mounting pose from the pack's
+                // own preview video, and the clip list independently confirms
+                // it: every lean, look and cheer in the pack transitions to or
+                // from MOTOIdle02 ("MOTOIdle02_Left01", "cheer01_MOTOIdle02",
+                // ...) and never from MOTOIdle01. MOTOIdle02 is the hub pose
+                // the rider actually sits in, which is why the pack also ships
+                // MOTOIdle01_MOTOIdle02 (8.00s, settling in after mounting).
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = RideBikeActionId,
+                    clip = LoadNamedClip(MotoIdleFbx, "AA_MOTO_MOTOIdle02_Loop"),
+                    fullBody = true,
+                },
+                // Pillion: the user's own suggestion to repurpose a cheer as
+                // "holding on behind". cheer02_Loop is the longest (6.00s) so
+                // it reads as an idle rather than a repeating twitch.
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = RidePillionActionId,
+                    clip = LoadNamedClip(MotoAction03Fbx, "AA_MOTO_cheer02_Loop"),
+                    fullBody = true,
+                },
+
+                // Stopped-but-mounted. Measured torso pitch confirms the
+                // user's read of the pack's preview video: MOTOIdle01 sits at
+                // -38.8deg from vertical (upright, engine idling) while
+                // MOTOIdle02 is -59.8deg (crouched over the bars, moving).
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = BikeStoppedActionId,
+                    clip = LoadNamedClip(MotoIdleFbx, "AA_MOTO_MOTOIdle01_Loop"),
+                    fullBody = true,
+                },
+
+                // The wheelie pose. Named "cheer01" in the pack, but it is
+                // measurably NOT a celebration: the torso swings from -59.8deg
+                // (normal riding) to +1.7deg - bolt upright - a 61-degree
+                // change no other clip in the pack comes close to, and exactly
+                // what a rider does when the front wheel comes up. Found by
+                // the user watching the preview video; confirmed numerically
+                // before wiring (see the MINI-066 handoff entry).
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = BikeWheelieActionId,
+                    clip = LoadNamedClip(MotoAction02Fbx, "AA_MOTO_cheer01_Loop"),
+                    fullBody = true,
+                },
+
+                // Cornering leans. Left02/Right02 measure as a symmetric
+                // +/-6.6deg lateral tilt with riding pitch unchanged, i.e.
+                // genuine mirrored leans rather than two unrelated poses.
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = BikeLeanLeftActionId,
+                    clip = LoadNamedClip(MotoTurn30Fbx, "AA_MOTO_Left02_Loop"),
+                    fullBody = true,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = BikeLeanRightActionId,
+                    clip = LoadNamedClip(MotoTurn30Fbx, "AA_MOTO_Right02_Loop"),
+                    fullBody = true,
+                },
+
+                // Stop / rest / pull-away transitions (see the id constants
+                // for why these particular clips). One-shots, not held poses:
+                // each is a move BETWEEN states, and BikeRiderAnimation
+                // sequences them.
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = BikeStopSettleActionId,
+                    clip = LoadNamedClip(MotoIdleFbx, "AA_MOTO_MOTOIdle02_MOTOIdle01"),
+                    fullBody = true,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = BikeRestActionId,
+                    clip = LoadNamedClip(MotoIdleFbx, "AA_MOTO_MOTOIdle01_Idle"),
+                    fullBody = true,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = BikePullAwayActionId,
+                    clip = LoadNamedClip(MotoIdleFbx, "AA_MOTO_MOTOIdle01_MOTOIdle02"),
+                    fullBody = true,
+                },
             };
+        }
+
+        // MINI-066. Action ids shared between the seat definitions on the
+        // TMAX prefab (see Mini065TmaxPhysicsTest.WireSeat) and the Animator
+        // states baked here - kept as constants so the two cannot drift apart
+        // silently, which would show up only as a rider with no pose.
+        // MINI-066 follow-up: the stopped-at-a-standstill sequence the user
+        // described from the pack's preview video. MOTOIdle02 is the riding
+        // hub pose and MOTOIdle01 the stopped one, so the pack's own
+        // "<from>_<to>" transition clips are exactly the settle/pull-away
+        // moves: 02->01 when the bike comes to rest, 01->Idle if the rider
+        // keeps sitting there, and 01->02 when they pull away again.
+        public const string BikeStopSettleActionId = "BikeStopSettle";
+        public const string BikeRestActionId = "BikeRest";
+        public const string BikePullAwayActionId = "BikePullAway";
+        public const string MountActionId = "MountBike";
+        public const string DismountActionId = "DismountBike";
+        public const string RideBikeActionId = "RideBike";
+        public const string RidePillionActionId = "RidePillion";
+        public const string BikeStoppedActionId = "BikeStopped";
+        public const string BikeWheelieActionId = "BikeWheelie";
+        public const string BikeLeanLeftActionId = "BikeLeanLeft";
+        public const string BikeLeanRightActionId = "BikeLeanRight";
+
+        private const string MotoIdleFbx = "Assets/UpIzUpMini/Art/Animations/Moto/AA_MOTO_Idle.fbx";
+        private const string MotoAction02Fbx = "Assets/UpIzUpMini/Art/Animations/Moto/AA_MOTO_Action02.fbx";
+        private const string MotoAction03Fbx = "Assets/UpIzUpMini/Art/Animations/Moto/AA_MOTO_Action03.fbx";
+        private const string MotoTurn30Fbx = "Assets/UpIzUpMini/Art/Animations/Moto/AA_MOTO_TurnRight30.fbx";
+
+        /// <summary>
+        /// Loads one specific clip by name out of an FBX that contains
+        /// several. The moto pack ships 30 clips across 6 files, so the
+        /// plain "first clip in the file" approach LoadClip uses would pick
+        /// an arbitrary one.
+        /// </summary>
+        private static AnimationClip LoadNamedClip(string fbxPath, string clipName)
+        {
+            var all = AssetDatabase.LoadAllAssetsAtPath(fbxPath);
+            foreach (var o in all)
+            {
+                if (o is AnimationClip c && c.name == clipName) return c;
+            }
+            Debug.LogWarning($"MINI-066: clip '{clipName}' not found in {fbxPath} - that riding action will be missing.");
+            return null;
         }
 
         /// <summary>
@@ -447,6 +657,36 @@ namespace UpIzUpMini.EditorTools
         }
 
         // ---------------------------------------------------------------
+        // MINI-052: NavMesh bake for NavPathSteerer (companion/villager/
+        // police stuck-recovery + path-around-houses).
+        // ---------------------------------------------------------------
+
+        /// <summary>
+        /// Bakes one walkable NavMesh from every collider in the finished
+        /// scene (terrain + building/prop colliders, via PhysicsColliders
+        /// collection) so NavPathSteerer's static NavMesh.CalculatePath
+        /// calls have real coverage at runtime. com.unity.ai.navigation is
+        /// already an installed package (Packages/manifest.json) - reused,
+        /// not newly added. The surface GameObject is kept in the built
+        /// scene (not destroyed after baking): NavMeshSurface adds its
+        /// baked data on OnEnable, which is how the baked mesh becomes
+        /// available to the static NavMesh API at Play/runtime.
+        /// </summary>
+        private static void BuildNavigationMesh()
+        {
+            var go = new GameObject("NavMeshSurface");
+            var surface = go.AddComponent<NavMeshSurface>();
+            surface.collectObjects = CollectObjects.All;
+            surface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
+            surface.layerMask = ~0;
+            // Officers/companion are roughly capsule-radius 0.3-0.35m
+            // (see PoliceOfficer/PatrolNPC CharacterController radius) -
+            // keep the default humanoid agent settings, which comfortably
+            // clear the narrow farm/road paths built elsewhere.
+            surface.BuildNavMesh();
+        }
+
+        // ---------------------------------------------------------------
         // Terrain: coast (low X) -> village shelf (mid X) -> hills (high X)
         // ---------------------------------------------------------------
 
@@ -582,9 +822,12 @@ namespace UpIzUpMini.EditorTools
         // keep clear of the plantation.
         private static Vector3 _farmCenter;
         private static Vector3 _safehouseSpawn;
+        private static Vector3 _safehousePos;
+        private static Quaternion _safehouseRot = Quaternion.identity;
         private static float _farmClearRadius = 22f;
         private static Vector3 _expansionPlotPos;
         private static Vector3 _bossPos;
+        private static Vector3 _bossCPos;
 
         private static void BuildSea()
         {
@@ -1272,8 +1515,8 @@ namespace UpIzUpMini.EditorTools
 
                     var tomatoVisual = BuildCropVisual(plot.transform, "TomatoVisual",
                         "Assets/UpIzUpMini/Art/CropMeshes/TomatoPlant_LOD.asset", 1.7f, fruitCount: 4);
-                    var weedVisual = BuildCropVisual(plot.transform, "WeedVisual",
-                        "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f, fruitCount: 0);
+                    var weedVisual = BuildWeedCropVisual(plot.transform, "WeedVisual",
+                        "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f);
                     var bananaVisual = BuildBananaVisual(plot.transform);
 
                     var plotInteractable = plot.AddComponent<FarmPlot>();
@@ -1326,8 +1569,8 @@ namespace UpIzUpMini.EditorTools
 
                 var tomatoVisual = BuildCropVisual(plot.transform, "TomatoVisual",
                     "Assets/UpIzUpMini/Art/CropMeshes/TomatoPlant_LOD.asset", 1.7f, fruitCount: 4);
-                var weedVisual = BuildCropVisual(plot.transform, "WeedVisual",
-                    "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f, fruitCount: 0);
+                var weedVisual = BuildWeedCropVisual(plot.transform, "WeedVisual",
+                    "Assets/UpIzUpMini/Art/CropMeshes/WeedPlant_LOD.asset", 1.9f);
                 var bananaVisual = BuildBananaVisual(plot.transform);
 
                 var plotComponent = plot.AddComponent<FarmPlot>();
@@ -1450,6 +1693,129 @@ namespace UpIzUpMini.EditorTools
         }
 
         /// <summary>
+        /// MINI-051: builds the Zeb (weed) crop visual with real bud/cola
+        /// detail instead of the old flat "fruitCount: 0" (no bud
+        /// representation at all - the plant's designated colour never
+        /// showed, which was the actual bug). Foliage stays the plain
+        /// green plant mesh (not recoloured); three cola clusters (one
+        /// apical, two lower lateral) each get a tapering 3-sphere bud
+        /// stack (dense/clustered rather than a single ball) plus two
+        /// pistil-hair accents, and CropStageVisual applies the strain's
+        /// primary/secondary ripe colour to the buds and a frost/trichome
+        /// lighten+gloss pass at full ripeness.
+        /// </summary>
+        private static CropStageVisual BuildWeedCropVisual(
+            Transform plot, string name, string meshPath, float plantHeightMetres)
+        {
+            var root = new GameObject(name);
+            root.transform.SetParent(plot, false);
+            root.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+            Vector3 plotScale = plot.localScale;
+            root.transform.localScale = new Vector3(1f / plotScale.x, 1f / plotScale.y, 1f / plotScale.z);
+
+            var plantRoot = new GameObject("Plant");
+            plantRoot.transform.SetParent(root.transform, false);
+
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+            Renderer plantRenderer = null;
+            if (mesh != null)
+            {
+                var meshGo = new GameObject("PlantMesh");
+                meshGo.transform.SetParent(plantRoot.transform, false);
+                meshGo.AddComponent<MeshFilter>().sharedMesh = mesh;
+                plantRenderer = meshGo.AddComponent<MeshRenderer>();
+                plantRenderer.sharedMaterial = GetOrCreateMaterial("CropFoliage", new Color(0.22f, 0.42f, 0.16f));
+
+                float normalize = plantHeightMetres / Mathf.Max(0.0001f, mesh.bounds.size.y);
+                meshGo.transform.localScale = Vector3.one * normalize;
+                meshGo.transform.localPosition = new Vector3(0f, -mesh.bounds.min.y * normalize, 0f);
+            }
+            else
+            {
+                Debug.LogWarning($"Mini011PhaseBSetup: crop mesh missing at {meshPath}");
+            }
+
+            var budMat = GetOrCreateMaterial("CropBud", new Color(0.3f, 0.55f, 0.25f));
+            var pistilMat = GetOrCreateMaterial("CropPistil", new Color(0.90f, 0.85f, 0.72f));
+
+            var fruits = new List<Renderer>();
+            var pistils = new List<Renderer>();
+
+            // One apical (top, biggest) cola and two smaller lower lateral
+            // colas - real plants flower densest at the top and lighter
+            // further down, not a uniform ring.
+            (float heightFrac, float lateralFrac, float scale)[] colaSpecs =
+            {
+                (0.92f, 0.00f, 1.00f),
+                (0.66f, 0.34f, 0.72f),
+                (0.66f, -0.34f, 0.72f),
+            };
+
+            foreach (var cola in colaSpecs)
+            {
+                var colaRoot = new GameObject("Cola");
+                colaRoot.transform.SetParent(plantRoot.transform, false);
+                colaRoot.transform.localPosition = new Vector3(
+                    cola.lateralFrac * plantHeightMetres * 0.22f,
+                    plantHeightMetres * cola.heightFrac,
+                    0f);
+
+                float budBase = plantHeightMetres * 0.11f * cola.scale;
+                for (int i = 0; i < 3; i++)
+                {
+                    float segT = i / 2f; // 0 at the base, 1 at the tip
+                    var bud = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    bud.name = $"Bud_{i}";
+                    bud.transform.SetParent(colaRoot.transform, false);
+                    bud.transform.localPosition = new Vector3(0f, segT * budBase * 1.4f, 0f);
+                    float budScale = budBase * (1f - segT * 0.4f);
+                    bud.transform.localScale = Vector3.one * budScale;
+                    Object.DestroyImmediate(bud.GetComponent<Collider>());
+                    var br = bud.GetComponent<Renderer>();
+                    br.sharedMaterial = budMat;
+                    fruits.Add(br);
+                }
+
+                // Two pistil hairs per cola, angled outward from the top
+                // bud - cream while flowering, rust-orange once mature
+                // (CropStageVisual), independent of the strain's bud colour.
+                for (int p = 0; p < 2; p++)
+                {
+                    float angle = p == 0 ? 35f : -145f;
+                    var pistil = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                    pistil.name = $"Pistil_{p}";
+                    pistil.transform.SetParent(colaRoot.transform, false);
+                    pistil.transform.localPosition = new Vector3(0f, budBase * 1.3f, 0f);
+                    pistil.transform.localRotation = Quaternion.Euler(0f, 0f, angle);
+                    pistil.transform.localScale = new Vector3(budBase * 0.12f, budBase * 0.55f, budBase * 0.12f);
+                    Object.DestroyImmediate(pistil.GetComponent<Collider>());
+                    var pr = pistil.GetComponent<Renderer>();
+                    pr.sharedMaterial = pistilMat;
+                    pistils.Add(pr);
+                }
+            }
+
+            var visual = root.AddComponent<CropStageVisual>();
+            var so = new SerializedObject(visual);
+            so.FindProperty("plantRoot").objectReferenceValue = plantRoot.transform;
+            so.FindProperty("plantRenderer").objectReferenceValue = plantRenderer;
+            var fruitsProp = so.FindProperty("fruitRenderers");
+            fruitsProp.arraySize = fruits.Count;
+            for (int i = 0; i < fruits.Count; i++)
+                fruitsProp.GetArrayElementAtIndex(i).objectReferenceValue = fruits[i];
+            var pistilsProp = so.FindProperty("pistilRenderers");
+            pistilsProp.arraySize = pistils.Count;
+            for (int i = 0; i < pistils.Count; i++)
+                pistilsProp.GetArrayElementAtIndex(i).objectReferenceValue = pistils[i];
+            so.FindProperty("applyFrostEffect").boolValue = true;
+            so.FindProperty("fullScale").floatValue = 1f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            root.SetActive(false);
+            return visual;
+        }
+
+        /// <summary>
         /// MINI-050: builds the banana crop visual from the real banana tree
         /// model taken from the larger game (Tropical Nature Pack, already a
         /// low-poly game mesh ~0.2-0.5MB - unlike the photogrammetry scans it
@@ -1562,6 +1928,12 @@ namespace UpIzUpMini.EditorTools
             parent.transform.position = pos;
             parent.transform.rotation = rot;
             _safehouseSpawn = pos + rot * new Vector3(0f, 0.2f, 3.4f);
+            // Keep the house.s own position AND rotation - the bike needs to be
+            // parked relative to which way the shelter actually faces. Offsetting
+            // in world space from the bed spawn (the first attempt) put it
+            // through a wall and inside the house.
+            _safehousePos = pos;
+            _safehouseRot = rot;
 
             BuildOpenSafehouse(parent.transform, pos, rot);
 
@@ -1569,7 +1941,16 @@ namespace UpIzUpMini.EditorTools
             var restGo = new GameObject("FarmSafehouse_Rest");
             restGo.transform.SetParent(parent.transform);
             restGo.transform.position = pos + rot * new Vector3(0f, 0.6f, 0f);
-            restGo.AddComponent<SafehouseInteractable>();
+            var farmSafehouse = restGo.AddComponent<SafehouseInteractable>();
+            // MINI-062: matches this safehouse's own spawnPoint field to
+            // the same offset already used as CharacterSwitchManager's
+            // default respawn (_safehouseSpawn below) - so choosing
+            // "[4] Set Respawn" here is a genuine no-op the first time,
+            // and a real choice again once the player has picked another
+            // house instead.
+            var fsSo = new SerializedObject(farmSafehouse);
+            fsSo.FindProperty("spawnPoint").vector3Value = _safehouseSpawn;
+            fsSo.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>
@@ -1642,6 +2023,89 @@ namespace UpIzUpMini.EditorTools
             pillow.GetComponent<Renderer>().sharedMaterial = bedMat;
         }
 
+        /// <summary>MINI-065: wires the one-time TMAX purchase/spawn hook
+        /// (VehicleSpawnController) to the real TMAX_560 prefab. A no-op
+        /// (logs a warning, doesn't fail the whole scene build) if the
+        /// prefab hasn't been built yet via MINI-064/065's own menu
+        /// items, so this never blocks a scene rebuild on the vehicle
+        /// work being present.</summary>
+        private static void BuildVehicleSpawner()
+        {
+            var tmaxPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/UpIzUpMini/Vehicles/TMAX_560.prefab");
+            if (tmaxPrefab == null)
+            {
+                Debug.LogWarning("BuildVehicleSpawner: TMAX_560.prefab not found - buying the TMAX from the Car Dealer won't spawn anything until MINI-064/065's prefab exists.");
+                return;
+            }
+
+            var go = new GameObject("VehicleSpawner");
+            var spawner = go.AddComponent<VehicleSpawnController>();
+
+            // MINI-080: "remove the test bike, test range and take out the
+            // test screens until we are testing again." The visible parked
+            // TEST instances are now gated behind IncludeParkedTestVehicles
+            // (off) - buying either vehicle from the Car Dealer still works
+            // exactly as before via VehicleSpawnController, this only removes
+            // the free-to-reach ones sitting by the safehouse. The
+            // BikeHomePoint marker itself is built UNCONDITIONALLY below,
+            // regardless of the toggle - MINI-068's save/respawn system
+            // (ReturnBikeHome) needs a real home pose to exist even when no
+            // test bike is parked there, or a legitimately purchased bike
+            // would have nowhere to return to on load.
+            const bool IncludeParkedTestVehicles = false;
+
+            // Out the FRONT of the shelter and off to one side, in the house's
+            // own frame - 7m forward clears the open front and the bed area
+            // entirely. The bed spawn is 3.4m forward, so anything less than
+            // that is still under the roof.
+            Vector3 parkPos = _safehousePos + _safehouseRot * new Vector3(2.2f, 0f, 7.0f);
+            if (Physics.Raycast(parkPos + Vector3.up * 40f, Vector3.down, out RaycastHit parkHit, 90f))
+                parkPos = parkHit.point;
+            Vector3 bikeHomePos = parkPos + Vector3.up * 0.04f;
+            Quaternion bikeHomeRot = _safehouseRot * Quaternion.Euler(0f, 90f, 0f);
+
+            // MINI-068: this parking spot is the bike's HOME regardless of
+            // whether a test bike is actually sitting there right now - the
+            // user's "once i have bought the bike it should be in my safe
+            // house exact where you have it even every respawn."
+            var home = new GameObject("BikeHomePoint");
+            home.transform.SetPositionAndRotation(bikeHomePos, bikeHomeRot);
+
+            var roverPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/UpIzUpMini/Art/Vehicles/RangeRover_Vehicle.prefab");
+            if (roverPrefab == null)
+            {
+                Debug.LogWarning("MINI-071: RangeRover_Vehicle.prefab missing - buying the Rover from the Car Dealer won't spawn anything until MINI-071's prefab exists.");
+            }
+
+            if (IncludeParkedTestVehicles)
+            {
+                var placed = (GameObject)PrefabUtility.InstantiatePrefab(tmaxPrefab);
+                placed.name = "TMAX_560_Parked";
+                placed.transform.SetPositionAndRotation(bikeHomePos, bikeHomeRot);
+
+                if (roverPrefab != null)
+                {
+                    var parkedRover = (GameObject)PrefabUtility.InstantiatePrefab(roverPrefab);
+                    parkedRover.name = "RangeRover_Parked";
+                    // 9m out from the bike, not 3.4 - see MINI-076: closer
+                    // than 5.8m (mountRange 3.2 + doorRange 2.6) let a single F
+                    // press mount both vehicles on the same character at once.
+                    Vector3 roverPos = _safehousePos + _safehouseRot * new Vector3(-9.0f, 0f, 7.0f);
+                    if (Physics.Raycast(roverPos + Vector3.up * 40f, Vector3.down, out RaycastHit roverHit, 90f))
+                        roverPos = roverHit.point;
+                    parkedRover.transform.position = roverPos + Vector3.up * 0.15f;
+                    parkedRover.transform.rotation = _safehouseRot * Quaternion.Euler(0f, 90f, 0f);
+                }
+            }
+
+            var so = new SerializedObject(spawner);
+            so.FindProperty("tmaxPrefab").objectReferenceValue = tmaxPrefab;
+            so.FindProperty("roverPrefab").objectReferenceValue = roverPrefab;
+            so.FindProperty("bikeHome").objectReferenceValue = home.transform;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         /// <summary>
         /// MINI-042. A second, purchasable safehouse in town - reuses the
         /// same open-shelter geometry as the free Montine farm one
@@ -1673,7 +2137,120 @@ namespace UpIzUpMini.EditorTools
             var so = new SerializedObject(safehouse);
             so.FindProperty("safehouseName").stringValue = "Lalay House";
             so.FindProperty("requiredItemId").stringValue = "prop_safehouse";
+            // MINI-062: this house's own respawn point (same bed-offset
+            // math the farm safehouse's _safehouseSpawn uses) - lets the
+            // player pick it via "[4] Set Respawn" once they own it,
+            // instead of the game only ever knowing the farm's spawn.
+            so.FindProperty("spawnPoint").vector3Value = pos + rot * new Vector3(0f, 0.2f, 3.4f);
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// MINI-073. "put a two story house with a garage for a vehicle on
+        /// the lalay, you can make space because you dont want it ito clash
+        /// with other buildings for two story sale and then save rest
+        /// features that the montine farm house has."
+        ///
+        /// Placed well clear of the dense ambient house row (BuildHouses caps
+        /// its lateral offset at ~9.5m either side of the road) and every
+        /// other special building on this stretch - LalayHouse at index 4,
+        /// the market at index 6, the Montine turnoff at the midpoint, and
+        /// Boss C/the recruiter/Chevy/the Range Rover all clustered at index
+        /// 13. Index 9, opposite side from Boss C's cluster, at a generous
+        /// 20m lateral offset, was empty ground in every one of those.
+        ///
+        /// "save rest features that the montine farm house has" - the same
+        /// SafehouseInteractable component the farm safehouse and the
+        /// existing LalayHouse both use, so resting here works identically
+        /// (heal, heat removal, save, set-respawn). Reuses
+        /// BuildProceduralHouse(storeys: 2) rather than a bespoke building -
+        /// that function already exists and is exactly a two-storey house.
+        ///
+        /// The GARAGE is a real open bay sized to fit a parked car and a
+        /// simple gable roof over it, built next to the house - but it is
+        /// VISUAL ONLY. It does not become a save/respawn home point for a
+        /// purchased vehicle; VehicleSpawnController's bikeHome (MINI-068) is
+        /// still the only wired home point. Hooking a vehicle to park here
+        /// specifically is real follow-up work, not attempted in this pass -
+        /// see the MINI-073 PROJECT-HANDOFF.md entry.
+        /// </summary>
+        private static void BuildLalayEstate(Terrain terrain, List<Vector3> roadPoints)
+        {
+            int index = Mathf.Clamp(9, 1, roadPoints.Count - 2);
+            Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+            // Opposite side from Boss C's cluster (side +1 there), well
+            // outside the ambient row's ~9.5m lateral cap.
+            Vector3 pos = roadPoints[index] + right * -20f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+            Quaternion rot = Quaternion.LookRotation(right, Vector3.up);
+
+            var parent = new GameObject("LalayEstate");
+            parent.transform.position = pos;
+            parent.transform.rotation = rot;
+
+            BuildProceduralHouse(parent.transform, pos, rot, storeys: 2, name: "EstateHouse");
+
+            // Garage: an open-fronted bay beside the house, roughly a car's
+            // footprint (the Range Rover measures 4.95 x 2.10 x 1.79m, see
+            // Mini070RangeRoverPrep) plus clearance.
+            Vector3 garagePos = pos + rot * new Vector3(5.4f, 0f, -1.5f);
+            garagePos.y = SampleHeight(terrain, garagePos.x, garagePos.z);
+            BuildGarage(parent.transform, garagePos, rot);
+
+            var restGo = new GameObject("LalayEstate_Rest");
+            restGo.transform.SetParent(parent.transform);
+            restGo.transform.position = pos + rot * new Vector3(0f, 0.6f, 0f);
+            var safehouse = restGo.AddComponent<SafehouseInteractable>();
+            var so = new SerializedObject(safehouse);
+            so.FindProperty("safehouseName").stringValue = "Lalay Estate";
+            so.FindProperty("requiredItemId").stringValue = "prop_lalay_estate";
+            so.FindProperty("spawnPoint").vector3Value = pos + rot * new Vector3(0f, 0.2f, 3.6f);
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// A simple open-fronted garage bay: three walls, a flat roof, no
+        /// front wall/door - a vehicle just parks in under it. Visual only
+        /// (see BuildLalayEstate's own remarks on why it is not yet a real
+        /// parking home point).
+        /// </summary>
+        private static void BuildGarage(Transform parent, Vector3 pos, Quaternion rot)
+        {
+            const float width = 3.2f;
+            const float depth = 5.6f;
+            const float height = 2.6f;
+
+            var garage = new GameObject("Garage");
+            garage.transform.SetParent(parent, false);
+            garage.transform.position = pos;
+            garage.transform.rotation = rot;
+
+            Material wallMat = GetOrCreateMaterial("GarageWall", new Color(0.62f, 0.60f, 0.56f));
+            Material roofMat = GetOrCreateMaterial("GarageRoof", new Color(0.30f, 0.30f, 0.32f));
+
+            void Wall(string name, Vector3 localPos, Vector3 scale)
+            {
+                var w = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                w.name = name;
+                w.transform.SetParent(garage.transform, false);
+                w.transform.localPosition = localPos;
+                w.transform.localScale = scale;
+                w.GetComponent<Renderer>().sharedMaterial = wallMat;
+            }
+
+            // Back and two side walls; the front (facing -Z, toward the
+            // house's own forward) is left open for a vehicle to drive in.
+            Wall("Wall_Back", new Vector3(0f, height / 2f, depth / 2f), new Vector3(width, height, 0.25f));
+            Wall("Wall_Left", new Vector3(-width / 2f, height / 2f, 0f), new Vector3(0.25f, height, depth));
+            Wall("Wall_Right", new Vector3(width / 2f, height / 2f, 0f), new Vector3(0.25f, height, depth));
+
+            var roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roof.name = "Roof";
+            roof.transform.SetParent(garage.transform, false);
+            roof.transform.localPosition = new Vector3(0f, height + 0.1f, 0f);
+            roof.transform.localScale = new Vector3(width + 0.5f, 0.2f, depth + 0.5f);
+            roof.GetComponent<Renderer>().sharedMaterial = roofMat;
         }
 
         /// <summary>
@@ -1752,7 +2329,8 @@ namespace UpIzUpMini.EditorTools
         /// </summary>
         private static CharacterSlot BuildControllableCharacter(
             string goName, string displayName, string modelPath, Color? skinTint,
-            Vector3 position, RuntimeAnimatorController animController, bool startActive)
+            Vector3 position, RuntimeAnimatorController animController, bool startActive,
+            float visualScale = 1f)
         {
             var go = new GameObject(goName);
             if (startActive) go.tag = "Player";
@@ -1767,17 +2345,28 @@ namespace UpIzUpMini.EditorTools
             // beard/moustache/goatee live on separate material slots. The
             // larger project's characters use their own authored materials.
             var visual = InstantiateCharacter(modelPath, go.transform, animController, skinTint,
-                hideFacialHair: skinTint.HasValue);
+                hideFacialHair: skinTint.HasValue, uniformScale: visualScale);
             var animator = visual.GetComponentInChildren<Animator>();
 
             var vitals = go.AddComponent<CharacterVitals>();
             // Swimming removed - the sea is now walled off at the shoreline
             // and reachable only along the jetty (user direction).
 
+            // MINI-069: both main characters can brawl with Dog Life. The one
+            // the player is actually driving is skipped at runtime (he punches
+            // with F himself), so in practice this is "my other main character
+            // fights when he sees any dog life gang member".
+            var brawler = go.AddComponent<Combat.FactionBrawler>();
+            brawler.Allegiance = Combat.FactionBrawler.Side.NotAhWord;
+
             // Shows purchased apparel on the character.
             var equipment = go.AddComponent<CharacterEquipment>();
             var eqSo = new SerializedObject(equipment);
             eqSo.FindProperty("animator").objectReferenceValue = animator;
+            // MINI-067: the real 18k model replaces the generated ring of
+            // spheres. Left null-tolerant on the runtime side, so a character
+            // built before this still wears the placeholder rather than nothing.
+            eqSo.FindProperty("chainPrefab").objectReferenceValue = LoadGoldChainPrefab();
             eqSo.ApplyModifiedPropertiesWithoutUndo();
 
             var playerController = go.AddComponent<PlayerController>();
@@ -1847,6 +2436,13 @@ namespace UpIzUpMini.EditorTools
                 modelPath: "Assets/Floreswa/Models/male03_1.fbx", role: NpcRole.Villager,
                 cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: false);
 
+            // MINI-053: demonstrates the new data-driven dialogue
+            // foundation on one real NPC without touching how any other
+            // NPC's lines work. Purely additive - if this ever fails to
+            // find the villager or the asset can't be built, the villager
+            // just keeps using its plain villagerLines array as before.
+            WireVillagerDialogueSet();
+
             // Two officers so there is always one visible: one patrolling
             // the lower road, one posted by the shops.
             BuildNpc(terrain, roadPoints, index: 7, sideMul: -1f, goName: "NPC_PoliceShops",
@@ -1901,6 +2497,13 @@ namespace UpIzUpMini.EditorTools
                 modelPath: "Assets/Floreswa/Models/male02_3.fbx", role: NpcRole.BlackMarket,
                 cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
 
+            // MINI-057: Normy - stationary, not part of PoliceOfficer's
+            // patrol/chase system (see NpcRole.Normy's own comment).
+            BuildNpc(terrain, roadPoints, index: 4, sideMul: 1f, goName: "NPC_Normy",
+                modelPath: "Assets/Floreswa/Models/male01_1.fbx", role: NpcRole.Normy,
+                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+            WireNormy();
+
             BuildMarketArea(terrain, roadPoints, index: 5, title: "FOOD", secondTitle: null);
             BuildMarketArea(terrain, roadPoints, index: 11, title: "PHARMACY", secondTitle: null);
             BuildMarketArea(terrain, roadPoints, index: 14, title: "LAND AND SURVEYS", secondTitle: null);
@@ -1911,33 +2514,904 @@ namespace UpIzUpMini.EditorTools
             // rarity ordering (bushers 22 < black_sugar 38 < purple 55) -
             // per the user's "make them expensive" ask, each tier costs
             // roughly 7x its own sell price rather than being free.
-            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossM", "black_sugar", 10, 1f, seedPrice: 320);
-            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossP", "purple", 13, 1f, seedPrice: 500);
-            // MINI-048: Blue Cheese - a new base strain, priced above
-            // Purple's own seed to match its deeper unlock tier.
-            BuildStrainBoss(terrain, roadPoints, allCrops, animController, "BossQ", "blue_cheese", 8, -1f, seedPrice: 650);
+            // MINI-055: Boss consolidation. Previously three separate NPCs
+            // (BossM/BossP/BossQ), one per strain - now one "Boss C" NPC
+            // offering all three as they unlock, matching the brief's
+            // "move toward two major bosses" (Boss J for Bushers, Boss C
+            // for everything above it). Prices/crop pairings unchanged
+            // from the original three calls, just consolidated onto one
+            // physical NPC at Boss P's old road position (13).
+            BuildBossC(terrain, roadPoints, allCrops, animController, index: 13, side: 1f,
+                cropIds: new[] { "black_sugar", "purple", "blue_cheese" },
+                seedPrices: new[] { 320, 500, 650 });
+            // MINI-060 follow-up: Gardey Zafeh's reveal/readings are now
+            // handled by the boat man himself (TownNPCInteractable.
+            // HandleBoatMan) - no separate NPC_GardeyZafeh built anymore.
             BuildBoatMan(terrain, allCrops, animController);
+            // MINI-056: the Rasta mentor - a distinct Jamaican-Patois voice
+            // (per Docs/DIALECT-LEXICON.md's own note that this was
+            // reserved until a real character existed to check it
+            // against) watching over the plantation, narratively "teaching
+            // advanced strain work" by congratulating the player on
+            // whichever tier they've actually reached.
+            BuildRastaMentor(terrain, roadPoints, animController);
+
+            // MINI-058: factions. Not Ah Word (player gang, recruitable up
+            // to the roster's own size) and Dog Life (rival gang,
+            // pooled/distance-activated near the Lalay block they control).
+            //
+            // MINI-060 follow-up-2: the recruiter (and the block he's tied
+            // to) used to sit at roadPoints[0], which overlapped Dog Life's
+            // own territory - per the user, "the gang recruiter... is on
+            // the rival side bring him to the boss C by chevy area and
+            // make that my block as well." Both now cluster around Boss
+            // C's own road position (13), same side as Chevy so it reads
+            // as one gang's block rather than two unrelated spots.
+            int bossCIndex = Mathf.Clamp(13, 1, roadPoints.Count - 2);
+            Vector3 bossCDir = (roadPoints[bossCIndex + 1] - roadPoints[bossCIndex - 1]).normalized;
+            Vector3 bossCRight = Vector3.Cross(Vector3.up, bossCDir).normalized;
+            Vector3 blockHome = roadPoints[bossCIndex] + bossCRight * 1f * 6f;
+            blockHome.y = SampleHeight(terrain, blockHome.x, blockHome.z);
+            var roster = BuildNotAhWordRoster(animController, _farmCenter, blockHome, terrain, roadPoints);
+            BuildGangRecruiter(roster, animController, terrain, roadPoints[bossCIndex], bossCRight);
+            BuildDogLifeGang(terrain, roadPoints, animController);
         }
 
-        private static void BuildStrainBoss(Terrain terrain, List<Vector3> roadPoints,
-            CropDefinition[] crops, RuntimeAnimatorController controller, string bossName,
-            string cropId, int index, float side, int seedPrice)
+        /// <summary>
+        /// MINI-058: builds the Not Ah Word roster. Follow-up (per the
+        /// user): Chevy is no longer part of the paid recruiter's hidden
+        /// pool - he's visible in the world near Boss C from the start,
+        /// and only GrandBayGangs reputation ("respect"), not money,
+        /// recruits him (GangMemberInteractable.recruitViaReputation).
+        /// The other three (Reds/Ju/Skeng) keep the original pooled/
+        /// inactive-until-paid-for path from TownNPCInteractable.
+        /// HandleRecruit. Every member carries real combat
+        /// (NpcCombatHealth + HumanoidAnimationManager, MINI-038) so
+        /// "Unavailable/injured" is something that can actually happen in
+        /// a fight, not a manually-picked state pretending to be one.
+        /// </summary>
+        private static GangMemberController[] BuildNotAhWordRoster(
+            RuntimeAnimatorController animController, Vector3 guardPos, Vector3 homePos,
+            Terrain terrain, List<Vector3> roadPoints)
+        {
+            // MINI-073: renamed at the user's request - Chevy -> Zoomy,
+            // Reds -> Deluxe, Ju -> Draco, and (confirmed in a follow-up)
+            // Skeng -> Rio.
+            string[] names = { "Zoomy", "Deluxe", "Draco", "Rio" };
+            string[] models =
+            {
+                "Assets/Floreswa/Models/male01_2.fbx",
+                "Assets/Floreswa/Models/male03_3.fbx",
+                "Assets/Floreswa/Models/male02_2.fbx",
+                "Assets/Floreswa/Models/male01_3.fbx",
+            };
+
+            var rosterParent = new GameObject("NotAhWordRoster");
+            var paidMembers = new List<GangMemberController>();
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                var go = new GameObject($"NotAhWord_{names[i]}");
+                go.transform.SetParent(rosterParent.transform);
+
+                var cc = go.AddComponent<CharacterController>();
+                cc.center = new Vector3(0f, 0.95f, 0f);
+                cc.height = 1.85f;
+                cc.radius = 0.32f;
+
+                var visual = InstantiateCharacter(models[i], go.transform, animController, null);
+
+                var animationManager = AddHumanoidAnimationManager(go, visual.GetComponentInChildren<Animator>());
+                var combatHealth = go.AddComponent<NpcCombatHealth>();
+                var chSo = new SerializedObject(combatHealth);
+                chSo.FindProperty("animationManager").objectReferenceValue = animationManager;
+                chSo.ApplyModifiedPropertiesWithoutUndo();
+
+                var member = go.AddComponent<GangMemberController>();
+                member.MemberName = names[i];
+                member.SetGuardPosition(guardPos);
+                member.SetHomePosition(homePos);
+
+                // MINI-069: recruits fight Dog Life too, per "even those i
+                // recruit and they are following me and they are around".
+                var recruitBrawler = go.AddComponent<Combat.FactionBrawler>();
+                recruitBrawler.Allegiance = Combat.FactionBrawler.Side.NotAhWord;
+
+                var interactable = go.AddComponent<GangMemberInteractable>();
+                var giSo = new SerializedObject(interactable);
+                giSo.FindProperty("member").objectReferenceValue = member;
+
+                if (i == 0)
+                {
+                    // Chevy: positioned by Boss C (further out on the same
+                    // side than Boss C himself, so they don't overlap),
+                    // visible immediately, respect-gated rather than
+                    // pooled/paid.
+                    int bossCIndex = Mathf.Clamp(13, 1, roadPoints.Count - 2);
+                    Vector3 dir = (roadPoints[bossCIndex + 1] - roadPoints[bossCIndex - 1]).normalized;
+                    Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
+                    // MINI-069, user: "Chevy should be placed next to the
+                    // recruiter." The recruiter stands at right * 15 (see
+                    // BuildGangRecruiter), so Chevy goes 2m past him - close
+                    // enough to read as a pair, far enough not to overlap.
+                    Vector3 pos = roadPoints[bossCIndex] + right * 1f * 17f;
+                    pos.y = SampleHeight(terrain, pos.x, pos.z);
+                    go.transform.position = pos;
+                    go.transform.rotation = Quaternion.LookRotation(-right, Vector3.up);
+
+                    giSo.FindProperty("recruitViaReputation").boolValue = true;
+                    giSo.FindProperty("recruitReputationThreshold").intValue = 20;
+                    giSo.ApplyModifiedPropertiesWithoutUndo();
+
+                    go.SetActive(true);
+                }
+                else
+                {
+                    giSo.ApplyModifiedPropertiesWithoutUndo();
+                    go.SetActive(false); // unrecruited until the player pays for them
+                    paidMembers.Add(member);
+                }
+            }
+
+            return paidMembers.ToArray();
+        }
+
+        /// <summary>MINI-058: the recruiter NPC, wired to the pooled roster.
+        /// MINI-060 follow-up-2: repositioned to Boss C/Chevy's cluster
+        /// (previously a fixed position overlapping Dog Life's block, see
+        /// the call site's comment) and priced at $2000/member, per the
+        /// user's explicit ask.</summary>
+        private static void BuildGangRecruiter(
+            GangMemberController[] roster, RuntimeAnimatorController animController,
+            Terrain terrain, Vector3 bossCPoint, Vector3 bossCRight)
+        {
+            Vector3 pos = bossCPoint + bossCRight * 1f * 15f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+            Quaternion rot = Quaternion.LookRotation(-bossCRight, Vector3.up);
+
+            var go = new GameObject("NPC_GangRecruiter");
+            go.transform.position = pos;
+            go.transform.rotation = rot;
+
+            InstantiateCharacter("Assets/Floreswa/Models/male02_3.fbx", go.transform, animController, null);
+
+            var npc = go.AddComponent<TownNPCInteractable>();
+            var so = new SerializedObject(npc);
+            so.FindProperty("role").enumValueIndex = (int)NpcRole.GangRecruiter;
+            so.FindProperty("npcName").stringValue = "GangRecruiter";
+            var poolProp = so.FindProperty("recruitPool");
+            poolProp.arraySize = roster.Length;
+            for (int i = 0; i < roster.Length; i++)
+                poolProp.GetArrayElementAtIndex(i).objectReferenceValue = roster[i];
+            // MINI-060 follow-up-2: "change his price to 2000 per member."
+            so.FindProperty("recruitCost").intValue = 2000;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// MINI-058: Dog Life - the rival gang controlling Lalay initially.
+        /// A pool of ambient, territorial NPCs near the road's start,
+        /// activated/deactivated by player distance via RivalGangSpawner
+        /// rather than left active across the whole map. Dialogue is
+        /// deliberately vague/territorial only - no theft-plot reveal here,
+        /// that is MINI-059/060 scope per the roadmap's own "do not reveal
+        /// Dog Life immediately" instruction.
+        /// </summary>
+        private static void BuildDogLifeGang(
+            Terrain terrain, List<Vector3> roadPoints, RuntimeAnimatorController animController)
+        {
+            Vector3 blockCentre = roadPoints[Mathf.Clamp(1, 1, roadPoints.Count - 2)];
+            blockCentre.y = SampleHeight(terrain, blockCentre.x, blockCentre.z);
+
+            var spawnerGo = new GameObject("DogLifeSpawner");
+            var spawner = spawnerGo.AddComponent<RivalGangSpawner>();
+            spawner.SetBlockCentre(blockCentre);
+
+            EnsureFolder("Assets/UpIzUpMini/Data/Dialogue");
+            const string path = "Assets/UpIzUpMini/Data/Dialogue/DogLifeLines.asset";
+            var set = AssetDatabase.LoadAssetAtPath<DialogueSet>(path);
+            if (set == null)
+            {
+                set = ScriptableObject.CreateInstance<DialogueSet>();
+                AssetDatabase.CreateAsset(set, path);
+            }
+            set.lines = new List<DialogueLine>
+            {
+                // MINI-060: once Gardey Zafeh reveals them as the real
+                // source of the plantation theft, Dog Life drops the vague
+                // territorial act - "openly active" per the brief, shown
+                // here as tone, since no attack AI was built for them.
+                new DialogueLine
+                {
+                    category = DialogueCategory.Faction,
+                    speaker = "Dog Life",
+                    text = "Yea, is we been taking allu Zeb. Nutting allu can do bout it, nuh. Dis block still belong to us.",
+                    conditions = new List<DialogueCondition>
+                    {
+                        new DialogueCondition { type = DialogueConditionType.DogLifeRevealed }
+                    }
+                },
+                new DialogueLine { category = DialogueCategory.Faction, speaker = "Dog Life", text = "Dis block belong to us, nuh. Allu just passing through - keep it dat way." },
+                new DialogueLine { category = DialogueCategory.Normal, speaker = "Dog Life", text = "Watch yuhself round here, mn." },
+            };
+            EditorUtility.SetDirty(set);
+
+            string[] models =
+            {
+                "Assets/Floreswa/Models/male03_2.fbx",
+                "Assets/Floreswa/Models/male02_2.fbx",
+                "Assets/Floreswa/Models/male01_1.fbx",
+                "Assets/Floreswa/Models/male03_1.fbx",
+            };
+
+            for (int i = 0; i < models.Length; i++)
+            {
+                float angle = i * 90f * Mathf.Deg2Rad;
+                Vector3 pos = blockCentre + new Vector3(Mathf.Cos(angle) * 3.5f, 0f, Mathf.Sin(angle) * 3.5f);
+                pos.y = SampleHeight(terrain, pos.x, pos.z);
+
+                var go = new GameObject($"NPC_DogLife_{i}");
+                go.transform.position = pos;
+
+                var cc = go.AddComponent<CharacterController>();
+                cc.center = new Vector3(0f, 0.95f, 0f);
+                cc.height = 1.85f;
+                cc.radius = 0.32f;
+
+                var visual = InstantiateCharacter(models[i], go.transform, animController, null);
+                ApplyGangTint(visual);
+
+                var animationManager = AddHumanoidAnimationManager(go, visual.GetComponentInChildren<Animator>());
+                var combatHealth = go.AddComponent<NpcCombatHealth>();
+                var chSo = new SerializedObject(combatHealth);
+                chSo.FindProperty("animationManager").objectReferenceValue = animationManager;
+                chSo.ApplyModifiedPropertiesWithoutUndo();
+
+                // MINI-069: "dont forget doglife should fight back as well".
+                // Same component as the player's crew, opposite side - so both
+                // gangs use the identical see/close/punch behaviour rather than
+                // one being an attacker and the other a passive victim.
+                var dogBrawler = go.AddComponent<Combat.FactionBrawler>();
+                dogBrawler.Allegiance = Combat.FactionBrawler.Side.DogLife;
+
+                var npc = go.AddComponent<TownNPCInteractable>();
+                var so = new SerializedObject(npc);
+                so.FindProperty("role").enumValueIndex = (int)NpcRole.Villager;
+                so.FindProperty("npcName").stringValue = $"DogLife{i}";
+                so.FindProperty("dialogueSet").objectReferenceValue = set;
+                so.ApplyModifiedPropertiesWithoutUndo();
+
+                // MINI-058 follow-up: the user caught all four members
+                // walking left together, stopping together, walking right
+                // together - every one of them shared the exact same
+                // world-space waypoint offset (2f, 0f, 0f) and the same
+                // default pause/speed, so they were in lockstep by
+                // construction. Each member now gets its own randomised
+                // wander angle/radius, walk speed, and pause duration -
+                // different directions and different timing means they
+                // can no longer stay in sync.
+                var patrol = go.AddComponent<PatrolNPC>();
+                float wanderAngle = Random(i * 97 + 11, 0f, 360f) * Mathf.Deg2Rad;
+                float wanderRadius = Random(i * 131 + 23, 1.6f, 3.2f);
+                Vector3 loopPoint = pos + new Vector3(Mathf.Cos(wanderAngle), 0f, Mathf.Sin(wanderAngle)) * wanderRadius;
+                loopPoint.y = SampleHeight(terrain, loopPoint.x, loopPoint.z);
+                patrol.SetWaypoints(new[] { pos, loopPoint });
+
+                var patrolSo = new SerializedObject(patrol);
+                patrolSo.FindProperty("walkSpeed").floatValue = Random(i * 59 + 5, 1.5f, 2.3f);
+                patrolSo.FindProperty("pauseAtWaypointSeconds").floatValue = Random(i * 173 + 41, 1.0f, 3.2f);
+                patrolSo.ApplyModifiedPropertiesWithoutUndo();
+
+                spawner.AddMember(go);
+            }
+        }
+
+        /// <summary>
+        /// MINI-058: same shirt/pants/shoes recolour-by-material-name
+        /// technique as ApplyPoliceUniform (proven working), a deep red
+        /// rather than police blue, and deliberately WITHOUT that
+        /// function's head-bone cap logic - MINI-057 already found that
+        /// piece buggy on this rig once, no need to risk it again for a
+        /// prop Dog Life doesn't need.
+        /// </summary>
+        /// <summary>
+        /// MINI-073: recolours the shirt slot only, green - the colour of the
+        /// liberation flag - leaving trousers/shoes untouched. Same
+        /// keyword-match-and-clone technique as ApplyGangTint/ApplyPoliceUniform.
+        /// </summary>
+        private static void ApplyLiberationShirt(GameObject instance)
+        {
+            var shirt = new Color(0.06f, 0.42f, 0.14f);
+
+            foreach (var renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = renderer.sharedMaterials;
+                bool changed = false;
+
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null) continue;
+                    string n = mats[i].name.ToLowerInvariant();
+                    if (!n.Contains("tshirt") && !n.Contains("shirt")) continue;
+
+                    mats[i] = new Material(mats[i]) { color = shirt };
+                    changed = true;
+                }
+
+                if (changed) renderer.sharedMaterials = mats;
+            }
+        }
+
+        private static void ApplyGangTint(GameObject instance)
+        {
+            var shirt = new Color(0.55f, 0.08f, 0.08f);
+            var trousers = new Color(0.08f, 0.08f, 0.08f);
+
+            foreach (var renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = renderer.sharedMaterials;
+                bool changed = false;
+
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null) continue;
+                    string n = mats[i].name.ToLowerInvariant();
+
+                    Color? tint = null;
+                    if (n.Contains("tshirt") || n.Contains("shirt")) tint = shirt;
+                    else if (n.Contains("pants") || n.Contains("trouser")) tint = trousers;
+                    else if (n.Contains("shoes")) tint = trousers;
+
+                    if (tint == null) continue;
+
+                    mats[i] = new Material(mats[i]) { color = tint.Value };
+                    changed = true;
+                }
+
+                if (changed) renderer.sharedMaterials = mats;
+            }
+        }
+
+        /// <summary>
+        /// MINI-056: an older Rasta mentor near the plantation. Reuses the
+        /// Villager role's existing dialogueSet path from MINI-053 rather
+        /// than adding a new NpcRole or mechanic - "teaches advanced strain
+        /// work after missions" is delivered as a DialogueSet whose lines
+        /// are gated on the SAME CropUnlocked progression thresholds that
+        /// already gate Boss C's seed offers (Docs/STORY.md's existing
+        /// unlock model), so the mentor's dialogue always reflects the
+        /// deepest strain the player has actually earned - stacking each
+        /// tier's conditions (rather than one condition each) is what
+        /// makes DialogueSet's specificity tie-break always prefer the
+        /// deepest-earned line over a shallower one that's also still true.
+        /// Does not grant seeds or money - purely narrative "teaching," so
+        /// it can't undercut Boss C's paid economy.
+        /// </summary>
+        private static void BuildRastaMentor(Terrain terrain, List<Vector3> roadPoints, RuntimeAnimatorController animController)
+        {
+            if (_farmCenter == Vector3.zero)
+            {
+                Debug.LogWarning("Mini011PhaseBSetup: farm centre not set; skipping MINI-056 Rasta mentor.");
+                return;
+            }
+
+            // MINI-056 follow-up: the user found him standing on the farm
+            // itself, mixed in among the plots. Recomputes the same
+            // turnoff/dir the farm access track uses (BuildFarmPathAndClearing)
+            // and places him partway down that road instead - lower down,
+            // watching the plantation from a distance rather than standing
+            // in it.
+            Vector3 turnoff = roadPoints[roadPoints.Count / 2];
+            Vector3 farmDir = (roadPoints[roadPoints.Count / 2 + 1] - roadPoints[roadPoints.Count / 2 - 1]).normalized;
+            Vector3 farmRight = Vector3.Cross(Vector3.up, farmDir).normalized;
+            Vector3 pos = Vector3.Lerp(turnoff, _farmCenter, 0.4f) + farmRight * 3f;
+            pos.y = SampleHeight(terrain, pos.x, pos.z);
+
+            var go = new GameObject("NPC_RastaMentor");
+            go.transform.position = pos;
+            go.transform.rotation = Quaternion.LookRotation((_farmCenter - pos).normalized, Vector3.up);
+
+            // Facial hair kept (not hidden, unlike Sacat/Franki) - a simple,
+            // no-new-geometry way to read as "older" on the same character
+            // pack used for every other ambient NPC.
+            var rastaVisual = InstantiateCharacter("Assets/Floreswa/Models/male01_2.fbx", go.transform, animController, null);
+            // MINI-073: "give him ... a liberation shirt instead" - green,
+            // the colour associated with the liberation flag, replacing
+            // whatever the base character pack's shirt material was.
+            ApplyLiberationShirt(rastaVisual);
+
+            var npc = go.AddComponent<TownNPCInteractable>();
+            var so = new SerializedObject(npc);
+            so.FindProperty("role").enumValueIndex = (int)NpcRole.Villager;
+            // MINI-073: nicknamed "Rasta" per the user.
+            so.FindProperty("npcName").stringValue = "Rasta";
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            EnsureFolder("Assets/UpIzUpMini/Data/Dialogue");
+            const string path = "Assets/UpIzUpMini/Data/Dialogue/RastaMentorLines.asset";
+            var set = AssetDatabase.LoadAssetAtPath<DialogueSet>(path);
+            if (set == null)
+            {
+                set = ScriptableObject.CreateInstance<DialogueSet>();
+                AssetDatabase.CreateAsset(set, path);
+            }
+
+            // Jamaican Patois markers per Docs/DIALECT-LEXICON.md's Rasta
+            // style note - I an' I, Iyah/bredrin, seen, nuh true?, Zion,
+            // livity - deliberately NOT the Dominican/Gwa Bay register
+            // (mn/nuh/wii/allu) every other NPC uses, so he reads as a
+            // genuinely different voice, not the same slang re-painted.
+            set.lines = new List<DialogueLine>
+            {
+                new DialogueLine
+                {
+                    category = DialogueCategory.StoryReveal,
+                    speaker = "Rasta",
+                    text = "Blue Cheese a di top a di mountain, Iyah. I an' I see how far yuh come - from likkle Bushers to dis. Yuh reach real strain work now, seen.",
+                    conditions = new List<DialogueCondition>
+                    {
+                        new DialogueCondition { type = DialogueConditionType.CropUnlocked, cropId = "black_sugar" },
+                        new DialogueCondition { type = DialogueConditionType.CropUnlocked, cropId = "purple" },
+                        new DialogueCondition { type = DialogueConditionType.CropUnlocked, cropId = "blue_cheese" },
+                    }
+                },
+                new DialogueLine
+                {
+                    category = DialogueCategory.Faction,
+                    speaker = "Rasta",
+                    text = "Purple work no easy, bredrin, but yuh show seen. Di plant know when a man serious.",
+                    conditions = new List<DialogueCondition>
+                    {
+                        new DialogueCondition { type = DialogueConditionType.CropUnlocked, cropId = "black_sugar" },
+                        new DialogueCondition { type = DialogueConditionType.CropUnlocked, cropId = "purple" },
+                    }
+                },
+                new DialogueLine
+                {
+                    category = DialogueCategory.Normal,
+                    speaker = "Rasta",
+                    text = "Black Sugar a grow good in yuh hand now, Iyah. Dat a real start.",
+                    conditions = new List<DialogueCondition>
+                    {
+                        new DialogueCondition { type = DialogueConditionType.CropUnlocked, cropId = "black_sugar" },
+                    }
+                },
+                new DialogueLine { category = DialogueCategory.InnerThought, speaker = "Rasta", text = "Walk good, likkle bredrin. Di ganja work teach patience - Zion nah run from yuh." },
+                new DialogueLine { category = DialogueCategory.Normal, speaker = "Rasta", text = "I an' I watch dis field long time. Every plant have him own time, nuh true?" },
+            };
+            EditorUtility.SetDirty(set);
+
+            var dso = new SerializedObject(npc);
+            dso.FindProperty("dialogueSet").objectReferenceValue = set;
+            dso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// MINI-059: wires up the plantation theft risk against every real
+        /// FarmPlot in the scene (main grid + expansion plots) - see
+        /// PlantationTheftController for the actual rules.
+        /// </summary>
+        private static void BuildPlantationTheft()
+        {
+            var plots = Object.FindObjectsByType<FarmPlot>(FindObjectsSortMode.None);
+            if (plots.Length == 0)
+            {
+                Debug.LogWarning("Mini011PhaseBSetup: no FarmPlot found; skipping MINI-059 plantation theft.");
+                return;
+            }
+
+            var go = new GameObject("PlantationTheftController");
+            var controller = go.AddComponent<PlantationTheftController>();
+            controller.Configure(_farmCenter, plots);
+        }
+
+        /// <summary>
+        /// MINI-053: builds (or reuses, on a rebuild) one DialogueSet asset
+        /// demonstrating every piece of the new foundation on the ambient
+        /// villager - the same 4 lines that were already hardcoded in
+        /// TownNPCInteractable.villagerLines (unconditional "Always"
+        /// entries, so normal play with low heat/reputation looks
+        /// unchanged and still cycles through all 4 the way NextLine did),
+        /// plus two new conditional lines that only appear once real game
+        /// state crosses a threshold: an InnerThought line gated on high
+        /// police heat, and a Faction line gated on high gang reputation.
+        /// </summary>
+        private static void WireVillagerDialogueSet()
+        {
+            var villagerGo = GameObject.Find("NPC_Villager");
+            if (villagerGo == null)
+            {
+                Debug.LogWarning("Mini011PhaseBSetup: NPC_Villager not found; skipping MINI-053 DialogueSet demo.");
+                return;
+            }
+
+            EnsureFolder("Assets/UpIzUpMini/Data/Dialogue");
+            const string path = "Assets/UpIzUpMini/Data/Dialogue/VillagerLines.asset";
+            var set = AssetDatabase.LoadAssetAtPath<DialogueSet>(path);
+            if (set == null)
+            {
+                set = ScriptableObject.CreateInstance<DialogueSet>();
+                AssetDatabase.CreateAsset(set, path);
+            }
+
+            set.lines = new List<DialogueLine>
+            {
+                new DialogueLine
+                {
+                    category = DialogueCategory.InnerThought,
+                    text = "Better not be seen talking too long with dem two right now, mn.",
+                    conditions = new List<DialogueCondition>
+                    {
+                        new DialogueCondition { type = DialogueConditionType.MinHeat, threshold = 40 }
+                    }
+                },
+                new DialogueLine
+                {
+                    category = DialogueCategory.Faction,
+                    speaker = "Villager",
+                    text = "Allu carry weight round here now, nuh. Respect.",
+                    conditions = new List<DialogueCondition>
+                    {
+                        new DialogueCondition
+                        {
+                            type = DialogueConditionType.MinReputation,
+                            faction = Progression.Faction.GrandBayGangs,
+                            threshold = 25
+                        }
+                    }
+                },
+                new DialogueLine { category = DialogueCategory.Normal, speaker = "Villager", text = "Yea wii, the sun hot today mn." },
+                new DialogueLine { category = DialogueCategory.Normal, speaker = "Villager", text = "How di val na? I hear it was irie." },
+                new DialogueLine { category = DialogueCategory.Normal, speaker = "Villager", text = "Allu doe miss nothing much round here, nuh." },
+                new DialogueLine { category = DialogueCategory.Normal, speaker = "Villager", text = "Chhh. Lucky you." },
+            };
+            EditorUtility.SetDirty(set);
+
+            var npc = villagerGo.GetComponent<TownNPCInteractable>();
+            if (npc == null)
+            {
+                Debug.LogWarning("Mini011PhaseBSetup: NPC_Villager has no TownNPCInteractable; skipping MINI-053 DialogueSet demo.");
+                return;
+            }
+            var so = new SerializedObject(npc);
+            so.FindProperty("dialogueSet").objectReferenceValue = set;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// MINI-057: Normy - visually a cop (the same uniform tint applied
+        /// to real officers, so he reads as police at a glance), but
+        /// mechanically a self-interested individual, not part of
+        /// PoliceOfficer/PatrolNPC's patrol/chase/heat-detection systems -
+        /// "Normy is not representative of all police" per the brief.
+        /// His dialogueSet supplies "information" flavour (vague
+        /// foreshadowing only - no faction/group is named, matching
+        /// MINI-059's own later instruction to "create suspicion" before
+        /// any reveal) for the common case where there's no heat to bribe
+        /// him over (see TownNPCInteractable.HandleNormy).
+        /// </summary>
+        private static void WireNormy()
+        {
+            var normyGo = GameObject.Find("NPC_Normy");
+            if (normyGo == null)
+            {
+                Debug.LogWarning("Mini011PhaseBSetup: NPC_Normy not found; skipping MINI-057 wiring.");
+                return;
+            }
+
+            ApplyPoliceUniform(normyGo);
+
+            EnsureFolder("Assets/UpIzUpMini/Data/Dialogue");
+            const string path = "Assets/UpIzUpMini/Data/Dialogue/NormyLines.asset";
+            var set = AssetDatabase.LoadAssetAtPath<DialogueSet>(path);
+            if (set == null)
+            {
+                set = ScriptableObject.CreateInstance<DialogueSet>();
+                AssetDatabase.CreateAsset(set, path);
+            }
+
+            set.lines = new List<DialogueLine>
+            {
+                new DialogueLine
+                {
+                    category = DialogueCategory.InnerThought,
+                    speaker = "Normy",
+                    text = "Allu getting real hot, nuh. Some a di real officers - not me - starting to ask questions bout allu.",
+                    conditions = new List<DialogueCondition>
+                    {
+                        new DialogueCondition { type = DialogueConditionType.MinHeat, threshold = 50 }
+                    }
+                },
+                new DialogueLine
+                {
+                    category = DialogueCategory.Faction,
+                    speaker = "Normy",
+                    text = "Mi hear somebody eyeing up crops dat doe belong to dem, round Montine way. Just... watch yuhself, nuh.",
+                    conditions = new List<DialogueCondition>
+                    {
+                        new DialogueCondition
+                        {
+                            type = DialogueConditionType.MinReputation,
+                            faction = Progression.Faction.GrandBayGangs,
+                            threshold = 15
+                        }
+                    }
+                },
+                new DialogueLine { category = DialogueCategory.Normal, speaker = "Normy", text = "Nothing for me to look away from right now. Allu lucky today." },
+                new DialogueLine { category = DialogueCategory.Normal, speaker = "Normy", text = "Quiet day. Keep it dat way and we won't have no problem, mn." },
+            };
+            EditorUtility.SetDirty(set);
+
+            var npc = normyGo.GetComponent<TownNPCInteractable>();
+            if (npc == null)
+            {
+                Debug.LogWarning("Mini011PhaseBSetup: NPC_Normy has no TownNPCInteractable; skipping MINI-057 dialogue wiring.");
+                return;
+            }
+            var so = new SerializedObject(npc);
+            so.FindProperty("dialogueSet").objectReferenceValue = set;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// MINI-055: Boss C - bigger status than Boss J, offers every
+        /// higher-tier strain from one physical NPC via
+        /// TownNPCInteractable's new multiBossCrops array (replaces the
+        /// old one-NPC-per-strain BossM/BossP/BossQ). Gets the "bigger
+        /// boss" visual flourishes the brief asked for - a heavier chain
+        /// stack and a couple of black SUVs parked nearby - built as
+        /// simple hand-authored placeholder geometry (no vehicle system
+        /// exists yet; that's MINI-034) rather than left unaddressed.
+        /// </summary>
+        private static void BuildBossC(Terrain terrain, List<Vector3> roadPoints,
+            CropDefinition[] crops, RuntimeAnimatorController controller,
+            int index, float side, string[] cropIds, int[] seedPrices)
         {
             index = Mathf.Clamp(index, 1, roadPoints.Count - 2);
             Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
             Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
             Vector3 pos = roadPoints[index] + right * side * 6.5f;
             pos.y = SampleHeight(terrain, pos.x, pos.z);
-            var go = new GameObject("NPC_" + bossName); go.transform.position = pos;
+            _bossCPos = pos;
+
+            var go = new GameObject("NPC_BossC");
+            go.transform.position = pos;
             go.transform.rotation = Quaternion.LookRotation(-right * side, Vector3.up);
-            InstantiateCharacter("Assets/Floreswa/Models/male02_1.fbx", go.transform, controller, null);
-            CropDefinition crop = System.Array.Find(crops, c => c != null && c.cropId == cropId);
-            var npc = go.AddComponent<TownNPCInteractable>(); var so = new SerializedObject(npc);
+            var visual = InstantiateCharacter("Assets/Floreswa/Models/male02_1.fbx", go.transform, controller, null);
+
+            var cropRefs = new CropDefinition[cropIds.Length];
+            for (int i = 0; i < cropIds.Length; i++)
+                cropRefs[i] = System.Array.Find(crops, c => c != null && c.cropId == cropIds[i]);
+
+            var npc = go.AddComponent<TownNPCInteractable>();
+            var so = new SerializedObject(npc);
             so.FindProperty("role").enumValueIndex = (int)NpcRole.StrainBoss;
-            so.FindProperty("npcName").stringValue = bossName;
-            so.FindProperty("bossSeedCrop").objectReferenceValue = crop;
-            so.FindProperty("seedPrice").intValue = seedPrice;
+            so.FindProperty("npcName").stringValue = "BossC";
+            var cropsProp = so.FindProperty("multiBossCrops");
+            cropsProp.arraySize = cropRefs.Length;
+            for (int i = 0; i < cropRefs.Length; i++)
+                cropsProp.GetArrayElementAtIndex(i).objectReferenceValue = cropRefs[i];
+            var pricesProp = so.FindProperty("multiBossSeedPrices");
+            pricesProp.arraySize = seedPrices.Length;
+            for (int i = 0; i < seedPrices.Length; i++)
+                pricesProp.GetArrayElementAtIndex(i).intValue = seedPrices[i];
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            ApplyBossChains(visual, chainCount: 2);
+            BuildBlackSuvProps(pos, right, dir, side);
+        }
+
+        /// <summary>
+        /// A beaded necklace strand (a drooping semicircle of small
+        /// spheres across the chest), hand-built the same way
+        /// ApplyPoliceUniform decorates officers - no need to route a
+        /// decorative NPC prop through the player-only shop/
+        /// CharacterEquipment system for this. Parented to the chest bone,
+        /// not the neck - a first attempt parented to the neck read as a
+        /// flat gold disc floating off the shoulder in a rendered check,
+        /// not a chain; a chest-anchored drooping bead arc is what
+        /// actually reads as a necklace at gameplay camera distance.
+        /// chainCount > 1 reads as "larger/multiple chains" per the brief.
+        /// </summary>
+        /// <summary>MINI-067: the cleaned, game-ready 18k chain (built by
+        /// Mini067GoldChainPrep from the user's 2M-poly source).</summary>
+        private static GameObject LoadGoldChainPrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/UpIzUpMini/Art/Accessories/GoldChain18k.prefab");
+            if (prefab == null)
+                Debug.LogWarning("MINI-067: GoldChain18k.prefab missing - characters will fall back to the placeholder chain. Run MINI-067/Build Gold Chain Prefab.");
+            return prefab;
+        }
+
+        private static void ApplyBossChains(GameObject instance, int chainCount)
+        {
+            var animator = instance.GetComponentInChildren<Animator>();
+            var neck = animator != null && animator.isHuman
+                ? animator.GetBoneTransform(HumanBodyBones.Neck)
+                : null;
+            if (neck == null) return;
+
+            // MINI-067: the user's real 18k model, per "i want to put the gold
+            // chain on the character's chest and the boss man c chest as well".
+            // The placement lessons below (neck bone for position, ROOT for
+            // rotation, pushed forward off the collar) were paid for with three
+            // failed render checks and still apply - only the geometry changes,
+            // so they are reused rather than re-derived.
+            var chainPrefab = LoadGoldChainPrefab();
+            if (chainPrefab != null)
+            {
+                // Same anchor and the same two rendered-and-checked numbers the
+                // player uses, so the boss and the player wear it identically
+                // rather than drifting apart as two hand-tuned placements.
+                var chest = animator.GetBoneTransform(HumanBodyBones.Chest) ?? neck;
+                var worn = (GameObject)PrefabUtility.InstantiatePrefab(chainPrefab);
+                worn.name = "BossChain_18k";
+                worn.transform.SetParent(chest, worldPositionStays: true);
+                worn.transform.rotation = instance.transform.rotation
+                    * Quaternion.Euler(CharacterEquipment.BossChainTilt, 0f, 0f);
+                worn.transform.position = chest.position
+                    + instance.transform.forward * CharacterEquipment.BossChainForward
+                    + instance.transform.up * CharacterEquipment.BossChainUp;
+                // Boss C's chest bone scale differs from the player's, so the
+                // same prefab measured 0.068m on him against 0.308m on Sacat.
+                CharacterEquipment.NormaliseAccessoryScale(
+                    worn.transform, chest, CharacterEquipment.ChainWidth);
+                foreach (var col in worn.GetComponentsInChildren<Collider>(true))
+                    Object.DestroyImmediate(col);
+                return;
+            }
+
+            // Fallback: the original hand-built bead strands, kept so a missing
+            // prefab leaves the boss wearing something rather than nothing.
+            Material chainMat = GetOrCreateMaterial("BossChainGold", new Color(0.85f, 0.68f, 0.15f));
+
+            for (int c = 0; c < chainCount; c++)
+            {
+                var strand = new GameObject($"BossChain_{c}");
+                // Parented to the neck bone so it follows the character,
+                // but its ROTATION is forced to the character root's own
+                // rotation rather than inherited from the bone - a first
+                // attempt trusted the bone's local axes directly and the
+                // result hung down near the character's hip, off to the
+                // side, because this rig's neck bone rest orientation
+                // isn't simply world-aligned. Anchoring rotation to the
+                // root (a known, sane frame - forward is forward) makes
+                // the bead-arc math below predictable.
+                strand.transform.SetParent(neck, worldPositionStays: true);
+                strand.transform.rotation = instance.transform.rotation;
+                // Pushed further out in front and less far down than the
+                // first two attempts, which sank the beads far enough into
+                // the collar/torso mesh to be almost entirely self-occluded
+                // (only a stray bead poked out through a gap, visible from
+                // the back but not the front). A third attempt (0.10 down)
+                // still read as sitting on the stomach once seen at
+                // gameplay scale, not the chest - raised again here.
+                strand.transform.position = neck.position
+                    + instance.transform.forward * 0.22f
+                    + instance.transform.up * (0.02f - c * 0.05f);
+
+                const int beadCount = 9;
+                float radius = 0.085f + c * 0.015f;
+                float sagAmount = 0.025f + c * 0.008f;
+                for (int i = 0; i < beadCount; i++)
+                {
+                    float t = i / (float)(beadCount - 1); // 0..1 across the arc
+                    float angle = Mathf.Lerp(-75f, 75f, t) * Mathf.Deg2Rad;
+                    float sag = sagAmount * (1f - Mathf.Abs(t - 0.5f) * 2f); // droops most in the middle
+                    float x = Mathf.Sin(angle) * radius;
+                    float y = -Mathf.Cos(angle) * radius - sag;
+
+                    var bead = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    bead.name = $"Bead_{i}";
+                    bead.transform.SetParent(strand.transform, false);
+                    bead.transform.localPosition = new Vector3(x, y, 0f);
+                    bead.transform.localScale = Vector3.one * 0.024f;
+                    Object.DestroyImmediate(bead.GetComponent<Collider>());
+                    bead.GetComponent<Renderer>().sharedMaterial = chainMat;
+                }
+            }
+        }
+
+        /// <summary>
+        /// One simple SUV placeholder near Boss C - "nice black SUVs
+        /// nearby" per the brief. Not a real vehicle (no driving/physics) -
+        /// that's MINI-033/034's scope - just parked set-dressing
+        /// establishing his status. A first pass (plain box + small
+        /// hidden-under-the-body wheels) rendered as an unmarked dark
+        /// crate in a check render, not a car - this version adds a
+        /// narrower "greenhouse" cabin box (distinct from the lower body,
+        /// the actual visual cue that reads as a vehicle) and raises the
+        /// body so the wheels clear the ground and are actually visible.
+        /// Originally placed two, offset in world-space Vector3.forward -
+        /// the user found one sitting in the middle of the road, because
+        /// world-forward doesn't follow the road's actual bend the way the
+        /// road-tangent direction (dir) does. Down to one, offset along
+        /// the real road tangent and pushed further out on the perpendicular.
+        /// </summary>
+        private static void BuildBlackSuvProps(Vector3 bossPos, Vector3 right, Vector3 dir, float side)
+        {
+            Material bodyMat = GetOrCreateMaterial("BlackSuvBody", new Color(0.04f, 0.04f, 0.045f));
+            Material glassMat = GetOrCreateMaterial("BlackSuvGlass", new Color(0.10f, 0.13f, 0.16f));
+            Material wheelMat = GetOrCreateMaterial("BlackSuvWheel", new Color(0.01f, 0.01f, 0.01f));
+
+            // bossPos already sits right*side*6.5 off the road centreline
+            // (see BuildBossC) - subtracting that same amount here just
+            // cancelled it back out and put the SUV on the road centreline
+            // itself, which is exactly the bug the user reported. Adding
+            // further offset in the SAME direction Boss C is already
+            // offset pushes it clear of the road instead.
+            Vector3 pos = bossPos + right * side * 3.0f + dir * 1.5f;
+            pos.y = bossPos.y;
+
+            var suv = new GameObject("BossC_SUV");
+            suv.transform.position = pos;
+            // Parked along the road rather than across it. The old placeholder
+            // faced `right` while building its body 4.2m along local X, i.e. it
+            // was modelled sideways relative to its own forward - a quirk not
+            // worth inheriting now that a real car with a real nose is going in.
+            suv.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+
+            // MINI-070: the user's real Range Rover replaces the box-and-
+            // cylinder stand-in. The prefab is authored nose-along-+Z and
+            // origin-at-the-tyres by Mini070RangeRoverPrep, so it just needs
+            // parenting - no per-placement height or scale fudge here.
+            var rover = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/UpIzUpMini/Art/Vehicles/RangeRover.prefab");
+            if (rover != null)
+            {
+                var placed = (GameObject)PrefabUtility.InstantiatePrefab(rover, suv.transform);
+                placed.name = "RangeRover";
+                placed.transform.localPosition = Vector3.zero;
+                placed.transform.localRotation = Quaternion.identity;
+                return;
+            }
+
+            Debug.LogWarning("MINI-070: RangeRover.prefab missing - falling back to the placeholder SUV. Run MINI-070/Build Range Rover Prefab.");
+
+            // Cylinder primitives have radius 0.5/height 2 pre-scale;
+            // after the 90-degree Z rotation below, a localScale of
+            // (2*R, T/2, 2*R) gives an actual visible wheel radius R
+            // and axle thickness T - worked out by hand after a first
+            // attempt (uniform scale) rendered as barely-visible flat
+            // discs hidden under the body.
+            const float wheelRadius = 0.42f;
+            const float wheelThickness = 0.32f;
+
+            // Lower body sits high enough that the wheels clear the
+            // ground and are visible beneath it, not hidden inside it.
+            var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            body.name = "Body";
+            body.transform.SetParent(suv.transform, false);
+            body.transform.localPosition = new Vector3(0f, wheelRadius + 0.55f, 0f);
+            body.transform.localScale = new Vector3(4.2f, 1.1f, 1.9f);
+            body.GetComponent<Renderer>().sharedMaterial = bodyMat;
+
+            // Narrower cabin/greenhouse on top - the actual shape cue
+            // that reads as a car rather than a shipping container.
+            var cabin = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cabin.name = "Cabin";
+            cabin.transform.SetParent(suv.transform, false);
+            cabin.transform.localPosition = new Vector3(-0.15f, wheelRadius + 1.28f, 0f);
+            cabin.transform.localScale = new Vector3(2.6f, 0.9f, 1.7f);
+            cabin.GetComponent<Renderer>().sharedMaterial = glassMat;
+
+            float[] wx = { -1.4f, 1.4f };
+            float[] wz = { -0.95f, 0.95f };
+            foreach (float x in wx)
+            {
+                foreach (float z in wz)
+                {
+                    var wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    wheel.name = "Wheel";
+                    wheel.transform.SetParent(suv.transform, false);
+                    wheel.transform.localPosition = new Vector3(x, wheelRadius, z);
+                    wheel.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                    wheel.transform.localScale = new Vector3(wheelRadius * 2f, wheelThickness * 0.5f, wheelRadius * 2f);
+                    Object.DestroyImmediate(wheel.GetComponent<Collider>());
+                    wheel.GetComponent<Renderer>().sharedMaterial = wheelMat;
+                }
+            }
         }
 
         /// <summary>
@@ -1984,9 +3458,14 @@ namespace UpIzUpMini.EditorTools
         }
 
         /// <summary>
-        /// Boss K waits near the Montine turnoff, away from the market -
-        /// per Docs/STORY.md he watches their deliveries and offers the
-        /// higher-paying illegal work.
+        /// Boss J (MINI-055: displayed name, was "Boss K" - see
+        /// TownNPCInteractable's PromptLabel note; npcName/targetId stay
+        /// "BossK" internally, unrelated to the many mission objectives
+        /// already keyed off it) waits near the Montine turnoff, away from
+        /// the market - per Docs/STORY.md he watches their deliveries and
+        /// offers the higher-paying illegal work. Lower-level than Boss C -
+        /// street connections, Bushers only, one chain rather than Boss C's
+        /// stacked pair.
         /// </summary>
         private static void BuildBossNpc(
             Terrain terrain, List<Vector3> roadPoints, CropDefinition[] allCrops,
@@ -2000,11 +3479,11 @@ namespace UpIzUpMini.EditorTools
             pos.y = SampleHeight(terrain, pos.x, pos.z);
             _bossPos = pos;
 
-            var go = new GameObject("NPC_BossK");
+            var go = new GameObject("NPC_BossJ");
             go.transform.position = pos;
             go.transform.rotation = Quaternion.LookRotation(-right, Vector3.up);
 
-            InstantiateCharacter("Assets/Floreswa/Models/male02_3.fbx", go.transform, animController, null);
+            var visual = InstantiateCharacter("Assets/Floreswa/Models/male02_3.fbx", go.transform, animController, null);
 
             CropDefinition bushers = null;
             foreach (var c in allCrops)
@@ -2015,16 +3494,20 @@ namespace UpIzUpMini.EditorTools
             var npc = go.AddComponent<TownNPCInteractable>();
             var so = new SerializedObject(npc);
             so.FindProperty("role").enumValueIndex = (int)NpcRole.Boss;
+            // Internal identifier, matched by several missions' targetId -
+            // left as "BossK" deliberately (see the PromptLabel note).
             so.FindProperty("npcName").stringValue = "BossK";
             so.FindProperty("bossSeedCrop").objectReferenceValue = bushers;
-            // MINI-039: first illegal strain, cheapest of the three -
-            // see the seed-pricing note by the BossM/BossP calls.
+            // MINI-039: first illegal strain, cheapest of the tiers -
+            // see the seed-pricing note by the BuildBossC call.
             so.FindProperty("seedPrice").intValue = 150;
             var cropsProp = so.FindProperty("sellableCrops");
             cropsProp.arraySize = allCrops.Length;
             for (int i = 0; i < allCrops.Length; i++)
                 cropsProp.GetArrayElementAtIndex(i).objectReferenceValue = allCrops[i];
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            ApplyBossChains(visual, chainCount: 1);
         }
 
         private static void BuildNpc(
@@ -2170,18 +3653,33 @@ namespace UpIzUpMini.EditorTools
 
             var capMat = GetOrCreateMaterial("PoliceCap", trousers);
 
+            // MINI-057: found and fixed a real pre-existing bug while
+            // building Normy (who also wears this uniform) - parenting
+            // directly to the head bone with `false` (keep local
+            // position/rotation) put the cap floating at chest height on
+            // EVERY officer, not just Normy, confirmed by rendering a real
+            // NPC_Police. Same root cause as MINI-055's necklace: this
+            // rig's bone rest orientations aren't world-aligned. Same fix:
+            // anchor rotation to the character root instead of the bone.
+            // First fix landed the cap across the eyes like a visor, not
+            // on top of the head - raised further and pulled back here.
             var crown = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             crown.name = "PoliceCap";
-            crown.transform.SetParent(head, false);
-            crown.transform.localPosition = new Vector3(0f, 0.15f, 0.01f);
+            crown.transform.SetParent(head, worldPositionStays: true);
+            crown.transform.rotation = instance.transform.rotation;
+            crown.transform.position = head.position
+                + instance.transform.up * 0.24f;
             crown.transform.localScale = new Vector3(0.2f, 0.12f, 0.2f);
             crown.GetComponent<Renderer>().sharedMaterial = capMat;
             Object.DestroyImmediate(crown.GetComponent<Collider>());
 
             var peak = GameObject.CreatePrimitive(PrimitiveType.Cube);
             peak.name = "PoliceCapPeak";
-            peak.transform.SetParent(head, false);
-            peak.transform.localPosition = new Vector3(0f, 0.13f, 0.12f);
+            peak.transform.SetParent(head, worldPositionStays: true);
+            peak.transform.rotation = instance.transform.rotation;
+            peak.transform.position = head.position
+                + instance.transform.up * 0.21f
+                + instance.transform.forward * 0.10f;
             peak.transform.localScale = new Vector3(0.19f, 0.02f, 0.12f);
             peak.GetComponent<Renderer>().sharedMaterial = capMat;
             Object.DestroyImmediate(peak.GetComponent<Collider>());
@@ -2326,15 +3824,38 @@ namespace UpIzUpMini.EditorTools
             }
         }
 
+        // MINI-083, user: "I want all characters the same size... so
+        // swapping shirts etc would be seamless." Measured (not assumed)
+        // via a throwaway diagnostic: every Floreswa NPC/boss/gang/police
+        // model (male01_1 .. male03_3) is ALREADY exactly this tall,
+        // uniformly - only the two hero models diverge from it. Scoped to
+        // height only per the user's own choice - this does not touch the
+        // deeper bone-SCALE divergence between rig families (see
+        // CharacterEquipment's BossChain* constants and
+        // NormaliseAccessoryScale, which exist for that separate problem
+        // and are unaffected by this).
+        private const float TargetCharacterHeightM = 1.85f;
+        private const float SacatMeasuredHeightM = 1.9739f;
+        private const float FrankiMeasuredHeightM = 1.9337f;
+
         private static GameObject InstantiateCharacter(
             string fbxPath, Transform parent, RuntimeAnimatorController animController,
-            Color? skinTint = null, bool hideFacialHair = false)
+            Color? skinTint = null, bool hideFacialHair = false, float uniformScale = 1f)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             instance.name = "Visual";
             instance.transform.localPosition = Vector3.zero;
             instance.transform.localRotation = Quaternion.identity;
+            // MINI-083: uniform scale only, no bone remapping - safe for the
+            // mains' richer 52-bone Humanoid avatar (the sparse-avatar leg
+            // distortion this project hit before, per this file's own
+            // MINI-016 note near BuildControllableCharacter's call sites,
+            // was a retargeting problem, not a scale one).
+            if (!Mathf.Approximately(uniformScale, 1f))
+            {
+                instance.transform.localScale = Vector3.one * uniformScale;
+            }
 
             var animator = instance.GetComponent<Animator>();
             if (animator == null) animator = instance.AddComponent<Animator>();
@@ -2522,7 +4043,16 @@ namespace UpIzUpMini.EditorTools
         {
             ("land_montine",  "Montine Land Plot",     ShopCategory.Land,     600,  null, 0),
             ("land_hillside", "Hillside Survey Lot",   ShopCategory.Land,     1400, null, 0),
-            ("prop_safehouse","Montine Safehouse Deed",ShopCategory.Property, 2200, null, 0),
+            // MINI-062: renamed from the stale "Montine Safehouse Deed" -
+            // this item id (prop_safehouse) has always gated the Lalay
+            // House (BuildLalayHouse), never a Montine-side property, so
+            // the old name was actively misleading about what a player
+            // was buying.
+            ("prop_safehouse","Lalay House Deed",ShopCategory.Property, 2200, null, 0),
+            // MINI-073: "a two story house with a garage for a vehicle on the
+            // lalay". A distinct, pricier property from the simple open
+            // shelter above - see BuildLalayEstate.
+            ("prop_lalay_estate","Lalay Estate Deed",ShopCategory.Property, 8500, null, 0),
         };
 
         // Food shop - healing. Consumed on purchase.
@@ -2542,13 +4072,31 @@ namespace UpIzUpMini.EditorTools
             ("pill_focus",   "Focus Capsules", ShopCategory.Enhancement, 110, null, 0),
         };
 
-        // Vehicles and boats come from a dealer, and are priced so they
-        // are a later-game purchase (user direction).
+        // Vehicles and boats come from a dealer. Deliberately just the one
+        // real, driveable vehicle for now - the previous flavour-only
+        // "Scrambler Bike"/"Pickup Van"/"Fishing Pirogue" entries were pure
+        // economy placeholders with no working model behind them (per the
+        // future-extensibility note from MINI-011), and the user explicitly
+        // asked for the dealer to offer only the bike that actually works:
+        // "the option should be only the bike and no other vehicles."
+        // Re-add the placeholders here (not deleted, just removed from the
+        // table) once a scrambler/van/boat model actually exists.
         private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] DealerSpecs =
         {
-            ("bike_scrambler", "Scrambler Bike",   ShopCategory.Vehicle, 1800, null, 0),
-            ("van_pickup",     "Pickup Van",       ShopCategory.Vehicle, 3200, null, 0),
-            ("boat_pirogue",   "Fishing Pirogue",  ShopCategory.Boat,    2600, null, 0),
+            // MINI-071: display name only. The ITEM ID stays tmax_560 - renaming it
+            // would strip the bike off any existing save, the same reason
+            // chain_gold kept its id when it became "Gucci Law".
+            ("tmax_560", "TNAX 560", ShopCategory.Vehicle, 6500, null, 0),
+            // MINI-071: priced at the real 2026 Range Rover base MSRP
+            // ($113,300) per the user's "give it the price of the real latest
+            // range". That is deliberately far beyond early-game reach - it is
+            // an endgame purchase, roughly 17x the TMAX.
+            //
+            // Named as a near-miss rather than the trademark, following the
+            // user's own standing direction on this list ("Fictional near-miss
+            // brand names ... so no real trademark is used"). Say the word if
+            // you want the real name on it.
+            ("range_rova", "Range Rova", ShopCategory.Vehicle, 113300, null, 0),
         };
 
         // Separate apparel shopfront - kept distinct from the farm shop.
@@ -2559,7 +4107,14 @@ namespace UpIzUpMini.EditorTools
             ("shorts_adibas","Adibas Shorts",      ShopCategory.Clothing,  65,  null, 0),
             ("shoes_mike",  "Mike Air Kicks",      ShopCategory.Footwear,  150, null, 0),
             ("shoes_pumba", "Pumba Runners",       ShopCategory.Footwear,  120, null, 0),
-            ("chain_gold",  "Gold Chain",          ShopCategory.Accessory, 320, null, 0),
+            // MINI-067: priced at the user's figure ($6000) now that it is a
+            // real 18k model rather than the placeholder ring of spheres. That
+            // puts it just under the TMAX (6500), which is the intent - a
+            // status buy you work toward, not pocket change.
+            // Named "Gucci Law" by the user. The ITEM ID stays chain_gold so
+            // existing saves keep the item - a display rename must not silently
+            // strip a 6000-dollar purchase off someone's character.
+            ("chain_gold",  "Gucci Law",           ShopCategory.Accessory, 6000, null, 0),
             ("shades_ray",  "Ray-Bam Shades",      ShopCategory.Accessory, 95,  null, 0),
             ("watch_rollie","Rollex Watch",        ShopCategory.Accessory, 480, null, 0),
         };
@@ -2650,6 +4205,9 @@ namespace UpIzUpMini.EditorTools
             Vector3 policePos = roadPoints[Mathf.Clamp(3, 1, roadPoints.Count - 2)];
             Vector3 expansionPos = _expansionPlotPos != Vector3.zero ? _expansionPlotPos : farmCenter;
             Vector3 bossPos = _bossPos != Vector3.zero ? _bossPos : farmCenter;
+            // MINI-055: Boss C's single consolidated position, replacing
+            // the separate BossM (index 10)/BossP (index 13) marker spots.
+            Vector3 bossCPos = _bossCPos != Vector3.zero ? _bossCPos : farmCenter;
 
             var missions = new List<Mission>
             {
@@ -2773,7 +4331,7 @@ namespace UpIzUpMini.EditorTools
                 {
                     missionId = "M4",
                     title = "The Offer",
-                    briefing = "A man name Boss K been watching allu deliveries. He waiting up by the farm track.",
+                    briefing = "A man name Boss J been watching allu deliveries. He waiting up by the farm track.",
                     rewardMoney = 0,
                     objectives = new List<MissionObjective>
                     {
@@ -2781,7 +4339,7 @@ namespace UpIzUpMini.EditorTools
                         {
                             kind = ObjectiveKind.TalkTo,
                             targetId = "BossK",
-                            instruction = "Go and hear what Boss K have to say",
+                            instruction = "Go and hear what Boss J have to say",
                             markerPosition = bossPos,
                         },
                         new MissionObjective
@@ -2803,7 +4361,7 @@ namespace UpIzUpMini.EditorTools
                         {
                             kind = ObjectiveKind.SellCrop,
                             targetId = "BossK",
-                            instruction = "Take the Bushers back to Boss K - this mission sale adds 50% heat",
+                            instruction = "Take the Bushers back to Boss J - this mission sale adds 50% heat",
                             markerPosition = bossPos,
                         },
                     }
@@ -2861,7 +4419,7 @@ namespace UpIzUpMini.EditorTools
                 {
                     missionId = "M7",
                     title = "Street Route",
-                    briefing = "Boss K pay best, but a vagrant in Lalay buying small amounts with less questions.",
+                    briefing = "Boss J pay best, but a vagrant in Lalay buying small amounts with less questions.",
                     rewardMoney = 140,
                     objectives = new List<MissionObjective>
                     {
@@ -2890,13 +4448,13 @@ namespace UpIzUpMini.EditorTools
                 new Mission
                 {
                     missionId = "M8", title = "Choose Your Road",
-                    briefing = "Press L to expand legitimate farming, or K to commit to Boss K's weed route.",
+                    briefing = "Press L to expand legitimate farming, or K to commit to Boss J's weed route.",
                     objectives = new List<MissionObjective> { new MissionObjective { kind = ObjectiveKind.ChoosePath, instruction = "Choose now: [L] Legitimate farming  or  [K] Weed route", hasMarker = false } }
                 },
                 new Mission
                 {
                     missionId = "M9L", title = "Roots in the Soil", requiredPath = CareerPath.LegitimateFarmer,
-                    briefing = "Build respect with farmers and expand without Boss K owning allu.", rewardMoney = 300,
+                    briefing = "Build respect with farmers and expand without Boss J owning allu.", rewardMoney = 300,
                     objectives = new List<MissionObjective> {
                         new MissionObjective { kind = ObjectiveKind.AssignFarmhand, targetId = "tomato", instruction = "Select Tomato [1], then ask the other boy to manage three plots", markerPosition = farmCenter },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "tomato", requiredCount = 9, instruction = "Harvest 9 tomato for the legitimate market", markerPosition = plotPos },
@@ -2905,33 +4463,123 @@ namespace UpIzUpMini.EditorTools
                 },
                 new Mission
                 {
-                    missionId = "M9W", title = "Boss K's Cut", requiredPath = CareerPath.WeedRoute,
-                    briefing = "Boss K lower the price after allu take the risk. He say loyalty first, payment later.",
+                    missionId = "M9W", title = "Boss J's Cut", requiredPath = CareerPath.WeedRoute,
+                    briefing = "Boss J lower the price after allu take the risk. He say loyalty first, payment later.",
                     objectives = new List<MissionObjective> {
-                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossK", instruction = "Return to Boss K for a worse job", markerPosition = bossPos },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossK", instruction = "Return to Boss J for a worse job", markerPosition = bossPos },
                         new MissionObjective { kind = ObjectiveKind.AssignFarmhand, targetId = "bushers", instruction = "Select Bushers [4], then assign the other boy to manage three plots", markerPosition = farmCenter },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "bushers", requiredCount = 3, instruction = "Grow and harvest 3 Bushers", markerPosition = plotPos },
-                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver to Boss K - he is cutting your payment", markerPosition = bossPos }
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver to Boss J - he is cutting your payment", markerPosition = bossPos }
                     }
                 },
                 new Mission
                 {
                     missionId = "M10W", title = "Black Sugar", requiredPath = CareerPath.WeedRoute,
-                    briefing = "Boss M will only release Black Sugar after Boss K use allu enough.",
+                    // MINI-055: Boss M consolidated into Boss C.
+                    briefing = "Boss C will only release Black Sugar after Boss J use allu enough.",
                     objectives = new List<MissionObjective> {
-                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossM", instruction = "Meet Boss M and unlock Black Sugar [5]", markerPosition = roadPoints[Mathf.Clamp(10,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossC", instruction = "Meet Boss C and unlock Black Sugar [5]", markerPosition = bossCPos },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "black_sugar", requiredCount = 3, instruction = "Grow and harvest Black Sugar [5]", markerPosition = plotPos },
-                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver it to Boss K - payment may be withheld", markerPosition = bossPos }
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver it to Boss J - payment may be withheld", markerPosition = bossPos }
                     }
                 },
                 new Mission
                 {
                     missionId = "M11W", title = "Purple Territory", requiredPath = CareerPath.WeedRoute,
-                    briefing = "Your gang reputation open a meeting with Boss P. Purple pays most and brings the most heat.",
+                    // MINI-055: Boss P consolidated into Boss C.
+                    briefing = "Your gang reputation open a meeting with Boss C. Purple pays most and brings the most heat.",
                     objectives = new List<MissionObjective> {
-                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossP", instruction = "Meet Boss P and unlock Purple [6]", markerPosition = roadPoints[Mathf.Clamp(13,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossC", instruction = "Meet Boss C and unlock Purple [6]", markerPosition = bossCPos },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "purple", requiredCount = 3, instruction = "Grow and harvest Purple [6]", markerPosition = plotPos },
                         new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BoatMan", instruction = "The Grand Bay route is established - meet the Boat Man", markerPosition = new Vector3(0f, SeaLevelY, TerrainSize*.5f) }
+                    }
+                },
+
+                // MINI-073/074: appended tail. All Undecided-required, so they
+                // run for BOTH paths regardless of where each finishes its own
+                // path-specific content (see MissionSystem's skip-loop, which
+                // only ever skips a mission whose requiredPath does not match
+                // the player's own). Easy-to-hard: village errands first,
+                // then the elders, then the boat man made an explicit stop for
+                // BOTH paths (previously only WeedRoute players were ever sent
+                // to him), then the gang, then the hardest - the rival gang
+                // itself, which is where FactionBrawler's own proximity fight
+                // (MINI-069) actually kicks in once DogLifeRevealed is true.
+                new Mission
+                {
+                    missionId = "M12", title = "Round the Village",
+                    briefing = "Allu cyar just farm and hide - people need to know your face round Lalay.",
+                    rewardMoney = 50,
+                    objectives = new List<MissionObjective> {
+                        // Real NPC positions (index matches the BuildNpc calls that
+                        // place NPC_Normy/NPC_FoodShop/NPC_Pharmacy - policePos above
+                        // is a generic patrol spot at a different index, not Normy).
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Normy", instruction = "Say hello to Normy", markerPosition = roadPoints[Mathf.Clamp(4,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "FoodShop", instruction = "Check what the Food shop selling", markerPosition = roadPoints[Mathf.Clamp(5,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Pharmacy", instruction = "Check what the Pharmacy selling", markerPosition = roadPoints[Mathf.Clamp(11,1,roadPoints.Count-2)] },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M13", title = "Ital and Elders",
+                    briefing = "Rasta been watching the plantation long time - go hear what he have to say.",
+                    rewardMoney = 60,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Rasta", instruction = "Go talk to Rasta on the farm track", markerPosition = Vector3.Lerp(roadPoints[roadPoints.Count/2], farmCenter, 0.4f) },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "tomato", requiredCount = 4, instruction = "Rasta say bring him proof allu still working - harvest 4 more tomato", markerPosition = plotPos },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M14", title = "Ason Ki Move",
+                    briefing = "The Boat Man see and hear everything that pass Grand Bay - go find him at the jetty.",
+                    rewardMoney = 70,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BoatMan", instruction = "Meet the Boat Man at the jetty", markerPosition = new Vector3(0f, SeaLevelY, TerrainSize*.5f) },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M15", title = "Not Ah Word",
+                    briefing = "Time to build up your own crew - go see the recruiter near Boss C's block.",
+                    rewardMoney = 80,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "GangRecruiter", instruction = "Talk to the recruiter and take on a member", markerPosition = bossCPos },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M16", title = "War Story",
+                    briefing = "Dog Life been watching allu plantation too long. Bring your crew and step to their block.",
+                    rewardMoney = 150,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.ReachArea, instruction = "Walk your crew into Dog Life's block on the Lalay road", markerPosition = roadPoints[Mathf.Clamp(1,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.EscapeHeat, instruction = "Lay low until police heat cools back down", hasMarker = false },
+                    }
+                },
+                // MINI-080: "can you add more missions as i requested from
+                // before?" - two more, continuing past M16 (Undecided, so
+                // both paths reach them). M17 gives the TNAX a real purchase
+                // goal to work toward (it existed and was rideable, but no
+                // mission ever pointed the player at buying one). M18 does
+                // the same for the Lalay Estate (MINI-073) - it had no
+                // mission touchpoint at all before this.
+                new Mission
+                {
+                    missionId = "M17", title = "Wheels of Your Own",
+                    briefing = "Allu tired a walk and beg ride. Save up and buy the TNAX from the dealer.",
+                    rewardMoney = 100,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.BuyItem, targetId = "tmax_560", instruction = "Buy the TNAX 560 from the Car Dealer", markerPosition = roadPoints[Mathf.Clamp(15,1,roadPoints.Count-2)] },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M18", title = "A Place to Rest",
+                    briefing = "Farm safehouse good, but a real house in Lalay show allu made it.",
+                    rewardMoney = 200,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.BuyItem, targetId = "prop_lalay_estate", instruction = "Buy the Lalay Estate Deed from the Land Office", markerPosition = roadPoints[Mathf.Clamp(14,1,roadPoints.Count-2)] },
                     }
                 },
             };
@@ -2968,7 +4616,57 @@ namespace UpIzUpMini.EditorTools
             }
             so.ApplyModifiedPropertiesWithoutUndo();
 
+            // MINI-054: plays before M1's own briefing (see
+            // BuildOpeningConversation - sets firstBriefingDelay on this
+            // same MissionSystem to the conversation's total duration).
+            BuildOpeningConversation(system);
+
             BuildObjectiveMarker();
+        }
+
+        /// <summary>
+        /// MINI-054: Franki and Sacat's opening exchange, per the roadmap
+        /// brief's beats - kicked out of school, hungry and struggling,
+        /// need money, Franki suggests Zion/Zeb, Sacat is hesitant, they
+        /// settle on starting with normal crops (which is exactly what M1
+        /// then has them do). Dialect kept to terms confirmed or
+        /// high-confidence in Docs/DIALECT-LEXICON.md (Zeb, Zion, and the
+        /// already-verified mn/nuh/wii register from
+        /// Docs/DIALOGUE-REFERENCE.md) - no unconfirmed term is used.
+        /// </summary>
+        private static void BuildOpeningConversation(MissionSystem system)
+        {
+            var go = new GameObject("OpeningConversation");
+            var controller = go.AddComponent<OpeningConversationController>();
+            var so = new SerializedObject(controller);
+            var linesProp = so.FindProperty("lines");
+
+            (string speaker, string text)[] script =
+            {
+                ("Franki", "Nothing nuh work out for us in dat school, mn. Dey put us out and dat's dat."),
+                ("Sacat", "Yea wii. But we still eh have nothing to eat off tonight, Franki."),
+                ("Franki", "I hear a man up Zion way does pay big for Zeb. Fast money, fast fast."),
+                ("Sacat", "Nah, mn. Not yet. Allu know how dat kind ah ting does end - police, trouble, worse."),
+                ("Franki", "So wah we go do then, smart man? Sit down and starve?"),
+                ("Sacat", "We start with something clean first - tomato, banana, carrot. Build up slow, den we see."),
+                ("Franki", "Alright... but if di crop money slow, I telling you now - I going back to dat Zeb talk."),
+                ("Sacat", "Fine. One step at a time, nuh. Let we go see what Montine have for us."),
+            };
+
+            linesProp.arraySize = script.Length;
+            for (int i = 0; i < script.Length; i++)
+            {
+                var lp = linesProp.GetArrayElementAtIndex(i);
+                lp.FindPropertyRelative("speaker").stringValue = script[i].speaker;
+                lp.FindPropertyRelative("category").enumValueIndex = (int)Dialogue.DialogueCategory.Normal;
+                lp.FindPropertyRelative("text").stringValue = script[i].text;
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            float duration = controller.TotalDuration;
+            var missionSo = new SerializedObject(system);
+            missionSo.FindProperty("firstBriefingDelay").floatValue = duration;
+            missionSo.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>Bobbing arrow + ground ring pointing at the current objective.</summary>
@@ -3234,6 +4932,10 @@ namespace UpIzUpMini.EditorTools
             mhSo.FindProperty("objectiveText").objectReferenceValue = objectiveText;
             mhSo.FindProperty("bannerText").objectReferenceValue = banner;
             mhSo.FindProperty("objectivePanel").objectReferenceValue = objectivePanel;
+            // MINI-073: without this, the card's auto-resize (ResizeObjectiveCard)
+            // silently does nothing - it was written and left unwired in the same
+            // pass, caught immediately rather than shipped broken.
+            mhSo.FindProperty("objectivePanelRect").objectReferenceValue = opRect;
             mhSo.ApplyModifiedPropertiesWithoutUndo();
 
             // Controls (H)
@@ -3283,14 +4985,22 @@ namespace UpIzUpMini.EditorTools
             GameObject canvasGo, string panelName, string title, ShopItemDefinition[] stock, Font font,
             bool resaleMode = false)
         {
-            var panel = CreateModalPanel(canvasGo.transform, panelName, new Vector2(900f, 640f));
-            var text = CreateModalText(panel.transform, font, 26);
+            // MINI-082, user: "make it smaller or more dynamic." Was a
+            // fixed 900x640 block regardless of how few lines a given shop
+            // actually has - shrunk to something less overwhelming; the
+            // "dynamic" half is the fade in ShopPanelController itself
+            // (CanvasGroup added below), not a size that grows/shrinks
+            // per-shop, which would need a layout-group rework.
+            var panel = CreateModalPanel(canvasGo.transform, panelName, new Vector2(620f, 460f));
+            var canvasGroup = panel.AddComponent<CanvasGroup>();
+            var text = CreateModalText(panel.transform, font, 23);
 
             var shop = canvasGo.AddComponent<ShopPanelController>();
             var so = new SerializedObject(shop);
             so.FindProperty("shopTitle").stringValue = title;
             so.FindProperty("panel").objectReferenceValue = panel;
             so.FindProperty("bodyText").objectReferenceValue = text;
+            so.FindProperty("canvasGroup").objectReferenceValue = canvasGroup;
             so.FindProperty("resaleMode").boolValue = resaleMode;
             var stockProp = so.FindProperty("stock");
             stockProp.arraySize = stock.Length;

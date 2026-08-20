@@ -1,18 +1,24 @@
 using UnityEngine;
 using UpIzUpMini.Economy;
+using UpIzUpMini.Navigation;
 
 namespace UpIzUpMini.Interaction
 {
     /// <summary>
     /// Walks an NPC back and forth along a set of waypoints, driving the
     /// same Idle/Walk/Run animator blend the player characters use so the
-    /// NPC doesn't stand in a T-pose. Used for the police officer and for
-    /// ambient residents.
+    /// NPC doesn't stand in a T-pose. Used for ambient residents (the
+    /// dedicated police patrol/chase logic lives in PoliceOfficer).
     ///
     /// Police behaviour scales with heat (per Docs/STORY.md: "a police
     /// officer who previously spoke casually to them now reacts with
     /// suspicion"): above the alert threshold the officer patrols faster
     /// and switches to the run animation.
+    ///
+    /// MINI-052: waypoint steering routes through NavPathSteerer (real
+    /// NavMesh path around houses + stuck recovery) instead of a straight
+    /// line - previously an NPC could jitter/snag against a wall corner
+    /// with no recovery at all.
     /// </summary>
     public class PatrolNPC : MonoBehaviour
     {
@@ -32,6 +38,7 @@ namespace UpIzUpMini.Interaction
         private int _target;
         private float _animBlend;
         private float _pauseTimer;
+        private readonly NavPathSteerer _steerer = new NavPathSteerer();
 
         public bool IsAlert => reactsToHeat
             && EconomyManager.Instance != null
@@ -66,37 +73,38 @@ namespace UpIzUpMini.Interaction
                 }
                 else
                 {
-                    Vector3 targetPos = waypoints[_target];
-                    Vector3 toTarget = targetPos - transform.position;
-                    toTarget.y = 0f;
+                    Vector3? relocate = _steerer.ConsumeRelocation();
+                    if (relocate.HasValue) Relocate(relocate.Value);
 
-                    if (toTarget.magnitude <= arriveDistance)
+                    Vector3 targetPos = waypoints[_target];
+                    bool alert = IsAlert;
+                    float speed = alert ? alertSpeed : walkSpeed;
+
+                    Vector3? dir = _steerer.Steer(transform.position, targetPos, speed, arriveDistance, out bool arrived);
+
+                    if (arrived)
                     {
                         _target = (_target + 1) % waypoints.Length;
                         // Pause briefly at each end so the officer reads as
                         // patrolling rather than pacing frantically.
-                        _pauseTimer = IsAlert ? 0f : pauseAtWaypointSeconds;
+                        _pauseTimer = alert ? 0f : pauseAtWaypointSeconds;
                     }
-                    else
+                    else if (dir.HasValue)
                     {
-                        bool alert = IsAlert;
-                        float speed = alert ? alertSpeed : walkSpeed;
-                        Vector3 dir = toTarget.normalized;
-
                         // Move through a CharacterController so patrols are
                         // blocked by building colliders instead of walking
                         // straight through walls.
                         if (_controller != null && _controller.enabled)
                         {
-                            _controller.SimpleMove(dir * speed);
+                            _controller.SimpleMove(dir.Value * speed);
                         }
                         else
                         {
-                            transform.position += dir * speed * Time.deltaTime;
+                            transform.position += dir.Value * speed * Time.deltaTime;
                         }
 
                         transform.rotation = Quaternion.Slerp(
-                            transform.rotation, Quaternion.LookRotation(dir), turnSpeed * Time.deltaTime);
+                            transform.rotation, Quaternion.LookRotation(dir.Value), turnSpeed * Time.deltaTime);
 
                         // Real m/s, matching the blend tree thresholds.
                         desiredBlend = speed;
@@ -114,6 +122,22 @@ namespace UpIzUpMini.Interaction
                 // plays at a fixed rate and the feet skate.
                 animator.SetFloat("MotionSpeed", desiredBlend > 0.01f ? 1f : 0f);
                 animator.SetBool("Grounded", true);
+            }
+        }
+
+        /// <summary>CharacterController rejects direct transform writes
+        /// while enabled, so it's briefly disabled to relocate.</summary>
+        private void Relocate(Vector3 position)
+        {
+            if (_controller != null)
+            {
+                _controller.enabled = false;
+                transform.position = position;
+                _controller.enabled = true;
+            }
+            else
+            {
+                transform.position = position;
             }
         }
     }

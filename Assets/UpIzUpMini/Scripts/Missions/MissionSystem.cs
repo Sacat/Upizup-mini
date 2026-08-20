@@ -20,6 +20,7 @@ namespace UpIzUpMini.Missions
         EscapeHeat,    // let police heat cool back below a threshold
         AssignFarmhand,// leave the inactive protagonist tending a crop
         ChoosePath,    // L legitimate farming / K risky weed route
+        FollowNpc,     // MINI-081: stay near a named, moving NPC (walking or driving) for a stretch of time
     }
 
     [Serializable]
@@ -31,6 +32,16 @@ namespace UpIzUpMini.Missions
         public int requiredCount = 1;
         public Vector3 markerPosition;
         public bool hasMarker = true;
+
+        // MINI-081: FollowNpc only. requiredCount doubles as the number of
+        // seconds of sustained closeness needed; followRange is how close
+        // counts as "with them." targetId is the NPC GameObject's name,
+        // looked up (and cached) the same way ReachArea already keys off a
+        // world position rather than a live reference.
+        [SerializeField] private float followRange = 6f;
+        public float FollowRange => followRange > 0f ? followRange : 6f;
+        [NonSerialized] public float followTimer;
+        [NonSerialized] public GameObject followTargetCache;
 
         [NonSerialized] public int progress;
         public bool IsComplete => progress >= Mathf.Max(1, requiredCount);
@@ -60,6 +71,13 @@ namespace UpIzUpMini.Missions
 
         [SerializeField] private List<Mission> missions = new List<Mission>();
 
+        // MINI-054: lets the opening conversation (OpeningConversationController)
+        // play out on the same banner before M1's own briefing appears,
+        // without any Awake/Start execution-order dependency between the
+        // two components - Mini011PhaseBSetup just sets this to the
+        // conversation's own total duration at scene-build time.
+        [SerializeField] private float firstBriefingDelay = 0f;
+
         public Mission Current => _missionIndex < missions.Count ? missions[_missionIndex] : null;
         public MissionObjective CurrentObjective
         {
@@ -84,7 +102,21 @@ namespace UpIzUpMini.Missions
 
         private void Start()
         {
-            if (Current != null) ShowBanner($"{Current.title}\n{Current.briefing}");
+            if (Current == null) return;
+
+            string banner = $"{Current.title}\n{Current.briefing}";
+            if (firstBriefingDelay > 0f)
+            {
+                // Reuses the same deferred-banner mechanism Update() already
+                // drives for post-completion briefings (_pendingBriefing/
+                // _pendingBriefingAt) - not a second timer implementation.
+                _pendingBriefing = banner;
+                _pendingBriefingAt = Time.time + firstBriefingDelay;
+            }
+            else
+            {
+                ShowBanner(banner);
+            }
         }
 
         /// <summary>Report a one-shot gameplay event, e.g. talking to an NPC.</summary>
@@ -180,6 +212,29 @@ namespace UpIzUpMini.Missions
                 {
                     obj.progress = obj.requiredCount;
                     AdvanceObjective();
+                }
+            }
+            else if (obj.kind == ObjectiveKind.FollowNpc)
+            {
+                // MINI-081, user: "even having to follow npcs walking or
+                // driving etc." Forgiving by design - straying out of
+                // range pauses the timer rather than resetting it, since a
+                // hard "lose the escort and fail" was not asked for.
+                var player = Character.CharacterSwitchManager.Instance?.Active?.root;
+                if (obj.followTargetCache == null && !string.IsNullOrEmpty(obj.targetId))
+                {
+                    obj.followTargetCache = GameObject.Find(obj.targetId);
+                }
+                if (player != null && obj.followTargetCache != null)
+                {
+                    float d = Vector3.Distance(player.transform.position, obj.followTargetCache.transform.position);
+                    if (d <= obj.FollowRange) obj.followTimer += Time.deltaTime;
+
+                    if (obj.followTimer >= Mathf.Max(1, obj.requiredCount))
+                    {
+                        obj.progress = obj.requiredCount;
+                        AdvanceObjective();
+                    }
                 }
             }
             else if (obj.kind == ObjectiveKind.EscapeHeat)

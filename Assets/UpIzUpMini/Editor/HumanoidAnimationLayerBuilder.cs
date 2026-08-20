@@ -35,15 +35,30 @@ namespace UpIzUpMini.EditorTools
 
             int actionLayerIndex = EnsureLayer(controller, HumanoidAnimationManager.ActionLayerName, BuildUpperBodyMask());
             int fullBodyLayerIndex = EnsureLayer(controller, HumanoidAnimationManager.FullBodyLayerName, null);
+            // MINI-066: a second full-body layer ABOVE FullBodyOverride, so one
+            // held pose can be blended partially over another (rider ->
+            // wheelie) instead of towards the base locomotion layer. Must be
+            // created after FullBodyOverride so it sits higher in the stack.
+            int blendLayerIndex = EnsureLayer(controller, HumanoidAnimationManager.FullBodyBlendLayerName, null);
 
             EnsureEmptyState(controller, actionLayerIndex);
             EnsureEmptyState(controller, fullBodyLayerIndex);
+            EnsureEmptyState(controller, blendLayerIndex);
 
             foreach (var entry in allActions)
             {
                 if (string.IsNullOrEmpty(entry.id) || entry.clip == null) continue;
                 int layerIndex = entry.fullBody ? fullBodyLayerIndex : actionLayerIndex;
                 EnsureState(controller, layerIndex, entry.id, entry.clip);
+
+                // Every full-body pose also gets a state on the blend layer.
+                // Cheap (a state referencing the same clip, weight 0 unless
+                // asked for) and it means any pose can be used as a partial
+                // overlay later without another controller rebuild.
+                if (entry.fullBody)
+                {
+                    EnsureState(controller, blendLayerIndex, entry.id, entry.clip);
+                }
             }
 
             EditorUtility.SetDirty(controller);
@@ -59,7 +74,19 @@ namespace UpIzUpMini.EditorTools
             var layers = controller.layers;
             for (int i = 0; i < layers.Length; i++)
             {
-                if (layers[i].name == layerName) return i;
+                if (layers[i].name != layerName) continue;
+
+                // Layer already exists - still make sure IK Pass is on, or a
+                // controller baked before MINI-066 keeps its old flag and the
+                // rider's hand IK silently never runs. Only written when it
+                // actually differs, so this doesn't dirty the asset every
+                // build.
+                if (!layers[i].iKPass)
+                {
+                    layers[i].iKPass = true;
+                    controller.layers = layers;
+                }
+                return i;
             }
 
             controller.AddLayer(layerName);
@@ -67,6 +94,13 @@ namespace UpIzUpMini.EditorTools
             int newIndex = layers.Length - 1;
             layers[newIndex].defaultWeight = 0f;
             if (mask != null) layers[newIndex].avatarMask = mask;
+            // MINI-066: without IK Pass, Unity never calls OnAnimatorIK on
+            // this layer, so VehicleRider's hand/foot goals silently do
+            // nothing - which is exactly the "the hands come off the
+            // handlebar" symptom the user reported in Play Mode. Enabled on
+            // every action layer this builder creates, since it costs
+            // nothing on layers whose characters have no IK behaviour.
+            layers[newIndex].iKPass = true;
             controller.layers = layers;
             return newIndex;
         }

@@ -51,6 +51,19 @@ overusing local phrasing or turning local people into stereotypes.
 - Police (calm): `Morning. Everything alright over dey?`
 - Police (suspicious, high heat): `I watching allu close, nuh. Doe try nothing.`
 
+`Assets/UpIzUpMini/Scripts/Dialogue/OpeningConversationController.cs`
+(`MINI-054`): Franki and Sacat's opening exchange (kicked out of school,
+hungry, need money; Franki suggests Zeb/Zion, Sacat is hesitant, they
+settle on starting with normal crops) - see the MINI-054 entry in
+`PROJECT-HANDOFF.md` for the full scripted lines.
+
+## See also
+
+`Docs/DIALECT-LEXICON.md` - the newer, narrower term list from the
+`MINI-054` roadmap brief (Zeb, Zion, volehing, Domnicah, Gwa Bay, Gwada,
+etc.), including honest confidence notes on which terms are confirmed by
+a real usage example versus still needing the user's confirmation.
+
 ## Reference workflow video
 
 `https://youtu.be/Dto1QAh5gvE`

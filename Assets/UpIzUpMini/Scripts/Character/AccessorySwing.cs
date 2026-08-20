@@ -35,6 +35,7 @@ namespace UpIzUpMini.Character
         private Vector3 _swingVelocity;
         private Vector3 _lastRestWorldPos;
         private bool _initialized;
+        private Quaternion _rotationOffset = Quaternion.identity;
 
         /// <summary>
         /// Call once right after parenting/positioning the accessory.
@@ -44,9 +45,31 @@ namespace UpIzUpMini.Character
         /// need to know the per-item offset table.
         /// </summary>
         public void Initialize(Transform anchor, Vector3 localOffset)
+            => Initialize(anchor, localOffset, null);
+
+        /// <summary>
+        /// MINI-067 overload. <paramref name="worldRotation"/> is the
+        /// orientation the accessory should be HOLDING at rest, in world
+        /// space - normally the character root's rotation.
+        ///
+        /// Needed because this rig's bone rest orientations are not
+        /// world-aligned (the same trap already documented on Boss C's
+        /// necklace, where trusting the neck bone's local axes hung the
+        /// chain down by the hip). Copying the bone's rotation outright was
+        /// fine for a symmetric ring of spheres and is visibly wrong for a
+        /// real modelled chain. The delta is captured once here and
+        /// re-applied every frame, so the accessory still follows the bone
+        /// exactly - it just does so from the correct starting orientation.
+        ///
+        /// Passing null keeps the original behaviour (offset = identity).
+        /// </summary>
+        public void Initialize(Transform anchor, Vector3 localOffset, Quaternion? worldRotation)
         {
             _anchor = anchor;
             _localOffset = localOffset;
+            _rotationOffset = anchor != null && worldRotation.HasValue
+                ? Quaternion.Inverse(anchor.rotation) * worldRotation.Value
+                : Quaternion.identity;
             _lastRestWorldPos = _anchor != null ? _anchor.TransformPoint(localOffset) : transform.position;
             _swingOffset = Vector3.zero;
             _swingVelocity = Vector3.zero;
@@ -61,7 +84,7 @@ namespace UpIzUpMini.Character
             Vector3 restWorldPos = _anchor.TransformPoint(_localOffset);
             Simulate(Time.deltaTime, restWorldPos);
             transform.position = restWorldPos + _swingOffset;
-            transform.rotation = _anchor.rotation;
+            transform.rotation = _anchor.rotation * _rotationOffset;
         }
 
         /// <summary>

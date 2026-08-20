@@ -4,7 +4,7 @@ using UpIzUpMini.Economy;
 namespace UpIzUpMini.Character
 {
     /// <summary>
-    /// MINI-040. Press C to call whichever boy isn't currently controlled -
+    /// MINI-040. Press Q to call whichever boy isn't currently controlled -
     /// including pulling him straight off farm work - once the player owns
     /// "phone_basic" (Farm Shop). Per the user's ask: "buy cell phone to
     /// call other partner to come to you if he is working on the farm."
@@ -19,14 +19,21 @@ namespace UpIzUpMini.Character
     {
         public const string PhoneItemId = "phone_basic";
 
+        [SerializeField] private KeyCode callKey = KeyCode.Q;
         [SerializeField] private float callCooldownSeconds = 15f;
+        [Tooltip("MINI-069: recruited gang members are summoned too, spread on a short arc behind the player rather than stacked on one point.")]
+        [SerializeField] private float recruitSpacing = 1.3f;
         [SerializeField] private float arriveOffsetDistance = 2f;
 
         private float _nextCallAt;
 
         private void Update()
         {
-            if (!Input.GetKeyDown(KeyCode.C)) return;
+            // MINI-069: moved from C to Q at the user's request ("i also want
+            // to be able to call them from the cell phone to come and meet me so
+            // make Q do this"). Q is otherwise free in the field - the pause
+            // menu's Q only reads while paused.
+            if (!Input.GetKeyDown(callKey)) return;
 
             var economy = EconomyManager.Instance;
             // No phone yet - C does nothing, silently, rather than nagging
@@ -68,7 +75,63 @@ namespace UpIzUpMini.Character
                 + activeSlot.root.transform.right * arriveOffsetDistance;
             if (cc != null) cc.enabled = true;
 
-            return $"{otherSlot.displayName.ToUpperInvariant()}\nOn my way!";
+            int recruits = SummonRecruits(activeSlot.root.transform);
+
+            return recruits > 0
+                ? $"{otherSlot.displayName.ToUpperInvariant()}\nOn my way - bringing {recruits} of the crew."
+                : $"{otherSlot.displayName.ToUpperInvariant()}\nOn my way!";
+        }
+
+        /// <summary>
+        /// MINI-069: the same call also pulls in every recruited Not Ah Word
+        /// member, per "i also want to be able to call them from the cell phone
+        /// to come and meet me".
+        ///
+        /// They are placed behind the player on a short arc and switched back
+        /// to Follow, so calling doubles as "regroup on me" - otherwise a
+        /// member left on plantation guard duty would be summoned and then
+        /// immediately walk back to his post. Teleported rather than pathed,
+        /// matching the existing companion call: there is no navmesh route
+        /// this could rely on.
+        /// </summary>
+        private int SummonRecruits(Transform anchor)
+        {
+            var all = GangMemberController.All;
+            if (all == null || all.Count == 0) return 0;
+
+            int placed = 0;
+            for (int i = 0; i < all.Count; i++)
+            {
+                var member = all[i];
+                if (member == null || !member.IsRecruited || !member.gameObject.activeInHierarchy) continue;
+
+                // Fan out behind the player, alternating left/right, so a full
+                // crew does not end up in one long line trailing off.
+                int step = placed / 2 + 1;
+                float side = (placed % 2 == 0) ? -1f : 1f;
+                Vector3 spot = anchor.position
+                    - anchor.forward * (recruitSpacing * 0.8f)
+                    + anchor.right * side * recruitSpacing * step;
+
+                var cc = member.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
+                member.transform.position = spot;
+                member.transform.rotation = anchor.rotation;
+                if (cc != null) cc.enabled = true;
+
+                member.FollowTarget = anchor;
+                member.SetAssignmentFollow();
+
+                placed++;
+            }
+
+            // MINI-073: "you can also call gang on phone to come on your
+            // range as well" - if the player is currently driving, whoever
+            // was just teleported in climbs straight into an empty seat
+            // instead of standing next to a moving car.
+            UpIzUpMini.Vehicles.CarInteractable.ActiveDriven?.FillEmptySeats();
+
+            return placed;
         }
     }
 }

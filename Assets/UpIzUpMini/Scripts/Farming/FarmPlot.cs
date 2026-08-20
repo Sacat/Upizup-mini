@@ -75,6 +75,27 @@ namespace UpIzUpMini.Farming
         public bool IsDry => _state == PlotState.PlantedDry;
         public CropDefinition CurrentCrop => _crop;
 
+        /// <summary>MINI-059: a plot is only worth stealing from if there's
+        /// an actual illegal (Zeb) crop growing or ready on it - dry soil,
+        /// empty plots, and legal crops (tomato/banana/carrot) are never
+        /// targets.</summary>
+        public bool HasStealableZeb =>
+            _crop != null && _crop.isIllegal && (_state == PlotState.Growing || _state == PlotState.Ripe);
+
+        /// <summary>
+        /// MINI-059: someone volehs (steals) the crop off this plot -
+        /// a full loss, not a partial one, matching "unattended Zeb can be
+        /// volehed" plainly. Returns the stolen crop's display name for
+        /// the theft notification, or null if there was nothing stealable.
+        /// </summary>
+        public string Voleh()
+        {
+            if (!HasStealableZeb) return null;
+            string name = _crop.displayName;
+            ResetPlot();
+            return name;
+        }
+
         /// <summary>True while cuttings are still recovering.</summary>
         public bool IsCloning => _cloneReadyAt > 0f && Time.time < _cloneReadyAt;
 

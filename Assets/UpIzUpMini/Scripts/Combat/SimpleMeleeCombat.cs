@@ -35,6 +35,9 @@ namespace UpIzUpMini.Combat
 
         void Update()
         {
+            // F is both "punch" and "get on the bike" (MINI-069). Without this
+            // guard you throw a punch on the same frame you mount, every time.
+            if (Vehicles.BikeInteractable.ConsumedMountKeyThisFrame) return;
             if (!IsControlled || !Input.GetKeyDown(KeyCode.F) || Time.time < nextHit) return;
             nextHit = Time.time + cooldown;
             Attack();

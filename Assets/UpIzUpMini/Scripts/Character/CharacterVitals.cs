@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UpIzUpMini.Economy;
 
 namespace UpIzUpMini.Character
 {
@@ -55,7 +56,9 @@ namespace UpIzUpMini.Character
                 _boostEndsAt = -1f;
             }
 
-            if (GlobalUnlimitedStamina)
+            // MINI-060: Gardey Zafeh's EnergyBoost reading pins stamina at
+            // max for its duration, same idiom as GlobalUnlimitedStamina.
+            if (GlobalUnlimitedStamina || GardeyZafehBuffState.IsActive(GardeyZafehBuff.EnergyBoost))
             {
                 Stamina = maxStamina;
             }
@@ -68,6 +71,14 @@ namespace UpIzUpMini.Character
                 // Recovers while walking, and noticeably faster at a stop.
                 float regen = _moving ? staminaRegenWalking : staminaRegenIdle;
                 Stamina = Mathf.Min(maxStamina, Stamina + regen * _boostRegenMultiplier * Time.deltaTime);
+            }
+
+            // MINI-060: Gardey Zafeh's HealthBoost reading pins health at
+            // max for its duration (Damage() below also no-ops while it's
+            // active, so this isn't purely cosmetic).
+            if (GardeyZafehBuffState.IsActive(GardeyZafehBuff.HealthBoost))
+            {
+                Health = maxHealth;
             }
         }
 
@@ -102,6 +113,7 @@ namespace UpIzUpMini.Character
         public void Damage(float amount)
         {
             if (amount <= 0f || IsDead || GlobalInvincible) return;
+            if (GardeyZafehBuffState.IsActive(GardeyZafehBuff.HealthBoost)) return;
             Health = Mathf.Max(0f, Health - amount);
             if (IsDead) OnDied?.Invoke(this);
         }

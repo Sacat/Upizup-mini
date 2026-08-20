@@ -27,9 +27,28 @@ namespace UpIzUpMini
         public Vector3 strongPosition;
         public int activeCharacter;
 
+        // MINI-062: the player's chosen "wake up here" house, if any -
+        // Vector3.zero means "never picked one", which
+        // CharacterSwitchManager.LoadRespawnPoint treats as no selection
+        // rather than a real point at the world origin.
+        public Vector3 respawnPosition;
+        public string respawnLabel;
+
         public List<string> seedIds = new List<string>();
         public List<int> seedCounts = new List<int>();
         public List<string> ownedItemIds = new List<string>();
+
+        // MINI-073: stashed food/pharmacy items - see EconomyManager's
+        // CaptureConsumables/LoadConsumables.
+        public List<string> consumableIds = new List<string>();
+        public List<int> consumableCounts = new List<int>();
+
+        // MINI-066: where the bike was left. Vector3.zero means "no bike in the
+        // world yet", which Load treats as "leave it wherever the scene put
+        // it" rather than teleporting it to the world origin - the same
+        // never-set convention respawnPosition above already uses.
+        public Vector3 bikePosition;
+        public Vector3 bikeEuler;
 
         public int missionIndex;
         public int objectiveIndex;
@@ -66,6 +85,18 @@ namespace UpIzUpMini
         {
             var save = new GameSave();
 
+            // MINI-066: remember where the bike was left, so it is still there
+            // after a save/load instead of snapping back to wherever the scene
+            // originally placed it. Found by name rather than a serialized
+            // reference because the bike may be a scene-placed one OR spawned
+            // at runtime by VehicleSpawnController after purchase.
+            var bike = UnityEngine.Object.FindFirstObjectByType<Vehicles.TmaxBikeController>();
+            if (bike != null)
+            {
+                save.bikePosition = bike.transform.position;
+                save.bikeEuler = bike.transform.eulerAngles;
+            }
+
             if (EconomyManager.Instance != null)
             {
                 save.money = EconomyManager.Instance.Money;
@@ -78,6 +109,7 @@ namespace UpIzUpMini
                 }
 
                 EconomyManager.Instance.CaptureExtras(save.seedIds, save.seedCounts, save.ownedItemIds);
+                EconomyManager.Instance.CaptureConsumables(save.consumableIds, save.consumableCounts);
             }
 
             var missions = Missions.MissionSystem.Instance;
@@ -108,6 +140,8 @@ namespace UpIzUpMini
                     if (slots[0]?.root != null) save.smartPosition = slots[0].root.transform.position;
                     if (slots[1]?.root != null) save.strongPosition = slots[1].root.transform.position;
                 }
+                save.respawnPosition = switcher.CurrentRespawnPoint;
+                save.respawnLabel = switcher.RespawnLabel;
             }
 
             PlayerPrefs.SetString(SaveKey, JsonUtility.ToJson(save));
@@ -133,6 +167,23 @@ namespace UpIzUpMini
             EconomyManager.Instance?.LoadState(
                 save.money, save.heat, save.inventoryIds, save.inventoryCounts,
                 save.seedIds, save.seedCounts, save.ownedItemIds);
+            EconomyManager.Instance?.LoadConsumables(save.consumableIds, save.consumableCounts);
+
+            // MINI-068: the bike is returned to its HOME spot outside the farm
+            // safehouse on every load, not to wherever it was left.
+            //
+            // This deliberately reverses the save-the-last-position behaviour
+            // added a few tasks ago, at the user's explicit request and for
+            // their stated reason: "once i have bought the bike it should be in
+            // my safe house exact where you have it even every respawn. so if i
+            // forget it anywhere i will see it there." A vehicle you can strand
+            // on the far side of the map with no way back is a soft-lock; a
+            // fixed garage spot is the usual fix.
+            //
+            // bikePosition/bikeEuler are still WRITTEN to the save, so the old
+            // behaviour can be restored without a save-format change if the
+            // user ever wants "park it where you leave it" back.
+            Vehicles.VehicleSpawnController.ReturnBikeHome();
 
             Missions.MissionSystem.Instance?.LoadState(
                 save.missionIndex, save.objectiveIndex, save.objectiveProgress);
@@ -154,6 +205,7 @@ namespace UpIzUpMini
                     TeleportSlot(slots[1], save.strongPosition);
                 }
                 switcher.SwitchTo(save.activeCharacter);
+                switcher.LoadRespawnPoint(save.respawnPosition, save.respawnLabel);
             }
 
             Notify("Game loaded.");

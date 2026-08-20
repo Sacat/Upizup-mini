@@ -4,7 +4,10 @@ using UnityEngine;
 namespace UpIzUpMini.Progression
 {
     public enum CareerPath { Undecided, LegitimateFarmer, WeedRoute }
-    public enum Faction { BossK, Farmers, Police, GrandBayGangs }
+    // MINI-057: Normy is his own faction, deliberately separate from
+    // Police - he's a crooked individual, not representative of the
+    // force, and bribing him should not itself move real Police standing.
+    public enum Faction { BossK, Farmers, Police, GrandBayGangs, Normy }
 
     public class ProgressionManager : MonoBehaviour
     {
@@ -14,11 +17,19 @@ namespace UpIzUpMini.Progression
         public int FarmerReputation { get; private set; }
         public int PoliceReputation { get; private set; }
         public int GangReputation { get; private set; }
+        public int NormyReputation { get; private set; }
         public int BossExploitationStage { get; private set; }
         // MINI-043: the Guadeloupe run starts as an NPC-courier dispatch;
         // sending one of the two playable boys yourself unlocks after the
         // first NPC run completes. See GuadeloupeTrade.
         public bool GuadeloupeCharacterCourierUnlocked { get; private set; }
+        // MINI-060: set once Gardey Zafeh reveals Dog Life as the real
+        // source of the plantation theft (MINI-059) - "only after the
+        // reveal should Dog Life rivalry become openly active." Read by
+        // PlantationTheftController (names Dog Life in the notification
+        // from then on) and Dog Life's own DialogueSet (a new, openly
+        // hostile line becomes eligible).
+        public bool DogLifeRevealed { get; private set; }
         public bool GrandBayWeedRouteEstablished => BossKReputation >= 20 && GangReputation >= 10;
         public bool BlackSugarUnlocked => BossKReputation >= 20 && BossExploitationStage >= 2;
         public bool PurpleUnlocked => GangReputation >= 25 && BossExploitationStage >= 3;
@@ -39,6 +50,7 @@ namespace UpIzUpMini.Progression
 
         void Awake() => Instance = this;
         public void ChoosePath(CareerPath path) { if (Path == CareerPath.Undecided) Path = path; OnChanged?.Invoke(); }
+        public void RevealDogLife() { if (DogLifeRevealed) return; DogLifeRevealed = true; OnChanged?.Invoke(); }
         public void AddReputation(Faction faction, int amount)
         {
             switch (faction) {
@@ -46,9 +58,24 @@ namespace UpIzUpMini.Progression
                 case Faction.Farmers: FarmerReputation = Mathf.Clamp(FarmerReputation + amount, -100, 100); break;
                 case Faction.Police: PoliceReputation = Mathf.Clamp(PoliceReputation + amount, -100, 100); break;
                 case Faction.GrandBayGangs: GangReputation = Mathf.Clamp(GangReputation + amount, -100, 100); break;
+                case Faction.Normy: NormyReputation = Mathf.Clamp(NormyReputation + amount, -100, 100); break;
             }
             OnChanged?.Invoke();
         }
+
+        /// <summary>MINI-053: read-only mirror of AddReputation's per-field
+        /// switch, so the new dialogue-condition system (and anything else
+        /// that just needs to read a standing, not change it) doesn't need
+        /// its own copy of the faction->field mapping.</summary>
+        public int GetReputation(Faction faction) => faction switch
+        {
+            Faction.BossK => BossKReputation,
+            Faction.Farmers => FarmerReputation,
+            Faction.Police => PoliceReputation,
+            Faction.GrandBayGangs => GangReputation,
+            Faction.Normy => NormyReputation,
+            _ => 0
+        };
         public void RecordBossJob() { BossExploitationStage++; AddReputation(Faction.BossK, 10); AddReputation(Faction.Police, -8); AddReputation(Faction.GrandBayGangs, 5); }
         public void UnlockGuadeloupeCharacterCourier() { if (GuadeloupeCharacterCourierUnlocked) return; GuadeloupeCharacterCourierUnlocked = true; OnChanged?.Invoke(); }
 

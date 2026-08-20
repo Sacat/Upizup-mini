@@ -154,7 +154,10 @@ namespace UpIzUpMini.UI
                 }
                 var rep = UpIzUpMini.Progression.ProgressionManager.Instance;
                 if (rep != null)
-                    lines.Append($"\nREP  Boss K {rep.BossKReputation} | Farmers {rep.FarmerReputation} | Police {rep.PoliceReputation} | Gangs {rep.GangReputation}");
+                    // MINI-055: display-only "Boss J" - the underlying
+                    // BossKReputation field/Faction.BossK enum value are
+                    // untouched (see TownNPCInteractable's PromptLabel note).
+                    lines.Append($"\nREP  Boss J {rep.BossKReputation} | Farmers {rep.FarmerReputation} | Police {rep.PoliceReputation} | Gangs {rep.GangReputation} | Normy {rep.NormyReputation}");
                 inventoryLabel.text = lines.ToString();
             }
         }

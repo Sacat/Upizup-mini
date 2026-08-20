@@ -17,23 +17,39 @@ namespace UpIzUpMini.Farming
         private FarmPlot _plot;
         private bool _unlocked;
 
+        // MINI-080: same fix as CharacterEquipment - OnEnable only subscribed
+        // if EconomyManager.Instance already existed at that exact moment,
+        // with no execution-order guarantee against EconomyManager's own
+        // Awake(). Tracked so Start() can retry (guaranteed to run after
+        // every Awake() in the scene, including EconomyManager's).
+        private bool _subscribed;
+
         private void Awake()
         {
             _plot = GetComponent<FarmPlot>();
             ApplyState(false);
         }
 
-        private void OnEnable()
-        {
-            if (EconomyManager.Instance != null) EconomyManager.Instance.OnChanged += Check;
-        }
+        private void OnEnable() => TrySubscribe();
 
         private void OnDisable()
         {
-            if (EconomyManager.Instance != null) EconomyManager.Instance.OnChanged -= Check;
+            if (_subscribed && EconomyManager.Instance != null) EconomyManager.Instance.OnChanged -= Check;
+            _subscribed = false;
         }
 
-        private void Start() => Check();
+        private void TrySubscribe()
+        {
+            if (_subscribed || EconomyManager.Instance == null) return;
+            EconomyManager.Instance.OnChanged += Check;
+            _subscribed = true;
+        }
+
+        private void Start()
+        {
+            TrySubscribe();
+            Check();
+        }
 
         private void Check()
         {

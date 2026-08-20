@@ -22,6 +22,16 @@ namespace UpIzUpMini.Interaction
         // behaviour unchanged.
         [SerializeField] private string requiredItemId;
 
+        // MINI-062: "selectable respawn" - each safehouse carries its own
+        // world spawn point (the bed position, same offset math the farm
+        // safehouse always used internally) and can be told to become
+        // where death/out-of-bounds respawns send the player, via
+        // CharacterSwitchManager.SetRespawnPoint. Previously that spawn
+        // point was a single hardcoded value baked at scene-build time
+        // with no in-game way to change it, even after buying a second
+        // house.
+        [SerializeField] private Vector3 spawnPoint;
+
         private string _lastFeedback;
 
         private bool Owned => string.IsNullOrEmpty(requiredItemId)
@@ -32,7 +42,7 @@ namespace UpIzUpMini.Interaction
             get
             {
                 if (!Owned) return "[ E ] House (locked)";
-                return _menuOpen ? "[1] Rest  [2] Save  [3] Load  [E] Leave" : "[ E ] Use bed";
+                return _menuOpen ? "[1] Rest  [2] Save  [3] Load  [4] Set Respawn  [E] Leave" : "[ E ] Use bed";
             }
         }
 
@@ -54,6 +64,33 @@ namespace UpIzUpMini.Interaction
                 _lastFeedback = "Game loaded.";
                 _menuOpen = false;
             }
+            else if (Input.GetKeyDown(KeyCode.Alpha4))
+            {
+                SetRespawnHere();
+            }
+        }
+
+        /// <summary>The "[4] Set Respawn" action, exposed as a standalone
+        /// method (mirroring the private Rest()) so a validation harness
+        /// can trigger it directly rather than needing to fake real OS
+        /// Input.GetKeyDown events the way Update()'s menu dispatch reads
+        /// them - same reasoning as CheatCodeController.FeedTypedCharacters
+        /// being split out from its own Update().</summary>
+        public string SetRespawnHere()
+        {
+            // Guards even though the only in-game path here (Update()'s
+            // Alpha4 branch) is already unreachable while locked, since
+            // _menuOpen can only be true after an Owned check in Interact() -
+            // a direct caller (e.g. a test harness) shouldn't be able to
+            // skip that gate.
+            if (!Owned)
+            {
+                _lastFeedback = "Dis house not yours yet. Buy the deed first, nuh.";
+                return _lastFeedback;
+            }
+            CharacterSwitchManager.Instance?.SetRespawnPoint(spawnPoint, safehouseName);
+            _lastFeedback = $"{safehouseName} set as where allu wake up from now on.";
+            return _lastFeedback;
         }
 
         public override void Interact(GameObject interactor)

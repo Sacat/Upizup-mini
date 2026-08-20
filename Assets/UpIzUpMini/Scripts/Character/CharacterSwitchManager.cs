@@ -40,6 +40,34 @@ namespace UpIzUpMini.Character
 
         public event Action<CharacterSlot> OnActiveChanged;
 
+        // MINI-062: "selectable respawn" - a house's SafehouseInteractable
+        // calls this ([4] Set Respawn) to make itself where the player
+        // reappears after death or falling out of the world, instead of
+        // that always being the fixed Montine farm safehouse baked into
+        // `safehouseSpawn` at scene-build time. Falls back to
+        // `safehouseSpawn` until the player ever picks one explicitly.
+        private bool _hasSelectedRespawn;
+        private Vector3 _selectedRespawn;
+        public string RespawnLabel { get; private set; } = "Farm Safehouse";
+        public Vector3 CurrentRespawnPoint => _hasSelectedRespawn ? _selectedRespawn : safehouseSpawn;
+
+        public void SetRespawnPoint(Vector3 point, string label)
+        {
+            _hasSelectedRespawn = true;
+            _selectedRespawn = point;
+            RespawnLabel = label;
+        }
+
+        /// <summary>Restores a respawn selection from a save file - distinct
+        /// from SetRespawnPoint only in that a zero vector (never saved, or
+        /// an old save predating this feature) is treated as "no selection
+        /// yet" rather than a real point to respawn at.</summary>
+        public void LoadRespawnPoint(Vector3 point, string label)
+        {
+            if (point == Vector3.zero) return;
+            SetRespawnPoint(point, label);
+        }
+
         private void Awake()
         {
             Instance = this;
@@ -84,7 +112,7 @@ namespace UpIzUpMini.Character
                 if (slot?.root == null) continue;
                 var cc = slot.root.GetComponent<CharacterController>();
                 if (cc != null) cc.enabled = false;
-                slot.root.transform.position = safehouseSpawn + new Vector3(i * 1.25f, 0.15f, 0f);
+                slot.root.transform.position = CurrentRespawnPoint + new Vector3(i * 1.25f, 0.15f, 0f);
                 if (cc != null) cc.enabled = true;
                 slot.vitals?.Restore();
                 slot.root.GetComponent<FarmhandController>()?.SetWorking(false);

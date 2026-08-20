@@ -12,7 +12,8 @@ These rules apply to Codex, Claude Work/Claude Code, and any other coding agent.
 ## Required startup sequence
 
 1. Read this file completely.
-2. Read `PROJECT-HANDOFF.md`, `TASKS.md`, and relevant files in `Docs/`.
+2. Read `Docs/CURRENT.md`, the `### Current claim` block in `PROJECT-HANDOFF.md`, the active/relevant task entries in `PROJECT-HANDOFF.md` and `TASKS.md`, and relevant files in `Docs/`. The full handoff is the audit history; do not load all completed entries when a targeted search is sufficient.
+   For production, visual, asset, world, character, animation, vehicle, or QA work, also read `Docs/AI-PRODUCTION-WORKFLOW.md` and create a bounded work packet from `Docs/WORK-PACKET-TEMPLATE.md`.
 3. Confirm `Current owner` is `None` or already assigned to you for the active task.
 4. Claim exactly one task ID in `PROJECT-HANDOFF.md` before editing.
 5. Record the files or scene that the task reserves.
@@ -49,3 +50,4 @@ For every implementation task:
 
 If a visual result cannot be inspected, say so explicitly and request a user play-test or screenshot. Do not substitute assumptions for visual confirmation.
 
+User-approved appearance and placement recorded in `Docs/VISUAL-APPROVAL-REGISTER.md` must not be silently recalculated, regenerated, normalized, or replaced. Changing a visual lock requires explicit user approval and replacement evidence.
