@@ -54,6 +54,15 @@ namespace UpIzUpMini.Interaction
             {
                 if (!recruitViaReputation) return; // handled by the paid recruiter NPC instead
 
+                if (!ProgressionGate.CanRecruit)
+                {
+                    int current = ProgressionManager.Instance != null
+                        ? ProgressionManager.Instance.GetReputation(Faction.GrandBayGangs)
+                        : 0;
+                    _feedback = $"{member.MemberName}: Build your name first, boss. Street rep at {current}%.";
+                    return;
+                }
+
                 var progression = ProgressionManager.Instance;
                 int reputation = progression != null ? progression.GetReputation(Faction.GrandBayGangs) : 0;
                 if (reputation < recruitReputationThreshold)

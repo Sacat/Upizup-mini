@@ -1421,6 +1421,12 @@ Acceptance criteria:
 - No Hitem3D credits are spent and no map/character/gameplay redesign is performed in this task.
 - The verified state is committed as an explicit baseline checkpoint; ownership is released.
 
+### MINI-086 — Progression truth, dialogue, follower, combat, HUD, and equipment corrections
+
+Goal: Apply the user's hands-on regression feedback to the existing game systems without expanding into new map production, paid assets, shooting, or a full animation redesign. See `Docs/WorkPackets/MINI-086.md`.
+
+Status: Evidence ready; waiting for the user's manual Sacat chain placement and hands-on playtest. Codex retains the claim until the approved chain transform is captured.
+
 - `MINI-032`: Modular wardrobe + accessory IK/physics (chain jiggle, etc.) — attachment already exists (MINI-022 `CharacterEquipment`), this adds swing/sway physics and separate garment geometry instead of material recolor.
 - `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed).
 - `MINI-034`: Car — buy/enter/exit/seated driving, real vehicle physics; depends on MINI-033's enter/exit pattern.

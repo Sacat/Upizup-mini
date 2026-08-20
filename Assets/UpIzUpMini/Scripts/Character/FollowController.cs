@@ -31,6 +31,8 @@ namespace UpIzUpMini.Character
 
         private CharacterController _controller;
         private float _animSpeedBlend;
+        private float _blockedFor;
+        private float _sideSign;
 
         public Transform FollowTarget { get; set; }
         public bool FollowingEnabled { get; set; } = true;
@@ -38,6 +40,7 @@ namespace UpIzUpMini.Character
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
+            _sideSign = (GetInstanceID() & 1) == 0 ? 1f : -1f;
             if (animator == null) animator = GetComponentInChildren<Animator>();
         }
 
@@ -56,6 +59,14 @@ namespace UpIzUpMini.Character
             if (dist > followDistance)
             {
                 Vector3 dir = toTarget.normalized;
+                if (!LocalSteeringSafety.TryDirection(transform, _controller, dir, FollowTarget, _sideSign, out dir))
+                {
+                    _blockedFor += Time.deltaTime;
+                    if (_blockedFor > 1.2f) _sideSign *= -1f;
+                    Animate(speedBlend, moving);
+                    return;
+                }
+                _blockedFor = 0f;
                 // Break into a run if we've fallen well behind, so the
                 // companion can actually catch up.
                 float speed = dist > followDistance * 3f ? 5.335f : moveSpeed;
@@ -65,6 +76,11 @@ namespace UpIzUpMini.Character
                 moving = true;
             }
 
+            Animate(speedBlend, moving);
+        }
+
+        private void Animate(float speedBlend, bool moving)
+        {
             if (animator != null)
             {
                 _animSpeedBlend = Mathf.Lerp(_animSpeedBlend, speedBlend, 10f * Time.deltaTime);

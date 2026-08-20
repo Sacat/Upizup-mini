@@ -21,6 +21,10 @@ namespace UpIzUpMini.Cameras
         [SerializeField] private float verticalSensitivity = 100f;
         [SerializeField] private float minPitchDegrees = 20f;
         [SerializeField] private float maxPitchDegrees = 75f;
+        [Header("Camera obstruction")]
+        [SerializeField] private float obstructionRadius = 0.28f;
+        [SerializeField] private float obstructionBuffer = 0.18f;
+        [SerializeField] private LayerMask obstructionLayers = ~0;
 
         private Vector3 _velocity;
         [Tooltip("MINI-072: how fast the locked chase camera swings in behind the vehicle. Eased rather than snapped, or the view whips around on every steering input.")]
@@ -85,10 +89,39 @@ namespace UpIzUpMini.Cameras
                 + orbitRot * new Vector3(0f, 0f, -orbitDistance)
                 + Vector3.up * lookAtHeight;
 
+            Vector3 lookPoint = target.position + Vector3.up * lookAtHeight;
+            desiredPosition = ResolveObstruction(lookPoint, desiredPosition);
+
             transform.position = Vector3.SmoothDamp(
                 transform.position, desiredPosition, ref _velocity, positionSmoothTime);
 
-            transform.LookAt(target.position + Vector3.up * lookAtHeight);
+            transform.LookAt(lookPoint);
+        }
+
+        private Vector3 ResolveObstruction(Vector3 lookPoint, Vector3 desiredPosition)
+        {
+            Vector3 ray = desiredPosition - lookPoint;
+            float distance = ray.magnitude;
+            if (distance <= 0.01f) return desiredPosition;
+
+            RaycastHit[] hits = Physics.SphereCastAll(
+                lookPoint, obstructionRadius, ray / distance, distance,
+                obstructionLayers, QueryTriggerInteraction.Ignore);
+
+            float nearest = distance;
+            bool blocked = false;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Transform hitTransform = hits[i].transform;
+                if (hitTransform == null || hitTransform == target || hitTransform.IsChildOf(target)) continue;
+                if (hits[i].distance >= nearest) continue;
+                nearest = hits[i].distance;
+                blocked = true;
+            }
+
+            if (!blocked) return desiredPosition;
+            float safeDistance = Mathf.Max(0.55f, nearest - obstructionBuffer);
+            return lookPoint + ray.normalized * safeDistance;
         }
     }
 }

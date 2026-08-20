@@ -1,6 +1,7 @@
 using UnityEngine;
 using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
+using UpIzUpMini.Progression;
 
 namespace UpIzUpMini.Interaction
 {
@@ -57,7 +58,7 @@ namespace UpIzUpMini.Interaction
 
         [TextArea(1, 3)]
         [SerializeField] private string shopkeeperLine =
-            "Yea mn, I have seed and ting. Take a look nuh.";
+            "Take a look and see what making sense for you, nuh.";
 
         [SerializeField] private UI.ShopPanelController shop;
 
@@ -135,6 +136,7 @@ namespace UpIzUpMini.Interaction
             "I see riches coming for allu. But mind di jalousie people close to you, chile - dat's how good ting does turn bad.";
 
         private int _lineIndex;
+        private bool _hasMet;
 
         // MINI-081: "some drug missions" - see the intervention roll inside
         // SellCrops() below.
@@ -185,7 +187,7 @@ namespace UpIzUpMini.Interaction
             // so renaming them would be a much larger, riskier change for
             // no player-facing benefit.
             NpcRole.Boss => "[ E ] Talk to Boss J",
-            NpcRole.Vagrant => "[ E ] Sell weed quietly",
+            NpcRole.Vagrant => "[ E ] Talk to Paro",
             NpcRole.BlackMarket => "[ E ] Black Market",
             NpcRole.StrainBoss => $"[ E ] Talk to {npcName}",
             NpcRole.LandOffice => "[ E ] Land and Surveys",
@@ -204,6 +206,15 @@ namespace UpIzUpMini.Interaction
 
         public override void Interact(GameObject interactor)
         {
+            if (!CanUseCurrentRole(out string lockedFeedback))
+            {
+                _lastFeedback = lockedFeedback;
+                return;
+            }
+
+            bool firstMeeting = !_hasMet;
+            _hasMet = true;
+
             switch (role)
             {
                 case NpcRole.Buyer:
@@ -215,7 +226,7 @@ namespace UpIzUpMini.Interaction
                     break;
 
                 case NpcRole.BlackMarket:
-                    _lastFeedback = "I buying clean clothes cheap. Choose what you selling, mn.";
+                    _lastFeedback = "I buying clothes and accessories allu done with. Show me what you have, mn.";
                     // MINI-082: pass this NPC's own transform so the shop
                     // panel can fade itself shut when the player walks away.
                     shop?.Open(transform);
@@ -233,7 +244,7 @@ namespace UpIzUpMini.Interaction
                 case NpcRole.CarDealer:
                 case NpcRole.FoodShop:
                 case NpcRole.Pharmacy:
-                    _lastFeedback = shopkeeperLine;
+                    _lastFeedback = ShopDialogueForRole();
                     shop?.Open(transform);
                     break;
 
@@ -246,16 +257,20 @@ namespace UpIzUpMini.Interaction
                     // illegal strain's starter seeds (MINI-039: priced,
                     // previously free) so the player can take the
                     // higher-paying, higher-heat work.
-                    if (bossSeedCrop != null && EconomyManager.Instance != null
+                    int weedHeld = bossSeedCrop != null && EconomyManager.Instance != null
+                        ? EconomyManager.Instance.GetCount(bossSeedCrop.cropId) : 0;
+                    if (weedHeld > 0)
+                    {
+                        SellCrops(true, false, 1.35f, "BossK");
+                    }
+                    else if (bossSeedCrop != null && EconomyManager.Instance != null
                         && EconomyManager.Instance.GetSeeds(bossSeedCrop.cropId) <= 0)
                     {
                         _lastFeedback = TryBuySeed(bossSeedCrop, seedPrice, bossOfferLine);
                     }
                     else
                     {
-                        int weedHeld = EconomyManager.Instance.GetCount(bossSeedCrop.cropId);
-                        if (weedHeld > 0) SellCrops(true, false, 1.35f, "BossK");
-                        else _lastFeedback = bossFollowUpLine;
+                        _lastFeedback = bossFollowUpLine;
                     }
                     break;
 
@@ -279,8 +294,69 @@ namespace UpIzUpMini.Interaction
                     break;
             }
 
+            if (firstMeeting)
+            {
+                string intro = FirstMeetingDialogue();
+                if (!string.IsNullOrEmpty(intro)) _lastFeedback = $"{intro}\n{_lastFeedback}";
+            }
+
             Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.TalkTo, npcName);
         }
+
+        private bool CanUseCurrentRole(out string feedback)
+        {
+            feedback = "Come back when allu make more progress, nuh.";
+            switch (role)
+            {
+                case NpcRole.Boss: return ProgressionGate.CanUseBossJ;
+                case NpcRole.Vagrant: return ProgressionGate.CanUseParo;
+                case NpcRole.StrainBoss: return ProgressionGate.CanUseBossC;
+                case NpcRole.BoatMan: return ProgressionGate.CanUseBoat;
+                case NpcRole.BlackMarket: return ProgressionGate.CanUseBlackMarket;
+                case NpcRole.Normy: return ProgressionGate.CanUseNormy;
+                case NpcRole.GangRecruiter:
+                    if (!ProgressionGate.IsMissionReached("M15")) return false;
+                    int rep = ProgressionManager.Instance != null ? ProgressionManager.Instance.GangReputation : 0;
+                    if (rep < 20)
+                    {
+                        feedback = $"Build your street reputation first. You at {Mathf.Max(0, rep)}%; I need to see 20%.";
+                        return false;
+                    }
+                    return true;
+                default: return true;
+            }
+        }
+
+        private string FirstMeetingDialogue() => role switch
+        {
+            NpcRole.FarmShop => "Farm Seller: First time I seeing allu here. I sell legal seed for the Montine plots.",
+            NpcRole.Buyer => "Produce Buyer: I buy clean crop from local farmers. Bring it ripe and I pay fair.",
+            NpcRole.ApparelShop => "Clothes Man: Welcome, fellas. Clothes, shoes and accessories inside.",
+            NpcRole.LandOffice => "Land and Surveys Man: I handle surveyed lots and property deeds for Grand Bay.",
+            NpcRole.CarDealer => "Vehicle Dealer: Save your money first; transport does change how far allu can work.",
+            NpcRole.FoodShop => "Food Vendor: If allu hungry, pass through. I have local food ready.",
+            NpcRole.Pharmacy => "Pharmacy Clerk: I have health and energy supplies when the road wearing allu down.",
+            NpcRole.Vagrant => "Paro: Eh boss, easy. I sleeping rough these days, but I might take a little thing off allu hand.",
+            NpcRole.BlackMarket => "Black Market Trader: Things you done wearing can still make a little money here.",
+            NpcRole.Boss => "Boss J: I hearing Sacat and Franki trying to make a name farming up Montine.",
+            NpcRole.StrainBoss => $"{npcName}: Boss J send allu? Higher-grade work have higher consequences.",
+            NpcRole.Police => $"{npcName}: First time I seeing allu on this stretch. Keep out of trouble.",
+            NpcRole.BoatMan => "Boat Man: I run the Guadeloupe route from the bay when the conditions right.",
+            NpcRole.Normy => "Normy: People call me Normy. If you need information, we could reason.",
+            NpcRole.GangRecruiter => "Recruiter: Respect come before numbers. Show the block allu serious first.",
+            _ => $"{npcName}: Wah happen? I seeing allu around Grand Bay now.",
+        };
+
+        private string ShopDialogueForRole() => role switch
+        {
+            NpcRole.FarmShop => "Farm Seller: Tomato, banana and carrot seed ready. Pick what your plot need.",
+            NpcRole.ApparelShop => "Clothes Man: I have clothes, shoes and accessories. Each purchase is for the boy buying it.",
+            NpcRole.LandOffice => "Land and Surveys Man: Available surveyed lots showing on the list. More unlock as allu progress.",
+            NpcRole.CarDealer => "Vehicle Dealer: Only transport allu qualify for will show here.",
+            NpcRole.FoodShop => "Food Vendor: Choose something and put it in your inventory for when you need it.",
+            NpcRole.Pharmacy => "Pharmacy Clerk: These supplies can help health or stamina; use them from inventory.",
+            _ => shopkeeperLine,
+        };
 
         /// <summary>
         /// MINI-039. Charges the given price for the strain's three
@@ -646,10 +722,16 @@ namespace UpIzUpMini.Interaction
                 // identifier, unaffected by this text.
                 _lastFeedback = bossSale && earned <= 0
                     ? "Boss J: Money tight. I holding your payment this time. Do the next job and we settle, nuh."
-                    : $"Yea mn, sold for ${earned}.";
+                    : bossSale
+                        ? $"Boss J: Good. ${earned} for that. You can sell small amounts to the Paro in Lalay too, but he paying less."
+                        : buyerId == "Vagrant"
+                            ? $"Paro: Respect, boss. I scrape up ${earned}. Doh bring police by me, nuh."
+                            : $"Yea mn, sold for ${earned}.";
                 Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.SellCrop, buyerId);
             }
-            else _lastFeedback = NextLine(buyerLines, "Nothing for me right now, nuh.");
+            else _lastFeedback = buyerId == "Vagrant"
+                ? "Paro: I doh have money for tomato and them thing. If is a little weed, we could reason."
+                : NextLine(buyerLines, "Nothing for me right now, nuh.");
         }
     }
 }

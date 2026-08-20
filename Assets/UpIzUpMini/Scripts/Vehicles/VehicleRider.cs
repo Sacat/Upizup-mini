@@ -248,7 +248,20 @@ namespace UpIzUpMini.Vehicles
             transform.localScale = _originalLocalScale;
 
             if (_characterController != null) _characterController.enabled = true;
-            if (_player != null) _player.IsControlled = true;
+
+            // A pillion is normally the inactive protagonist. The previous
+            // code enabled PlayerController on every dismounting rider, so the
+            // driver and passenger both read the same input and moved in a
+            // mirrored lockstep after getting off the bike.
+            var switcher = CharacterSwitchManager.Instance;
+            bool shouldControl = switcher == null || switcher.Active?.root == gameObject;
+            if (_player != null) _player.IsControlled = shouldControl;
+            var follower = GetComponent<FollowController>();
+            if (follower != null)
+            {
+                follower.FollowingEnabled = !shouldControl;
+                follower.FollowTarget = !shouldControl ? switcher?.Active?.root?.transform : null;
+            }
 
             return true;
         }

@@ -97,11 +97,19 @@ namespace UpIzUpMini.Combat
             // whichever one you are not currently controlling.
             if (playerController != null && playerController.IsControlled) return;
 
+            int alliesStanding = CountStanding(side);
+            int enemiesStanding = CountStanding(Opposite(side));
+            if (side == Side.DogLife && alliesStanding <= 1 && enemiesStanding > 1)
+            {
+                RetreatFromLastEnemy();
+                return;
+            }
+
             // The user's stand-down rule: "when rival gang remains 1 they stop".
             // Applied symmetrically, so it reads as both sides breaking off
             // rather than one gang mercilessly hunting the last man down. Also
             // stops a fight grinding on forever once it is effectively decided.
-            if (CountStanding(Opposite(side)) <= standDownWhenEnemiesLeft)
+            if (enemiesStanding <= standDownWhenEnemiesLeft)
             {
                 _chaseTarget = null;
                 return;
@@ -155,7 +163,11 @@ namespace UpIzUpMini.Combat
             toTarget.y = 0f;
             if (toTarget.sqrMagnitude < 0.0001f) return;
 
-            Vector3 step = toTarget.normalized * approachSpeed * Time.deltaTime;
+            Vector3 direction = toTarget.normalized;
+            if (characterController != null
+                && !LocalSteeringSafety.TryDirection(transform, characterController, direction, null, 1f, out direction))
+                return;
+            Vector3 step = direction * approachSpeed * Time.deltaTime;
             // Gravity included, or a fighter walking off a kerb hangs in the air -
             // CharacterController does not fall on its own.
             if (characterController != null && characterController.enabled)
@@ -165,6 +177,26 @@ namespace UpIzUpMini.Combat
             else
             {
                 transform.position += step;
+            }
+        }
+
+        private void RetreatFromLastEnemy()
+        {
+            FactionBrawler enemy = FindNearestEnemy(out float distance);
+            if (enemy == null || distance >= chaseRange)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
+            Vector3 away = transform.position - enemy.transform.position;
+            away.y = 0f;
+            if (away.sqrMagnitude < 0.001f) away = -transform.forward;
+            if (characterController != null
+                && LocalSteeringSafety.TryDirection(transform, characterController, away, enemy.transform, -1f, out Vector3 safe))
+            {
+                characterController.Move(safe * 5.2f * Time.deltaTime + Vector3.down * 9.81f * Time.deltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(safe), 10f * Time.deltaTime);
             }
         }
 

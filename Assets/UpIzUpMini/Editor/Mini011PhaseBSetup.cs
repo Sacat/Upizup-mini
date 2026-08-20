@@ -245,6 +245,7 @@ namespace UpIzUpMini.EditorTools
             stSo.ApplyModifiedPropertiesWithoutUndo();
 
             BuildHUD(crops);
+            new GameObject("GameplayHints").AddComponent<GameplayHintController>();
             BuildPauseMenu();
 
             // MINI-059: every FarmPlot (main + expansion) already exists by
@@ -2363,10 +2364,14 @@ namespace UpIzUpMini.EditorTools
             var equipment = go.AddComponent<CharacterEquipment>();
             var eqSo = new SerializedObject(equipment);
             eqSo.FindProperty("animator").objectReferenceValue = animator;
+            eqSo.FindProperty("characterIndex").intValue = string.Equals(displayName, "Franki", System.StringComparison.OrdinalIgnoreCase) ? 1 : 0;
             // MINI-067: the real 18k model replaces the generated ring of
             // spheres. Left null-tolerant on the runtime side, so a character
             // built before this still wears the placeholder rather than nothing.
             eqSo.FindProperty("chainPrefab").objectReferenceValue = LoadGoldChainPrefab();
+            eqSo.FindProperty("chainPlacement").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<AccessoryPlacementProfile>(
+                    $"Assets/UpIzUpMini/Data/Equipment/{displayName}ChainPlacement.asset");
             eqSo.ApplyModifiedPropertiesWithoutUndo();
 
             var playerController = go.AddComponent<PlayerController>();
@@ -2765,6 +2770,7 @@ namespace UpIzUpMini.EditorTools
                 var combatHealth = go.AddComponent<NpcCombatHealth>();
                 var chSo = new SerializedObject(combatHealth);
                 chSo.FindProperty("animationManager").objectReferenceValue = animationManager;
+                chSo.FindProperty("despawnOnDefeat").boolValue = true;
                 chSo.ApplyModifiedPropertiesWithoutUndo();
 
                 // MINI-069: "dont forget doglife should fight back as well".
@@ -3519,7 +3525,10 @@ namespace UpIzUpMini.EditorTools
             Vector3 pos = roadPoints[index];
             Vector3 dir = (roadPoints[index + 1] - roadPoints[index - 1]).normalized;
             Vector3 right = Vector3.Cross(Vector3.up, dir).normalized;
-            pos += right * sideMul * 3.8f;
+            // The Land and Surveys man stands visibly in front of his stall,
+            // between the road and the building, rather than around its side.
+            float roadsideOffset = role == NpcRole.LandOffice ? 4.45f : 3.8f;
+            pos += right * sideMul * roadsideOffset;
             pos.y = SampleHeight(terrain, pos.x, pos.z);
 
             var npcGo = new GameObject(goName);
@@ -4316,7 +4325,7 @@ namespace UpIzUpMini.EditorTools
                         {
                             kind = ObjectiveKind.BuyItem,
                             targetId = "land_montine",
-                            instruction = "Buy the Montine Land Plot at Land and Surveys ($600)",
+                            instruction = "Go to the LAND AND SURVEYS building and buy the Montine Land Plot ($600) - the Land and Surveys man is standing in front",
                             markerPosition = landOfficePos,
                         },
                         new MissionObjective
@@ -4361,7 +4370,7 @@ namespace UpIzUpMini.EditorTools
                         {
                             kind = ObjectiveKind.SellCrop,
                             targetId = "BossK",
-                            instruction = "Take the Bushers back to Boss J - this mission sale adds 50% heat",
+                            instruction = "Bring the harvested Bushers back to Boss J  [ E ]",
                             markerPosition = bossPos,
                         },
                     }
@@ -4384,7 +4393,7 @@ namespace UpIzUpMini.EditorTools
                         {
                             kind = ObjectiveKind.TalkTo,
                             targetId = "Police",
-                            instruction = "Walk past the officer clean - talk to him with low heat",
+                            instruction = "Plant or sell any weed and seeds, then talk to the officer with low heat",
                             markerPosition = policePos,
                         },
                     }
@@ -4419,7 +4428,7 @@ namespace UpIzUpMini.EditorTools
                 {
                     missionId = "M7",
                     title = "Street Route",
-                    briefing = "Boss J pay best, but a vagrant in Lalay buying small amounts with less questions.",
+                    briefing = "Boss J pay best, but a Paro in Lalay buying small amounts with less questions.",
                     rewardMoney = 140,
                     objectives = new List<MissionObjective>
                     {
@@ -4427,14 +4436,14 @@ namespace UpIzUpMini.EditorTools
                         {
                             kind = ObjectiveKind.TalkTo,
                             targetId = "Vagrant",
-                            instruction = "Find the vagrant along the Lalay road",
+                            instruction = "Find the Paro along the Lalay road",
                             markerPosition = roadPoints[Mathf.Clamp(9, 1, roadPoints.Count - 2)],
                         },
                         new MissionObjective
                         {
                             kind = ObjectiveKind.SellCrop,
                             targetId = "Vagrant",
-                            instruction = "Sell the Bushers to the vagrant - off-mission sales add 30% heat",
+                            instruction = "Sell the Bushers to the Paro. Selling weed raises heat.",
                             markerPosition = roadPoints[Mathf.Clamp(9, 1, roadPoints.Count - 2)],
                         },
                         new MissionObjective
@@ -4805,6 +4814,7 @@ namespace UpIzUpMini.EditorTools
             Image healthFill = CreateMeter(canvasGo.transform, "Health", new Vector2(20f, -20f), new Color(0.20f, 0.80f, 0.25f), font, out Text healthPct);
             Image staminaFill = CreateMeter(canvasGo.transform, "Energy", new Vector2(20f, -50f), new Color(0.95f, 0.85f, 0.15f), font, out Text staminaPct);
             Image heatFill = CreateMeter(canvasGo.transform, "Heat", new Vector2(20f, -80f), new Color(0.90f, 0.15f, 0.12f), font, out Text heatPct);
+            Image reputationFill = CreateMeter(canvasGo.transform, "Street Rep", new Vector2(20f, -110f), new Color(0.30f, 0.55f, 0.95f), font, out Text reputationPct);
 
             // Money/crop sit against bright sky, so they get a dark backing
             // panel - white-on-sky was unreadable at some camera angles.
@@ -4830,8 +4840,10 @@ namespace UpIzUpMini.EditorTools
             inventoryLabel.rectTransform.sizeDelta = new Vector2(310f, 145f);
             inventoryLabel.alignment = TextAnchor.UpperLeft;
 
-            Text nameLabel = CreateLabel(canvasGo.transform, "Smart", 26, new Vector2(130f, -112f), font);
+            Text nameLabel = CreateLabel(canvasGo.transform, "ACTIVE: SACAT", 26, new Vector2(20f, -146f), font);
             nameLabel.rectTransform.anchorMin = nameLabel.rectTransform.anchorMax = new Vector2(0f, 1f);
+            nameLabel.rectTransform.pivot = new Vector2(0f, 1f);
+            nameLabel.rectTransform.sizeDelta = new Vector2(360f, 44f);
             nameLabel.alignment = TextAnchor.MiddleLeft;
 
             var hud = canvasGo.AddComponent<HUDController>();
@@ -4843,6 +4855,8 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("characterNameLabel").objectReferenceValue = nameLabel;
             so.FindProperty("cropSelectionLabel").objectReferenceValue = cropLabel;
             so.FindProperty("inventoryLabel").objectReferenceValue = inventoryLabel;
+            so.FindProperty("reputationFill").objectReferenceValue = reputationFill;
+            so.FindProperty("reputationPercent").objectReferenceValue = reputationPct;
             var known = so.FindProperty("knownCrops");
             known.arraySize = crops.Length;
             for (int i = 0; i < crops.Length; i++) known.GetArrayElementAtIndex(i).objectReferenceValue = crops[i];

@@ -19,6 +19,8 @@ namespace UpIzUpMini.Character
     public class CharacterEquipment : MonoBehaviour
     {
         [SerializeField] private Animator animator;
+        [SerializeField] private int characterIndex;
+        [SerializeField] private AccessoryPlacementProfile chainPlacement;
 
         /// <summary>
         /// MINI-067 chain placement, relative to the CHEST bone but expressed in
@@ -246,7 +248,7 @@ namespace UpIzUpMini.Character
                     if (alwaysEquipped[i] == itemId) return true;
                 }
             }
-            return economy != null && economy.OwnsItem(itemId);
+            return economy != null && economy.OwnsItem(itemId, characterIndex);
         }
 
         private void Apply(string itemId, HumanBodyBones bone, bool owned, System.Func<GameObject> build)
@@ -264,14 +266,23 @@ namespace UpIzUpMini.Character
 
                 if (itemId == "chain_gold")
                 {
-                    // Placed in the character's frame, then converted back to a
-                    // bone-local offset for the swing to settle around.
-                    go.transform.rotation = transform.rotation * Quaternion.Euler(ChainTilt, 0f, 0f);
-                    go.transform.position = anchor.position
-                        + transform.forward * ChainForward
-                        + transform.up * ChainUp
-                        + transform.right * ChainSide;
-                    NormaliseAccessoryScale(go.transform, anchor, ChainWidth);
+                    if (chainPlacement != null && chainPlacement.useManualPlacement)
+                    {
+                        go.transform.localPosition = chainPlacement.localPosition;
+                        go.transform.localRotation = Quaternion.Euler(chainPlacement.localEulerAngles);
+                        go.transform.localScale = chainPlacement.localScale;
+                    }
+                    else
+                    {
+                        // Placed in the character's frame, then converted back
+                        // to a bone-local offset for the swing to settle around.
+                        go.transform.rotation = transform.rotation * Quaternion.Euler(ChainTilt, 0f, 0f);
+                        go.transform.position = anchor.position
+                            + transform.forward * ChainForward
+                            + transform.up * ChainUp
+                            + transform.right * ChainSide;
+                        NormaliseAccessoryScale(go.transform, anchor, ChainWidth);
+                    }
                 }
                 else
                 {
@@ -291,7 +302,7 @@ namespace UpIzUpMini.Character
                     // not world-aligned - the same trap already documented on
                     // Boss C's necklace - and a real modelled chain shows that
                     // immediately where a ring of spheres did not.
-                    swing.Initialize(anchor, go.transform.localPosition, transform.rotation);
+                    swing.Initialize(anchor, go.transform.localPosition, go.transform.rotation);
                 }
 
                 _spawned[itemId] = go;

@@ -26,6 +26,8 @@ namespace UpIzUpMini.UI
         [SerializeField] private Text characterNameLabel;
         [SerializeField] private Text cropSelectionLabel;
         [SerializeField] private Text inventoryLabel;
+        [SerializeField] private Image reputationFill;
+        [SerializeField] private Text reputationPercent;
         [SerializeField] private CropDefinition[] knownCrops;
 
         [Header("Meter percentage labels")]
@@ -39,11 +41,6 @@ namespace UpIzUpMini.UI
         [SerializeField] private Color heatLowColor = new Color(0.85f, 0.45f, 0.10f);
         [SerializeField] private Color heatMaxColor = new Color(0.95f, 0.10f, 0.10f);
 
-        [Header("Name flash")]
-        [SerializeField] private float nameHoldSeconds = 1.8f;
-        [SerializeField] private float nameFadeSeconds = 1.0f;
-
-        private float _nameShownAt = -999f;
         private string _lastName;
 
         private void Start()
@@ -69,7 +66,6 @@ namespace UpIzUpMini.UI
         {
             if (slot == null) return;
             _lastName = slot.displayName;
-            _nameShownAt = Time.time;
         }
 
         private void Update()
@@ -124,6 +120,14 @@ namespace UpIzUpMini.UI
 
             UpdateNameFlash(slot);
 
+            var progression = UpIzUpMini.Progression.ProgressionManager.Instance;
+            float reputation01 = progression != null
+                ? Mathf.Clamp01(progression.GangReputation / 100f)
+                : 0f;
+            if (reputationFill != null) reputationFill.fillAmount = reputation01;
+            if (reputationPercent != null)
+                reputationPercent.text = $"Street Rep  {Mathf.RoundToInt(reputation01 * 100f)}%";
+
             if (cropSelectionLabel != null && CropSelectionController.Instance != null)
             {
                 var crop = CropSelectionController.Instance.Selected;
@@ -157,7 +161,7 @@ namespace UpIzUpMini.UI
                     // MINI-055: display-only "Boss J" - the underlying
                     // BossKReputation field/Faction.BossK enum value are
                     // untouched (see TownNPCInteractable's PromptLabel note).
-                    lines.Append($"\nREP  Boss J {rep.BossKReputation} | Farmers {rep.FarmerReputation} | Police {rep.PoliceReputation} | Gangs {rep.GangReputation} | Normy {rep.NormyReputation}");
+                    lines.Append($"\nREP  Boss J {rep.BossKReputation}% | Farmers {rep.FarmerReputation}% | Police {rep.PoliceReputation}% | Gangs {rep.GangReputation}% | Normy {rep.NormyReputation}%");
                 inventoryLabel.text = lines.ToString();
             }
         }
@@ -170,10 +174,11 @@ namespace UpIzUpMini.UI
             if (_lastName == null && slot != null)
             {
                 _lastName = slot.displayName;
-                _nameShownAt = Time.time;
             }
 
-            characterNameLabel.text = _lastName ?? string.Empty;
+            characterNameLabel.text = string.IsNullOrEmpty(_lastName)
+                ? string.Empty
+                : $"ACTIVE: {_lastName.ToUpperInvariant()}";
 
             float alpha = 1f;
 

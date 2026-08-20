@@ -37,6 +37,8 @@ namespace UpIzUpMini
         public List<string> seedIds = new List<string>();
         public List<int> seedCounts = new List<int>();
         public List<string> ownedItemIds = new List<string>();
+        public List<string> sacatOwnedItemIds = new List<string>();
+        public List<string> frankiOwnedItemIds = new List<string>();
 
         // MINI-073: stashed food/pharmacy items - see EconomyManager's
         // CaptureConsumables/LoadConsumables.
@@ -109,6 +111,8 @@ namespace UpIzUpMini
                 }
 
                 EconomyManager.Instance.CaptureExtras(save.seedIds, save.seedCounts, save.ownedItemIds);
+                EconomyManager.Instance.CaptureCharacterOwned(0, save.sacatOwnedItemIds);
+                EconomyManager.Instance.CaptureCharacterOwned(1, save.frankiOwnedItemIds);
                 EconomyManager.Instance.CaptureConsumables(save.consumableIds, save.consumableCounts);
             }
 
@@ -166,7 +170,8 @@ namespace UpIzUpMini
 
             EconomyManager.Instance?.LoadState(
                 save.money, save.heat, save.inventoryIds, save.inventoryCounts,
-                save.seedIds, save.seedCounts, save.ownedItemIds);
+                save.seedIds, save.seedCounts, save.ownedItemIds,
+                save.sacatOwnedItemIds, save.frankiOwnedItemIds, save.activeCharacter);
             EconomyManager.Instance?.LoadConsumables(save.consumableIds, save.consumableCounts);
 
             // MINI-068: the bike is returned to its HOME spot outside the farm

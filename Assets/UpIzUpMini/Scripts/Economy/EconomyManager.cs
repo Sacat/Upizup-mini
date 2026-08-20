@@ -67,6 +67,8 @@ namespace UpIzUpMini.Economy
 
         private readonly Dictionary<string, int> _seeds = new Dictionary<string, int>();
         private readonly HashSet<string> _owned = new HashSet<string>();
+        private readonly Dictionary<int, HashSet<string>> _characterOwned =
+            new Dictionary<int, HashSet<string>>();
 
         public int GetCount(string cropId) => _inventory.TryGetValue(cropId, out int c) ? c : 0;
 
@@ -96,9 +98,40 @@ namespace UpIzUpMini.Economy
 
         public bool OwnsItem(string itemId) => _owned.Contains(itemId);
 
+        public bool OwnsItem(string itemId, int characterIndex)
+        {
+            return _characterOwned.TryGetValue(characterIndex, out var owned)
+                   && owned.Contains(itemId);
+        }
+
+        private static bool IsCharacterWearable(ShopItemDefinition item) =>
+            item != null && (item.category == ShopCategory.Clothing
+                             || item.category == ShopCategory.Footwear
+                             || item.category == ShopCategory.Accessory);
+
+        private static bool IsLegacyWearableId(string itemId) =>
+            itemId == "cap_mike" || itemId == "shirt_lacos" || itemId == "shorts_adibas"
+            || itemId == "shoes_mike" || itemId == "shoes_pumba" || itemId == "chain_gold"
+            || itemId == "shades_ray" || itemId == "watch_rollie";
+
+        private HashSet<string> CharacterSet(int characterIndex)
+        {
+            if (!_characterOwned.TryGetValue(characterIndex, out var owned))
+            {
+                owned = new HashSet<string>();
+                _characterOwned[characterIndex] = owned;
+            }
+            return owned;
+        }
+
         public bool TryResell(ShopItemDefinition item, out string message)
         {
-            if (item == null || !_owned.Remove(item.itemId))
+            int owner = Character.CharacterSwitchManager.Instance != null
+                ? Character.CharacterSwitchManager.Instance.ActiveIndex : 0;
+            bool removed = item != null && (IsCharacterWearable(item)
+                ? CharacterSet(owner).Remove(item.itemId)
+                : _owned.Remove(item.itemId));
+            if (!removed)
             {
                 message = item == null ? "Nothing selected." : $"You doe own {item.displayName}.";
                 return false;
@@ -115,7 +148,12 @@ namespace UpIzUpMini.Economy
             if (item == null) { message = "Nothing to buy."; return false; }
 
             // Consumables can be bought repeatedly; possessions cannot.
-            if (!item.IsConsumable && _owned.Contains(item.itemId))
+            int owner = Character.CharacterSwitchManager.Instance != null
+                ? Character.CharacterSwitchManager.Instance.ActiveIndex : 0;
+            bool alreadyOwned = IsCharacterWearable(item)
+                ? CharacterSet(owner).Contains(item.itemId)
+                : _owned.Contains(item.itemId);
+            if (!item.IsConsumable && alreadyOwned)
             {
                 message = $"You already have {item.displayName}.";
                 return false;
@@ -143,7 +181,8 @@ namespace UpIzUpMini.Economy
             }
             else
             {
-                _owned.Add(item.itemId);
+                if (IsCharacterWearable(item)) CharacterSet(owner).Add(item.itemId);
+                else _owned.Add(item.itemId);
                 message = $"Bought {item.displayName} for ${item.price}.";
             }
 
@@ -323,6 +362,12 @@ namespace UpIzUpMini.Economy
             ownedIds.AddRange(_owned);
         }
 
+        public void CaptureCharacterOwned(int characterIndex, List<string> ownedIds)
+        {
+            if (ownedIds == null) return;
+            if (_characterOwned.TryGetValue(characterIndex, out var owned)) ownedIds.AddRange(owned);
+        }
+
         /// <summary>MINI-073: snapshot the stashed consumables for saving.
         /// Kept as a separate method (rather than folding into CaptureExtras)
         /// so SaveLoadSystem's existing call site did not need its signature
@@ -353,7 +398,10 @@ namespace UpIzUpMini.Economy
             int money, float heat,
             IReadOnlyList<string> ids, IReadOnlyList<int> counts,
             IReadOnlyList<string> seedIds = null, IReadOnlyList<int> seedCounts = null,
-            IReadOnlyList<string> ownedIds = null)
+            IReadOnlyList<string> ownedIds = null,
+            IReadOnlyList<string> sacatOwnedIds = null,
+            IReadOnlyList<string> frankiOwnedIds = null,
+            int legacyWearableOwner = 0)
         {
             Money = money;
             Heat = Mathf.Clamp(heat, 0f, MaxHeat);
@@ -379,8 +427,26 @@ namespace UpIzUpMini.Economy
             if (ownedIds != null)
             {
                 _owned.Clear();
-                foreach (var id in ownedIds) _owned.Add(id);
+                foreach (var id in ownedIds)
+                {
+                    if (IsLegacyWearableId(id)) CharacterSet(legacyWearableOwner).Add(id);
+                    else _owned.Add(id);
+                }
             }
+
+
+            _characterOwned.Clear();
+            if (sacatOwnedIds != null)
+                foreach (var id in sacatOwnedIds) CharacterSet(0).Add(id);
+            if (frankiOwnedIds != null)
+                foreach (var id in frankiOwnedIds) CharacterSet(1).Add(id);
+
+            // Old saves stored wearables in the shared list. Migrate those to
+            // whoever was active when the save was made, without dressing both
+            // boys from one purchase.
+            if (ownedIds != null)
+                foreach (var id in ownedIds)
+                    if (IsLegacyWearableId(id)) CharacterSet(legacyWearableOwner).Add(id);
 
             OnChanged?.Invoke();
         }

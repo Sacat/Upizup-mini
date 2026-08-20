@@ -2,6 +2,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using UpIzUpMini.Economy;
+using UpIzUpMini.Progression;
 
 namespace UpIzUpMini.UI
 {
@@ -120,9 +121,13 @@ namespace UpIzUpMini.UI
                 }
             }
 
-            for (int i = 0; i < stock.Length && i < 9; i++)
+            int visibleIndex = 0;
+            for (int i = 0; i < stock.Length && visibleIndex < 9; i++)
             {
-                if (!Input.GetKeyDown(KeyCode.Alpha1 + i)) continue;
+                var item = stock[i];
+                if (!ShouldShow(item)) continue;
+                int keyIndex = visibleIndex++;
+                if (!Input.GetKeyDown(KeyCode.Alpha1 + keyIndex)) continue;
 
                 if (EconomyManager.Instance == null)
                 {
@@ -158,6 +163,8 @@ namespace UpIzUpMini.UI
                         {
                             _message = $"{_message} {spawnFeedback}";
                         }
+
+                        _message = $"{_message} {PurchaseReaction(stock[i])}";
                     }
                 }
 
@@ -176,18 +183,26 @@ namespace UpIzUpMini.UI
             sb.AppendLine($"Money: ${(EconomyManager.Instance != null ? EconomyManager.Instance.Money : 0)}");
             sb.AppendLine();
 
-            for (int i = 0; i < stock.Length && i < 9; i++)
+            int visibleIndex = 0;
+            for (int i = 0; i < stock.Length && visibleIndex < 9; i++)
             {
                 var item = stock[i];
-                if (item == null) continue;
+                if (!ShouldShow(item)) continue;
 
                 string owned = item.category != ShopCategory.Seed
-                               && EconomyManager.Instance != null
-                               && EconomyManager.Instance.OwnsItem(item.itemId)
+                               && IsOwnedByActiveCharacter(item)
                     ? "  [owned]" : string.Empty;
 
                 int shownPrice = resaleMode ? Mathf.Max(1, Mathf.RoundToInt(item.price * 0.55f)) : item.price;
-                sb.AppendLine($"[{i + 1}]  {item.displayName,-26} ${shownPrice}{owned}");
+                sb.AppendLine($"[{visibleIndex + 1}]  {item.displayName,-26} ${shownPrice}{owned}");
+                visibleIndex++;
+            }
+
+            if (visibleIndex == 0)
+            {
+                sb.AppendLine(resaleMode
+                    ? "Nothing from your current outfit to sell."
+                    : "More stock unlocks as you complete missions.");
             }
 
             if (!string.IsNullOrEmpty(_message) && Time.unscaledTime - _messageTime < 4f)
@@ -197,6 +212,43 @@ namespace UpIzUpMini.UI
             }
 
             bodyText.text = sb.ToString();
+        }
+
+        private bool ShouldShow(ShopItemDefinition item)
+        {
+            if (item == null || !ProgressionGate.IsItemUnlocked(item)) return false;
+            return !resaleMode || IsOwnedByActiveCharacter(item);
+        }
+
+        private static bool IsOwnedByActiveCharacter(ShopItemDefinition item)
+        {
+            var economy = EconomyManager.Instance;
+            if (economy == null || item == null) return false;
+            int characterIndex = Character.CharacterSwitchManager.Instance != null
+                ? Character.CharacterSwitchManager.Instance.ActiveIndex : 0;
+            bool wearable = item.category == ShopCategory.Clothing
+                            || item.category == ShopCategory.Footwear
+                            || item.category == ShopCategory.Accessory;
+            return wearable
+                ? economy.OwnsItem(item.itemId, characterIndex)
+                : economy.OwnsItem(item.itemId);
+        }
+
+        private static string PurchaseReaction(ShopItemDefinition item)
+        {
+            if (item == null) return string.Empty;
+            return item.category switch
+            {
+                ShopCategory.Clothing or ShopCategory.Footwear or ShopCategory.Accessory
+                    => "Yah, I looking more fresh now.",
+                ShopCategory.Vehicle or ShopCategory.Boat
+                    => "Yah, I can move better now.",
+                ShopCategory.Food
+                    => "Yah, I can put something in my stomach now.",
+                ShopCategory.Land or ShopCategory.Property
+                    => "Yah, I can do something for myself now.",
+                _ => string.Empty,
+            };
         }
     }
 }

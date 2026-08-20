@@ -75,3 +75,21 @@ at all.
 `Zion`, and the already-confirmed `mn`/`nuh`/`wii` register from
 `Docs/DIALOGUE-REFERENCE.md`. Deliberately does not use any term marked
 **Unconfirmed** above.
+
+## Purchase and service reactions
+
+These short reactions were approved by the user as the intended in-game
+register. They are category-specific; they must not be reused by unrelated
+shops or NPC roles.
+
+| Situation | Player reaction |
+|---|---|
+| Clothes, shoes, cap, chain or watch | `Yah, I looking more fresh now.` |
+| Vehicle or vehicle upgrade | `Yah, I can move better now.` |
+| Food | `Yah, I can put something in my stomach now.` |
+| Land or property | `Yah, I can do something for myself now.` |
+
+`Paro` is the player-facing term for the rough-sleeping low-price weed buyer.
+His dialogue should sound like one particular struggling person, not a generic
+shopkeeper and not a caricature. The internal mission target remains `Vagrant`
+for old-save compatibility, but that label must never be displayed to players.

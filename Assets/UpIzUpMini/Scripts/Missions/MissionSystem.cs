@@ -90,6 +90,7 @@ namespace UpIzUpMini.Missions
         }
 
         public bool AllComplete => _missionIndex >= missions.Count;
+        public string CurrentMissionId => Current != null ? Current.missionId : string.Empty;
         public string Banner { get; private set; }
         public float BannerTime { get; private set; }
 
@@ -117,6 +118,7 @@ namespace UpIzUpMini.Missions
             {
                 ShowBanner(banner);
             }
+            PrepareCurrentObjective();
         }
 
         /// <summary>Report a one-shot gameplay event, e.g. talking to an NPC.</summary>
@@ -156,6 +158,7 @@ namespace UpIzUpMini.Missions
             _objectiveIndex++;
             if (_objectiveIndex < mission.objectives.Count)
             {
+                PrepareCurrentObjective();
                 ShowBanner(CurrentObjective.instruction);
                 return;
             }
@@ -175,6 +178,7 @@ namespace UpIzUpMini.Missions
 
             if (Current != null)
             {
+                PrepareCurrentObjective();
                 // Small delay isn't modelled; the next briefing simply
                 // replaces the completion banner on the next event.
                 _pendingBriefing = $"{Current.title}\n{Current.briefing}";
@@ -239,21 +243,53 @@ namespace UpIzUpMini.Missions
             }
             else if (obj.kind == ObjectiveKind.EscapeHeat)
             {
-                // Completes once heat has actually been raised and then
-                // cooled off again, so it can't be skipped by never
-                // committing a crime in the first place.
                 float heat = EconomyManager.Instance != null ? EconomyManager.Instance.Heat : 0f;
-                if (heat >= 35f) _sawHighHeat = true;
-                if (_sawHighHeat && heat <= 8f)
+                var player = Character.CharacterSwitchManager.Instance?.Active?.root;
+                bool reachedLayLowArea = !obj.hasMarker
+                    || player == null
+                    || Vector3.Distance(player.transform.position, obj.markerPosition) <= 22f;
+
+                // If the player already reached the safe area with zero heat,
+                // the objective is complete. The previous high-heat latch made
+                // this objective impossible after heat had legitimately cooled
+                // before the objective became active.
+                if (heat <= 8f && reachedLayLowArea)
                 {
-                    _sawHighHeat = false;
                     obj.progress = obj.requiredCount;
                     AdvanceObjective();
                 }
             }
         }
 
-        private bool _sawHighHeat;
+        private void PrepareCurrentObjective()
+        {
+            var obj = CurrentObjective;
+            if (obj == null) return;
+            obj.followTimer = 0f;
+            obj.followTargetCache = null;
+        }
+
+        public bool HasReachedMission(string missionId)
+        {
+            if (string.IsNullOrEmpty(missionId)) return true;
+            for (int i = 0; i < missions.Count; i++)
+            {
+                if (!string.Equals(missions[i].missionId, missionId, StringComparison.OrdinalIgnoreCase)) continue;
+                return _missionIndex >= i;
+            }
+            return false;
+        }
+
+        public bool HasCompletedMission(string missionId)
+        {
+            if (string.IsNullOrEmpty(missionId)) return true;
+            for (int i = 0; i < missions.Count; i++)
+            {
+                if (!string.Equals(missions[i].missionId, missionId, StringComparison.OrdinalIgnoreCase)) continue;
+                return _missionIndex > i;
+            }
+            return false;
+        }
 
         public bool IsCurrentObjective(ObjectiveKind kind, string targetId = null)
         {
@@ -269,7 +305,7 @@ namespace UpIzUpMini.Missions
             if (mission == null) return;
             foreach (var objective in mission.objectives) objective.progress = 0;
             _objectiveIndex = 0;
-            _sawHighHeat = false;
+            PrepareCurrentObjective();
             ShowBanner($"MISSION FAILED\n{reason}\nReturn to the safehouse.");
         }
 
@@ -286,6 +322,7 @@ namespace UpIzUpMini.Missions
             missions = newMissions;
             _missionIndex = 0;
             _objectiveIndex = 0;
+            PrepareCurrentObjective();
         }
 
         // --- Save/load ---------------------------------------------------
@@ -319,6 +356,7 @@ namespace UpIzUpMini.Missions
                     }
                 }
                 ShowBanner(CurrentObjective != null ? CurrentObjective.instruction : m.title);
+                PrepareCurrentObjective();
             }
         }
     }

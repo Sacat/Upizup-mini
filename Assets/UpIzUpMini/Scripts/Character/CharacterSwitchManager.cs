@@ -80,6 +80,15 @@ namespace UpIzUpMini.Character
                 if (slot?.vitals != null) slot.vitals.OnDied += HandleDeath;
             }
             ApplyActive(ActiveIndex);
+            IgnoreHeroBodyCollision();
+        }
+
+        private void IgnoreHeroBodyCollision()
+        {
+            if (slots == null || slots.Length < 2) return;
+            var a = slots[0]?.root != null ? slots[0].root.GetComponent<CharacterController>() : null;
+            var b = slots[1]?.root != null ? slots[1].root.GetComponent<CharacterController>() : null;
+            if (a != null && b != null) Physics.IgnoreCollision(a, b, true);
         }
 
         private void OnDestroy()

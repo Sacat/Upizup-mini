@@ -39,6 +39,8 @@ namespace UpIzUpMini.Character
         private CharacterController _controller;
         private float _animSpeedBlend;
         private NpcCombatHealth _combatHealth;
+        private float _sideSign;
+        private float _blockedFor;
 
         public string MemberName = "Recruit";
         public GangAssignment Assignment { get; private set; } = GangAssignment.Follow;
@@ -63,6 +65,7 @@ namespace UpIzUpMini.Character
             _controller = GetComponent<CharacterController>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
             _combatHealth = GetComponent<NpcCombatHealth>();
+            _sideSign = (GetInstanceID() & 1) == 0 ? 1f : -1f;
         }
 
         /// <summary>
@@ -151,6 +154,18 @@ namespace UpIzUpMini.Character
             if (dist > arrive)
             {
                 Vector3 dir = toTarget.normalized;
+                if (!LocalSteeringSafety.TryDirection(transform, _controller, dir, FollowTarget, _sideSign, out dir))
+                {
+                    Animate(0f);
+                    _blockedFor += Time.deltaTime;
+                    if (_blockedFor >= 1.2f)
+                    {
+                        _sideSign *= -1f;
+                        _blockedFor = 0f;
+                    }
+                    return;
+                }
+                _blockedFor = 0f;
                 float speed = Assignment == GangAssignment.Follow && dist > arrive * 3f ? 5.335f : moveSpeed;
                 _controller.SimpleMove(dir * speed);
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), turnSpeed * Time.deltaTime);

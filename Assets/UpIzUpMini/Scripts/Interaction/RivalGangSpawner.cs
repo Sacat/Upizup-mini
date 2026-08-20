@@ -62,7 +62,13 @@ namespace UpIzUpMini.Interaction
 
             foreach (var member in _pool)
             {
-                if (member != null) member.SetActive(_active);
+                if (member == null) continue;
+                if (_active)
+                {
+                    member.GetComponent<Combat.NpcCombatHealth>()?.ResetForRespawn();
+                    member.SetActive(true);
+                }
+                else member.SetActive(false);
             }
         }
     }
