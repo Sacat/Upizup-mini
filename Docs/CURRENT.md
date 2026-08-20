@@ -9,7 +9,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
 - Current production state: work through `MINI-090` is implemented on `codex/mini-085-baseline-20260820`. Core on-foot controls now use a named, touch-ready input facade while preserving the current PC keys. Automated checks and Windows build pass; movement/animation deformation still needs hands-on acceptance.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
-- Last known good gameplay checkpoint: `8e44087` (`MINI-089` dialogue wording); MINI-090 is verified and awaiting its checkpoint commit.
+- Last known good gameplay checkpoint: `f77cb16` (`MINI-090` input and interaction foundation).
 
 ## What exists
 
