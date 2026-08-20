@@ -1,5 +1,12 @@
 # Up Iz Up Mini — Decisions
 
+## D-009 — Highland is the first remote planting district
+
+- Date: 2026-08-20
+- Decision owner: User
+- Decision: The first Grand Bay farming/planting connection will lead to Highland instead of Montine. Montine remains available for later missions or district expansion.
+- Consequence: MINI-094 will label Highland as the intended planting route, but will not invent an exact road junction until licensed data or a user-confirmed local pin establishes it.
+
 ## D-001 — Separate project
 
 Mini is a separate Unity project rather than a duplicate of the larger game. This prevents inherited prototype complexity and keeps builds smaller.

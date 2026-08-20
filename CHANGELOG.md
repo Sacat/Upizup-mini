@@ -96,3 +96,9 @@
 - Behind/out-of-contact/dead targets are rejected, and the 1.1-second cooldown prevents rapid repeated damage.
 - Damage flows through `CharacterVitals`, so zero health continues into the existing mission-failure and safehouse-respawn system.
 - Passed saved-scene default checks, deterministic damage/death validation, and the MINI-092 combat regression without rebuilding the scene or Windows player.
+# MINI-094 — Grand Bay map-truth preview
+
+- Added a reusable licensed OSM/Overpass map export and overhead rendering tool.
+- Added the first coordinate-based `MAP-ANCHORS.json` with local metre conversion and explicit verification states.
+- Produced a 1600x1000 Lalay-to-beach planning screenshot without modifying the working gameplay scene.
+- Recorded Highland as the first remote planting district; its exact turnoff remains pending local confirmation.

@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-20T15:21:01.6153639Z",
+  "phase": "Grand Bay phase 1: Lalay to beach with future Highland planting connection",
+  "coordinateSystem": "WGS84 source; local equirectangular metre approximation for preview only",
+  "unityConvention": "One Unity unit equals one metre; positive X east; positive Z north",
+  "origin": {
+    "latitude": 15.2450638,
+    "longitude": -61.3181049,
+    "unityX": 0,
+    "unityZ": 0
+  },
+  "sourceBounds": {
+    "south": 15.236,
+    "west": -61.326,
+    "north": 15.252,
+    "east": -61.306
+  },
+  "requiredLocalPins": [
+    "Resident-defined north and south limits of Lalay",
+    "Highland road turnoff and first planting clearing",
+    "Jetty/boat landing used by the story",
+    "Grand Bay Village Council current office entrance"
+  ],
+  "anchors": [
+    {
+      "id": "berekua",
+      "displayName": "Berekua",
+      "category": "settlement",
+      "latitude": 15.239927,
+      "longitude": -61.3153342,
+      "localXMetres": 297.85,
+      "localZMetres": -568.39,
+      "source": "OpenStreetMap via Overpass API, extracted 2026-08-20",
+      "sourceId": "node/242414515",
+      "verificationStatus": "osm_mapped_local_confirmation_pending",
+      "userVerified": false,
+      "notes": "OSM town node; Grand Bay is listed as an alternate name."
+    },
+    {
+      "id": "grand_bay_community_centre",
+      "displayName": "Grand Bay Community Centre",
+      "category": "community",
+      "latitude": 15.2453352,
+      "longitude": -61.3177872,
+      "localXMetres": 34.15,
+      "localZMetres": 30.03,
+      "source": "OpenStreetMap via Overpass API, extracted 2026-08-20",
+      "sourceId": "node/2178498248",
+      "verificationStatus": "osm_mapped_local_confirmation_pending",
+      "userVerified": false,
+      "notes": "OSM amenity node; current use and entrance still need local confirmation."
+    },
+    {
+      "id": "pierre_charles_secondary_school",
+      "displayName": "Pierre Charles Secondary School",
+      "category": "school",
+      "latitude": 15.24640036,
+      "longitude": -61.31513202,
+      "localXMetres": 319.58,
+      "localZMetres": 147.89,
+      "source": "OpenStreetMap via Overpass API, extracted 2026-08-20",
+      "sourceId": "way/198518720",
+      "verificationStatus": "osm_mapped_local_confirmation_pending",
+      "userVerified": false,
+      "notes": "OSM footprint centre; institution also confirmed by Government of Dominica sources."
+    },
+    {
+      "id": "grand_bay_primary_school",
+      "displayName": "Grand Bay Primary School",
+      "category": "school",
+      "latitude": 15.241617952631579,
+      "longitude": -61.31496575789475,
+      "localXMetres": 337.46,
+      "localZMetres": -381.28,
+      "source": "OpenStreetMap via Overpass API, extracted 2026-08-20",
+      "sourceId": "way/371414662",
+      "verificationStatus": "osm_mapped_local_confirmation_pending",
+      "userVerified": false,
+      "notes": "OSM footprint centre; institution also confirmed by Government of Dominica sources."
+    },
+    {
+      "id": "grand_bay_catholic_church",
+      "displayName": "Grand Bay Catholic Church",
+      "category": "church",
+      "latitude": 15.240430377777777,
+      "longitude": -61.31272127777777,
+      "localXMetres": 578.74,
+      "localZMetres": -512.69,
+      "source": "OpenStreetMap via Overpass API, extracted 2026-08-20",
+      "sourceId": "way/392195638",
+      "verificationStatus": "osm_mapped_local_confirmation_pending",
+      "userVerified": false,
+      "notes": "OSM footprint centre; model identity should remain fictionalized unless explicitly approved."
+    },
+    {
+      "id": "grand_bay_credit_union",
+      "displayName": "Grand Bay Cooperative Credit Union",
+      "category": "finance",
+      "latitude": 15.2407793,
+      "longitude": -61.3166228,
+      "localXMetres": 159.33,
+      "localZMetres": -474.08,
+      "source": "Institution website plus prior place-coordinate cross-check",
+      "sourceId": "candidate/GB-005",
+      "verificationStatus": "official_institution_candidate_coordinate",
+      "userVerified": false,
+      "notes": "Strong Lalay/Main Road anchor; entrance and exact footprint need local confirmation."
+    },
+    {
+      "id": "farmers_cooperative",
+      "displayName": "Grand Bay Farmers and Food Producers Cooperative",
+      "category": "agriculture",
+      "latitude": 15.2403758,
+      "longitude": -61.3162141,
+      "localXMetres": 203.26,
+      "localZMetres": -518.73,
+      "source": "Prior place-coordinate research",
+      "sourceId": "candidate/GB-012",
+      "verificationStatus": "candidate_coordinate",
+      "userVerified": false,
+      "notes": "Useful farming-story anchor if current operation is locally confirmed."
+    },
+    {
+      "id": "grand_bay_police_station",
+      "displayName": "Grand Bay Police Station",
+      "category": "emergency",
+      "latitude": 15.2447591,
+      "longitude": -61.3223997,
+      "localXMetres": -461.69,
+      "localZMetres": -33.72,
+      "source": "Government directory name plus prior place-coordinate cross-check",
+      "sourceId": "candidate/GB-006",
+      "verificationStatus": "official_institution_candidate_coordinate",
+      "userVerified": false,
+      "notes": "Current entrance and footprint need local confirmation; in-game identity should remain fictionalized."
+    }
+  ]
+}

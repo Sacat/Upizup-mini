@@ -22,6 +22,12 @@ Acceptance criteria:
 
 ## In progress
 
+### MINI-094 — Grand Bay Map Truth and Lalay-to-beach approval preview
+
+Goal: Create a licensed, coordinate-based overhead plan for the first Grand Bay district without changing the working gameplay scene.
+
+Status: **Evidence ready.** A 1600x1000 OSM-backed overhead preview, source/licence notes, eight local-metre anchors, and a reusable exporter are complete. Highland, rather than Montine, is the first remote planting district by user decision. No gameplay scene was changed. Waiting for the user's screenshot approval/corrections before a separate Unity map-lab graybox task.
+
 ### MINI-011 — Grand Bay production vertical slice (corrective rebuild)
 
 Goal: Replace MINI-001's primitive-geometry proof scene with a real visual

@@ -42,6 +42,20 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-094 — Grand Bay Map Truth and Lalay-to-beach approval preview
+
+- Date: 2026-08-20
+- Owner: Codex (released; awaiting user visual decision)
+- Request: Begin the major Grand Bay/Lalay world rebuild, move the mobile-foundation option to last, show screenshots before world changes, and use Highland rather than Montine as the first planting district.
+- Acceptance criteria: Licensed coordinate source; repeatable local-metre conversion; road/coast/water/anchor preview; uncertainty labels; no working-scene replacement before screenshot approval.
+- Implementation: Added a reusable Overpass-based export/render tool, a dated OSM source/licence record, and `Docs/MAP-ANCHORS.json` with eight anchors and explicit trust states. Produced a 1600x1000 overhead map-truth preview from 170 OSM elements (128 highway ways, 21 waterways, one coastline way, 50 named elements). Recorded `D-009`: Highland is the first remote planting district; its exact local turnoff remains intentionally unpinned.
+- Files changed: `Tools/World/Export-GrandBayMapTruth.ps1`, `Docs/MAP-ANCHORS.json`, `Docs/MAP-SOURCE-NOTES.md`, `Docs/WorkPackets/MINI-094.md`, `DECISIONS.md`, `TASKS.md`, `CHANGELOG.md`, and coordination records.
+- Scene/prefab changes: None. `GrandBayProof.unity`, `Mini011PhaseBSetup.cs`, prefabs, packages, settings, and the user's dirty `ObjectiveMarker.mat` were untouched.
+- Verification commands: Workflow preflight; online export; offline deterministic rerender; JSON review; 1600x1000 PNG visual inspection; protected-surface Git diff check.
+- Verification results: Export PASS. OSM source timestamp `2026-08-20T15:17:46Z`; eight anchors contain local metre coordinates; preview rendered at `Logs/Tasks/MINI-094/LalayToBeach-Overhead.png` and was inspected. The preview clearly separates mapped geometry from orange local-confirmation items.
+- Known issues: Resident-defined Lalay limits, Highland turnoff/planting clearing, story jetty, and Village Council entrance still require local confirmation. This image is a planning preview, not an approved Unity world or elevation model.
+- Next action: User approves/corrects the screenshot. Then create a separate map-lab graybox, capture Unity overhead/gameplay-distance screenshots, and only after approval plan migration of the working scene.
+
 ### MINI-093 — Police melee retaliation
 
 - Date: 2026-08-20
