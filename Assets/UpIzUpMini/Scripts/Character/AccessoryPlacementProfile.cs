@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UpIzUpMini.Character
@@ -11,5 +13,17 @@ namespace UpIzUpMini.Character
         public Vector3 localPosition;
         public Vector3 localEulerAngles;
         public Vector3 localScale = Vector3.one;
+
+        [Tooltip("Exact child transforms from the user-approved fitted accessory. This preserves edits made below the accessory root during manual placement.")]
+        public List<ChildTransformPose> fittedChildren = new List<ChildTransformPose>();
+
+        [Serializable]
+        public class ChildTransformPose
+        {
+            public string relativePath;
+            public Vector3 localPosition;
+            public Vector3 localEulerAngles;
+            public Vector3 localScale = Vector3.one;
+        }
     }
 }

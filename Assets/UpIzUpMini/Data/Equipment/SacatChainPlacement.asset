@@ -13,6 +13,23 @@ MonoBehaviour:
   m_Name: SacatChainPlacement
   m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Character.AccessoryPlacementProfile
   useManualPlacement: 1
-  localPosition: {x: -0.03414066, y: 0.40609157, z: 0.06550227}
-  localEulerAngles: {x: 337.00732, y: 0, z: 0}
-  localScale: {x: 1.066973, y: 1.066973, z: 1.066973}
+  localPosition: {x: -0.047002427, y: 0.48330128, z: 0.07208218}
+  localEulerAngles: {x: 341.27582, y: 0, z: 0}
+  localScale: {x: 0.9118362, y: 1.1559348, z: 0.9118362}
+  fittedChildren:
+  - relativePath: GoldChain18k
+    localPosition: {x: -0, y: -0.18036866, z: -0}
+    localEulerAngles: {x: -0, y: 0, z: 0}
+    localScale: {x: 0.36083388, y: 0.36083388, z: 0.36083388}
+  - relativePath: GoldChain18k/world
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: -0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+  - relativePath: GoldChain18k/world/geometry_0
+    localPosition: {x: 0.11999979, y: -0.182, z: -0.054}
+    localEulerAngles: {x: 351.96915, y: 0, z: 0}
+    localScale: {x: 0.93813, y: 0.93813, z: 0.93813}
+  - relativePath: GoldChain18k/world/geometry_0 (1)
+    localPosition: {x: 0.12, y: -0.015, z: -0.15}
+    localEulerAngles: {x: 342.19415, y: 1.5800586, z: 359.49902}
+    localScale: {x: 1, y: 1, z: 1}

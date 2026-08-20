@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 using UpIzUpMini.Character;
 
 namespace UpIzUpMini.EditorTools
@@ -31,12 +32,22 @@ namespace UpIzUpMini.EditorTools
             preview.name = PreviewName;
             preview.tag = "EditorOnly";
             preview.transform.SetParent(chest, false);
-            preview.transform.rotation = sacat.transform.rotation * Quaternion.Euler(CharacterEquipment.ChainTilt, 0f, 0f);
-            preview.transform.position = chest.position
-                + sacat.transform.forward * CharacterEquipment.ChainForward
-                + sacat.transform.up * CharacterEquipment.ChainUp
-                + sacat.transform.right * CharacterEquipment.ChainSide;
-            CharacterEquipment.NormaliseAccessoryScale(preview.transform, chest, CharacterEquipment.ChainWidth);
+            var saved = AssetDatabase.LoadAssetAtPath<AccessoryPlacementProfile>(ProfilePath);
+            if (saved != null && saved.useManualPlacement)
+            {
+                preview.transform.localPosition = saved.localPosition;
+                preview.transform.localRotation = Quaternion.Euler(saved.localEulerAngles);
+                preview.transform.localScale = saved.localScale;
+            }
+            else
+            {
+                preview.transform.rotation = sacat.transform.rotation * Quaternion.Euler(CharacterEquipment.ChainTilt, 0f, 0f);
+                preview.transform.position = chest.position
+                    + sacat.transform.forward * CharacterEquipment.ChainForward
+                    + sacat.transform.up * CharacterEquipment.ChainUp
+                    + sacat.transform.right * CharacterEquipment.ChainSide;
+                CharacterEquipment.NormaliseAccessoryScale(preview.transform, chest, CharacterEquipment.ChainWidth);
+            }
 
             Selection.activeGameObject = preview;
             SceneView.lastActiveSceneView?.FrameSelected();
@@ -69,9 +80,30 @@ namespace UpIzUpMini.EditorTools
             profile.localPosition = preview.transform.localPosition;
             profile.localEulerAngles = preview.transform.localEulerAngles;
             profile.localScale = preview.transform.localScale;
+            profile.fittedChildren.Clear();
+            foreach (var child in preview.GetComponentsInChildren<Transform>(true))
+            {
+                if (child == preview.transform) continue;
+                profile.fittedChildren.Add(new AccessoryPlacementProfile.ChildTransformPose
+                {
+                    relativePath = RelativePath(preview.transform, child),
+                    localPosition = child.localPosition,
+                    localEulerAngles = child.localEulerAngles,
+                    localScale = child.localScale
+                });
+            }
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
             Debug.Log($"MINI-086: captured user chain placement to {ProfilePath}. Rebuild the scene to wire it into Sacat.");
+        }
+
+        private static string RelativePath(Transform root, Transform child)
+        {
+            var parts = new List<string>();
+            for (var current = child; current != null && current != root; current = current.parent)
+                parts.Add(current.name);
+            parts.Reverse();
+            return string.Join("/", parts);
         }
 
         private static void EnsureFolder(string path)

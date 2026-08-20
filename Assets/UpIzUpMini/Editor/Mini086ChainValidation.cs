@@ -23,6 +23,8 @@ namespace UpIzUpMini.EditorTools
             var profile = AssetDatabase.LoadAssetAtPath<AccessoryPlacementProfile>(ProfilePath);
             Check(ref pass, ref failure, profile != null && profile.useManualPlacement,
                 "Sacat's approved manual placement profile is missing or disabled.");
+            Check(ref pass, ref failure, profile != null && profile.fittedChildren != null && profile.fittedChildren.Count > 0,
+                "Sacat's fitted child-chain transforms were not captured.");
 
             var sacat = GameObject.Find("Sacat");
             var franki = GameObject.Find("Franki");
@@ -69,11 +71,28 @@ namespace UpIzUpMini.EditorTools
             Check(ref pass, ref failure, bought, "The chain purchase transaction failed in validation.");
             Check(ref pass, ref failure, sacat != null && FindChild(sacat.transform, "Equip_chain_gold") != null,
                 "Sacat bought the chain but Equip_chain_gold did not appear.");
+            var equippedChain = sacat != null ? FindChild(sacat.transform, "Equip_chain_gold") : null;
+            if (equippedChain != null && profile != null && profile.fittedChildren != null)
+            {
+                foreach (var pose in profile.fittedChildren)
+                {
+                    var fitted = equippedChain.Find(pose.relativePath);
+                    Check(ref pass, ref failure, fitted != null,
+                        $"Purchased chain is missing fitted child '{pose.relativePath}'.");
+                    if (fitted == null) break;
+                    Check(ref pass, ref failure,
+                        Vector3.Distance(fitted.localPosition, pose.localPosition) < 0.0001f
+                        && Quaternion.Angle(fitted.localRotation, Quaternion.Euler(pose.localEulerAngles)) < 0.01f
+                        && Vector3.Distance(fitted.localScale, pose.localScale) < 0.0001f,
+                        $"Purchased chain did not reproduce the approved fit for '{pose.relativePath}'.");
+                    if (!pass) break;
+                }
+            }
             Check(ref pass, ref failure, franki != null && FindChild(franki.transform, "Equip_chain_gold") == null,
                 "Buying Sacat's chain incorrectly equipped Franki too.");
 
             if (pass)
-                Debug.Log("MINI-086 CHAIN VALIDATION PASS: the approved Sacat profile is wired, a purchase immediately equips only Sacat, Boss C wears the cleaned real chain, and Boss J has none.");
+                Debug.Log("MINI-086 CHAIN VALIDATION PASS: the approved Sacat root and fitted child transforms are reproduced on purchase, only Sacat equips it, Boss C wears the cleaned real chain, and Boss J has none.");
             else
                 throw new System.InvalidOperationException("MINI-086 CHAIN VALIDATION FAIL: " + failure);
         }

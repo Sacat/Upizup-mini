@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: work through `MINI-086` is preserved on `codex/mini-085-baseline-20260820`. MINI-086 rebuilt the current game, corrected HUD/camera/progression/dialogue/equipment/follower/gang behavior, and captured Sacat's approved chain placement. Automated checks and Windows build pass; movement/feel still need hands-on acceptance.
+- Current production state: work through `MINI-087` is preserved on `codex/mini-085-baseline-20260820`. MINI-087 captured Sacat's revised chain root plus his user-made duplicate around the nape, and runtime purchase now recreates both fitted pieces. Automated checks and Windows build pass; movement/feel still need hands-on acceptance.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `d45724c` (`MINI-086` chain completion).
 
@@ -31,7 +31,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 ## Highest risks
 
-1. Visual acceptance: Sacat's chain placement is locked as `VA-001`; its visibility/swing while walking still needs the user's playtest. Most other movement and appearance remain unapproved.
+1. Visual acceptance: Sacat's two-piece chain placement is locked as `VA-002`; its visibility/swing while walking still needs the user's playtest. Most other movement and appearance remain unapproved.
 2. Visual debt: many changes compile or pass harnesses but have not been watched in real Play Mode. Static screenshots cannot prove animation, combat, riding, driving, NPC movement, or UI timing.
 3. Map fidelity: existing Lalay-to-beach layout has no defensible geographic source data.
 4. Mobile architecture: Built-in RP, legacy Input Manager, no touch/safe-area layer, no Android build gate.

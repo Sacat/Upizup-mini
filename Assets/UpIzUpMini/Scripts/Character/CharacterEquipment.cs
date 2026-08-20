@@ -283,6 +283,7 @@ namespace UpIzUpMini.Character
                         go.transform.localPosition = chainPlacement.localPosition;
                         go.transform.localRotation = Quaternion.Euler(chainPlacement.localEulerAngles);
                         go.transform.localScale = chainPlacement.localScale;
+                        ApplyFittedChildren(go.transform, chainPlacement);
                     }
                     else
                     {
@@ -324,6 +325,46 @@ namespace UpIzUpMini.Character
                 Destroy(existing);
                 _spawned.Remove(itemId);
             }
+        }
+
+        private static void ApplyFittedChildren(Transform accessoryRoot, AccessoryPlacementProfile profile)
+        {
+            if (profile.fittedChildren == null) return;
+
+            foreach (var pose in profile.fittedChildren)
+            {
+                if (pose == null || string.IsNullOrEmpty(pose.relativePath)) continue;
+                var child = accessoryRoot.Find(pose.relativePath);
+                if (child == null)
+                    child = RecreateFittedDuplicate(accessoryRoot, pose.relativePath);
+                if (child == null)
+                {
+                    Debug.LogWarning($"Accessory fitted child '{pose.relativePath}' was not found under {accessoryRoot.name}.");
+                    continue;
+                }
+
+                child.localPosition = pose.localPosition;
+                child.localRotation = Quaternion.Euler(pose.localEulerAngles);
+                child.localScale = pose.localScale;
+            }
+        }
+
+        private static Transform RecreateFittedDuplicate(Transform accessoryRoot, string relativePath)
+        {
+            int slash = relativePath.LastIndexOf('/');
+            string parentPath = slash >= 0 ? relativePath.Substring(0, slash) : string.Empty;
+            string childName = slash >= 0 ? relativePath.Substring(slash + 1) : relativePath;
+            int copySuffix = childName.LastIndexOf(" (", System.StringComparison.Ordinal);
+            if (copySuffix <= 0 || !childName.EndsWith(")", System.StringComparison.Ordinal)) return null;
+
+            string sourceName = childName.Substring(0, copySuffix);
+            Transform parent = string.IsNullOrEmpty(parentPath) ? accessoryRoot : accessoryRoot.Find(parentPath);
+            Transform source = parent != null ? parent.Find(sourceName) : null;
+            if (source == null) return null;
+
+            var copy = Instantiate(source.gameObject, parent, false);
+            copy.name = childName;
+            return copy.transform;
         }
 
         private static void PositionOnBone(Transform t, string itemId)

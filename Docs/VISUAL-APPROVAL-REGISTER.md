@@ -38,7 +38,7 @@ notes: Important constraints
 
 ```yaml
 id: VA-001
-status: APPROVED
+status: SUPERSEDED
 date: 2026-08-20
 task: MINI-086
 subject: Sacat purchased GoldChain18k placement
@@ -57,4 +57,30 @@ still_editable:
 user_words: "ok the chain was done"
 supersedes: null
 notes: User placement is authoritative. Do not normalize or recalculate it. Boss C uses the same cleaned chain prefab with rig-specific placement; Boss J wears no chain.
+```
+
+```yaml
+id: VA-002
+status: APPROVED
+date: 2026-08-20
+task: MINI-087
+subject: Sacat purchased GoldChain18k two-piece fitted placement
+scene_or_prefab: Assets/UpIzUpMini/Data/Equipment/SacatChainPlacement.asset
+evidence:
+  - E:\Unity\Up Iz Up Mini\Logs\MINI-087-CaptureChain.log
+  - E:\Unity\Up Iz Up Mini\Logs\MINI-087-Validate-2.log
+  - E:\Unity\Up Iz Up Mini\Assets\UpIzUpMini\Data\Equipment\SacatChainPlacement.asset
+approved_aspects:
+  - root local position (-0.047002427, 0.48330128, 0.07208218)
+  - root local rotation (341.27582, 0, 0)
+  - root local scale (0.9118362, 1.1559348, 0.9118362)
+  - original front mesh fitted transform
+  - duplicated mesh fitted around the nape/back of the neck
+  - runtime recreation of both fitted pieces when Sacat owns chain_gold
+still_editable:
+  - runtime swing stiffness and damping after movement playtest
+  - Boss C model scale and his separate chain placement
+user_words: "Sacat chain done" / "i made a duplicate of the chain as well so save that too"
+supersedes: VA-001
+notes: This is a user-authored visual lock. Do not recalculate the root or either fitted child transform. The duplicated nape piece is profile data and is recreated at runtime; it is not a source-prefab edit.
 ```

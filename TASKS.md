@@ -1427,6 +1427,12 @@ Goal: Apply the user's hands-on regression feedback to the existing game systems
 
 Status: Implemented and built. Sacat's approved chain transform is captured and locked; purchase equips only the buyer, Boss C uses the real chain, and Boss J has none. Waiting only for the user's movement visibility/swing playtest.
 
+### MINI-087 — Sacat chain inward-fit revision gate
+
+Goal: Reopen Sacat's VA-001 chain placement from its saved profile, let the user move it slightly inward, and stop before any Boss C resizing. After Sacat is approved, capture/rebuild/test it; Boss C becomes a separate next visual decision.
+
+Status: Evidence ready. User approved Sacat's revised fit and requested that the duplicated nape/back piece be preserved. Root plus both child transforms are locked in `VA-002`; scene rebuild, exact runtime equipment validation, and Windows build pass. Waiting only for the user's walking/running clipping check. Boss C remains a separate next visual task.
+
 - `MINI-032`: Modular wardrobe + accessory IK/physics (chain jiggle, etc.) — attachment already exists (MINI-022 `CharacterEquipment`), this adds swing/sway physics and separate garment geometry instead of material recolor.
 - `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed).
 - `MINI-034`: Car — buy/enter/exit/seated driving, real vehicle physics; depends on MINI-033's enter/exit pattern.
