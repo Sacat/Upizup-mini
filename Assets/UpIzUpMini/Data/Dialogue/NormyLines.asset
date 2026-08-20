@@ -25,8 +25,8 @@ MonoBehaviour:
       cropId: 
   - speaker: Normy
     category: 4
-    text: Mi hear somebody eyeing up crops dat doe belong to dem, round Montine way.
-      Just... watch yuhself, nuh.
+    text: Mi hear somebody eyeing up crops dat doe belong to dem, round Highland
+      way. Just... watch yuhself, nuh.
     conditions:
     - type: 1
       faction: 3

@@ -31,8 +31,8 @@
   },
   "passability": {
     "roadsContinuous": true,
-    "roadRootCount": 9,
-    "roadColliderCount": 9,
+    "roadRootCount": 10,
+    "roadColliderCount": 10,
     "shortGapConnectorCount": 0,
     "bridgeGroupCount": 4,
     "bridgeColliderCount": 12,
@@ -43,8 +43,8 @@
   },
   "parcels": { "startingActiveCount": 1, "futureParcelCount": 7, "futureParcelsInactive": true },
   "landUse": {
-    "lalayHouseRootCount": 115,
-    "regularHouseCount": 76,
+    "lalayHouseRootCount": 124,
+    "regularHouseCount": 85,
     "shantyHouseCount": 39,
     "highlandHouseRootCount": 18,
     "highlandSmallApartmentCount": 5,
@@ -66,7 +66,7 @@
     "grayboxStatus": "approved",
     "grayboxEvidence": ["Logs/Tasks/MINI-099/MapLab-Overview-1600x1000.png", "Logs/Tasks/MINI-099/MapLab-Lalay-1280x720.png", "Logs/Tasks/MINI-099/MapLab-Highland-1280x720.png", "Logs/Tasks/MINI-099/MapLab-Bay-1280x720.png", "VA-005"],
     "rejectedEvidence": ["codex-clipboard-a1692bce-5179-4110-85ed-4d2b5a94d026.png"],
-    "runtimeStatus": "corrected_build_pending_retest"
+    "runtimeStatus": "mini_102_evidence_ready_pending_retest"
   },
   "migration": {
     "rollbackCommit": "aed8854",
@@ -83,7 +83,14 @@
       "Logs/Tasks/MINI-101/MINI-101-LalayShops-1280x720.png",
       "Logs/Tasks/MINI-101/MINI-101-HighlandConnection-1280x720.png",
       "Logs/Tasks/MINI-101/MINI-101-HighlandFarm-1280x720.png",
-      "Logs/Tasks/MINI-101/MINI-101-Spawn-1280x720.png"
+      "Logs/Tasks/MINI-101/MINI-101-Spawn-1280x720.png",
+      "Logs/Tasks/MINI-102/MigrationValidation-Pass.log",
+      "Logs/Tasks/MINI-102/StaticSceneValidation.log",
+      "Logs/Tasks/MINI-102/MINI-102-Overview-1600x1000.png",
+      "Logs/Tasks/MINI-102/MINI-102-Backstreet-1280x720.png",
+      "Logs/Tasks/MINI-102/MINI-102-LalayShops-1280x720.png",
+      "Logs/Tasks/MINI-102/MINI-102-Church-Brakes-1280x720.png",
+      "Logs/Tasks/MINI-102/MINI-102-Jetty-BoatRoute-1280x720.png"
     ]
   },
   "mobileBudget": {

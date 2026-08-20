@@ -38,6 +38,21 @@
       ]
     },
     {
+      "id": "user/lalay_backstreet",
+      "name": "Backstreet — user-confirmed Lalay side-road connection",
+      "roadClass": "residential",
+      "surface": "asphalt",
+      "points": [
+        { "x": -2.47, "z": -459.21 },
+        { "x": 0.0, "z": -540.0 },
+        { "x": 75.0, "z": -585.0 },
+        { "x": 180.0, "z": -609.0 },
+        { "x": 315.0, "z": -624.0 },
+        { "x": 405.0, "z": -606.0 },
+        { "x": 433.36, "z": -557.48 }
+      ]
+    },
+    {
       "id": "way/22898084",
       "name": "Dubuc - Fond Saint Jean Road",
       "roadClass": "secondary",

@@ -23,6 +23,7 @@ namespace UpIzUpMini.Editor
             // A deliberately small, connected phase-one network. The full OSM road
             // catalogue stays in JSON for future districts but is not mass-rendered.
             "user/lalay_inland_coastal_connector",
+            "user/lalay_backstreet",
             "user/highland_lalay_inroad",
             "user/highland_farm_spur",
             "way/254679575",
@@ -71,6 +72,8 @@ namespace UpIzUpMini.Editor
         private static Vector3 s_farmPadCentre;
         private static float s_farmPadHeight;
         private static readonly Vector2 FarmPadHalfSize = new Vector2(24f, 18f);
+        private static Material s_houseDoorMaterial;
+        private static Material s_houseWindowMaterial;
 
         [MenuItem("Up Iz Up Mini/MINI-095/Build Lalay Highland Map Lab")]
         public static void BuildScene()
@@ -110,6 +113,10 @@ namespace UpIzUpMini.Editor
                 MaterialAsset("WallConcrete", new Color(0.50f, 0.49f, 0.46f))
             };
             Material[] roofMats = { roofRed, roofBlue, roofSilver };
+            // Reuse two district-wide materials so facade detail does not add
+            // a unique material/draw-call family to the mobile graybox.
+            s_houseDoorMaterial = trackMat;
+            s_houseWindowMaterial = waterwayMat;
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             GameObject root = new GameObject("MapLab_LalayHighland");
@@ -187,6 +194,8 @@ namespace UpIzUpMini.Editor
             Require(GameObject.Find("GrandBay_Catholic_Church_Graybox") != null, "Mapped bay church missing");
             Require(GameObject.Find("Bay_Sand_Patch") != null, "Sand-and-stone bay treatment missing");
             Require(GameObject.Find("Zone_Highland_UserApproved_Outline") == null, "Planning-only pink Highland outline must not render");
+            Require(GameObject.Find("Road_user_lalay_backstreet") != null && GameObject.Find("Road_user_lalay_backstreet").GetComponent<MeshCollider>() != null,
+                "Backstreet must be a continuous collidable road");
             Require(GameObject.Find("Camera_Overview") != null && GameObject.Find("Camera_Lalay") != null && GameObject.Find("Camera_Highland") != null && GameObject.Find("Camera_Bay") != null, "Fixed cameras missing");
             int roads = GameObject.Find("Roads_OSM")?.transform.childCount ?? 0;
             int sidewalks = GameObject.Find("Lalay_Sidewalks")?.transform.childCount ?? 0;
@@ -371,7 +380,7 @@ namespace UpIzUpMini.Editor
                     float z = p.z * data.compression;
                     return new Vector3(x, RawHeightAt(x, z), z);
                 }).ToArray();
-                float maximumSlope = road.id == "user/lalay_inland_coastal_connector" ? 0.025f
+                float maximumSlope = road.id == "user/lalay_inland_coastal_connector" || road.id == "user/lalay_backstreet" ? 0.025f
                     : road.id == "user/highland_lalay_inroad" ? 0.03f
                     : road.id == "user/highland_farm_spur" ? 0.035f
                     : 0.08f;
@@ -922,7 +931,7 @@ namespace UpIzUpMini.Editor
         {
             List<(Vector3 point, Vector3 forward)> samples = new List<(Vector3, Vector3)>();
             foreach (RoadData lalayRoad in data.roads.Where(r => lalayIds.Contains(r.id) && r.points != null && r.points.Length >= 2))
-                samples.AddRange(SamplePolyline(lalayRoad.points.Select(p => World(p, data.compression, 0f)).ToList(), 4.15f));
+                samples.AddRange(SamplePolyline(lalayRoad.points.Select(p => World(p, data.compression, 0f)).ToList(), 3.72f));
             if (samples.Count == 0) return;
             System.Random random = new System.Random(98);
             int houseIndex = 0;
@@ -1064,6 +1073,28 @@ namespace UpIzUpMini.Editor
             roof.transform.localPosition = new Vector3(0f, height + 0.35f, 0f);
             roof.transform.localScale = new Vector3(width + 0.7f, 0.35f, depth + 0.8f);
             roof.GetComponent<Renderer>().sharedMaterial = roofMaterial;
+
+            // Lightweight facade detail makes the massing read as homes at
+            // gameplay distance without adding unique textures/materials per house.
+            AddFacadePanel(houseRoot.transform, "Front_Door", new Vector3(0f, 1.05f, depth * 0.5f + 0.035f), new Vector3(0.85f, 2.05f, 0.07f), s_houseDoorMaterial);
+            AddFacadePanel(houseRoot.transform, "Window_Left", new Vector3(-width * 0.27f, 1.75f, depth * 0.5f + 0.04f), new Vector3(0.75f, 0.85f, 0.06f), s_houseWindowMaterial);
+            AddFacadePanel(houseRoot.transform, "Window_Right", new Vector3(width * 0.27f, 1.75f, depth * 0.5f + 0.04f), new Vector3(0.75f, 0.85f, 0.06f), s_houseWindowMaterial);
+            if (twoStorey)
+            {
+                AddFacadePanel(houseRoot.transform, "Upper_Window_Left", new Vector3(-width * 0.25f, 4.75f, depth * 0.5f + 0.04f), new Vector3(0.8f, 0.9f, 0.06f), s_houseWindowMaterial);
+                AddFacadePanel(houseRoot.transform, "Upper_Window_Right", new Vector3(width * 0.25f, 4.75f, depth * 0.5f + 0.04f), new Vector3(0.8f, 0.9f, 0.06f), s_houseWindowMaterial);
+            }
+        }
+
+        private static void AddFacadePanel(Transform parent, string name, Vector3 localPosition, Vector3 scale, Material material)
+        {
+            GameObject panel = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            panel.name = name;
+            panel.transform.SetParent(parent, false);
+            panel.transform.localPosition = localPosition;
+            panel.transform.localScale = scale;
+            panel.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(panel.GetComponent<Collider>());
         }
 
         private static void AddBoundsCollider(GameObject instance)

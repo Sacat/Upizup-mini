@@ -7,7 +7,7 @@ Use verified latitude/longitude anchors as source data, then convert them to a l
 The first connected gameplay area is:
 
 ```text
-Lalay road → market/institutions → Montine turnoff → dirty farm trail → farm clearing/safehouse
+Lalay road → market/institutions → Highland inroad → dirty farm trail → farm clearing/safehouse
 ```
 
 ## Scene plan
@@ -15,8 +15,8 @@ Lalay road → market/institutions → Montine turnoff → dirty farm trail → 
 - `GrandBayProof`: temporary vertical-slice scene.
 - `LalaySouth`: homes, starting safehouse, and first contacts.
 - `LalayMarket`: vendors, buyer, police presence, and traffic.
-- `MontineRoute`: rough track, vegetation, slopes, and isolation.
-- `MontineFarms`: farming land, later land purchases, and farm safehouse.
+- `HighlandRoute`: rough track, vegetation, gentle drivable grades, and isolation.
+- `HighlandFarms`: farming land, later land purchases, and farm safehouse.
 - `DominicaTravelMap`: island overview used for future district selection.
 
 ## Data requirements
@@ -36,4 +36,3 @@ Create `Docs/MAP-ANCHORS.json` only from verified coordinates. Each record shoul
 ```
 
 Do not invent exact coordinates. Approximate artistic placement must be marked as approximate.
-

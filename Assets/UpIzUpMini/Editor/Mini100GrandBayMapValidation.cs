@@ -2,12 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using UpIzUpMini.Farming;
 using UpIzUpMini.Interaction;
+using UpIzUpMini.Character;
+using UpIzUpMini.Economy;
+using UpIzUpMini.UI;
 
 namespace UpIzUpMini.EditorTools
 {
@@ -15,6 +20,14 @@ namespace UpIzUpMini.EditorTools
     public static class Mini100GrandBayMapValidation
     {
         private const string ScenePath = "Assets/UpIzUpMini/Scenes/GrandBayProof.unity";
+        private static readonly Vector2[] LalaySpine =
+        {
+            new Vector2(-63.29f, -144.47f), new Vector2(-0.82f, -153.07f), new Vector2(24.11f, -156.50f),
+            new Vector2(45f, -159.94f), new Vector2(77.30f, -164.11f), new Vector2(110.37f, -168.64f),
+            new Vector2(126.17f, -170.94f), new Vector2(136.67f, -174.64f), new Vector2(142.24f, -184.04f),
+            new Vector2(150.86f, -190.48f), new Vector2(163.62f, -197.30f), new Vector2(176.30f, -198.82f),
+            new Vector2(190.52f, -201.72f)
+        };
         private static string EvidenceTask => Environment.GetEnvironmentVariable("UPIZUP_EVIDENCE_TASK") ?? "MINI-100";
         private static string EvidenceFolder => Path.Combine(Directory.GetCurrentDirectory(), "Logs", "Tasks", EvidenceTask);
 
@@ -38,14 +51,79 @@ namespace UpIzUpMini.EditorTools
             CaptureView($"{EvidenceTask}-Overview-1600x1000.png", new Vector3(110f, 335f, -95f), new Vector3(110f, 0f, -95f), 1600, 1000, true, 225f);
             CaptureView($"{EvidenceTask}-LalayShops-1280x720.png", new Vector3(36f, 28f, -137f), new Vector3(91f, 1.5f, -174f), 1280, 720, false, 0f);
             CaptureView($"{EvidenceTask}-HighlandConnection-1280x720.png", new Vector3(34f, 72f, -70f), new Vector3(86f, 1.5f, -128f), 1280, 720, false, 0f);
+            CaptureView($"{EvidenceTask}-Backstreet-1280x720.png", new Vector3(55f, 82f, -156f), new Vector3(58f, 0f, -194f), 1280, 720, false, 0f);
             GameObject sacat = FindAnywhere("Sacat");
             if (sacat != null)
                 CaptureView($"{EvidenceTask}-Spawn-1280x720.png", sacat.transform.position + new Vector3(-7f, 7f, -10f), sacat.transform.position + Vector3.up * 1.4f, 1280, 720, false, 0f);
             GameObject farm = FindAnywhere("FarmPlot_00");
             if (farm != null)
                 CaptureView($"{EvidenceTask}-HighlandFarm-1280x720.png", farm.transform.position + new Vector3(-23f, 20f, -24f), farm.transform.position + Vector3.up, 1280, 720, false, 0f);
+            GameObject house = FindAnywhere("LalayHouse");
+            if (house != null)
+                CaptureView($"{EvidenceTask}-LalaySafehouse-1280x720.png", house.transform.position + new Vector3(-13f, 9f, -10f), house.transform.position + Vector3.up * 2.7f, 1280, 720, false, 0f);
+            CaptureRolePair("NPC_Brakes", "GrandBay_Catholic_Church_Graybox", $"{EvidenceTask}-Church-Brakes-1280x720.png", 14f, 7f);
+            CaptureRolePair("NPC_BoatMan", "MooredBoat", $"{EvidenceTask}-Jetty-BoatRoute-1280x720.png", 18f, 9f);
+            CaptureRoleGroup("NPC_DogLife_", $"{EvidenceTask}-DogLifeBlock-1280x720.png", 13f, 8f);
+            CaptureRolePair("NPC_BossC", "BossC_SUV", $"{EvidenceTask}-BossCBlock-Rover-1280x720.png", 13f, 7f);
+            GameObject paro = FindAnywhere("NPC_Vagrant");
+            if (paro != null)
+                CaptureView($"{EvidenceTask}-Paro-1280x720.png", paro.transform.position + new Vector3(-7f, 5f, -6f), paro.transform.position + Vector3.up * 1.5f, 1280, 720, false, 0f);
             Debug.Log("MINI-100 MIGRATION CAPTURE PASS: overview, Lalay, Highland, Highland farm, and playable spawn evidence saved.");
             if (Application.isBatchMode) EditorApplication.Exit(0);
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-102/Validate GTA Minimap Heat Overlay")]
+        public static void ValidateMiniMapHeatOverlay()
+        {
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            GtaMiniMapController controller = UnityEngine.Object.FindFirstObjectByType<GtaMiniMapController>(FindObjectsInactive.Include);
+            EconomyManager economy = UnityEngine.Object.FindFirstObjectByType<EconomyManager>(FindObjectsInactive.Include);
+            if (controller == null || economy == null)
+            {
+                Debug.LogError("MINI-102 MINIMAP VALIDATION FAIL: controller or economy manager missing.");
+                if (Application.isBatchMode) EditorApplication.Exit(1);
+                return;
+            }
+
+            typeof(EconomyManager).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(economy, null);
+            MethodInfo update = typeof(GtaMiniMapController).GetMethod("UpdateWantedOverlay", BindingFlags.Instance | BindingFlags.NonPublic);
+            SerializedObject serialized = new SerializedObject(controller);
+            Image overlay = serialized.FindProperty("wantedOverlay").objectReferenceValue as Image;
+            Text label = serialized.FindProperty("wantedLabel").objectReferenceValue as Text;
+            economy.AddHeat(49f);
+            update?.Invoke(controller, null);
+            bool hiddenBelowThreshold = overlay != null && !overlay.gameObject.activeSelf && label != null && !label.gameObject.activeSelf;
+            economy.AddHeat(1f);
+            update?.Invoke(controller, null);
+            bool visibleAtThreshold = overlay != null && overlay.gameObject.activeSelf && overlay.color.a > 0f
+                && label != null && label.gameObject.activeSelf && label.text.Contains("50%");
+            if (hiddenBelowThreshold && visibleAtThreshold)
+                Debug.Log("MINI-102 MINIMAP VALIDATION PASS: wanted wash is hidden at 49% and transparent red/blue police overlay plus 50% label activate at the exact threshold.");
+            else
+                Debug.LogError($"MINI-102 MINIMAP VALIDATION FAIL: hidden49={hiddenBelowThreshold}, visible50={visibleAtThreshold}, label='{label?.text}'.");
+            if (Application.isBatchMode) EditorApplication.Exit(hiddenBelowThreshold && visibleAtThreshold ? 0 : 1);
+        }
+
+        private static void CaptureRolePair(string firstName, string secondName, string fileName, float distance, float height)
+        {
+            GameObject first = FindAnywhere(firstName);
+            GameObject second = FindAnywhere(secondName);
+            if (first == null || second == null) return;
+            Vector3 target = Vector3.Lerp(first.transform.position, second.transform.position, 0.35f) + Vector3.up * 1.5f;
+            Vector3 away = first.transform.position - second.transform.position;
+            away.y = 0f;
+            if (away.sqrMagnitude < 0.01f) away = new Vector3(-1f, 0f, -1f);
+            Vector3 camera = first.transform.position + away.normalized * distance + Vector3.up * height;
+            CaptureView(fileName, camera, target, 1280, 720, false, 0f);
+        }
+
+        private static void CaptureRoleGroup(string namePrefix, string fileName, float distance, float height)
+        {
+            Transform[] members = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(transform => transform.name.StartsWith(namePrefix, StringComparison.Ordinal)).ToArray();
+            if (members.Length == 0) return;
+            Vector3 target = members.Aggregate(Vector3.zero, (sum, member) => sum + member.position) / members.Length;
+            CaptureView(fileName, target + new Vector3(-distance, height, -distance * 0.65f), target + Vector3.up * 1.4f, 1280, 720, false, 0f);
         }
 
         private static List<string> CollectProblems(Scene scene)
@@ -56,7 +134,7 @@ namespace UpIzUpMini.EditorTools
             foreach (string oldRoot in new[] { "GrandBayTerrain", "Sea", "CoastAndJetty", "LalayRoad", "LalayHouses", "MontineFarmPath" })
                 Require(FindRoot(scene, oldRoot) == null, $"old synthetic root still present: {oldRoot}", problems);
 
-            foreach (string required in new[] { "Sacat", "Franki", "MontineFarm", "FarmSafehouse", "FarmPlot_00", "NPC_BoatMan", "MooredBoat", "MissionSystem", "NavMeshSurface" })
+            foreach (string required in new[] { "Sacat", "Franki", "MontineFarm", "FarmSafehouse", "FarmPlot_00", "NPC_Brakes", "NPC_Vagrant", "NPC_BoatMan", "MooredBoat", "MissionSystem", "NavMeshSurface" })
                 Require(FindAnywhere(required) != null, $"required gameplay role missing: {required}", problems);
 
             if (world != null)
@@ -84,16 +162,21 @@ namespace UpIzUpMini.EditorTools
                 Require(bridgeColliders >= 4, $"bridge collider coverage regressed: {bridgeColliders}", problems);
             }
 
-            Require(UnityEngine.Object.FindObjectsByType<FarmPlot>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length >= 11,
+            Require(UnityEngine.Object.FindObjectsByType<FarmPlot>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length >= 14,
                 "gameplay farm plots did not survive migration", problems);
             Require(UnityEngine.Object.FindObjectsByType<TownNPCInteractable>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length >= 8,
                 "town NPC gameplay roles did not survive migration", problems);
 
             ValidateRoadsideShops(problems);
+            ValidateLalayRolesAndSafehouses(problems);
             ValidateHighlandFarm(problems);
             ValidateRoadJoin("Road_way_22917921", "Road_user_highland_lalay_inroad", "Lalay to Highland inroad", problems);
             ValidateRoadJoin("Road_user_highland_lalay_inroad", "Road_user_lalay_inland_coastal_connector", "Highland inroad to connector", problems);
             ValidateRoadJoin("Road_user_highland_lalay_inroad", "Road_user_highland_farm_spur", "Highland inroad to farm spur", problems);
+            ValidateRoadJoin("Road_way_22917921", "Road_user_lalay_backstreet", "Lalay to south Backstreet", problems);
+            ValidateBackstreetSide(problems);
+            ValidateMissionRolePlacement(problems);
+            ValidateMiniMap(problems);
 
             foreach (GameObject root in scene.GetRootGameObjects())
                 foreach (Transform transform in root.GetComponentsInChildren<Transform>(true))
@@ -140,6 +223,102 @@ namespace UpIzUpMini.EditorTools
             }
         }
 
+        private static void ValidateLalayRolesAndSafehouses(List<string> problems)
+        {
+            string[] stationary =
+            {
+                "NPC_FarmShop", "NPC_Buyer", "NPC_FoodShop", "NPC_ApparelShop", "NPC_Pharmacy", "NPC_LandOffice",
+                "NPC_CarDealer", "NPC_Normy", "NPC_Vagrant", "NPC_BlackMarket", "NPC_BossJ", "NPC_BossC",
+                "NPC_GangRecruiter", "NPC_Villager", "NPC_Police", "NPC_PoliceShops"
+            };
+            foreach (string name in stationary)
+            {
+                GameObject npc = FindAnywhere(name);
+                if (npc == null) continue;
+                Vector3 road = ApproximateLalayCentre(npc.transform.position.x);
+                Require(HorizontalDistance(npc.transform.position, road) >= 6.0f,
+                    $"{name} remains in the Lalay vehicle lane ({HorizontalDistance(npc.transform.position, road):0.00}m from centre)", problems);
+            }
+
+            GameObject rover = FindAnywhere("BossC_SUV");
+            if (rover != null)
+            {
+                Renderer[] roverRenderers = rover.GetComponentsInChildren<Renderer>(true);
+                Vector3 roverCentre = roverRenderers.Length == 0 ? rover.transform.position : roverRenderers[0].bounds.center;
+                if (roverRenderers.Length > 0)
+                {
+                    Bounds roverBounds = roverRenderers[0].bounds;
+                    for (int i = 1; i < roverRenderers.Length; i++) roverBounds.Encapsulate(roverRenderers[i].bounds);
+                    roverCentre = roverBounds.center;
+                }
+                Vector3 road = ApproximateLalayCentre(roverCentre.x);
+                Require(HorizontalDistance(roverCentre, road) >= 7.0f, "Boss C Range Rover remains in the Lalay vehicle lane", problems);
+                Vector3 tangent = ApproximateLalayCentre(roverCentre.x + 2f) - ApproximateLalayCentre(roverCentre.x - 2f);
+                tangent.y = 0f;
+                float parallelAngle = Mathf.Min(
+                    Vector3.Angle(rover.transform.forward, tangent),
+                    Vector3.Angle(rover.transform.forward, -tangent));
+                Require(parallelAngle <= 20f,
+                    $"Boss C Range Rover is not parked parallel to Lalay (angle={parallelAngle:0.0}, centre={roverCentre}, forward={rover.transform.forward}, tangent={tangent.normalized})", problems);
+            }
+
+            GameObject lalayHouse = FindAnywhere("LalayHouse");
+            Require(lalayHouse != null && lalayHouse.GetComponentsInChildren<Transform>(true).Any(t => t.name == "LalaySafehouse_TwoStorey"),
+                "Lalay safehouse is not the required two-storey house", problems);
+            GameObject farmSafehouse = FindAnywhere("FarmSafehouse_Rest");
+            CharacterSwitchManager switcher = UnityEngine.Object.FindFirstObjectByType<CharacterSwitchManager>(FindObjectsInactive.Include);
+            if (farmSafehouse != null && switcher != null)
+            {
+                SerializedObject so = new SerializedObject(switcher);
+                Vector3 spawn = so.FindProperty("safehouseSpawn").vector3Value;
+                Require(HorizontalDistance(spawn, farmSafehouse.transform.position) <= 2f,
+                    "default respawn is not the Highland safehouse", problems);
+            }
+        }
+
+        private static void ValidateBackstreetSide(List<string> problems)
+        {
+            GameObject backstreet = FindAnywhere("Road_user_lalay_backstreet");
+            if (backstreet == null) return;
+            Renderer renderer = backstreet.GetComponentInChildren<Renderer>(true);
+            if (renderer == null) return;
+            Vector3 centre = renderer.bounds.center;
+            Vector3 lalay = ApproximateLalayCentre(centre.x);
+            Require(centre.z <= lalay.z - 12f,
+                $"Backstreet is on the wrong side of Lalay (backstreet z={centre.z:0.0}, Lalay z={lalay.z:0.0})", problems);
+        }
+
+        private static void ValidateMissionRolePlacement(List<string> problems)
+        {
+            foreach (string name in new[] { "NPC_BossJ", "NPC_Normy" })
+            {
+                GameObject npc = FindAnywhere(name);
+                Require(npc != null && npc.GetComponent<PatrolNPC>() != null, $"{name} does not have its short Lalay walking beat", problems);
+            }
+            Require(FindAnywhere("NPC_Police")?.GetComponent<PoliceOfficer>() != null, "Lalay police patrol is missing", problems);
+
+            GameObject church = FindAnywhere("GrandBay_Catholic_Church_Graybox");
+            GameObject brakes = FindAnywhere("NPC_Brakes");
+            if (church != null && brakes != null)
+                Require(HorizontalDistance(church.transform.position, brakes.transform.position) <= 20f, "Brakes is not beside the church", problems);
+
+            int dogLife = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Count(transform => transform.name.StartsWith("NPC_DogLife_", StringComparison.Ordinal));
+            Require(dogLife >= 4, $"Dog Life Lalay block is incomplete: {dogLife}/4", problems);
+            Require(FindAnywhere("NPC_GangRecruiter") != null && FindAnywhere("NotAhWord_Zoomy") != null,
+                "Not Ah Word Lalay block is incomplete", problems);
+        }
+
+        private static void ValidateMiniMap(List<string> problems)
+        {
+            GtaMiniMapController miniMap = UnityEngine.Object.FindFirstObjectByType<GtaMiniMapController>(FindObjectsInactive.Include);
+            Require(miniMap != null, "GTA-style minimap controller missing", problems);
+            int markers = UnityEngine.Object.FindObjectsByType<GtaMiniMapMarker>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            Require(markers >= 18, $"minimap role coverage is incomplete: {markers} markers", problems);
+            Require(FindAnywhere("GTA_MinimapCamera")?.GetComponent<Camera>() != null, "minimap camera missing", problems);
+            Require(FindAnywhere("PoliceHeatOverlay") != null, "50% police-heat minimap overlay missing", problems);
+        }
+
         private static void ValidateRoadJoin(string firstName, string secondName, string label, List<string> problems)
         {
             GameObject first = FindAnywhere(firstName);
@@ -172,7 +351,17 @@ namespace UpIzUpMini.EditorTools
                 .ToArray();
         }
 
-        private static Vector3 ApproximateLalayCentre(float x) => new Vector3(x, 0f, -149f - (x + 48f) * 0.1765f);
+        private static Vector3 ApproximateLalayCentre(float x)
+        {
+            if (x <= LalaySpine[0].x) return new Vector3(x, 0f, LalaySpine[0].y);
+            for (int i = 1; i < LalaySpine.Length; i++)
+            {
+                if (x > LalaySpine[i].x) continue;
+                float t = Mathf.InverseLerp(LalaySpine[i - 1].x, LalaySpine[i].x, x);
+                return new Vector3(x, 0f, Mathf.Lerp(LalaySpine[i - 1].y, LalaySpine[i].y, t));
+            }
+            return new Vector3(x, 0f, LalaySpine[LalaySpine.Length - 1].y);
+        }
         private static float HorizontalDistance(Vector3 a, Vector3 b) => Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
 
         private static void CaptureView(string fileName, Vector3 position, Vector3 target, int width, int height, bool orthographic, float size)

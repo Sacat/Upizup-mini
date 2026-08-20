@@ -2,7 +2,7 @@
 
 Supplied by the user on 2026-08-15. Authoritative story reference for both
 the Mini and the larger game. Mission 1 as described here ("A Start in
-Montine") is the design target `MINI-001`/`MINI-011` have been building
+Highland") is the design target `MINI-001`/`MINI-011` have been building
 toward; later missions define NPC roles and systems to build in future
 tasks (see `TASKS.md` and `PROJECT-HANDOFF.md` for what's actually
 implemented versus planned).
@@ -13,7 +13,7 @@ Smart and Strong are two young men from Grand Bay, Dominica. They leave
 school believing that working for themselves will give them a better
 future than remaining in the classroom without money or opportunity.
 
-They begin with honest farming in Montine—planting tomatoes, bananas, and
+They begin with honest farming in Highland—planting tomatoes, bananas, and
 carrots and selling produce around Lalay. Farming teaches them patience,
 crop quality, negotiation, transportation, and how the local market
 operates.
@@ -67,12 +67,12 @@ health, stamina, position, and abilities.
 
 ## Chapter One — A Start in Grand Bay
 
-### Mission 1: A Start in Montine
+### Mission 1: A Start in Highland
 
 Smart and Strong begin at a small family safehouse near Lalay.
 
 A fictional farming mentor offers them tomato seedlings and permission to
-use a neglected plot in Montine. The player learns how to switch between
+use a neglected plot in Highland. The player learns how to switch between
 the boys before walking through Lalay and following a rough dirt trail
 into the farming area.
 
@@ -128,7 +128,7 @@ about controlling supply, relationships, and market access.
 
 ### Mission 4: More Land
 
-The original Montine plot is too small.
+The original Highland plot is too small.
 
 Smart and Strong earn enough money to rent or purchase another farming
 lot. This introduces the future land system: suitable remote areas can be
@@ -165,7 +165,7 @@ the offer back.
 
 ### Mission 6: First Bushers Harvest
 
-The boys plant Bushers in a remote Montine location.
+The boys plant Bushers in a remote Highland location.
 
 Unlike legal crops, weed must be kept away from roads and heavily
 populated areas. The crop grows through visible stages, and its quality
@@ -208,7 +208,7 @@ Boss K lends them a motorcycle or vehicle for a larger delivery.
 
 The mission introduces entering, exiting, driving, vehicle damage, and
 police attention. Bikes are especially useful on the narrow roads and
-rough Montine routes.
+rough Highland routes.
 
 After completing the delivery, Boss K deducts fuel, vehicle use, and an
 invented "protection fee" from their payment.
@@ -398,7 +398,7 @@ Smart proposes a careful plan to expose the employers' betrayal and
 preserve their legal farming operation. Strong wants to confront the
 people responsible directly.
 
-The final missions move between Grand Bay, Montine, and Roseau. Both
+The final missions move between Grand Bay, Highland, and Roseau. Both
 characters' abilities and switching are required.
 
 ## Possible endings

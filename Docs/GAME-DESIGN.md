@@ -23,7 +23,7 @@ A compact, modern 2.5D crime-and-farming progression game set in Grand Bay, Domi
 ## First chapter target
 
 - Lalay village road and market.
-- Montine dirty farm road and farm clearing.
+- Highland dirt inroad and farm clearing.
 - Two safehouses.
 - Tomatoes, bananas, carrots, and three weed tiers.
 - One usable vehicle.
@@ -45,4 +45,3 @@ Higher tiers must unlock through mission progression and contacts, not merely fr
 - No full combat system in `MINI-001`.
 - No broad collection of unreviewed asset packs.
 - No claim of AAA production quality.
-

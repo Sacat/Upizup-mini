@@ -105,7 +105,7 @@ The detailed reusable state machine, artifacts, commands, passability gates and 
 6. Generate repeatable roads, curbs, lots, fences, and scatter from data. Freeze an approved district revision before optimization and decoration.
 7. Integrate in chunks with stable IDs, collision, NavMesh, LODs, and mobile-distance culling. The existing scene builder remains authoritative until a specific migration task replaces it safely.
 
-First target: Lalay main street to the beach/jetty, with side lanes, market/institution anchors, safehouse relationship, and the Montine turnoff. Do not attempt the whole island first.
+First target: Lalay main street to the beach/jetty, with side lanes, market/institution anchors, safehouse relationship, and the Highland inroad. Do not attempt the whole island first.
 
 ## Hitem3D asset pipeline
 

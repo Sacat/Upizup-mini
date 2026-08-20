@@ -1,5 +1,13 @@
 # Up Iz Up Mini — Changelog
 
+## 2026-08-20 — MINI-102
+
+- Moved Backstreet to the user-marked south side of Lalay, connected both ends to the main road, and removed the accidental northern route.
+- Established deliberate Lalay placements for shops, Boss J, Normy, police, Dog Life, Not Ah Word, Boss C's Rover, the car dealer and Paro; added Brakes in white at the church and kept Boat Man/boat at the jetty.
+- Added a GTA-style rotating minimap with progression-aware blips and a transparent red/blue wanted overlay at 50%+ heat.
+- Replaced remaining player-facing Montine terminology with Highland while retaining legacy save IDs.
+- Static map/scene validation and fixed visual evidence pass; hands-on driving, NPC-motion and minimap-feel acceptance remain owed.
+
 ## 2026-08-20 — MINI-100
 
 - Migrated the approved VA-005 Lalay/Highland map into the generated playable `GrandBayProof` scene and removed the old synthetic terrain/road/coast roots.

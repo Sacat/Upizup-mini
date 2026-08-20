@@ -18,7 +18,7 @@ namespace UpIzUpMini.Interaction
 
         // MINI-042: gates a second, purchasable safehouse (the Lalay
         // house) the same way LockedFarmPlot gates bought land - empty
-        // keeps the original always-usable Montine farm safehouse
+        // keeps the original always-usable Highland farm safehouse
         // behaviour unchanged.
         [SerializeField] private string requiredItemId;
 

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: land_montine
   m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Economy.ShopItemDefinition
   itemId: land_montine
-  displayName: Montine Land Plot
+  displayName: Highland Farm Plot
   category: 7
   price: 600
   description: 

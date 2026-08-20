@@ -14,6 +14,13 @@
 
 Map truth and the corrected graybox are approved. The user described the simplified result as “exactly what i want” and then authorized transfer into Up Iz Up Mini. Final house meshes, vegetation, drains, landmark art and placeholder colors remain editable; topology, road width/continuity, Lalay density relationship, Highland connection, church/beach relationship and jetty-to-sea placement are locked for migration.
 
+## MINI-102 south Backstreet and role-layout candidate
+
+- The user-marked Backstreet now runs south/below Lalay and joins the main road at both ends; the accidental northern version no longer exists.
+- Lalay contains distinct roadside blocks for Dog Life and Not Ah Word, walking beats for Boss J/Normy/police, and off-lane positions for the dealer, shops and Boss C's Rover.
+- Brakes stands by the church; Paro is on Lalay; Boat Man and the moored boat occupy the jetty route.
+- Evidence is under `Logs/Tasks/MINI-102/`; runtime driving, moving-NPC and minimap feel remain subject to the user's EXE retest.
+
 ## MINI-101 runtime correction candidate
 
 - User runtime evidence showed shops/stalls occupying the Lalay roadway and a steep/disconnected Highland approach with the farm and safehouse obstructing the route.

@@ -28,7 +28,7 @@ reserved_files:
 ```yaml
 current_owner: None
 active_task: None
-claimed_at: None
+claimed_at: null
 reserved_files: []
 ```
 
@@ -41,6 +41,18 @@ After verification, append a change entry, update the verification results, and 
 - **Missions are not implemented.** The user asked for full missions (planting/selling/police/bosses/buying land). The underlying systems exist (economy, shop, seeds, heat, land item) but there is no mission/objective state machine, no boss NPCs, and buying land has no gameplay effect yet. This needs its own task.
 
 ## Change record
+
+### MINI-102 — South Backstreet, Lalay mission layout and GTA minimap
+
+- Date: 2026-08-20
+- Owner: Codex (released; user runtime acceptance pending)
+- Request: Move the accidentally north-side Backstreet to the user's purple-marked south side; organize existing missions, police and gangs around the new map; add Brakes at the church, confirm Paro/Boat Man/boat; and add a transparent GTA-style minimap with a 50%+ police-heat treatment.
+- Result: `user/lalay_backstreet` is now one continuous, collidable south loop joined to the Lalay main road at both endpoints. Shops and stationary contacts occupy roadside lots. Boss J and Normy have short sidewalk patrols; police patrol Lalay; Dog Life and Not Ah Word have distinct west/east blocks; Boss C's Rover is parallel and outside the lane; Brakes uses an existing licensed Humanoid with white clothing and church-specific dialogue; Paro is on Lalay; Boat Man and the moored boat are at the jetty.
+- UI: Added `GtaMiniMapController`/`GtaMiniMapMarker`: a 256px orthographic radar follows and rotates with Sacat/Franki, uses progression-aware blips, and activates a transparent pulsing red/blue police wash plus percentage label at 50% heat. A live built-EXE inspection confirmed the radar renders in the lower-left without obscuring the main HUD. A deterministic harness proves it is hidden at 49% and active at 50%.
+- Navigation: Final gating caught that the new closed map houses had colliders but were not explicitly excluded from the walking bake. The builder now adds `NavMeshModifier`/Not Walkable to closed Lalay and Highland house roots while keeping safehouses enterable. The Lalay-to-Highland path and obstacle check now pass.
+- Verification: migration validation pass, static scene validation pass, NavMesh path/closed-house validation pass, minimap 49/50 threshold validation pass, fixed GPU screenshots under `Logs/Tasks/MINI-102/`, Windows build succeeded at 390,647,142 bytes, and the launched build's Player.log contained no runtime exception/error. Hands-on driving, NPC motion/collision feel and full heat chase remain the user's acceptance gate.
+- Build: `Builds/GrandBayProof/UpIzUpMini.exe`.
+- Next-agent prompt: `Docs/NEXT-CHATGPT-PLUS-HANDOFF.md`.
 
 ### MINI-101 — Runtime map correction after first playtest
 

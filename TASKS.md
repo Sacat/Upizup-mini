@@ -22,6 +22,12 @@ Acceptance criteria:
 
 ## In progress
 
+### MINI-102 — South Backstreet, Lalay roles and GTA minimap
+
+Goal: Correct the user-marked Backstreet side, organize the new map around existing missions, and add a readable GTA-style minimap.
+
+Status: **Evidence ready / Windows build and user runtime retest are the final gate.** Backstreet now runs south/below Lalay and connects at both ends. Shops and stationary roles are outside traffic lanes; Boss J, Normy and police have short Lalay walking beats; Dog Life and Not Ah Word have distinct blocks; Brakes, Paro, Boat Man and the boat are placed. The minimap follows the active hero and introduces the transparent wanted overlay at 50% heat.
+
 ### MINI-098 — User-corrected connector, Lalay density and sandy bay
 
 Goal: Apply the user's annotated inland-to-coastal connector and land-use rules in the separate map-lab.

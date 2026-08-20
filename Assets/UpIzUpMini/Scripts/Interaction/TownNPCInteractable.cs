@@ -329,7 +329,7 @@ namespace UpIzUpMini.Interaction
 
         private string FirstMeetingDialogue() => role switch
         {
-            NpcRole.FarmShop => "Farm Seller: First time I seeing allu here. I sell legal seed for the Montine plots.",
+            NpcRole.FarmShop => "Farm Seller: First time I seeing allu here. I sell legal seed for the Highland plots.",
             NpcRole.Buyer => "Produce Buyer: I buy clean crop from local farmers. Bring it ripe and I pay fair.",
             NpcRole.ApparelShop => "Clothes Man: Welcome, fellas. Clothes, shoes and accessories inside.",
             NpcRole.LandOffice => "Land and Surveys Man: I handle surveyed lots and property deeds for Grand Bay.",
@@ -338,7 +338,7 @@ namespace UpIzUpMini.Interaction
             NpcRole.Pharmacy => "Pharmacy Clerk: I have health and energy supplies when the road wearing allu down.",
             NpcRole.Vagrant => "Paro: Eh boss, easy. I sleeping rough these days, but I might take a little thing off allu hand.",
             NpcRole.BlackMarket => "Black Market Trader: Things you done wearing can still make a little money here.",
-            NpcRole.Boss => "Boss J: I hearing Sacat and Franki trying to make a name farming up Montine.",
+            NpcRole.Boss => "Boss J: I hearing Sacat and Franki trying to make a name farming up Highland.",
             NpcRole.StrainBoss => $"{npcName}: Boss J send allu? Higher-grade work have higher consequences.",
             NpcRole.Police => $"{npcName}: First time I seeing allu on this stretch. Keep out of trouble.",
             NpcRole.BoatMan => "Boat Man: I run the Guadeloupe route from the bay when the conditions right.",

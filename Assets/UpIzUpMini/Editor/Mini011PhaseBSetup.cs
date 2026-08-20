@@ -256,13 +256,13 @@ namespace UpIzUpMini.EditorTools
             // gameplay role exists, then relocate those stable roots onto VA-005.
             // The isolated map-lab and rollback commit remain untouched.
             Mini100GrandBayMapMigration.ApplyToOpenScene(scene);
+            RegisterGrandBayMiniMapMarkers();
 
             // MINI-052: bake last, after every static obstacle (buildings,
             // terrain, farm, coast) is in place, so NavPathSteerer (the
             // companion/villager/police steering) has real path coverage
             // around houses instead of a straight line.
             BuildNavigationMesh();
-            BuildMapMigrationNavigationLinks();
 
             EnsureFolder("Assets/UpIzUpMini/Scenes");
             bool saved = EditorSceneManager.SaveScene(scene, ScenePath);
@@ -681,6 +681,8 @@ namespace UpIzUpMini.EditorTools
         /// </summary>
         private static void BuildNavigationMesh()
         {
+            MarkClosedMapHousesNotWalkable("Lalay_Dense_House_Massing");
+            MarkClosedMapHousesNotWalkable("Highland_Sparse_House_Massing");
             var go = new GameObject("NavMeshSurface");
             var surface = go.AddComponent<NavMeshSurface>();
             surface.collectObjects = CollectObjects.All;
@@ -693,45 +695,17 @@ namespace UpIzUpMini.EditorTools
             surface.BuildNavMesh();
         }
 
-        private static void BuildMapMigrationNavigationLinks()
+        private static void MarkClosedMapHousesNotWalkable(string rootName)
         {
-            // Road meshes meet visually and physically at these user-approved
-            // junctions, but NavMesh agent-radius erosion can split the narrow
-            // seams into separate islands. Short, wide links preserve normal
-            // walking across those joins without creating a cross-map shortcut.
-            var root = new GameObject("GrandBayNavigationJoins");
-            Vector3[] route =
+            GameObject root = GameObject.Find(rootName);
+            if (root == null) return;
+            int notWalkable = NavMesh.GetAreaFromName("Not Walkable");
+            foreach (Transform house in root.transform)
             {
-                new Vector3(48f, 0f, -159f),
-                new Vector3(61f, 0f, -161.5f),
-                new Vector3(73f, 0f, -164f),
-                new Vector3(78.5f, 0f, -157f),
-                new Vector3(80.5f, 0f, -148.5f),
-                new Vector3(83f, 0f, -141.5f),
-                new Vector3(84.5f, 0f, -136.5f),
-                new Vector3(94f, 0f, -133.5f),
-                new Vector3(105.5f, 0f, -130f),
-                new Vector3(114f, 0f, -129f),
-            };
-            for (int i = 0; i < route.Length - 1; i++)
-                AddJoin($"LalayHighlandRoute_{i:00}", route[i], route[i + 1]);
-
-            void AddJoin(string name, Vector3 from, Vector3 to)
-            {
-                if (!NavMesh.SamplePosition(from, out NavMeshHit fromHit, 7f, NavMesh.AllAreas) ||
-                    !NavMesh.SamplePosition(to, out NavMeshHit toHit, 7f, NavMesh.AllAreas))
-                    throw new System.InvalidOperationException($"MINI-101 navigation join {name} could not find both road edges.");
-
-                var go = new GameObject(name);
-                go.transform.SetParent(root.transform, false);
-                go.SetActive(false);
-                var link = go.AddComponent<NavMeshLink>();
-                link.startPoint = fromHit.position;
-                link.endPoint = toHit.position;
-                link.width = 3.5f;
-                link.bidirectional = true;
-                link.costModifier = 1f;
-                go.SetActive(true);
+                NavMeshModifier modifier = house.GetComponent<NavMeshModifier>();
+                if (modifier == null) modifier = house.gameObject.AddComponent<NavMeshModifier>();
+                modifier.overrideArea = true;
+                modifier.area = notWalkable;
             }
         }
 
@@ -1588,8 +1562,8 @@ namespace UpIzUpMini.EditorTools
 
         /// <summary>
         /// Fenced-off expansion plots beside the main farm. They only
-        /// become usable once the Montine land is bought, giving the land
-        /// purchase a real effect (see LockedFarmPlot).
+        /// become usable through two Highland land purchases, giving both
+        /// survey-lot purchases a real effect (see LockedFarmPlot).
         /// </summary>
         private static void BuildExpansionPlots(
             Terrain terrain, Vector3 farmCenter, Vector3 right, Vector3 dir,
@@ -1597,17 +1571,18 @@ namespace UpIzUpMini.EditorTools
         {
             Material fenceMat = GetOrCreateMaterial("LandFence", new Color(0.55f, 0.42f, 0.26f));
 
+            for (int row = 0; row < 2; row++)
             for (int col = 0; col < 3; col++)
             {
                 Vector3 pos = farmCenter
                               + right * ((col - 1) * 3.6f)
-                              + dir * 8.6f;
+                              + dir * (8.6f + row * 3.9f);
                 pos.y = SampleHeight(terrain, pos.x, pos.z) + 0.03f;
 
                 if (col == 1) _expansionPlotPos = pos;
 
                 var plot = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                plot.name = $"FarmPlot_X{col}";
+                plot.name = row == 0 ? $"FarmPlot_X{col}" : $"FarmPlot_Y{col}";
                 plot.transform.SetParent(parent);
                 plot.transform.position = pos;
                 plot.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
@@ -1654,7 +1629,7 @@ namespace UpIzUpMini.EditorTools
 
                 var locked = plot.AddComponent<LockedFarmPlot>();
                 var lso = new SerializedObject(locked);
-                lso.FindProperty("requiredItemId").stringValue = "land_montine";
+                lso.FindProperty("requiredItemId").stringValue = row == 0 ? "land_montine" : "land_hillside";
                 lso.FindProperty("lockedVisual").objectReferenceValue = fence;
                 lso.ApplyModifiedPropertiesWithoutUndo();
             }
@@ -1998,6 +1973,7 @@ namespace UpIzUpMini.EditorTools
             // and a real choice again once the player has picked another
             // house instead.
             var fsSo = new SerializedObject(farmSafehouse);
+            fsSo.FindProperty("safehouseName").stringValue = "Highland Safehouse";
             fsSo.FindProperty("spawnPoint").vector3Value = _safehouseSpawn;
             fsSo.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -2157,8 +2133,7 @@ namespace UpIzUpMini.EditorTools
 
         /// <summary>
         /// MINI-042. A second, purchasable safehouse in town - reuses the
-        /// same open-shelter geometry as the free Montine farm one
-        /// (BuildOpenSafehouse), gated on owning "prop_safehouse" (already
+        /// a detailed two-storey Lalay home, gated on owning "prop_safehouse" (already
         /// sold at the Land Office since MINI-013 but, until now, a pure
         /// economy entry with no gameplay effect). Set back further from
         /// the road than the shopfronts/houses to avoid overlapping the
@@ -2177,11 +2152,13 @@ namespace UpIzUpMini.EditorTools
             parent.transform.position = pos;
             parent.transform.rotation = rot;
 
-            BuildOpenSafehouse(parent.transform, pos, rot);
+            BuildProceduralHouse(parent.transform, pos, rot, storeys: 2, name: "LalaySafehouse_TwoStorey");
 
             var restGo = new GameObject("LalayHouse_Rest");
             restGo.transform.SetParent(parent.transform);
-            restGo.transform.position = pos + rot * new Vector3(0f, 0.6f, 0f);
+            // The interaction point is at the front door; the locked property
+            // no longer exposes a bed/open shelter directly onto Lalay road.
+            restGo.transform.position = pos + rot * new Vector3(0f, 0.6f, 3.25f);
             var safehouse = restGo.AddComponent<SafehouseInteractable>();
             var so = new SerializedObject(safehouse);
             so.FindProperty("safehouseName").stringValue = "Lalay House";
@@ -2190,7 +2167,7 @@ namespace UpIzUpMini.EditorTools
             // math the farm safehouse's _safehouseSpawn uses) - lets the
             // player pick it via "[4] Set Respawn" once they own it,
             // instead of the game only ever knowing the farm's spawn.
-            so.FindProperty("spawnPoint").vector3Value = pos + rot * new Vector3(0f, 0.2f, 3.4f);
+            so.FindProperty("spawnPoint").vector3Value = pos + rot * new Vector3(0f, 0.2f, 4.1f);
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -2554,7 +2531,7 @@ namespace UpIzUpMini.EditorTools
             // patrol/chase system (see NpcRole.Normy's own comment).
             BuildNpc(terrain, roadPoints, index: 4, sideMul: 1f, goName: "NPC_Normy",
                 modelPath: "Assets/Floreswa/Models/male01_1.fbx", role: NpcRole.Normy,
-                cropsForBuyer: null, animController: animController, patrols: false, reactsToHeat: false);
+                cropsForBuyer: null, animController: animController, patrols: true, reactsToHeat: false);
             WireNormy();
 
             BuildMarketArea(terrain, roadPoints, index: 5, title: "FOOD", secondTitle: null);
@@ -2581,6 +2558,7 @@ namespace UpIzUpMini.EditorTools
             // handled by the boat man himself (TownNPCInteractable.
             // HandleBoatMan) - no separate NPC_GardeyZafeh built anymore.
             BuildBoatMan(terrain, allCrops, animController);
+            BuildBrakesPriest(terrain, roadPoints, animController);
             // MINI-056: the Rasta mentor - a distinct Jamaican-Patois voice
             // (per Docs/DIALECT-LEXICON.md's own note that this was
             // reserved until a real character existed to check it
@@ -3180,7 +3158,7 @@ namespace UpIzUpMini.EditorTools
                 {
                     category = DialogueCategory.Faction,
                     speaker = "Normy",
-                    text = "Mi hear somebody eyeing up crops dat doe belong to dem, round Montine way. Just... watch yuhself, nuh.",
+                    text = "Mi hear somebody eyeing up crops dat doe belong to dem, round Highland way. Just... watch yuhself, nuh.",
                     conditions = new List<DialogueCondition>
                     {
                         new DialogueCondition
@@ -3560,6 +3538,57 @@ namespace UpIzUpMini.EditorTools
         }
 
         /// <summary>
+        /// Brakes is the Grand Bay priest requested for the church. He uses
+        /// the ordinary dialogue/interactable foundation and a white-clothing
+        /// treatment, so no new character asset or paid generation is needed.
+        /// The map migration places him at the approved church anchor.
+        /// </summary>
+        private static void BuildBrakesPriest(
+            Terrain terrain, List<Vector3> roadPoints, RuntimeAnimatorController animController)
+        {
+            BuildNpc(terrain, roadPoints, index: roadPoints.Count - 3, sideMul: 1f,
+                goName: "NPC_Brakes", modelPath: "Assets/Floreswa/Models/male03_3.fbx",
+                role: NpcRole.Villager, cropsForBuyer: null, animController: animController,
+                patrols: false, reactsToHeat: false);
+
+            GameObject brakes = GameObject.Find("NPC_Brakes");
+            if (brakes == null) return;
+            ApplyPriestWhite(brakes);
+            TownNPCInteractable npc = brakes.GetComponent<TownNPCInteractable>();
+            if (npc == null) return;
+            SerializedObject so = new SerializedObject(npc);
+            so.FindProperty("npcName").stringValue = "Brakes";
+            SerializedProperty lines = so.FindProperty("villagerLines");
+            lines.arraySize = 4;
+            lines.GetArrayElementAtIndex(0).stringValue = "Brakes: Blessings, young fellas. Keep a clear head while allu building up allu self.";
+            lines.GetArrayElementAtIndex(1).stringValue = "Brakes: Honest work may move slow, but it does leave you able to sleep good, nuh.";
+            lines.GetArrayElementAtIndex(2).stringValue = "Brakes: If trouble following allu, come reason by the church before it get worse.";
+            lines.GetArrayElementAtIndex(3).stringValue = "Brakes: Grand Bay watching how allu move. Make the community proud, yah wii.";
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void ApplyPriestWhite(GameObject instance)
+        {
+            Color white = new Color(0.93f, 0.93f, 0.90f);
+            foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] materials = renderer.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    if (materials[i] == null) continue;
+                    string materialName = materials[i].name.ToLowerInvariant();
+                    if (!materialName.Contains("shirt") && !materialName.Contains("tshirt")
+                        && !materialName.Contains("pants") && !materialName.Contains("trouser")
+                        && !materialName.Contains("shoes")) continue;
+                    materials[i] = new Material(materials[i]) { color = white };
+                    changed = true;
+                }
+                if (changed) renderer.sharedMaterials = materials;
+            }
+        }
+
+        /// <summary>
         /// Boss J (MINI-055: displayed name, was "Boss K" - see
         /// TownNPCInteractable's PromptLabel note; npcName/targetId stay
         /// "BossK" internally, unrelated to the many mission objectives
@@ -3608,6 +3637,20 @@ namespace UpIzUpMini.EditorTools
             for (int i = 0; i < allCrops.Length; i++)
                 cropsProp.GetArrayElementAtIndex(i).objectReferenceValue = allCrops[i];
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            // Boss J walks a short roadside beat instead of standing in the
+            // vehicle lane. The migration replaces these provisional points
+            // with the approved Lalay sidewalk coordinates.
+            CharacterController controller = go.AddComponent<CharacterController>();
+            controller.center = new Vector3(0f, 0.95f, 0f);
+            controller.height = 1.85f;
+            controller.radius = 0.32f;
+            PatrolNPC patrol = go.AddComponent<PatrolNPC>();
+            Vector3 patrolA = pos - dir * 5f;
+            Vector3 patrolB = pos + dir * 5f;
+            patrolA.y = SampleHeight(terrain, patrolA.x, patrolA.z);
+            patrolB.y = SampleHeight(terrain, patrolB.x, patrolB.z);
+            patrol.SetWaypoints(new[] { patrolA, patrolB });
 
             // Boss J no longer wears a chain. The status chain belongs to
             // Boss C and can be purchased individually by Sacat or Franki.
@@ -4147,7 +4190,7 @@ namespace UpIzUpMini.EditorTools
         // farm shop (user direction).
         private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] LandSpecs =
         {
-            ("land_montine",  "Montine Land Plot",     ShopCategory.Land,     600,  null, 0),
+            ("land_montine",  "Highland Farm Plot",   ShopCategory.Land,     600,  null, 0),
             ("land_hillside", "Hillside Survey Lot",   ShopCategory.Land,     1400, null, 0),
             // MINI-062: renamed from the stale "Montine Safehouse Deed" -
             // this item id (prop_safehouse) has always gated the Lalay
@@ -4320,7 +4363,7 @@ namespace UpIzUpMini.EditorTools
                 new Mission
                 {
                     missionId = "M1",
-                    title = "A Start in Montine",
+                    title = "A Start in Highland",
                     briefing = "Franki and Sacat leaving school to make their own money. Start with the land.",
                     rewardMoney = 60,
                     objectives = new List<MissionObjective>
@@ -4347,7 +4390,7 @@ namespace UpIzUpMini.EditorTools
                         new MissionObjective
                         {
                             kind = ObjectiveKind.ReachArea,
-                            instruction = "Follow the dirt track up to the Montine farm",
+                            instruction = "Follow the dirt track up to the Highland farm",
                             markerPosition = farmCenter,
                         },
                         new MissionObjective
@@ -4422,7 +4465,7 @@ namespace UpIzUpMini.EditorTools
                         {
                             kind = ObjectiveKind.BuyItem,
                             targetId = "land_montine",
-                            instruction = "Go to the LAND AND SURVEYS building and buy the Montine Land Plot ($600) - the Land and Surveys man is standing in front",
+                            instruction = "Go to the LAND AND SURVEYS building and buy the Highland Farm Plot ($600) - the Land and Surveys man is standing in front",
                             markerPosition = landOfficePos,
                         },
                         new MissionObjective
@@ -4452,7 +4495,7 @@ namespace UpIzUpMini.EditorTools
                         {
                             kind = ObjectiveKind.PlantCrop,
                             targetId = "bushers",
-                            instruction = "Plant the Bushers up at Montine  [ 4 ] to select",
+                            instruction = "Plant the Bushers up at Highland  [ 4 ] to select",
                             markerPosition = plotPos,
                         },
                         new MissionObjective
@@ -4499,7 +4542,7 @@ namespace UpIzUpMini.EditorTools
                 {
                     missionId = "M6",
                     title = "Build the Stock",
-                    briefing = "Keep working the Montine plots and build enough stock for the next move.",
+                    briefing = "Keep working the Highland plots and build enough stock for the next move.",
                     rewardMoney = 100,
                     objectives = new List<MissionObjective>
                     {
@@ -4756,7 +4799,7 @@ namespace UpIzUpMini.EditorTools
                 ("Franki", "So wah we go do then, smart man? Sit down and starve?"),
                 ("Sacat", "We start with something clean first - tomato, banana, carrot. Build up slow, den we see."),
                 ("Franki", "Alright... but if di crop money slow, I telling you now - I going back to dat Zeb talk."),
-                ("Sacat", "Fine. One step at a time, nuh. Let we go see what Montine have for us."),
+                ("Sacat", "Fine. One step at a time, nuh. Let we go see what Highland have for us."),
             };
 
             linesProp.arraySize = script.Length;
@@ -4835,10 +4878,10 @@ namespace UpIzUpMini.EditorTools
             BuildSign(parent.transform, terrain, roadPoints[1], "LALAY", postMat, boardMat);
 
             int mid = roadPoints.Count / 2;
-            BuildSign(parent.transform, terrain, roadPoints[mid], "MONTINE", postMat, boardMat);
+            BuildSign(parent.transform, terrain, roadPoints[mid], "HIGHLAND", postMat, boardMat);
             BuildSign(parent.transform, terrain,
                 farmCenter + (roadPoints[mid] - farmCenter).normalized * 16f,
-                "MONTINE FARM", postMat, boardMat);
+                "HIGHLAND FARM", postMat, boardMat);
         }
 
         private static void BuildSign(
@@ -4961,6 +5004,124 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("staminaPercent").objectReferenceValue = staminaPct;
             so.FindProperty("heatPercent").objectReferenceValue = heatPct;
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            BuildGtaMiniMap(canvasGo.transform, font);
+        }
+
+        private static void BuildGtaMiniMap(Transform canvas, Font font)
+        {
+            GameObject panel = new GameObject("GTA_Minimap", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            RectTransform panelRect = panel.GetComponent<RectTransform>();
+            panelRect.SetParent(canvas, false);
+            panelRect.anchorMin = panelRect.anchorMax = new Vector2(0f, 0f);
+            panelRect.pivot = new Vector2(0f, 0f);
+            panelRect.anchoredPosition = new Vector2(20f, 20f);
+            panelRect.sizeDelta = new Vector2(310f, 220f);
+            panel.GetComponent<Image>().color = new Color(0.02f, 0.03f, 0.03f, 0.72f);
+
+            GameObject mapObject = new GameObject("Map", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
+            RectTransform mapRect = mapObject.GetComponent<RectTransform>();
+            mapRect.SetParent(panelRect, false);
+            mapRect.anchorMin = Vector2.zero;
+            mapRect.anchorMax = Vector2.one;
+            mapRect.offsetMin = new Vector2(7f, 24f);
+            mapRect.offsetMax = new Vector2(-7f, -7f);
+            RawImage mapImage = mapObject.GetComponent<RawImage>();
+            mapImage.color = new Color(1f, 1f, 1f, 0.82f);
+            mapImage.raycastTarget = false;
+
+            GameObject blipsObject = new GameObject("Blips", typeof(RectTransform));
+            RectTransform blips = blipsObject.GetComponent<RectTransform>();
+            blips.SetParent(mapRect, false);
+            blips.anchorMin = Vector2.zero;
+            blips.anchorMax = Vector2.one;
+            blips.offsetMin = blips.offsetMax = Vector2.zero;
+
+            GameObject overlayObject = new GameObject("PoliceHeatOverlay", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            RectTransform overlayRect = overlayObject.GetComponent<RectTransform>();
+            overlayRect.SetParent(mapRect, false);
+            overlayRect.anchorMin = Vector2.zero;
+            overlayRect.anchorMax = Vector2.one;
+            overlayRect.offsetMin = overlayRect.offsetMax = Vector2.zero;
+            Image overlay = overlayObject.GetComponent<Image>();
+            overlay.raycastTarget = false;
+            overlayObject.SetActive(false);
+
+            Text arrow = CreateLabel(mapRect, "▲", 24, Vector2.zero, font);
+            arrow.name = "PlayerDirection";
+            arrow.rectTransform.anchorMin = arrow.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            arrow.rectTransform.sizeDelta = new Vector2(34f, 34f);
+            arrow.alignment = TextAnchor.MiddleCenter;
+            arrow.color = Color.white;
+
+            Text wanted = CreateLabel(panelRect, string.Empty, 15, new Vector2(0f, 3f), font);
+            wanted.name = "PoliceHeatLabel";
+            wanted.rectTransform.anchorMin = wanted.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+            wanted.rectTransform.pivot = new Vector2(0.5f, 0f);
+            wanted.rectTransform.sizeDelta = new Vector2(280f, 21f);
+            wanted.alignment = TextAnchor.MiddleCenter;
+            wanted.color = new Color(1f, 0.86f, 0.86f);
+            wanted.gameObject.SetActive(false);
+
+            GameObject cameraObject = new GameObject("GTA_MinimapCamera");
+            Camera miniCamera = cameraObject.AddComponent<Camera>();
+            miniCamera.enabled = true;
+            miniCamera.depth = -20f;
+            miniCamera.nearClipPlane = 0.5f;
+            miniCamera.farClipPlane = 180f;
+
+            GtaMiniMapController controller = panel.AddComponent<GtaMiniMapController>();
+            SerializedObject so = new SerializedObject(controller);
+            so.FindProperty("mapCamera").objectReferenceValue = miniCamera;
+            so.FindProperty("mapImage").objectReferenceValue = mapImage;
+            so.FindProperty("blipRoot").objectReferenceValue = blips;
+            so.FindProperty("wantedOverlay").objectReferenceValue = overlay;
+            so.FindProperty("wantedLabel").objectReferenceValue = wanted;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void RegisterGrandBayMiniMapMarkers()
+        {
+            Color shop = new Color(0.35f, 0.95f, 0.45f);
+            Color mission = new Color(1f, 0.78f, 0.12f);
+            Color police = new Color(0.20f, 0.55f, 1f);
+            Color gang = new Color(0.95f, 0.18f, 0.22f);
+            Color community = new Color(0.92f, 0.92f, 0.88f);
+            Color property = new Color(0.25f, 0.90f, 0.78f);
+
+            foreach (string name in new[] { "Stall_FARM SHOP", "Stall_PRODUCE BUYER", "Stall_FOOD", "Stall_CLOTHES", "Stall_PHARMACY", "Stall_LAND AND SURVEYS", "Stall_CAR DEALER" })
+                AddMiniMapMarker(name, MiniMapMarkerKind.Shop, name.Replace("Stall_", string.Empty), shop);
+            AddMiniMapMarker("NPC_BossJ", MiniMapMarkerKind.Mission, "Boss J", mission, "M4");
+            AddMiniMapMarker("NPC_Vagrant", MiniMapMarkerKind.Person, "Paro", mission, "M7");
+            AddMiniMapMarker("NPC_BossC", MiniMapMarkerKind.Mission, "Boss C", mission, "M10W");
+            AddMiniMapMarker("NPC_Normy", MiniMapMarkerKind.Person, "Normy", police, "M12");
+            AddMiniMapMarker("NPC_Police", MiniMapMarkerKind.Police, "Police", police);
+            AddMiniMapMarker("NPC_PoliceShops", MiniMapMarkerKind.Police, "Police", police);
+            AddMiniMapMarker("FarmSafehouse_Building", MiniMapMarkerKind.Safehouse, "Highland Safehouse", property);
+            AddMiniMapMarker("LalayHouse", MiniMapMarkerKind.Safehouse, "Lalay Safehouse", property, "M12");
+            AddMiniMapMarker("FarmPlot_00", MiniMapMarkerKind.Farm, "Highland Farm", shop);
+            AddMiniMapMarker("GrandBay_Catholic_Church_Graybox", MiniMapMarkerKind.Church, "Church", community);
+            AddMiniMapMarker("NPC_Brakes", MiniMapMarkerKind.Person, "Brakes", community);
+            AddMiniMapMarker("NPC_BoatMan", MiniMapMarkerKind.Boat, "Boat Man", community, "M11W");
+            AddMiniMapMarker("MooredBoat", MiniMapMarkerKind.Boat, "Guadeloupe Boat", community, "M11W");
+            AddMiniMapMarker("NPC_GangRecruiter", MiniMapMarkerKind.Gang, "Not Ah Word", gang, "M15");
+            for (int i = 0; i < 4; i++) AddMiniMapMarker($"NPC_DogLife_{i}", MiniMapMarkerKind.Gang, "Dog Life", gang);
+            AddMiniMapMarker("NotAhWord_Zoomy", MiniMapMarkerKind.Gang, "Not Ah Word", gang, "M10W");
+        }
+
+        private static void AddMiniMapMarker(string objectName, MiniMapMarkerKind kind, string label, Color colour, string requiredMissionId = null)
+        {
+            Transform target = null;
+            foreach (Transform transform in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (transform.name != objectName) continue;
+                target = transform;
+                break;
+            }
+            if (target == null) return;
+            GtaMiniMapMarker marker = target.GetComponent<GtaMiniMapMarker>();
+            if (marker == null) marker = target.gameObject.AddComponent<GtaMiniMapMarker>();
+            marker.Configure(kind, label, colour, requiredMissionId);
         }
 
         /// <summary>Shop panel, H-controls overlay, and the fading area-name label.</summary>
@@ -5084,10 +5245,10 @@ namespace UpIzUpMini.EditorTools
             lalay.FindPropertyRelative("center").vector3Value = roadPoints[roadPoints.Count / 3];
             lalay.FindPropertyRelative("radius").floatValue = 70f;
 
-            var montine = zonesProp.GetArrayElementAtIndex(1);
-            montine.FindPropertyRelative("areaName").stringValue = "Montine";
-            montine.FindPropertyRelative("center").vector3Value = farmCenter;
-            montine.FindPropertyRelative("radius").floatValue = 55f;
+            var highland = zonesProp.GetArrayElementAtIndex(1);
+            highland.FindPropertyRelative("areaName").stringValue = "Highland";
+            highland.FindPropertyRelative("center").vector3Value = farmCenter;
+            highland.FindPropertyRelative("radius").floatValue = 55f;
 
             aso.ApplyModifiedPropertiesWithoutUndo();
         }

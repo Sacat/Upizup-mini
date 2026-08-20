@@ -64,26 +64,28 @@ namespace UpIzUpMini.EditorTools
                 return;
             }
 
-            // Second, sharper check: the NavMesh must NOT cover the inside
-            // of a real building. A path/coverage check alone can't
-            // distinguish "the bake actually excludes obstacles" from "the
-            // whole terrain rectangle got marked walkable" - this proves
-            // the building's own footprint was carved out, not assumed.
-            var safehouse = GameObject.Find("FarmSafehouse_Building");
-            if (safehouse == null)
+            // Second, sharper check: the NavMesh must NOT cover a closed
+            // house footprint. The Highland safehouse is intentionally
+            // enterable, so its floor is valid walkable space and cannot be
+            // used as an obstacle assertion after MINI-102.
+            var houses = GameObject.Find("Lalay_Dense_House_Massing");
+            Transform closedHouse = houses != null && houses.transform.childCount > 0
+                ? houses.transform.GetChild(0)
+                : null;
+            if (closedHouse == null)
             {
-                Debug.LogError("MINI-052 NAVMESH VALIDATION FAIL: FarmSafehouse_Building not found in scene.");
+                Debug.LogError("MINI-052 NAVMESH VALIDATION FAIL: no closed Lalay house found for obstacle coverage.");
                 return;
             }
-            Vector3 insideHouse = safehouse.transform.position;
+            Vector3 insideHouse = closedHouse.position;
             bool houseInteriorWalkable = NavMesh.SamplePosition(insideHouse, out _, 0.6f, NavMesh.AllAreas);
             if (houseInteriorWalkable)
             {
-                Debug.LogError("MINI-052 NAVMESH VALIDATION FAIL: NavMesh.SamplePosition found walkable NavMesh inside FarmSafehouse_Building's own footprint - the bake is not excluding building geometry.");
+                Debug.LogError("MINI-052 NAVMESH VALIDATION FAIL: NavMesh.SamplePosition found walkable NavMesh inside a closed Lalay house footprint - the bake is not excluding building geometry.");
                 return;
             }
 
-            Debug.Log($"MINI-052 NAVMESH VALIDATION PASS: NavMesh has coverage near both Sacat's spawn and the farm plot, a complete path was found with {corners} corner(s) (status={path.status}), and the farm safehouse building's own footprint is correctly excluded from the walkable mesh (not just a blanket-walkable terrain rectangle).");
+            Debug.Log($"MINI-052 NAVMESH VALIDATION PASS: NavMesh has coverage near both Sacat's spawn and the farm plot, a complete path was found with {corners} corner(s) (status={path.status}), and a closed Lalay house footprint is correctly excluded while the Highland safehouse remains intentionally enterable.");
         }
     }
 }

@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-101` corrects the first migrated Lalay/Highland build: shops now occupy roadside lots, the active Highland farm is flat/off-road, and shared gentle grades connect Lalay, Highland and the farm spur. Static/map gates and the Windows build pass; runtime walking/driving/navigation acceptance is now owed.
+- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-102` adds the user-marked south-side Backstreet, deliberate Lalay mission/gang/police blocks, Brakes at the church, the Paro and jetty route, and a GTA-style minimap with a transparent 50%+ police-heat overlay. Static/map gates pass; final Windows build and hands-on movement/traffic acceptance are the remaining gate.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `3adb5c0` (`MINI-093` police melee retaliation; focused validation passed, no new Windows build).
 
@@ -23,7 +23,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 ## Sources of truth
 
 - `Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs` generates `GrandBayProof.unity`. Manual scene edits are overwritten.
-- `GrandBayProof.unity` now uses the approved sourced/compressed Lalay-to-Highland phase-one world: nine connected collidable road ribbons, four bridge groups, 115 Lalay houses, 18 Highland homes (including five small apartments), a church/sand/jetty coast, one gameplay farm and seven inactive future parcel anchors.
+- `GrandBayProof.unity` now uses the approved sourced/compressed Lalay-to-Highland phase-one world: ten connected collidable road ribbons including the south Backstreet, four bridge groups, dense Lalay housing, 18 Highland homes (including five small apartments), a church/sand/jetty coast, one gameplay farm and seven inactive future parcel anchors.
 - `Docs/MAP-ANCHORS.json` and compact Unity map/height data now exist. `VA-004` locks the source road/street target and `VA-005` locks the corrected migration graybox; the untouched map-lab and commit `aed8854` are the rollback backups.
 - `Docs/WORLD-EXPANSION-WORKFLOW.md` is mandatory for all map work. The first live manifest is `dm-dom-grand-bay-lalay-highland-v1`, currently at `graybox`; it cannot advance until a corrected player-height Lalay view is approved.
 - Locomotion uses the authored StarterAssets controller and `MotionSpeed`; do not regenerate it casually.
@@ -54,7 +54,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 ## Recommended next sequence
 
 1. User checks the updated chain while walking/running, then accepts or reports only concrete fit/swing changes.
-2. User runtime-tests MINI-101: clear Lalay traffic lanes, roadside shops, Highland farm route, car/TMAX two-way driving, interactions, boundaries and companion/NPC navigation.
+2. User runtime-tests MINI-102: south Backstreet, clear Lalay traffic lanes, roadside shops/roles, minimap and heat overlay, Highland farm route, car/TMAX two-way driving, interactions, boundaries and companion/NPC navigation.
 3. Prepare one Hitem3D character reference card. No paid generation until the user approves the reference.
 4. Integrator: introduce an input facade and asset-size/performance report before touch UI or more vehicles.
 5. Preserve the current gameplay scene until the separate map-lab layout is accepted.

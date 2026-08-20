@@ -15,7 +15,7 @@ namespace UpIzUpMini.Progression
         // can be confiscated" - immediate and location-driven, unlike the
         // periodic heat-threshold check above (which only fires on the
         // bought land_montine expansion). This applies to the whole
-        // Montine plantation - the starting plots included - since the
+        // Highland plantation - the starting plots included - since the
         // user's ask wasn't scoped to the purchased expansion specifically.
         [Header("Proximity confiscation")]
         [SerializeField] Vector3 plantationCenter;

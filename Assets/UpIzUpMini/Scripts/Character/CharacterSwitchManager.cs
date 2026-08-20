@@ -44,7 +44,7 @@ namespace UpIzUpMini.Character
         // MINI-062: "selectable respawn" - a house's SafehouseInteractable
         // calls this ([4] Set Respawn) to make itself where the player
         // reappears after death or falling out of the world, instead of
-        // that always being the fixed Montine farm safehouse baked into
+        // that always being the fixed Highland farm safehouse baked into
         // `safehouseSpawn` at scene-build time. Falls back to
         // `safehouseSpawn` until the player ever picks one explicitly.
         private bool _hasSelectedRespawn;
