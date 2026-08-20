@@ -145,6 +145,15 @@ namespace UpIzUpMini.UI
 
                     if (bought && stock[i] != null && !resaleMode)
                     {
+                        bool wearable = stock[i].category == ShopCategory.Clothing
+                                        || stock[i].category == ShopCategory.Footwear
+                                        || stock[i].category == ShopCategory.Accessory;
+                        if (wearable)
+                        {
+                            var active = Character.CharacterSwitchManager.Instance?.Active?.root;
+                            active?.GetComponent<Character.CharacterEquipment>()?.RefreshEquipment();
+                        }
+
                         if (stock[i].category == ShopCategory.Seed)
                         {
                             Missions.MissionSystem.Instance?.Notify(

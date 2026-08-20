@@ -1425,7 +1425,7 @@ Acceptance criteria:
 
 Goal: Apply the user's hands-on regression feedback to the existing game systems without expanding into new map production, paid assets, shooting, or a full animation redesign. See `Docs/WorkPackets/MINI-086.md`.
 
-Status: Evidence ready; waiting for the user's manual Sacat chain placement and hands-on playtest. Codex retains the claim until the approved chain transform is captured.
+Status: Implemented and built. Sacat's approved chain transform is captured and locked; purchase equips only the buyer, Boss C uses the real chain, and Boss J has none. Waiting only for the user's movement visibility/swing playtest.
 
 - `MINI-032`: Modular wardrobe + accessory IK/physics (chain jiggle, etc.) — attachment already exists (MINI-022 `CharacterEquipment`), this adds swing/sway physics and separate garment geometry instead of material recolor.
 - `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed).

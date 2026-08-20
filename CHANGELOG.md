@@ -54,3 +54,11 @@
 - Passed Unity compile, generated-scene rebuild, TMAX/Rover/faction/gang/chain validators, a fresh Windows build, and a clean 15-second headless player smoke.
 - Generated current scene/vehicle evidence and inspected the 1280x720 build live: H tutorial, Tab switching/objective progression, inventory, E prompts, camera orbit, basic movement, and both hero idle poses work.
 - Recorded two concrete opening issues for the next small fix: the active player name is absent from the HUD and the safehouse roof can obstruct the initial camera. No visual appearance was locked without user approval.
+
+## 2026-08-20 — MINI-086 chain completion
+
+- Captured Sacat's user-approved `GoldChain18k` transform into a permanent placement profile and visual lock `VA-001`.
+- Added an immediate post-purchase equipment refresh so a wearable appears on the protagonist who bought it without relying only on event subscription order.
+- Kept the cleaned real chain on Boss C and removed Boss J's chain at the generated-scene source.
+- Added a transaction/distribution validator proving Sacat's purchase equips only Sacat, Boss C has the real chain, and Boss J has none.
+- Rebuilt and statically validated GrandBayProof, produced a fresh Windows build, and completed a clean 12-second headless player smoke.

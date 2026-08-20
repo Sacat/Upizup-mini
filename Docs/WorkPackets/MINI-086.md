@@ -5,7 +5,7 @@ task_id: MINI-086
 title: Progression truth, dialogue, follower, combat, HUD, and equipment corrections
 request_owner: User
 integrator: Codex
-  status: evidence_ready_waiting_for_user_chain_placement_and_playtest
+  status: accepted_placement_implemented_waiting_for_movement_playtest
 approval_class: B
 budget:
   codex_time: bounded implementation and verification pass over existing systems
@@ -36,6 +36,10 @@ depends_on:
 
 Make the current chapter communicate and enforce its rules consistently: show the active hero and reputation, provide contextual hints and first-meeting dialogue, hide locked content, gate recruitment/jobs/purchases, fix Boss J and cooldown mission truth, improve companion/AI collision behavior, make gang damage/defeat/retreat readable, keep purchases character-specific, and prepare the chain for a user-controlled scene placement.
 
+### Approved chain follow-up — 2026-08-20
+
+The user approved the manually framed Sacat chain placement. Capture that exact transform as a locked placement profile, force an immediate equipment refresh after a wearable purchase so the chain appears on the purchasing hero while walking, keep the same cleaned `GoldChain18k` prefab on Boss C, and remove Boss J's chain. Do not retune the user's placement.
+
 ## Non-goals
 
 - No new Grand Bay map, paid assets, Hitem3D generation, shooting, new combat animation set, or broad mobile/input migration.
@@ -54,7 +58,7 @@ Make the current chapter communicate and enforce its rules consistently: show th
 - [x] Dog Life defeat/despawn, last-rival retreat, and encounter respawn are wired.
 - [x] Apparel ownership/equipping is per character and migrates old saves.
 - [x] Land & Surveys NPC stands in front and objective text names the building/placement clearly.
-- [ ] User visually places Sacat's selected chain and approves its transform; Codex then captures it to the placement profile.
+- [x] User visually placed and approved Sacat's chain; exact transform captured to `SacatChainPlacement.asset` and locked as `VA-001`.
 - [x] Unity compile, scene rebuild, static wiring validation, gang validation, and Windows build pass.
 
 ## Evidence
@@ -65,6 +69,17 @@ Make the current chapter communicate and enforce its rules consistently: show th
 - Gang/control regression: `Logs/MINI-086-GangValidation.log` — PASS; runtime fight feel still requires the user's playtest.
 - Windows build: `Logs/MINI-086-WindowsBuild.log` — SUCCEEDED, 407,519,547 bytes.
 - Manual chain workspace: Unity is open on `GrandBayProof`, `MANUAL_CHAIN_PREVIEW_SACAT` selected and framed with the Move tool.
+- Approved chain capture: `Logs/MINI-086-CaptureApprovedChain.log` — exact manual transform saved.
+- Chain distribution/transaction: `Logs/MINI-086-Chain-Validation.log` — PASS (purchase equips only Sacat, Boss C real chain, Boss J none).
+- Final scene wiring: `Logs/MINI-086-Chain-StaticValidation-2.log` — PASS.
+- Final Windows build: `Logs/MINI-086-Chain-WindowsBuild.log` — SUCCEEDED, 407,518,747 bytes.
+- Built-player smoke: `Logs/MINI-086-Chain-PlayerSmoke.log` — 12 seconds, no error/exception/assert/crash/null-reference matches.
+
+## Handoff
+
+- Visual lock: `VA-001` protects Sacat's approved chain transform.
+- Known limitation: chain visibility while walking/running and swing feel still require the user's visual playtest; headless/static checks cannot prove motion.
+- Ownership released after commit.
 
 ## Implementation order
 

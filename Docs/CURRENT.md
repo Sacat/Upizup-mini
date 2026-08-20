@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: work through `MINI-084` is preserved by the deliberate baseline commit `b367fc5` on `codex/mini-085-baseline-20260820`. MINI-085 compiled, rebuilt, validated, built, smoke-tested, and inspected the live opening; most later motion/feel remains not hands-on accepted.
+- Current production state: work through `MINI-086` is preserved on `codex/mini-085-baseline-20260820`. MINI-086 rebuilt the current game, corrected HUD/camera/progression/dialogue/equipment/follower/gang behavior, and captured Sacat's approved chain placement. Automated checks and Windows build pass; movement/feel still need hands-on acceptance.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known committed checkpoint shown by Git during MINI-084 audit: `42efdf3` (`MINI-050`).
 
@@ -31,7 +31,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 ## Highest risks
 
-1. Visual acceptance: MINI-085 preserved the prior working tree and verified the build, but no appearance is user-locked. The active-player name is missing from the live HUD and the opening camera can be blocked by the safehouse roof.
+1. Visual acceptance: Sacat's chain placement is locked as `VA-001`; its visibility/swing while walking still needs the user's playtest. Most other movement and appearance remain unapproved.
 2. Visual debt: many changes compile or pass harnesses but have not been watched in real Play Mode. Static screenshots cannot prove animation, combat, riding, driving, NPC movement, or UI timing.
 3. Map fidelity: existing Lalay-to-beach layout has no defensible geographic source data.
 4. Mobile architecture: Built-in RP, legacy Input Manager, no touch/safe-area layer, no Android build gate.
@@ -51,7 +51,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 ## Recommended next sequence
 
-1. Make one small packet for the missing active-player name and obstructed opening camera; then ask the user to play the current build and accept/reject movement and presentation.
+1. User checks the updated chain while walking/running, then accepts or reports only concrete fit/swing changes.
 2. Collect and verify Lalay-to-beach map anchors, then build a separate map-lab graybox without destroying the working gameplay scene.
 3. Prepare one Hitem3D character reference card. No paid generation until the user approves the reference.
 4. Integrator: introduce an input facade and asset-size/performance report before touch UI or more vehicles.

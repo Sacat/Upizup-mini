@@ -3203,7 +3203,10 @@ namespace UpIzUpMini.EditorTools
                 pricesProp.GetArrayElementAtIndex(i).intValue = seedPrices[i];
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            ApplyBossChains(visual, chainCount: 2);
+            // The same cleaned 18k prefab sold to the player. One readable
+            // chain only; the prefab path is shared so Boss C cannot drift
+            // back to the old generated bead necklace.
+            ApplyBossChains(visual, chainCount: 1);
             BuildBlackSuvProps(pos, right, dir, side);
         }
 
@@ -3513,7 +3516,8 @@ namespace UpIzUpMini.EditorTools
                 cropsProp.GetArrayElementAtIndex(i).objectReferenceValue = allCrops[i];
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            ApplyBossChains(visual, chainCount: 1);
+            // Boss J no longer wears a chain. The status chain belongs to
+            // Boss C and can be purchased individually by Sacat or Franki.
         }
 
         private static void BuildNpc(

@@ -50,7 +50,12 @@ namespace UpIzUpMini.EditorTools
         {
             var preview = Selection.activeGameObject;
             if (preview == null || preview.name != PreviewName)
-                throw new System.InvalidOperationException($"Select {PreviewName} first.");
+            {
+                EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+                preview = GameObject.Find(PreviewName);
+            }
+            if (preview == null || preview.name != PreviewName)
+                throw new System.InvalidOperationException($"{PreviewName} is missing. Prepare and place the chain first.");
 
             EnsureFolder("Assets/UpIzUpMini/Data");
             EnsureFolder("Assets/UpIzUpMini/Data/Equipment");

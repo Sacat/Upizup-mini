@@ -149,6 +149,18 @@ namespace UpIzUpMini.Character
             Refresh();
         }
 
+        /// <summary>
+        /// Purchase UI calls this after a wearable transaction. The economy
+        /// event remains the normal update path, but this direct refresh makes
+        /// the visible result deterministic even if an old scene/save entered
+        /// with a missed or late subscription.
+        /// </summary>
+        public void RefreshEquipment()
+        {
+            TrySubscribe();
+            Refresh();
+        }
+
         private void Refresh()
         {
             var economy = EconomyManager.Instance;

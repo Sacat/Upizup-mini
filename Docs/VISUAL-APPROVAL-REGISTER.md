@@ -36,4 +36,25 @@ notes: Important constraints
 
 ## Active records
 
-No formal visual locks have been backfilled yet. Add them prospectively, and only backfill an older approval when the supporting user statement and evidence can be identified reliably.
+```yaml
+id: VA-001
+status: APPROVED
+date: 2026-08-20
+task: MINI-086
+subject: Sacat purchased GoldChain18k placement
+scene_or_prefab: Assets/UpIzUpMini/Data/Equipment/SacatChainPlacement.asset
+evidence:
+  - E:\Unity\Up Iz Up Mini\Logs\MINI-086-CaptureApprovedChain.log
+  - E:\Unity\Up Iz Up Mini\Assets\UpIzUpMini\Data\Equipment\SacatChainPlacement.asset
+approved_aspects:
+  - local position (-0.03414066, 0.40609157, 0.06550227)
+  - local rotation (337.00732, 0, 0)
+  - local scale (1.066973, 1.066973, 1.066973)
+  - GoldChain18k model on Sacat when Sacat owns chain_gold
+still_editable:
+  - runtime swing stiffness and damping after movement playtest
+  - a separately approved Franki-specific fit profile
+user_words: "ok the chain was done"
+supersedes: null
+notes: User placement is authoritative. Do not normalize or recalculate it. Boss C uses the same cleaned chain prefab with rig-specific placement; Boss J wears no chain.
+```

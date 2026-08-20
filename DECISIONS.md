@@ -35,3 +35,6 @@ The game must target all platforms with mobile phones/tablets prioritized, and W
 
 Boss K is the premium Grand Bay weed buyer, the vagrant is a lower-paying alternative, and the produce buyer remains a fallback. A weed sale for the active mission adds 50 heat; another illegal sale adds 30. Police proximity cannot create heat when the shared inventory contains neither weed nor weed seed.
 
+## D-010 — Chain ownership and boss distribution
+
+Gold-chain purchases belong to the active protagonist only and must refresh visibly at purchase time. Sacat's approved manual transform is authoritative (`VA-001`); Franki may receive a separate fit profile later. Boss C wears the same cleaned `GoldChain18k` prefab as a status item with rig-specific placement. Boss J wears no chain.

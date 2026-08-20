@@ -6,8 +6,8 @@
 - Unity: `6000.3.10f1`
 - Reference project: `E:\Unity\Up iz up` — read-only
 - Status: See `Docs/CURRENT.md` for the compact current state. This file is the full audit history through the latest task entries and should be searched by task/system rather than treated as a current summary.
-- Current owner: Codex
-- Active task: MINI-086 — evidence ready; waiting for user chain placement/playtest
+- Current owner: None
+- Active task: None
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest. `MINI-014` through `MINI-030` built and verified in the same way (compile/scene-builder/build clean), all still awaiting a hands-on playtest per each entry. `MINI-031` (reusable Humanoid Animation Manager foundation) built, compile/scene/build clean, zero console errors in a 15s headless run, idle pose confirmed intact via a rendered snapshot; melee-while-moving blending not yet hands-on confirmed. `MINI-050` (banana real model) and `MINI-051` (real Zeb strain bud/cola/pistil/frost visuals — fixed a genuine zero-fruit-renderer bug that meant no weed strain's colour ever rendered) built and visually verified via rendered snapshots, no EXE build made for either. `MINI-052` (NavMesh-based steering + reusable 4-rung stuck recovery for the companion/villagers/police, layered onto the existing CharacterController scripts rather than a full NavMeshAgent swap) built, compile/scene-build clean, and NavMesh coverage/obstacle-exclusion verified by a batch-mode check — but its actual runtime steering behaviour has **not** been exercised by any run (Play Mode is broken in batch mode here, and no EXE was built per this session's instruction), so this one specifically still needs a real Play Mode look. `MINI-053` (mission-name added to the persistent objective card, reading-time-scaled banner/dialogue hold durations, and a new data-driven dialogue foundation — DialogueCondition/DialogueLine/DialogueSet — demonstrated on the ambient villager NPC) built and verified via a real validation harness proving conditional-line selection/tie-cycling/live re-evaluation, plus a scene-build/regression check; content-light by design, full dialogue writing is MINI-054. `MINI-054` (Docs/DIALECT-LEXICON.md cataloguing all 17 supplied terms with honest per-term confidence — 5 remain genuinely Unconfirmed and unused — plus an 8-line scripted opening conversation between Franki and Sacat hitting every beat from the brief) built and verified via compile/scene-build/regression checks and a validation harness proving the timing math and the deferred-banner sequencing; not yet watched/listened to in Play Mode. `awa wii` corrected per the user's direct confirmation (disbelief/"impossible" slang, not the earlier "our own" guess). `MINI-055` (Boss K/M/P/Q consolidated to two display-named bosses — Boss J and Boss C, the latter offering three strains from one NPC via a new multi-crop path — with chain/SUV visual flourishes, both fixed after real rendered checks caught wrong placement) built and verified via a 6-scenario validation harness against live progression state, plus scene-build/regression checks and final visual proof; not yet hands-on played. `MINI-056` (Rasta mentor NPC teaching advanced-strain congratulations, four dialogue tiers reusing the MINI-053 foundation) built and verified via a validation harness against the real built scene, with the same "Strong" ambiguity from MINI-055's brief confirmed with the user first (descriptive, not a strain). `MINI-057` (Normy — a crooked, non-representative officer with a working bribe-for-heat-reduction relationship mechanic and vague foreshadowing dialogue) built and verified via a validation harness; also found and fixed a genuine pre-existing bug from MINI-012 along the way (every officer's cap was floating on the chest, not the head). `MINI-058` (Not Ah Word recruitment — a pooled 4-member roster with real combat-driven Unavailable/injured state — and Dog Life's distance-pooled territorial presence in Lalay) built and verified via a validation harness against the real saved-and-reloaded scene, which caught a genuinely serious bug: the Dog Life pool had no `[SerializeField]` and would have been empty in any real game boot, not just this editor session. Same-day follow-up fixed three user-reported issues (Rasta mentor moved off the farm plots onto the access road, Dog Life's four members randomised instead of moving in lockstep, Chevy moved to a standalone respect-gated recruit by Boss C instead of a paid pool member mixed in with Dog Life). `MINI-059` (plantation theft risk — an away-timer, probability roll scaled by GrandBayGangs reputation, and a real GuardPlantation-assignment prevention, with no faction named per the roadmap's own "create suspicion first" instruction) built and verified via a validation harness that caught two real test-construction bugs (a reputation-delta mistake, and the same Awake/OnEnable-outside-Play-Mode limitation seen in earlier tasks) before passing cleanly. `MINI-060` (Gardey Zafeh — a $1000 reveal naming Dog Life as the plantation thief, feeding both PlantationTheftController's notification text and a new hostile Dog Life dialogue line, plus four random 10-minute "reading" buffs verified to hook the real systems they claim to — HealthBoost genuinely blocks damage, DoubleMoney genuinely doubles gains but never costs) built and verified via a validation harness that passed on the first run, following a clarifying question to the user (same as MINI-055/056's "Strong" ambiguity) rather than guessing at an undefined character. User-requested Windows build succeeded and ran clean headlessly. Known honest gap: she's modeled on a male body (the only kind this project's character pack has) despite being written as "she/her" - flagged for a sourced/generated female model as a follow-up, not solved. `MINI-060 follow-up-2` (companion/gang-member following reverted from MINI-052's NavMesh steering back to direct-line steering per a hill-glitching report; fixed a real bug where the boat man never returned from a trip - root cause was SetActive(false) killing its own coroutine mid-flight; gang recruiter repositioned from Dog Life's block to Boss C/Chevy's cluster and repriced $150→$2000/member; the Gardey Zafeh reveal repriced $1000→$3000; and a new "000000" cheat code for invincibility/$100k/heat-lock/600s time-skip) built and verified via three passing validation harnesses plus a numeric position check (visual snapshot rendering crashed environment-wide this run, confirmed not a regression), Windows build succeeded clean.
 - Last known good commit: `9f80953`
 
@@ -26,21 +26,10 @@ reserved_files:
 ### Current claim
 
 ```yaml
-current_owner: Codex
-active_task: MINI-086
-claimed_at: 2026-08-20T09:00:00-04:00
-reserved_files:
-  - "Assets/UpIzUpMini/Scripts/**"
-  - "Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs"
-  - "Assets/UpIzUpMini/Editor/Mini086*.cs"
-  - "Assets/UpIzUpMini/Data/Dialogue/**"
-  - "Assets/UpIzUpMini/Scenes/GrandBayProof.unity"
-  - "Docs/WorkPackets/MINI-086.md"
-  - "Docs/DIALECT-LEXICON.md"
-  - "Docs/CURRENT.md"
-  - "TASKS.md"
-  - "CHANGELOG.md"
-  - "PROJECT-HANDOFF.md"
+current_owner: None
+active_task: None
+claimed_at: null
+reserved_files: []
 ```
 
 After verification, append a change entry, update the verification results, and return the owner and active task to `None`.
@@ -2243,3 +2232,13 @@ built with both the radio and the missions included.
 - Known issues:
 - Next action:
 ```
+### MINI-086 chain completion — approved placement and runtime visibility
+
+- Date: 2026-08-20
+- Owner: Codex (released)
+- Request: Preserve the chain the user manually placed, make it visible while controlling the protagonist who purchased it, replace Boss C's old presentation with the same cleaned real chain, and remove Boss J's chain.
+- Implementation: Captured the exact Sacat chest-bone-local transform into `Data/Equipment/SacatChainPlacement.asset`; added a deterministic `RefreshEquipment()` call immediately after wearable purchases; retained per-character ownership so only the buyer equips it; kept `GoldChain18k.prefab` on Boss C; removed Boss J's chain from the canonical scene builder; added `Mini086ChainValidation` for the failed transaction path and boss distribution.
+- Visual lock: `VA-001` — Sacat local position `(-0.03414066, 0.40609157, 0.06550227)`, local rotation `(337.00732, 0, 0)`, local scale `(1.066973, 1.066973, 1.066973)`. Do not normalize or retune without the user's approval.
+- Verification: compile clean (`Logs/MINI-086-Chain-Compile-1.log`); capture succeeded (`Logs/MINI-086-CaptureApprovedChain.log`); scene rebuilt (`Logs/MINI-086-Chain-Rebuild.log`); chain transaction/distribution PASS (`Logs/MINI-086-Chain-Validation.log`); static scene PASS (`Logs/MINI-086-Chain-StaticValidation-2.log`); Windows build SUCCEEDED at 407,518,747 bytes (`Logs/MINI-086-Chain-WindowsBuild.log`); 12-second built-player smoke had no error/exception/assert/crash/null-reference (`Logs/MINI-086-Chain-PlayerSmoke.log`).
+- Honest limitation: runtime construction and ownership are proven, but the chain's visibility and swing while walking/running require the user's visual playtest; headless validation cannot prove motion or subjective readability.
+- Next action: user runs the updated build, uses the purchasing protagonist, and checks idle/walk/run. Open a new bounded adjustment only if fit or swing needs revision.

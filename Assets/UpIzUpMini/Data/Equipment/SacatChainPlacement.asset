@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f3068423f8712d4b8d7fcef2eebca79, type: 3}
+  m_Name: SacatChainPlacement
+  m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Character.AccessoryPlacementProfile
+  useManualPlacement: 1
+  localPosition: {x: -0.03414066, y: 0.40609157, z: 0.06550227}
+  localEulerAngles: {x: 337.00732, y: 0, z: 0}
+  localScale: {x: 1.066973, y: 1.066973, z: 1.066973}
