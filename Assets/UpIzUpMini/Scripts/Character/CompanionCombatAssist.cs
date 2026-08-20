@@ -20,7 +20,12 @@ namespace UpIzUpMini.Character
     public class CompanionCombatAssist : MonoBehaviour
     {
         [SerializeField] private float engageRange = 6f;
-        [SerializeField] private float attackRange = 2.1f;
+        [SerializeField] private float attackRange = 1.65f;
+        [SerializeField] private float hitRadius = 0.38f;
+        [SerializeField] private float attackArcDegrees = 80f;
+        [SerializeField] private float attackWindupSeconds = 0.18f;
+        [SerializeField] private float attackActiveSeconds = 0.12f;
+        [SerializeField] private float attackRecoverySeconds = 0.4f;
         [SerializeField] private float damage = 30f; // a touch under the player's own 35 - a helper, not a replacement
         [SerializeField] private float cooldown = 0.85f;
         [SerializeField] private float officerRescanSeconds = 0.5f;
@@ -32,6 +37,8 @@ namespace UpIzUpMini.Character
         private float _nextAttack;
         private float _nextRescan;
         private NpcCombatHealth[] _officers = System.Array.Empty<NpcCombatHealth>();
+        private NpcCombatHealth _pendingTarget;
+        private readonly MeleeSwingTimeline _swing = new MeleeSwingTimeline();
 
         private void Awake()
         {
@@ -43,9 +50,22 @@ namespace UpIzUpMini.Character
 
         private void Update()
         {
-            if (followController == null || !followController.FollowingEnabled) return;
-            if (farmhand != null && farmhand.IsWorking) return;
-            if (vitals != null && vitals.IsDead) return;
+            if (followController == null || !followController.FollowingEnabled
+                                         || farmhand != null && farmhand.IsWorking
+                                         || vitals != null && vitals.IsDead)
+            {
+                _swing.Cancel();
+                _pendingTarget = null;
+                return;
+            }
+
+            if (_swing.IsRunning)
+            {
+                if (_pendingTarget != null && !_pendingTarget.IsDown)
+                    FaceTarget(_pendingTarget.transform.position);
+                AdvanceAttack(Time.deltaTime);
+                if (_swing.IsRunning) return;
+            }
 
             if (Time.time >= _nextRescan)
             {
@@ -62,9 +82,35 @@ namespace UpIzUpMini.Character
 
             _nextAttack = Time.time + cooldown;
             animationManager?.PlayAction(SimpleMeleeCombat.ActionId);
-            nearest.Hit(damage, transform.forward * 0.8f);
+            _pendingTarget = nearest;
+            _swing.Begin(BuildProfile());
+        }
+
+        public void AdvanceAttack(float deltaSeconds)
+        {
+            if (!_swing.IsRunning) return;
+            if (_swing.Advance(deltaSeconds)) ResolvePendingStrike();
+            if (!_swing.IsRunning) _pendingTarget = null;
+        }
+
+        private void ResolvePendingStrike()
+        {
+            NpcCombatHealth expected = _pendingTarget;
+            if (expected == null || expected.IsDown) return;
+
+            bool found = MeleeContactResolver.TryFindNearest(
+                transform, BuildProfile(), NpcCombatHealth.All,
+                (NpcCombatHealth candidate) => candidate == expected && !candidate.IsDown,
+                out NpcCombatHealth target);
+            if (!found) return;
+
+            target.Hit(damage, transform.forward * 0.8f);
             EconomyManager.Instance?.AddHeat(EconomyManager.MaxHeat);
         }
+
+        private MeleeAttackProfile BuildProfile() => new MeleeAttackProfile(
+            attackWindupSeconds, attackActiveSeconds, attackRecoverySeconds,
+            0.28f, attackRange, hitRadius, attackArcDegrees);
 
         private void FaceTarget(Vector3 worldPos)
         {

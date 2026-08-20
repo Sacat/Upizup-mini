@@ -2,6 +2,7 @@ using UnityEngine;
 using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
 using UpIzUpMini.InputSystem;
+using UpIzUpMini.Interaction;
 
 namespace UpIzUpMini.Combat
 {
@@ -13,10 +14,21 @@ namespace UpIzUpMini.Combat
         // character that can throw a punch plays the same clip.
         public const string ActionId = "Melee";
 
-        [SerializeField] float range = 2.1f;
+        [Header("Contact")]
+        [SerializeField] float range = 1.65f;
+        [SerializeField] float hitRadius = 0.38f;
+        [SerializeField] float forwardOffset = 0.3f;
+        [SerializeField] float arcDegrees = 80f;
+        [SerializeField] float windupSeconds = 0.16f;
+        [SerializeField] float activeSeconds = 0.12f;
+        [SerializeField] float recoverySeconds = 0.37f;
+
+        [Header("Cost and damage")]
         [SerializeField] float damage = 35f;
         [SerializeField] float cooldown = .65f;
+        [SerializeField] float staminaCost = 7f;
         [SerializeField] HumanoidAnimationManager animationManager;
+        [SerializeField] CharacterVitals vitals;
 
         // MINI-046: "stronger when two main characters together battling
         // police or gang." A flat damage multiplier while the companion
@@ -27,62 +39,78 @@ namespace UpIzUpMini.Combat
         [SerializeField] float togetherDamageMultiplier = 1.5f;
 
         float nextHit;
+        readonly MeleeSwingTimeline swing = new MeleeSwingTimeline();
         public bool IsControlled => GetComponent<PlayerController>()?.IsControlled == true;
+        public bool IsAttacking => swing.IsRunning;
 
         void Awake()
         {
             if (animationManager == null) animationManager = GetComponent<HumanoidAnimationManager>();
+            if (vitals == null) vitals = GetComponent<CharacterVitals>();
         }
 
         void Update()
         {
+            if (!IsControlled)
+            {
+                swing.Cancel();
+                return;
+            }
+
+            AdvanceAttack(Time.deltaTime);
+
             // F is both "punch" and "get on the bike" (MINI-069). Without this
             // guard you throw a punch on the same frame you mount, every time.
             if (Vehicles.BikeInteractable.ConsumedMountKeyThisFrame) return;
-            if (!IsControlled || !GameInput.WasPressed(GameAction.Attack) || Time.time < nextHit) return;
-            nextHit = Time.time + cooldown;
+            if (!GameInput.WasPressed(GameAction.Attack) || Time.time < nextHit || swing.IsRunning) return;
             Attack();
         }
 
         /// <summary>
-        /// The actual swing, split out from Update() so it can be driven
-        /// directly by a test harness - a physical key edge cannot be faked
-        /// in a headless batch-mode run, so a harness calling Update() itself
-        /// would never reach this logic at all.
+        /// Commits a swing and plays its animation. Damage is intentionally
+        /// deferred until AdvanceAttack reaches the active window.
         /// </summary>
         public void Attack()
         {
+            if (swing.IsRunning || Time.time < nextHit) return;
+            if (vitals != null && !vitals.TrySpendStamina(staminaCost)) return;
+
+            nextHit = Time.time + cooldown;
             // Plays even on a swing that connects with nothing - a real
             // attack animation reads as a fight, not just a damage tick.
             animationManager?.PlayAction(ActionId);
+            swing.Begin(BuildProfile());
+        }
 
+        /// <summary>Advances windup/active/recovery. Public for deterministic
+        /// headless tests; runtime calls it once per controlled frame.</summary>
+        public void AdvanceAttack(float deltaSeconds)
+        {
+            if (swing.Advance(deltaSeconds)) ResolveContact();
+        }
+
+        private void ResolveContact()
+        {
             float appliedDamage = CalculateAppliedDamage();
-
-            Vector3 center = transform.position + transform.forward * 1.1f + Vector3.up;
-            foreach (var hit in Physics.OverlapSphere(center, range, ~0, QueryTriggerInteraction.Ignore))
+            if (MeleeContactResolver.TryFindNearest(
+                    transform, BuildProfile(), NpcCombatHealth.All,
+                    (NpcCombatHealth candidate) => !candidate.IsDown, out NpcCombatHealth target))
             {
-                var target = hit.GetComponentInParent<NpcCombatHealth>();
-                if (target == null) continue;
                 target.Hit(appliedDamage, transform.forward * .8f);
-                // Only police carry NpcCombatHealth today, so landing any
-                // punch here is striking an officer - per the user's
-                // explicit ask, that's an instant max-heat escalation
-                // (GTA-style "you hit a cop"), not a gradual heat tick like
-                // proximity/contraband. AddHeat clamps at MaxHeat, so this
-                // jumps straight there regardless of the current value.
-                EconomyManager.Instance?.AddHeat(EconomyManager.MaxHeat);
-                break;
+                var npc = target.GetComponent<TownNPCInteractable>();
+                if (npc != null && npc.Role == NpcRole.Police)
+                    EconomyManager.Instance?.AddHeat(EconomyManager.MaxHeat);
             }
         }
+
+        private MeleeAttackProfile BuildProfile() => new MeleeAttackProfile(
+            windupSeconds, activeSeconds, recoverySeconds,
+            forwardOffset, range, hitRadius, arcDegrees);
 
         /// <summary>
         /// The damage this swing deals, together-bonus included. Public
         /// and split out from Attack() so the bonus logic can be verified
-        /// directly - Attack()'s actual target-finding goes through
-        /// Physics.OverlapSphere, which is not reliable to drive from an
-        /// edit-mode test harness (colliders created in the same frame
-        /// aren't guaranteed registered in the physics broadphase outside
-        /// Play mode).
+        /// directly, independently of the timed contact query.
         /// </summary>
         public float CalculateAppliedDamage() => IsCompanionNearby() ? damage * togetherDamageMultiplier : damage;
 

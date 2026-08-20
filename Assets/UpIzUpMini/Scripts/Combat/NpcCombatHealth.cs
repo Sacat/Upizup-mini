@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UpIzUpMini.Character;
 
@@ -13,6 +14,7 @@ namespace UpIzUpMini.Combat
     /// </summary>
     public class NpcCombatHealth : MonoBehaviour
     {
+        public static readonly List<NpcCombatHealth> All = new List<NpcCombatHealth>();
         // Ids baked into the shared controller's Action/FullBodyOverride
         // layers by HumanoidAnimationLayerBuilder (see
         // Mini011PhaseBSetup.GetSharedActionEntries).
@@ -44,7 +46,13 @@ namespace UpIzUpMini.Combat
 
         void OnEnable()
         {
+            if (!All.Contains(this)) All.Add(this);
             if (despawnOnDefeat && IsDown) ResetForRespawn();
+        }
+
+        void OnDisable()
+        {
+            All.Remove(this);
         }
 
         public void Hit(float damage, Vector3 push)

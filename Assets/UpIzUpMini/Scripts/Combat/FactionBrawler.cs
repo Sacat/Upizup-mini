@@ -42,7 +42,12 @@ namespace UpIzUpMini.Combat
         [Tooltip("Stop fighting once this many or fewer of the enemy are still standing. 1 = the user's rule: when the rival gang is down to its last man, everyone backs off.")]
         [SerializeField] private int standDownWhenEnemiesLeft = 1;
         [Tooltip("How close before a punch lands.")]
-        [SerializeField] private float attackRange = 2.1f;
+        [SerializeField] private float attackRange = 1.65f;
+        [SerializeField] private float hitRadius = 0.4f;
+        [SerializeField] private float attackArcDegrees = 85f;
+        [SerializeField] private float attackWindupSeconds = 0.2f;
+        [SerializeField] private float attackActiveSeconds = 0.12f;
+        [SerializeField] private float attackRecoverySeconds = 0.45f;
         [Tooltip("Walk speed while closing on an enemy. 0 leaves movement to whatever else drives this character.")]
         [SerializeField] private float approachSpeed = 2.2f;
         [SerializeField] private float damage = 28f;
@@ -56,6 +61,8 @@ namespace UpIzUpMini.Combat
 
         private float _nextAttack;
         private FactionBrawler _chaseTarget;
+        private FactionBrawler _pendingStrikeTarget;
+        private readonly MeleeSwingTimeline _swing = new MeleeSwingTimeline();
 
         /// <summary>Every brawler in the scene, so target selection is a list walk
         /// rather than a FindObjectsByType sweep per fighter per rescan. Same
@@ -90,6 +97,14 @@ namespace UpIzUpMini.Combat
             if (progression == null || !progression.DogLifeRevealed) return;
 
             if (IsOutOfAction) return;
+
+            if (_swing.IsRunning)
+            {
+                if (_pendingStrikeTarget != null && !_pendingStrikeTarget.IsOutOfAction)
+                    FaceTarget(_pendingStrikeTarget.transform.position);
+                AdvanceAttack(Time.deltaTime);
+                if (_swing.IsRunning) return;
+            }
 
             // The character the player is actually driving swings manually with
             // F. Auto-punching on their behalf would take the fight out of their
@@ -140,8 +155,36 @@ namespace UpIzUpMini.Combat
             _nextAttack = Time.time + cooldown;
 
             animationManager?.PlayAction(SimpleMeleeCombat.ActionId);
-            target.ReceiveHit(damage, transform.forward * 0.8f);
+            _pendingStrikeTarget = target;
+            _swing.Begin(BuildProfile());
         }
+
+        /// <summary>Advances this fighter's one-hit swing. Public so the
+        /// contact window can be validated without real-time Play Mode.</summary>
+        public void AdvanceAttack(float deltaSeconds)
+        {
+            if (!_swing.IsRunning) return;
+            if (_swing.Advance(deltaSeconds)) ResolvePendingStrike();
+            if (!_swing.IsRunning) _pendingStrikeTarget = null;
+        }
+
+        private void ResolvePendingStrike()
+        {
+            FactionBrawler expected = _pendingStrikeTarget;
+            if (expected == null || expected.IsOutOfAction) return;
+
+            bool found = MeleeContactResolver.TryFindNearest(
+                transform, BuildProfile(), All,
+                (FactionBrawler candidate) => candidate == expected
+                                                && candidate.side != side
+                                                && !candidate.IsOutOfAction,
+                out FactionBrawler target);
+            if (found) target.ReceiveHit(damage, transform.forward * 0.8f);
+        }
+
+        private MeleeAttackProfile BuildProfile() => new MeleeAttackProfile(
+            attackWindupSeconds, attackActiveSeconds, attackRecoverySeconds,
+            0.28f, attackRange, hitRadius, attackArcDegrees);
 
         /// <summary>
         /// Takes a hit through whichever health component this fighter actually

@@ -110,6 +110,19 @@ namespace UpIzUpMini.Character
             Stamina = Mathf.Min(maxStamina, Stamina + amount);
         }
 
+        /// <summary>Attempts to spend stamina for a committed action such as
+        /// a melee swing. Unlimited-stamina states still allow the action but
+        /// do not reduce the meter.</summary>
+        public bool TrySpendStamina(float amount)
+        {
+            amount = Mathf.Max(0f, amount);
+            if (amount <= 0f || GlobalUnlimitedStamina
+                             || GardeyZafehBuffState.IsActive(GardeyZafehBuff.EnergyBoost)) return true;
+            if (Stamina < amount) return false;
+            Stamina -= amount;
+            return true;
+        }
+
         public void Damage(float amount)
         {
             if (amount <= 0f || IsDead || GlobalInvincible) return;

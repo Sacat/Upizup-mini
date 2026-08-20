@@ -73,7 +73,9 @@ namespace UpIzUpMini.EditorTools
             // --- Now eligible: must land a hit on the in-range officer. ---
             farmhand.SetWorking(false);
             InvokeMethod(assist, "Update"); // rescans officers
-            InvokeMethod(assist, "Update"); // attacks (cooldown already clear)
+            InvokeMethod(assist, "Update"); // commits the timed swing (cooldown already clear)
+            Physics.SyncTransforms();
+            assist.AdvanceAttack(0.25f); // crosses windup into the single active contact window
             float healthAfterAssist = GetHealth(officer);
             if (healthAfterAssist > 90f)
                 throw new Exception($"MINI-046 validation: eligible companion did not land a hit on an in-range officer (health {healthAfterAssist}, expected a real drop from 100).");
@@ -119,14 +121,10 @@ namespace UpIzUpMini.EditorTools
         {
             var root = new GameObject(name);
             root.transform.position = position;
-            // SimpleMeleeCombat.Attack() finds targets via
-            // Physics.OverlapSphere, which needs an actual collider on the
-            // officer - the real game gets this for free from BuildNpc's
-            // CharacterController (which carries an implicit capsule).
-            // CompanionCombatAssist's own path doesn't need this (it scans
-            // TownNPCInteractable/NpcCombatHealth components directly), so
-            // its half of this test would have passed even with this bug -
-            // only the SimpleMeleeCombat.Attack() assertions caught it.
+            // The real scene carries a CharacterController; this focused
+            // harness uses a simple collider and explicitly registers the
+            // health component because Edit Mode does not run OnEnable in
+            // exactly the same way as a built player.
             root.AddComponent<CapsuleCollider>();
             var npc = root.AddComponent<TownNPCInteractable>();
             var so = new SerializedObject(npc);
@@ -134,6 +132,7 @@ namespace UpIzUpMini.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
             var health = root.AddComponent<NpcCombatHealth>();
             InvokeMethod(health, "Awake");
+            if (!NpcCombatHealth.All.Contains(health)) NpcCombatHealth.All.Add(health);
             return root;
         }
 

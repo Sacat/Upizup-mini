@@ -42,6 +42,15 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-092 — Combat contact truth
+
+- Date: 2026-08-20
+- Owner: Codex
+- Request: Autonomously complete recommended system 3 after input and NPC intelligence, then provide one combined test build.
+- Implementation: Added reusable `MeleeAttackProfile`, deterministic `MeleeSwingTimeline`, and `MeleeContactResolver`. Player, companion, and gang attacks now play first, resolve once when entering the active window, require a short forward fist path/arc and clear line of sight, and then pass through recovery. The player spends seven stamina per committed swing. NPC combat health maintains a bounded active registry for deterministic mobile-friendly target selection. Max heat now applies only when the struck target is actually police rather than every NPC sharing the health component.
+- Verification: `MINI-092-Validate.log` passed timing, double-hit prevention, front/behind/arc geometry, LOS wiring, stamina, target damage, and police-only heat; `MINI-092-CompanionRegression.log` and `MINI-092-GangRegression.log` passed; `MINI-092-Rebuild.log` rebuilt the canonical scene; `MINI-092-Build.log` produced a successful 407,532,894-byte Windows build; `MINI-092-PlayerSmoke.log` ran 15 seconds headlessly with no runtime exceptions.
+- Human check owed: The existing attack clip is still visually weak. The user now needs to test formation motion, obstacle behavior, police search/exhaustion, wall/angle contact, and whether the timing feels fair.
+
 ### MINI-091 — NPC and companion intelligence
 
 - Date: 2026-08-20

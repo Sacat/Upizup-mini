@@ -81,3 +81,11 @@
 - Applied dynamic safety and staggered timing to patrol NPCs.
 - Added explicit police Patrol, Chase, Search, Recover, and Down states with line-of-sight and last-known-position searching while preserving police stamina.
 - Preserved and validated the existing last-rival escape, defeated-rival despawn, and distance-pool respawn lifecycle.
+
+## 2026-08-20 — MINI-092 combat contact truth
+
+- Added one reusable windup/active/recovery timeline and forward fist-path resolver for player, companion, and gang attacks.
+- Removed immediate omnidirectional proximity damage: targets must remain in front, inside the short swept path, and unobstructed when the active moment arrives.
+- Enforced one hit per swing, recovery/cooldown, and a seven-stamina player cost.
+- Corrected max-heat escalation so it applies when police are struck, not unrelated rivals carrying the same health component.
+- Passed focused contact validation, companion and gang regressions, canonical rebuild, Windows build, and a 15-second headless smoke.
