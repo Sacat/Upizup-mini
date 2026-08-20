@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-095` adds an accepted, separate Lalay/Highland map-lab with an OSM-backed road network and Copernicus terrain; the playable generated scene is deliberately unchanged until the next migration task.
+- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-098` is the latest separate Lalay/Highland map-lab inspection candidate: user-routed inland/coastal connector, dense regular-house-dominant Lalay rows, eastern coastal house exclusion, and sand/stone bay. The playable generated scene remains unchanged until explicit graybox approval and a separate migration task.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `3adb5c0` (`MINI-093` police melee retaliation; focused validation passed, no new Windows build).
 

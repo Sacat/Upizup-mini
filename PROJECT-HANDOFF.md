@@ -42,6 +42,16 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-098 — User-confirmed connector, dense Lalay rows and sandy bay
+
+- Date: 2026-08-20
+- Owner: Codex (released; awaiting user visual review)
+- Request: Follow the purple road route drawn in `Map.jpg`, fill both sides of Lalay densely between intersections, keep houses out of the marked eastern coastal strip, and make the cleared jetty-side bay sand and stones. Follow-up: regular houses must dominate, with fewer shanties.
+- Implementation: Added stable map-data road `user/lalay_inland_coastal_connector`; expanded the phase-one boundary to include its full curve; corrected house sampling so the two Lalay road sources are not falsely joined into one polyline; built 82 roadside roots at intersection-aware spacing (Side A 34, Side B 48; 59 regular one-/two-storey grayboxes and 23 Shanty Town houses); enforced both lower-bay and eastern-coast house exclusions; added a terrain-following sand grid and 26 non-colliding stone props. Protected gameplay scene/builder were untouched.
+- Verification: Unity `BuildValidateCapture` passed with 181 road roots/colliders, 5 bridges/15 bridge colliders, 21 blocked future exits, 82 house roots, minority-shanty rule, both no-house rules, and four fixed screenshots under `Logs/Tasks/MINI-098/`.
+- Limitations: Static checks do not prove driving feel. Regular houses, church and shoreline remain swappable graybox art; 44 shared materials exceed the intended 40-material district target and need an atlas/merge pass before mobile migration.
+- Next action: User reviews MINI-098 overview/Lalay/bay images. Do not migrate until explicitly accepted.
+
 ### MINI-097 — Connected phase-one graybox and corrected bay/Lalay land use
 
 - Date: 2026-08-20

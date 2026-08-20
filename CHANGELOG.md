@@ -1,5 +1,12 @@
 # Up Iz Up Mini — Changelog
 
+## 2026-08-20 — MINI-098
+
+- Added the user-drawn inland-to-coastal connector as stable, collidable map data rather than a rendered annotation.
+- Corrected Lalay sampling and built 82 dense roadside buildings: 59 regular one-/two-storey houses and 23 shanties.
+- Enforced the eastern coastal/lower-bay no-house areas and added a terrain-following sand-and-stone bay treatment.
+- Rebuilt and validated the separate map-lab; the playable gameplay scene remains unchanged pending visual approval.
+
 ## 2026-08-15 — MINI-000
 
 - Created the clean Unity 6 Mini project.

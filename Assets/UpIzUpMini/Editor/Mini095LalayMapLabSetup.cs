@@ -15,8 +15,8 @@ namespace UpIzUpMini.Editor
         private const string HeightPath = "Assets/UpIzUpMini/Maps/GrandBayPhase1Height.json";
         private const string ScenePath = "Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity";
         private const string MaterialFolder = "Assets/UpIzUpMini/Maps/MapLab/Materials";
-        private const string EvidenceFolder = "Logs/Tasks/MINI-097";
-        private static readonly Rect PhaseOneBounds = new Rect(-75f, -225f, 350f, 155f);
+        private const string EvidenceFolder = "Logs/Tasks/MINI-098";
+        private static readonly Rect PhaseOneBounds = new Rect(-75f, -225f, 350f, 210f);
         private static readonly int[] ShantyVariants = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
         private const float ShantyScale = 2.1f;
 
@@ -79,6 +79,8 @@ namespace UpIzUpMini.Editor
             Material barrierMat = MaterialAsset("FutureExpansionBarrier", new Color(0.91f, 0.42f, 0.08f));
             Material churchWallMat = MaterialAsset("ChurchWall", new Color(0.82f, 0.78f, 0.67f));
             Material churchRoofMat = MaterialAsset("ChurchRoof", new Color(0.48f, 0.12f, 0.10f));
+            Material baySandMat = MaterialAsset("BaySand", new Color(0.72f, 0.60f, 0.40f));
+            Material bayStoneMat = MaterialAsset("BayStone", new Color(0.34f, 0.35f, 0.33f));
             Material roofRed = MaterialAsset("RoofRed", new Color(0.60f, 0.12f, 0.09f));
             Material roofBlue = MaterialAsset("RoofBlue", new Color(0.10f, 0.38f, 0.58f));
             Material roofSilver = MaterialAsset("RoofSilver", new Color(0.64f, 0.66f, 0.64f));
@@ -101,6 +103,7 @@ namespace UpIzUpMini.Editor
             GameObject boundaryRoot = Child(root, "PhaseOne_Boundaries");
             GameObject districtRoot = Child(root, "Approved_Districts_And_Lots");
             GameObject housesRoot = Child(root, "Lalay_Dense_House_Massing");
+            GameObject bayShoreRoot = Child(root, "Bay_Sand_And_Stones");
             GameObject labelsRoot = Child(root, "Labels");
 
             Bounds bounds = CalculateBounds(data);
@@ -137,6 +140,7 @@ namespace UpIzUpMini.Editor
             Dictionary<string, AnchorData> anchors = (data.anchors ?? Array.Empty<AnchorData>()).ToDictionary(a => a.id, a => a);
             BuildLandmarkLots(anchors, data.compression, districtRoot.transform, labelsRoot.transform, farmMat, jettyMat);
             BuildChurch(anchors, data.compression, churchWallMat, churchRoofMat, districtRoot.transform, labelsRoot.transform);
+            BuildBayShoreline(baySandMat, bayStoneMat, bayShoreRoot.transform);
             BuildDenseLalayHouses(data, lalayIds, anchors, wallMats, roofMats, housesRoot.transform);
 
             BuildLighting();
@@ -162,6 +166,7 @@ namespace UpIzUpMini.Editor
             Require(GameObject.Find("Copernicus_GLO30_Terrain") != null, "Copernicus DEM terrain missing");
             Require(GameObject.Find("Story_Jetty") != null, "Story jetty missing");
             Require(GameObject.Find("GrandBay_Catholic_Church_Graybox") != null, "Mapped bay church missing");
+            Require(GameObject.Find("Bay_Sand_Patch") != null, "Sand-and-stone bay treatment missing");
             Require(GameObject.Find("Zone_Highland_UserApproved_Outline") == null, "Planning-only pink Highland outline must not render");
             Require(GameObject.Find("Camera_Overview") != null && GameObject.Find("Camera_Lalay") != null && GameObject.Find("Camera_Highland") != null && GameObject.Find("Camera_Bay") != null, "Fixed cameras missing");
             int roads = GameObject.Find("Roads_OSM")?.transform.childCount ?? 0;
@@ -178,8 +183,12 @@ namespace UpIzUpMini.Editor
             Require(sidewalks >= 2, $"Lalay sidewalks missing: {sidewalks}");
             Require(houses >= 55, $"Dense Lalay massing too sparse: {houses}");
             int shanties = GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().Count(child => child.name.Contains("Shanty")) ?? 0;
-            Require(shanties >= 30, $"Existing Shanty Town assets are not being used densely enough: {shanties}");
+            Require(shanties >= 15 && shanties <= houses / 2, $"Shanties should remain a minority but still be represented: shanties={shanties}, houses={houses}");
+            int sideA = GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().Count(child => child.name.Contains("_SideA_")) ?? 0;
+            int sideB = GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().Count(child => child.name.Contains("_SideB_")) ?? 0;
+            Require(sideA >= 30 && sideB >= 30 && Mathf.Max(sideA, sideB) <= Mathf.Min(sideA, sideB) * 1.5f, $"Both sides of Lalay must be dense and reasonably balanced around real intersections: SideA={sideA}, SideB={sideB}");
             Require(GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().All(child => !(child.position.x > 165f && child.position.z < -140f)) ?? false, "Lower bay/jetty exclusion must contain no houses");
+            Require(GameObject.Find("Lalay_Dense_House_Massing")?.transform.Cast<Transform>().All(child => child.position.x <= 200f) ?? false, "Eastern coastal no-house strip must contain no houses");
             int meshes = UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
             int materials = UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None).Select(r => r.sharedMaterial).Where(m => m != null).Distinct().Count();
             Debug.Log($"MINI-095 MAP LAB VALIDATION PASS: roads={roads}, roadColliders={roadColliders}, bridges={bridges}, bridgeColliders={bridgeColliders}, blockedExits={blockedExits}, sidewalks={sidewalks}, houseRoots={houses}, meshRenderers={meshes}, sharedMaterials={materials}, scene={scene.path}.");
@@ -639,6 +648,86 @@ namespace UpIzUpMini.Editor
             CreateGroundLabel("CHURCH OF ST. PATRICK", position + new Vector3(0f, 0f, 13f), Color.white, labels, 4.4f);
         }
 
+        private static void BuildBayShoreline(Material sandMaterial, Material stoneMaterial, Transform parent)
+        {
+            Vector2[] footprint =
+            {
+                new Vector2(158f, -218f), new Vector2(232f, -220f), new Vector2(270f, -194f),
+                new Vector2(274f, -154f), new Vector2(238f, -132f), new Vector2(196f, -137f),
+                new Vector2(168f, -157f), new Vector2(154f, -187f)
+            };
+            const float cell = 5f;
+            List<Vector3> sandVertices = new List<Vector3>();
+            List<Vector2> sandUv = new List<Vector2>();
+            List<int> sandTriangles = new List<int>();
+            for (float z = -220f; z < -132f; z += cell)
+            for (float x = 154f; x < 274f; x += cell)
+            {
+                if (!PointInPolygon(new Vector2(x + cell * 0.5f, z + cell * 0.5f), footprint)) continue;
+                int first = sandVertices.Count;
+                Vector2[] corners =
+                {
+                    new Vector2(x, z), new Vector2(x + cell, z),
+                    new Vector2(x, z + cell), new Vector2(x + cell, z + cell)
+                };
+                foreach (Vector2 corner in corners)
+                {
+                    sandVertices.Add(new Vector3(corner.x, HeightAt(corner.x, corner.y) + 0.32f, corner.y));
+                    sandUv.Add(corner * 0.05f);
+                }
+                sandTriangles.Add(first); sandTriangles.Add(first + 2); sandTriangles.Add(first + 1);
+                sandTriangles.Add(first + 1); sandTriangles.Add(first + 2); sandTriangles.Add(first + 3);
+            }
+            GameObject sand = CreateMeshObject("Bay_Sand_Patch", sandVertices.ToArray(), sandTriangles.ToArray(), sandUv.ToArray(), sandMaterial, parent, false);
+            sand.name = "Bay_Sand_Patch";
+
+            System.Random random = new System.Random(9801);
+            int placed = 0;
+            int attempts = 0;
+            while (placed < 26 && attempts++ < 160)
+            {
+                float x = Mathf.Lerp(166f, 263f, (float)random.NextDouble());
+                float z = Mathf.Lerp(-211f, -142f, (float)random.NextDouble());
+                Vector2 point = new Vector2(x, z);
+                if (!PointInPolygon(point, footprint)) continue;
+                Vector3 world = new Vector3(x, HeightAt(x, z), z);
+                if (DistanceToAnyDriveableRoad(world) < 5.5f) continue;
+                if (HorizontalDistance(world, new Vector3(193f, 0f, -171f)) < 13f) continue;
+                if (HorizontalDistance(world, new Vector3(224f, 0f, -181f)) < 11f) continue;
+                GameObject stone = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                stone.name = $"Bay_Stone_{placed:00}";
+                stone.transform.SetParent(parent, false);
+                stone.transform.position = world + Vector3.up * 0.28f;
+                stone.transform.rotation = Quaternion.Euler((float)random.NextDouble() * 18f, (float)random.NextDouble() * 180f, (float)random.NextDouble() * 18f);
+                float scale = 0.35f + (float)random.NextDouble() * 0.65f;
+                stone.transform.localScale = new Vector3(scale * 1.4f, scale * 0.45f, scale);
+                stone.GetComponent<Renderer>().sharedMaterial = stoneMaterial;
+                UnityEngine.Object.DestroyImmediate(stone.GetComponent<Collider>());
+                placed++;
+            }
+        }
+
+        private static float DistanceToAnyDriveableRoad(Vector3 point)
+        {
+            float closest = float.MaxValue;
+            foreach ((Vector3[] points, float halfWidth) road in s_roadClearances)
+            for (int i = 1; i < road.points.Length; i++)
+                closest = Mathf.Min(closest, DistanceToSegmentXZ(point, road.points[i - 1], road.points[i], out _) - road.halfWidth);
+            return closest;
+        }
+
+        private static bool PointInPolygon(Vector2 point, Vector2[] polygon)
+        {
+            bool inside = false;
+            for (int i = 0, j = polygon.Length - 1; i < polygon.Length; j = i++)
+            {
+                Vector2 a = polygon[i]; Vector2 b = polygon[j];
+                if ((a.y > point.y) != (b.y > point.y) && point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x)
+                    inside = !inside;
+            }
+            return inside;
+        }
+
         private static void CreateChurchPart(string name, Vector3 localPosition, Vector3 scale, Material material, Transform parent)
         {
             GameObject part = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -704,38 +793,42 @@ namespace UpIzUpMini.Editor
 
         private static void BuildDenseLalayHouses(MapData data, HashSet<string> lalayIds, Dictionary<string, AnchorData> anchors, Material[] walls, Material[] roofs, Transform parent)
         {
-            List<Vector3> polyline = data.roads.Where(r => lalayIds.Contains(r.id)).SelectMany(r => r.points.Select(p => World(p, data.compression, 0f))).ToList();
-            if (polyline.Count < 2) return;
-            List<(Vector3 point, Vector3 forward)> samples = SamplePolyline(polyline, 8.5f);
-            System.Random random = new System.Random(97);
+            List<(Vector3 point, Vector3 forward)> samples = new List<(Vector3, Vector3)>();
+            foreach (RoadData lalayRoad in data.roads.Where(r => lalayIds.Contains(r.id) && r.points != null && r.points.Length >= 2))
+                samples.AddRange(SamplePolyline(lalayRoad.points.Select(p => World(p, data.compression, 0f)).ToList(), 4.2f));
+            if (samples.Count == 0) return;
+            System.Random random = new System.Random(98);
             int houseIndex = 0;
             foreach ((Vector3 point, Vector3 forward) sample in samples)
             {
                 Vector3 side = new Vector3(-sample.forward.z, 0f, sample.forward.x).normalized;
                 for (int sideSign = -1; sideSign <= 1; sideSign += 2)
                 {
-                    if (random.NextDouble() < 0.08) continue;
-                    float setback = 9.5f + (float)random.NextDouble() * 3.0f;
-                    Vector3 position = sample.point + side * sideSign * setback + sample.forward * ((float)random.NextDouble() - 0.5f) * 2.2f;
-                    float width = 7.3f + (float)random.NextDouble() * 2.3f;
-                    float depth = 6.4f + (float)random.NextDouble() * 2.2f;
+                    string sideLabel = sideSign < 0 ? "SideA" : "SideB";
+                    float setback = 7.8f + (float)random.NextDouble() * 1.8f;
+                    Vector3 position = sample.point + side * sideSign * setback + sample.forward * ((float)random.NextDouble() - 0.5f) * 1.4f;
+                    float width = 4.2f + (float)random.NextDouble() * 1.2f;
+                    float depth = 3.8f + (float)random.NextDouble() * 1.0f;
                     // The user's phase-one satellite crop confirms the low coastal strip
                     // around the jetty is open land. The mapped church is built separately.
-                    if (position.x > 165f && position.z < -140f) continue;
-                    if (OverlapsAnyRoad(position, width, depth, sample.forward)) continue;
+                    if (position.x > 200f || (position.x > 165f && position.z < -140f)) continue;
+                    Vector3 houseForward = -side * sideSign;
+                    if (OverlapsNonLalayRoad(position, width, depth, houseForward, data, lalayIds)) continue;
                     string[] protectedLots = { "highland_first_farm", "highland_future_plot_02", "highland_future_plot_03", "highland_future_plot_04", "upizup_block", "dog_life_block", "car_dealer", "grand_bay_primary_school", "farmers_cooperative", "grand_bay_catholic_church" };
                     if (protectedLots.Any(id => HorizontalDistance(position, AnchorPosition(anchors, id, data.compression)) < (id == "highland_first_farm" ? 23f : id == "grand_bay_catholic_church" ? 18f : 15f))) continue;
                     position.y = HeightAt(position.x, position.z);
-                    Quaternion facingRoad = Quaternion.LookRotation(-side * sideSign, Vector3.up) * Quaternion.Euler(0f, (float)(random.NextDouble() - 0.5f) * 8f, 0f);
-                    bool twoStorey = random.NextDouble() < 0.14;
-                    if (!twoStorey)
+                    Quaternion facingRoad = Quaternion.LookRotation(houseForward, Vector3.up) * Quaternion.Euler(0f, (float)(random.NextDouble() - 0.5f) * 6f, 0f);
+                    double buildingRoll = random.NextDouble();
+                    bool useShanty = buildingRoll < 0.28;
+                    bool twoStorey = buildingRoll > 0.76;
+                    if (useShanty)
                     {
                         int variant = ShantyVariants[random.Next(ShantyVariants.Length)];
                         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/ArteriaShantyTown/ShantyTown1/shanty{variant}.fbx");
                         if (prefab != null)
                         {
                             GameObject shanty = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
-                            shanty.name = $"Lalay_Shanty_{houseIndex:000}_V{variant:00}";
+                            shanty.name = $"Lalay_Shanty_{sideLabel}_{houseIndex:000}_V{variant:00}";
                             shanty.transform.position = position;
                             shanty.transform.rotation = facingRoad;
                             shanty.transform.localScale = Vector3.one * ShantyScale;
@@ -743,22 +836,22 @@ namespace UpIzUpMini.Editor
                         }
                         else
                         {
-                            BuildProceduralHouse(parent, houseIndex, position, facingRoad, width, depth, false, walls[random.Next(walls.Length)], roofs[random.Next(roofs.Length)]);
+                            BuildProceduralHouse(parent, sideLabel, houseIndex, position, facingRoad, width, depth, false, walls[random.Next(walls.Length)], roofs[random.Next(roofs.Length)]);
                         }
                     }
                     else
                     {
-                        BuildProceduralHouse(parent, houseIndex, position, facingRoad, width, depth, true, walls[random.Next(walls.Length)], roofs[random.Next(roofs.Length)]);
+                        BuildProceduralHouse(parent, sideLabel, houseIndex, position, facingRoad, width, depth, twoStorey, walls[random.Next(walls.Length)], roofs[random.Next(roofs.Length)]);
                     }
                     houseIndex++;
                 }
             }
         }
 
-        private static void BuildProceduralHouse(Transform parent, int index, Vector3 position, Quaternion rotation, float width, float depth, bool twoStorey, Material wall, Material roofMaterial)
+        private static void BuildProceduralHouse(Transform parent, string sideLabel, int index, Vector3 position, Quaternion rotation, float width, float depth, bool twoStorey, Material wall, Material roofMaterial)
         {
             float height = twoStorey ? 6.4f : 3.5f;
-            GameObject houseRoot = Child(parent.gameObject, $"Lalay_House_{index:000}_{(twoStorey ? "TwoStorey" : "Fallback")}");
+            GameObject houseRoot = Child(parent.gameObject, $"Lalay_House_{sideLabel}_{index:000}_{(twoStorey ? "TwoStorey" : "OneStorey")}");
             houseRoot.transform.position = position;
             houseRoot.transform.rotation = rotation;
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -811,6 +904,32 @@ namespace UpIzUpMini.Editor
                                              + Mathf.Abs(Vector3.Dot(roadNormal, houseForward)) * depth * 0.5f;
                 if (DistanceToSegmentXZ(position, road.points[i - 1], road.points[i], out _) < road.halfWidth + houseExtentTowardRoad + 0.5f)
                     return true;
+            }
+            return false;
+        }
+
+        private static bool OverlapsNonLalayRoad(Vector3 position, float width, float depth, Vector3 houseForward, MapData data, HashSet<string> lalayIds)
+        {
+            houseForward.y = 0f;
+            houseForward.Normalize();
+            Vector3 houseRight = new Vector3(houseForward.z, 0f, -houseForward.x);
+            foreach (RoadData road in data.roads ?? Array.Empty<RoadData>())
+            {
+                if (!IsDriveableRoad(road) || lalayIds.Contains(road.id)) continue;
+                Vector3[] points = road.points.Select(p => World(p, data.compression)).ToArray();
+                float halfWidth = RoadWidth(road.roadClass, false) * 0.5f;
+                for (int i = 1; i < points.Length; i++)
+                {
+                    Vector3 roadDirection = points[i] - points[i - 1];
+                    roadDirection.y = 0f;
+                    if (roadDirection.sqrMagnitude < 0.0001f) continue;
+                    roadDirection.Normalize();
+                    Vector3 roadNormal = new Vector3(-roadDirection.z, 0f, roadDirection.x);
+                    float houseExtentTowardRoad = Mathf.Abs(Vector3.Dot(roadNormal, houseRight)) * width * 0.5f
+                                                 + Mathf.Abs(Vector3.Dot(roadNormal, houseForward)) * depth * 0.5f;
+                    if (DistanceToSegmentXZ(position, points[i - 1], points[i], out _) < halfWidth + houseExtentTowardRoad + 0.45f)
+                        return true;
+                }
             }
             return false;
         }

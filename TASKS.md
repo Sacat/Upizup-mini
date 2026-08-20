@@ -22,6 +22,12 @@ Acceptance criteria:
 
 ## In progress
 
+### MINI-098 — User-corrected connector, Lalay density and sandy bay
+
+Goal: Apply the user's annotated inland-to-coastal connector and land-use rules in the separate map-lab.
+
+Status: **Evidence ready / awaiting user visual approval.** The map-lab now contains the user-confirmed connector as normal collidable road data, 82 dense Lalay buildings on both sides between intersections (59 regular houses, 23 shanties), an enforced eastern coastal no-house strip, and a non-blocking sand-and-stone jetty-side bay. All static checks and four screenshot captures pass. The gameplay scene remains untouched.
+
 ### MINI-096 — Reusable world-expansion workflow
 
 Goal: Turn MINI-094/095 into a repeatable, low-budget system for every future Dominica district or other map.

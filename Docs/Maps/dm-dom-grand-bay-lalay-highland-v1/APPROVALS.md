@@ -19,3 +19,10 @@ Map truth is approved. Graybox passability checks pass, but `grayboxStatus` rema
 - Evidence: `Logs/Tasks/MINI-097/MapLab-Overview-1600x1000.png`, `MapLab-Lalay-1280x720.png`, `MapLab-Highland-1280x720.png`, and `MapLab-Bay-1280x720.png`.
 - Automated result: 172 collidable road ribbons including 42 short gap connectors; 5 collidable bridge groups; 15 blocked future exits; 95 house roots; no rendered pink Highland annotation; no houses in the lower-bay exclusion.
 - Status: pending user visual approval. This evidence does not authorize gameplay-scene migration yet.
+
+## MINI-098 inspection candidate
+
+- User correction reference: `C:\Users\PCSS-PC\Pictures\Map.jpg`.
+- Locked source intent pending rendered acceptance: purple route connects west/inland to the coastal road; dense houses belong on both sides of Lalay between intersections; eastern coast has no houses; cleared jetty-side bay is sand and stones.
+- Evidence: `Logs/Tasks/MINI-098/MapLab-Overview-1600x1000.png`, `MapLab-Lalay-1280x720.png`, `MapLab-Highland-1280x720.png`, and `MapLab-Bay-1280x720.png`.
+- Status: pending user visual approval; gameplay migration remains prohibited.

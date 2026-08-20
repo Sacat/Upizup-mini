@@ -54,3 +54,9 @@ The Google map screenshot remains an internal visual reference only. It must not
 - The user confirmed that the lower beach/jetty strip contains no houses and that the church is the only building to retain there in this graybox.
 - The church uses the existing `grand_bay_catholic_church` anchor derived from OSM way `392195638`, cross-checked against public Church of St. Patrick place records.
 - User-provided satellite imagery is used only to judge land use and relative density. Pixels and individual building footprints are not traced, imported, or shipped.
+
+## User route and land-use correction (MINI-098)
+
+- `C:\Users\PCSS-PC\Pictures\Map.jpg` is a user-authored routing/land-use annotation over the map-lab overview. Its purple route is stored as derived points under stable ID `user/lalay_inland_coastal_connector`; the purple pixels are not imported or rendered.
+- The annotation confirms dense housing on both sides of Lalay between intersections, no houses along the eastern coastal strip, and sand/stones throughout the cleared lower bay around the jetty.
+- These are user-verified gameplay-layout rules. Final building footprints and shoreline art remain artistic/mobile-conscious rather than traced from imagery.
