@@ -9,7 +9,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
 - Current production state: work through `MINI-086` is preserved on `codex/mini-085-baseline-20260820`. MINI-086 rebuilt the current game, corrected HUD/camera/progression/dialogue/equipment/follower/gang behavior, and captured Sacat's approved chain placement. Automated checks and Windows build pass; movement/feel still need hands-on acceptance.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
-- Last known committed checkpoint shown by Git during MINI-084 audit: `42efdf3` (`MINI-050`).
+- Last known good gameplay checkpoint: `d45724c` (`MINI-086` chain completion).
 
 ## What exists
 
