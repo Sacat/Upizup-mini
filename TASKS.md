@@ -1463,6 +1463,12 @@ Goal: Replace immediate omnidirectional proximity damage with reusable animation
 
 Status: Evidence ready. Shared windup/active/recovery timeline, forward contact geometry, line-of-sight, one hit per swing, stamina spending, and police-only max-heat escalation pass focused validation plus companion/gang regressions. Canonical rebuild, Windows build, and headless smoke pass. Awaiting the user's combined systems 1–3 test.
 
+### MINI-093 — Police melee retaliation
+
+Goal: Make chasing police punch back through the MINI-092 contact timeline so the active character's health decreases and existing death/safehouse behavior can trigger.
+
+Status: Evidence ready. Police now retaliate through timed forward contact for 12 damage, one hit per swing, with cooldown and existing death-event integration. Saved-scene defaults, focused validation, and MINI-092 regression pass. No scene rebuild or Windows build was made per the user's batching policy.
+
 - `MINI-032`: Modular wardrobe + accessory IK/physics (chain jiggle, etc.) — attachment already exists (MINI-022 `CharacterEquipment`), this adds swing/sway physics and separate garment geometry instead of material recolor.
 - `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed).
 - `MINI-034`: Car — buy/enter/exit/seated driving, real vehicle physics; depends on MINI-033's enter/exit pattern.

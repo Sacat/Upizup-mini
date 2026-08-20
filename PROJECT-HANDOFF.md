@@ -42,6 +42,15 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-093 — Police melee retaliation
+
+- Date: 2026-08-20
+- Owner: Codex
+- Request: Fix police not hitting back and player health not decreasing; batch rebuilds only after major compounded changes because the user tests small script updates from Unity Hub.
+- Implementation: `PoliceOfficer` now commits the existing melee action when actively chasing within strike distance, holds during windup/recovery, and applies 12 damage once at the active contact moment through MINI-092's forward geometry/LOS rules. It refuses dead/behind/out-of-contact victims, respects a 1.1-second cooldown, and uses `CharacterVitals.Damage`, preserving the existing health-zero mission failure and safehouse respawn chain. Added a reusable single-target contact helper to `MeleeContactResolver`.
+- Verification: `MINI-093-Validate.log` confirmed existing saved-scene officers receive non-zero defaults without rebuilding, first contact reduced health 100→88, pre-windup damage stayed zero, one swing hit once, a behind target was missed, and repeated strikes reached zero with exactly one death event. `MINI-093-CombatRegression.log` re-passed MINI-092. No `.unity`, prefab, build, package, or project-setting file changed.
+- Human check owed: Police attack animation/contact feel and the visible safehouse return should be tested from Unity Hub.
+
 ### MINI-092 — Combat contact truth
 
 - Date: 2026-08-20

@@ -38,6 +38,16 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private float searchSeconds = 4.5f;
         [SerializeField] private float searchSpeed = 2.6f;
 
+        [Header("Police melee")]
+        [SerializeField] private float strikeRange = 1.65f;
+        [SerializeField] private float strikeDamage = 12f;
+        [SerializeField] private float strikeCooldown = 1.1f;
+        [SerializeField] private float strikeWindupSeconds = 0.22f;
+        [SerializeField] private float strikeActiveSeconds = 0.12f;
+        [SerializeField] private float strikeRecoverySeconds = 0.45f;
+        [SerializeField] private float strikeRadius = 0.4f;
+        [SerializeField] private float strikeArcDegrees = 85f;
+
         [Header("Police stamina")]
         [SerializeField] private float maxStamina = 100f;
         [SerializeField] private float chaseDrainPerSecond = 24f;
@@ -48,6 +58,7 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private Animator animator;
         [SerializeField] private float turnSpeed = 8f;
         [SerializeField] private NpcCombatHealth combatHealth;
+        [SerializeField] private HumanoidAnimationManager animationManager;
 
         private CharacterController _controller;
         private bool _headingToB = true;
@@ -58,6 +69,9 @@ namespace UpIzUpMini.Interaction
         private float _searchUntil;
         private Vector3 _lastKnownPlayerPosition;
         private float _sideSign;
+        private float _nextStrike;
+        private CharacterVitals _pendingVictim;
+        private readonly MeleeSwingTimeline _strike = new MeleeSwingTimeline();
         private readonly NavPathSteerer _steerer = new NavPathSteerer();
 
         public bool IsChasing { get; private set; }
@@ -71,6 +85,7 @@ namespace UpIzUpMini.Interaction
             _sideSign = (GetInstanceID() & 1) == 0 ? 1f : -1f;
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (combatHealth == null) combatHealth = GetComponent<NpcCombatHealth>();
+            if (animationManager == null) animationManager = GetComponent<HumanoidAnimationManager>();
         }
 
         public void SetPatrol(Vector3 a, Vector3 b)
@@ -90,6 +105,7 @@ namespace UpIzUpMini.Interaction
             {
                 IsChasing = false;
                 CurrentState = PoliceMovementState.Down;
+                CancelStrike();
                 Animate(0f);
                 return;
             }
@@ -129,6 +145,7 @@ namespace UpIzUpMini.Interaction
                 {
                     IsChasing = false;
                     CurrentState = PoliceMovementState.Recover;
+                    CancelStrike();
                     Animate(0f);
                     return;
                 }
@@ -142,6 +159,21 @@ namespace UpIzUpMini.Interaction
                 CurrentState = PoliceMovementState.Patrol;
 
             IsChasing = CurrentState == PoliceMovementState.Chase;
+
+            if (!IsChasing)
+            {
+                CancelStrike();
+            }
+            else if (_strike.IsRunning)
+            {
+                AdvancePoliceAttack(Time.deltaTime);
+                if (_strike.IsRunning)
+                {
+                    if (_pendingVictim != null) Face(_pendingVictim.transform.position);
+                    Animate(0f);
+                    return;
+                }
+            }
 
             Vector3? relocate = _steerer.ConsumeRelocation();
             if (relocate.HasValue) Relocate(relocate.Value);
@@ -165,8 +197,11 @@ namespace UpIzUpMini.Interaction
 
                 if (distToPlayer <= stopDistance)
                 {
-                    // Close enough - hold position rather than shoving.
+                    // Close enough: hold position, face the wanted character,
+                    // and retaliate through the same timed contact system as
+                    // player/companion/gang punches.
                     Face(player.transform.position);
+                    TryBeginStrike(player);
                     Animate(0f);
                     return;
                 }
@@ -219,6 +254,45 @@ namespace UpIzUpMini.Interaction
             Face(transform.position + safeDirection);
             Animate(speed);
         }
+
+        private bool TryBeginStrike(GameObject target)
+        {
+            if (target == null || _strike.IsRunning || Time.time < _nextStrike) return false;
+            CharacterVitals victim = target.GetComponent<CharacterVitals>();
+            if (victim == null || victim.IsDead) return false;
+
+            _pendingVictim = victim;
+            _nextStrike = Time.time + strikeCooldown;
+            animationManager?.PlayAction(SimpleMeleeCombat.ActionId);
+            return _strike.Begin(BuildStrikeProfile());
+        }
+
+        /// <summary>Advances the police windup/active/recovery timeline.
+        /// Public for deterministic batch validation.</summary>
+        public void AdvancePoliceAttack(float deltaSeconds)
+        {
+            if (!_strike.IsRunning) return;
+            if (_strike.Advance(deltaSeconds)) ResolvePoliceStrike();
+            if (!_strike.IsRunning) _pendingVictim = null;
+        }
+
+        private void ResolvePoliceStrike()
+        {
+            if (_pendingVictim == null || _pendingVictim.IsDead) return;
+            if (!MeleeContactResolver.CanHitTarget(
+                    transform, _pendingVictim.transform, BuildStrikeProfile())) return;
+            _pendingVictim.Damage(strikeDamage);
+        }
+
+        private void CancelStrike()
+        {
+            _strike.Cancel();
+            _pendingVictim = null;
+        }
+
+        private MeleeAttackProfile BuildStrikeProfile() => new MeleeAttackProfile(
+            strikeWindupSeconds, strikeActiveSeconds, strikeRecoverySeconds,
+            0.28f, strikeRange, strikeRadius, strikeArcDegrees);
 
         private bool HasLineOfSight(GameObject player)
         {

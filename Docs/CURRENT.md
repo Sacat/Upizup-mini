@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: systems 1–3 are integrated on `codex/mini-085-baseline-20260820`: `MINI-090` touch-ready input facade, `MINI-091` NPC formations/avoidance/police states, and `MINI-092` timed forward melee contact. Focused tests, regressions, canonical rebuild, Windows build, and headless smoke pass. MINI-091/092 motion and feel now await the user's combined hands-on test.
+- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. The reported retaliation gap is addressed by `MINI-093`: chasing police now use timed forward melee contact and damage `CharacterVitals`, reaching the existing death/safehouse flow. Script validation passes; police attack feel awaits the user's Unity Hub test. No rebuild was made for this small adjustment by user request.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `75b1404` (`MINI-092` combined systems 1–3 build: input, NPC intelligence, and combat contact).
 
@@ -36,7 +36,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 3. Map fidelity: existing Lalay-to-beach layout has no defensible geographic source data.
 4. Mobile architecture: Built-in RP, legacy Input Manager, no touch/safe-area layer, no Android build gate.
 5. Build size: latest audited Windows build was about 388.6 MB; textures about 280.6 MB. TMAX source contributed about 172.2 MB and Range Rover about 43.5 MB.
-6. Combat: current attack uses a sword-like clip and immediate large overlap sphere, so air hits and warped-looking punches are expected.
+6. Combat visuals: contact is now timed/forward/LOS checked, but the current sword-like placeholder clip can still look warped and needs a later approved animation replacement.
 7. Character modularity: current clothes mostly recolor existing meshes; matching height does not make rig/bone scale or garment fit identical.
 
 ## Workflow now in force

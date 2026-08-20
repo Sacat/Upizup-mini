@@ -144,6 +144,15 @@ namespace UpIzUpMini.Combat
             return DistancePointToSegment(bodyPoint, start, end) <= profile.radius + 0.35f;
         }
 
+        /// <summary>Complete single-target contact check used when an AI has
+        /// already selected its intended victim.</summary>
+        public static bool CanHitTarget(
+            Transform attacker, Transform target, MeleeAttackProfile profile)
+        {
+            if (!IsInsideForwardContact(attacker, target, profile)) return false;
+            return HasLineOfSight(attacker, target, attacker.position + Vector3.up * 1.05f);
+        }
+
         private static float DistancePointToSegment(Vector3 point, Vector3 start, Vector3 end)
         {
             Vector3 segment = end - start;

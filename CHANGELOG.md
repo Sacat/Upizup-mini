@@ -89,3 +89,10 @@
 - Enforced one hit per swing, recovery/cooldown, and a seven-stamina player cost.
 - Corrected max-heat escalation so it applies when police are struck, not unrelated rivals carrying the same health component.
 - Passed focused contact validation, companion and gang regressions, canonical rebuild, Windows build, and a 15-second headless smoke.
+
+## 2026-08-20 — MINI-093 police melee retaliation
+
+- Chasing police now punch at close range through the shared windup/active/recovery contact system and apply 12 player damage once per valid swing.
+- Behind/out-of-contact/dead targets are rejected, and the 1.1-second cooldown prevents rapid repeated damage.
+- Damage flows through `CharacterVitals`, so zero health continues into the existing mission-failure and safehouse-respawn system.
+- Passed saved-scene default checks, deterministic damage/death validation, and the MINI-092 combat regression without rebuilding the scene or Windows player.
