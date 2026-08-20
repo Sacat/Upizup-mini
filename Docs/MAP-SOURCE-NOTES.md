@@ -33,3 +33,18 @@
 - The user-supplied whole-island heightmap has no confirmed bounds, vertical scale, CRS, or source licence and is not used as production elevation truth.
 
 The Google map screenshot remains an internal visual reference only. It must not be traced, imported, or shipped as terrain imagery.
+
+## Phase-one elevation
+
+- Dataset: Copernicus DEM GLO-30, 2021 release, public COG tile covering Grand Bay.
+- Crop: south `15.236`, west `-61.326`, north `15.252`, east `-61.306`.
+- Production sample: smoothed `65 × 65` grid in `Assets/UpIzUpMini/Maps/GrandBayPhase1Height.json`.
+- Use: the surrounding terrain follows the DEM. The approved Lalay road/sidewalk/yard corridor is gameplay-graded to a continuous maximum `1.5%` slope with no DEM bumps and a wide yard transition; Highland retains the stronger local relief.
+- Limitation: GLO-30 is a surface model and cannot resolve individual drains, retaining walls, steps, or exact road crowns.
+- Required attribution: `produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved`.
+
+## User-confirmed map truth (2026-08-20)
+
+- The MINI-094 OSM preview is the approved phase-one road-network reference.
+- The original Lalay street screenshot supplied back by the user is the approved road-scale target: narrow two-lane asphalt, grey sidewalks, close houses, and a bay-facing view.
+- Highland is the first planting district, reached by an inroad from Lalay; one plot starts active and three parcels are reserved for later progression.

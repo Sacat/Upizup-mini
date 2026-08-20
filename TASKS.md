@@ -22,11 +22,17 @@ Acceptance criteria:
 
 ## In progress
 
+### MINI-095 — Lalay/Highland Unity map-lab graybox
+
+Goal: Turn the approved MINI-094 map relationships into a separate, repeatable Unity road/lot/coast graybox without changing the working game scene.
+
+Status: **Evidence ready / approved source targets locked as VA-004.** Separate scene builds and validates with 130 terrain-conforming collidable roads, a smooth bump-free maximum 1.5% Lalay grade, grey sidewalks, 69 dense house masses kept off secondary roads, one visible Highland starting plot, three hidden future parcels, and the coastal jetty. Giant colored lot slabs were replaced by non-blocking outlines. The rejected intermediate Lalay screenshot is not a visual lock. The playable scene was not changed; migration is the next separate task.
+
 ### MINI-094 — Grand Bay Map Truth and Lalay-to-beach approval preview
 
 Goal: Create a licensed, coordinate-based overhead plan for the first Grand Bay district without changing the working gameplay scene.
 
-Status: **Evidence ready.** A 1600x1000 OSM-backed overhead preview, source/licence notes, eight local-metre anchors, and a reusable exporter are complete. Highland, rather than Montine, is the first remote planting district by user decision. No gameplay scene was changed. Waiting for the user's screenshot approval/corrections before a separate Unity map-lab graybox task.
+Status: **Approved as the phase-one road-network truth under VA-004.** The OSM-backed preview now drives MINI-095; Highland is the first planting district and the working gameplay scene remains unchanged.
 
 ### MINI-011 — Grand Bay production vertical slice (corrective rebuild)
 

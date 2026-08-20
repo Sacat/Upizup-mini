@@ -42,6 +42,17 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-095 — Lalay/Highland Unity map-lab graybox
+
+- Date: 2026-08-20
+- Owner: Codex (released)
+- Request: Build the approved Grand Bay/Lalay network with real terrain, Highland as the first planting district, one starting plot plus later parcels, close houses, a Lalay-to-Highland inroad, and visual review before gameplay migration.
+- Implementation: Created a separate repeatable map-lab from 130 OSM/user road lines and a 65×65 Copernicus GLO-30 crop. Lalay has narrow asphalt, grey sidewalks, a smooth bump-free maximum 1.5% grade and a wide yard transition. Roads are resampled to follow terrain; house placement rejects secondary-road overlap. Added the Highland inroad, one visible starting plot, three inactive future parcel anchors, coast/jetty, waterways and landmark outlines. Removed giant brown/teal lot slabs after visual review.
+- Visual decision: `VA-004` locks the user's approved original Lalay road image and MINI-094 network. The later intermediate Lalay camera image was explicitly rejected and is not evidence of approval.
+- Verification: `BuildValidateCapture-CleanLandmarks-2.log` PASS; 130 road roots, 69 house roots, 316 mesh renderers and 25 shared materials; all road ribbons carry mesh colliders while landmark outlines do not block travel. Protected `GrandBayProof.unity` and `Mini011PhaseBSetup.cs` have no diff.
+- Known limitation: This is an isolated layout/terrain lab, not yet the playable gameplay scene. Final buildings, vegetation, drains and landmark art remain placeholders.
+- Next action: Migrate the accepted network and smooth Lalay corridor into the generated gameplay scene under a new rollback-safe task, then rebuild once for user driving/walking testing.
+
 ### MINI-094 — Grand Bay Map Truth and Lalay-to-beach approval preview
 
 - Date: 2026-08-20

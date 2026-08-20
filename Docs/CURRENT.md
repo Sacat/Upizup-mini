@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. The reported retaliation gap is addressed by `MINI-093`: chasing police now use timed forward melee contact and damage `CharacterVitals`, reaching the existing death/safehouse flow. Script validation passes; police attack feel awaits the user's Unity Hub test. No rebuild was made for this small adjustment by user request.
+- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-095` adds an accepted, separate Lalay/Highland map-lab with an OSM-backed road network and Copernicus terrain; the playable generated scene is deliberately unchanged until the next migration task.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `3adb5c0` (`MINI-093` police melee retaliation; focused validation passed, no new Windows build).
 
@@ -24,7 +24,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 - `Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs` generates `GrandBayProof.unity`. Manual scene edits are overwritten.
 - The current world is a 320m procedural prototype, not measured Grand Bay: sinusoidal road, algorithmic houses, straight Montine spur, synthetic coast/jetty.
-- `Docs/MAP-ANCHORS.json` does not exist. Candidate research under `E:\Assets\GrandBayReference` is read-only and remains user-unverified.
+- `Docs/MAP-ANCHORS.json` and compact Unity map/height data now exist. `VA-004` locks the approved OSM road network and Lalay street scale; the map-lab remains separate from gameplay.
 - Locomotion uses the authored StarterAssets controller and `MotionSpeed`; do not regenerate it casually.
 - `HumanoidAnimationManager` is the reusable action-layer foundation.
 - Bike seating already uses `VehicleSeat`, `VehicleRider`, `BikeRiderAnimation`, and Humanoid IK. Improve profiles/clips/gates rather than starting over.
@@ -33,7 +33,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 1. Visual acceptance: Sacat's two-piece chain placement is locked as `VA-002`; its visibility/swing while walking still needs the user's playtest. Most other movement and appearance remain unapproved.
 2. Visual debt: many changes compile or pass harnesses but have not been watched in real Play Mode. Static screenshots cannot prove animation, combat, riding, driving, NPC movement, or UI timing.
-3. Map fidelity: existing Lalay-to-beach layout has no defensible geographic source data.
+3. Map migration risk: the new sourced map-lab is accepted, but the old playable generated scene still uses its 320m procedural world until a rollback-safe migration task replaces it.
 4. Mobile architecture: Built-in RP, legacy Input Manager, no touch/safe-area layer, no Android build gate.
 5. Build size: latest audited Windows build was about 388.6 MB; textures about 280.6 MB. TMAX source contributed about 172.2 MB and Range Rover about 43.5 MB.
 6. Combat visuals: contact is now timed/forward/LOS checked, but the current sword-like placeholder clip can still look warped and needs a later approved animation replacement.
@@ -52,7 +52,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 ## Recommended next sequence
 
 1. User checks the updated chain while walking/running, then accepts or reports only concrete fit/swing changes.
-2. Collect and verify Lalay-to-beach map anchors, then build a separate map-lab graybox without destroying the working gameplay scene.
+2. Migrate the accepted `VA-004` Lalay/Highland map-lab into the generated gameplay world in a separate task, preserving all missions, NPCs, vehicles, farms and safehouses.
 3. Prepare one Hitem3D character reference card. No paid generation until the user approves the reference.
 4. Integrator: introduce an input facade and asset-size/performance report before touch UI or more vehicles.
 5. Preserve the current gameplay scene until the separate map-lab layout is accepted.

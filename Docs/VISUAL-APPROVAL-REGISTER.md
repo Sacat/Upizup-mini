@@ -114,3 +114,28 @@ user_words: "i placed it manually so you can save it"
 supersedes: null
 notes: User manual placement is authoritative. Do not replace this with calculated bounds or Sacat's bone-local root numbers. Sacat VA-002 remains independently locked.
 ```
+
+```yaml
+id: VA-004
+status: APPROVED
+date: 2026-08-20
+task: MINI-095
+subject: Lalay road network and street-scale target
+scene_or_prefab: Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity
+evidence:
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-094\LalayToBeach-Overhead.png
+  - C:\Users\PCSS-PC\AppData\Local\Temp\codex-clipboard-d726a081-cdcd-4f24-a8aa-a8291d100147.png
+approved_aspects:
+  - MINI-094 OSM preview road network and Lalay-to-coast relationship
+  - narrow two-lane Lalay road with grey paved sidewalks
+  - close house spacing on both sides without road overlap
+  - view/orientation toward the bay
+  - smooth bump-free Lalay surface with no more than a mild continuous rise
+still_editable:
+  - final house meshes, colors, yards, vegetation, drains and street props
+  - exact landmark architecture and final Highland farm dressing
+  - performance-driven LOD and material consolidation
+user_words: "this image looks just like the lalay road" / "this image you gave me is very good for the road network" / "make sure the laylay road is flat and no bumps"
+supersedes: null
+notes: Preserve the road topology, width, sidewalks, bay orientation and dense settlement scale. Do not trace or ship satellite pixels. Houses may be upgraded but cannot be placed across any mapped road. The later intermediate screenshot questioned by the user (`codex-clipboard-a1692bce-5179-4110-85ed-4d2b5a94d026.png`) is explicitly rejected and is not part of this lock.
+```

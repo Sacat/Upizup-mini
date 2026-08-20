@@ -11,6 +11,7 @@ $rawPath = Join-Path $taskDir "GrandBayPhase1.osm.json"
 $previewPath = Join-Path $taskDir "LalayToBeach-Overhead.png"
 $summaryPath = Join-Path $taskDir "MapTruthSummary.json"
 $anchorPath = Join-Path $ProjectRoot "Docs\MAP-ANCHORS.json"
+$mapDataPath = Join-Path $ProjectRoot "Assets\UpIzUpMini\Maps\GrandBayPhase1MapData.json"
 New-Item -ItemType Directory -Force -Path $taskDir | Out-Null
 
 $bounds = [ordered]@{
@@ -111,6 +112,14 @@ foreach ($spec in $osmAnchorSpecs) {
 $anchors.Add((New-Anchor "grand_bay_credit_union" "Grand Bay Cooperative Credit Union" "finance" 15.2407793 -61.3166228 "Institution website plus prior place-coordinate cross-check" "candidate/GB-005" "official_institution_candidate_coordinate" $false "Strong Lalay/Main Road anchor; entrance and exact footprint need local confirmation."))
 $anchors.Add((New-Anchor "farmers_cooperative" "Grand Bay Farmers and Food Producers Cooperative" "agriculture" 15.2403758 -61.3162141 "Prior place-coordinate research" "candidate/GB-012" "candidate_coordinate" $false "Useful farming-story anchor if current operation is locally confirmed."))
 $anchors.Add((New-Anchor "grand_bay_police_station" "Grand Bay Police Station" "emergency" 15.2447591 -61.3223997 "Government directory name plus prior place-coordinate cross-check" "candidate/GB-006" "official_institution_candidate_coordinate" $false "Current entrance and footprint need local confirmation; in-game identity should remain fictionalized."))
+$anchors.Add((New-Anchor "highland_first_farm" "Highland First Farm" "farm" 15.24155 -61.31572 "User annotated map supplied 2026-08-20" "user-annotation/highland" "user_approved_artistic_anchor" $true "First planting area inside the user-drawn Highland zone; exact lot shape remains artistic."))
+$anchors.Add((New-Anchor "upizup_block" "Up Iz Up Block" "story_block" 15.24062 -61.31675 "User annotated satellite reference supplied 2026-08-20" "user-annotation/upizup-block" "user_approved_artistic_anchor" $true "Starting story block on the dense Lalay corridor."))
+$anchors.Add((New-Anchor "dog_life_block" "Dog Life Block" "story_block" 15.24078 -61.31820 "User annotated satellite reference supplied 2026-08-20" "user-annotation/dog-life" "user_approved_artistic_anchor" $true "Rival block west/inland of the Up Iz Up block on Lalay."))
+$anchors.Add((New-Anchor "car_dealer" "Car Dealer" "shop" 15.24145 -61.31805 "User annotated satellite reference supplied 2026-08-20" "user-annotation/car-dealer" "user_approved_artistic_anchor" $true "Dealer lot north/uphill of Dog Life block."))
+$anchors.Add((New-Anchor "story_jetty" "Story Jetty" "transport" 15.24015 -61.31185 "User annotated map and clarification supplied 2026-08-20" "user-annotation/jetty" "user_approved_artistic_anchor" $true "Coastal-road jetty on the Highland side; final shoreline fit remains editable in the graybox."))
+$anchors.Add((New-Anchor "highland_future_plot_02" "Highland Future Farm Plot 2" "future_farm" 15.24190 -61.31515 "User progression direction supplied 2026-08-20" "artistic/highland-plot-02" "reserved_artistic_parcel" $true "Reserved for later land purchase; hidden and non-interactable at game start."))
+$anchors.Add((New-Anchor "highland_future_plot_03" "Highland Future Farm Plot 3" "future_farm" 15.24212 -61.31435 "User progression direction supplied 2026-08-20" "artistic/highland-plot-03" "reserved_artistic_parcel" $true "Reserved for later land purchase; hidden and non-interactable at game start."))
+$anchors.Add((New-Anchor "highland_future_plot_04" "Highland Future Farm Plot 4" "future_farm" 15.24172 -61.31355 "User progression direction supplied 2026-08-20" "artistic/highland-plot-04" "reserved_artistic_parcel" $true "Reserved for later land purchase; hidden and non-interactable at game start."))
 
 $anchorDocument = [ordered]@{
     schemaVersion = 1
@@ -129,6 +138,117 @@ $anchorDocument = [ordered]@{
     anchors = $anchors
 }
 $anchorDocument | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $anchorPath -Encoding utf8
+
+function Convert-GeometryPoints($geometry) {
+    $points = [System.Collections.Generic.List[object]]::new()
+    foreach ($point in @($geometry)) {
+        if ($point.lat -lt $bounds.south -or $point.lat -gt $bounds.north -or $point.lon -lt $bounds.west -or $point.lon -gt $bounds.east) { continue }
+        $points.Add([ordered]@{
+            x = [math]::Round(([double]$point.lon - $origin.longitude) * 107500.0, 2)
+            z = [math]::Round(([double]$point.lat - $origin.latitude) * 110650.0, 2)
+        })
+    }
+    return @($points)
+}
+
+function Convert-ZonePoint([double]$latitude, [double]$longitude) {
+    return [ordered]@{
+        x = [math]::Round(($longitude - $origin.longitude) * 107500.0, 2)
+        z = [math]::Round(($latitude - $origin.latitude) * 110650.0, 2)
+    }
+}
+
+$roads = [System.Collections.Generic.List[object]]::new()
+foreach ($element in $elements | Where-Object { $null -ne $_.tags.highway -and $null -ne $_.geometry }) {
+    $points = @(Convert-GeometryPoints $element.geometry)
+    if ($points.Count -lt 2) { continue }
+    $roads.Add([ordered]@{
+        id = "$($element.type)/$($element.id)"
+        name = if ($null -ne $element.tags.name) { [string]$element.tags.name } else { "" }
+        roadClass = [string]$element.tags.highway
+        surface = if ($null -ne $element.tags.surface) { [string]$element.tags.surface } else { "" }
+        points = $points
+    })
+}
+
+$roads.Add([ordered]@{
+    id = "user/highland_lalay_inroad"
+    name = "Highland–Lalay Inroad"
+    roadClass = "unclassified"
+    surface = "paved"
+    points = @(
+        (Convert-ZonePoint 15.24082 -61.31595),
+        (Convert-ZonePoint 15.24102 -61.31588),
+        (Convert-ZonePoint 15.24118 -61.31580),
+        (Convert-ZonePoint 15.24136 -61.31575)
+    )
+})
+$roads.Add([ordered]@{
+    id = "user/highland_farm_spur"
+    name = "Highland Farm Dirt Spur"
+    roadClass = "track"
+    surface = "dirt"
+    points = @(
+        (Convert-ZonePoint 15.24136 -61.31575),
+        (Convert-ZonePoint 15.24146 -61.31573),
+        (Convert-ZonePoint 15.24155 -61.31572)
+    )
+})
+
+$waterways = [System.Collections.Generic.List[object]]::new()
+foreach ($element in $elements | Where-Object { $null -ne $_.tags.waterway -and $null -ne $_.geometry }) {
+    $points = @(Convert-GeometryPoints $element.geometry)
+    if ($points.Count -lt 2) { continue }
+    $waterways.Add([ordered]@{
+        id = "$($element.type)/$($element.id)"
+        name = if ($null -ne $element.tags.name) { [string]$element.tags.name } else { "" }
+        waterClass = [string]$element.tags.waterway
+        points = $points
+    })
+}
+
+$coastGeometry = $elements | Where-Object { $_.tags.natural -eq "coastline" -and $null -ne $_.geometry } | Select-Object -First 1
+$coastPoints = if ($null -ne $coastGeometry) { @(Convert-GeometryPoints $coastGeometry.geometry) } else { @() }
+
+$highlandPoints = @(
+    (Convert-ZonePoint 15.24304 -61.31730),
+    (Convert-ZonePoint 15.24302 -61.31586),
+    (Convert-ZonePoint 15.24232 -61.31496),
+    (Convert-ZonePoint 15.24224 -61.31286),
+    (Convert-ZonePoint 15.24134 -61.31267),
+    (Convert-ZonePoint 15.24048 -61.31311),
+    (Convert-ZonePoint 15.24032 -61.31392),
+    (Convert-ZonePoint 15.24098 -61.31496),
+    (Convert-ZonePoint 15.24148 -61.31602),
+    (Convert-ZonePoint 15.24222 -61.31724)
+)
+
+$mapData = [ordered]@{
+    schemaVersion = 1
+    sourceTimestamp = $osm.osm3s.timestamp_osm_base
+    sourceAttribution = "Map data from OpenStreetMap (ODbL)"
+    originLatitude = $origin.latitude
+    originLongitude = $origin.longitude
+    compression = 0.3333333
+    lalayRoadIds = @("way/22917921", "way/23042701")
+    roads = $roads
+    waterways = $waterways
+    coastline = [ordered]@{ points = $coastPoints }
+    zones = @(
+        [ordered]@{ id = "highland"; displayName = "HIGHLAND — FIRST PLANTING DISTRICT"; points = $highlandPoints }
+    )
+    anchors = @($anchors | ForEach-Object {
+        [ordered]@{
+            id = $_.id
+            displayName = $_.displayName
+            category = $_.category
+            x = $_.localXMetres
+            z = $_.localZMetres
+            userVerified = $_.userVerified
+        }
+    })
+}
+$mapData | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $mapDataPath -Encoding utf8
 
 $width = 1600
 $height = 1000

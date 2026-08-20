@@ -102,3 +102,10 @@
 - Added the first coordinate-based `MAP-ANCHORS.json` with local metre conversion and explicit verification states.
 - Produced a 1600x1000 Lalay-to-beach planning screenshot without modifying the working gameplay scene.
 - Recorded Highland as the first remote planting district; its exact turnoff remains pending local confirmation.
+
+## 2026-08-20 — MINI-095 Lalay/Highland map lab
+
+- Built a separate repeatable Unity map-lab from 130 OSM/user-confirmed road lines and a licensed Copernicus GLO-30 terrain crop.
+- Added the explicit Lalay-to-Highland inroad, first active Highland farm, three reserved future parcels, coastal jetty, waterways, landmarks, grey Lalay sidewalks, and 69 close low-poly house masses.
+- Smoothed Lalay into a bump-free maximum 1.5% continuous grade with a wide yard transition while retaining stronger Highland relief; densified road meshes so secondary roads follow terrain and reject house overlap.
+- Recorded the user's approved road network and original Lalay street target as `VA-004`; the playable `GrandBayProof` scene remains untouched pending a separate migration task.

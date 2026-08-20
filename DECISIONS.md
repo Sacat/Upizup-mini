@@ -7,6 +7,13 @@
 - Decision: The first Grand Bay farming/planting connection will lead to Highland instead of Montine. Montine remains available for later missions or district expansion.
 - Consequence: MINI-094 will label Highland as the intended planting route, but will not invent an exact road junction until licensed data or a user-confirmed local pin establishes it.
 
+## D-010 — Approved phase-one Lalay map truth
+
+- Date: 2026-08-20
+- Decision owner: User
+- Decision: Use the MINI-094 OSM overview as the road-network truth and the approved original Lalay street screenshot as the scale/look target. Lalay is narrow and bump-free with grey sidewalks and close houses; only a mild continuous rise away from the bay is retained for playability.
+- Consequence: Future map and art passes may replace graybox buildings and add detail, but must preserve `VA-004`, keep houses off all roads, retain the Lalay-to-Highland inroad, and avoid tracing commercial satellite imagery.
+
 ## D-001 — Separate project
 
 Mini is a separate Unity project rather than a duplicate of the larger game. This prevents inherited prototype complexity and keeps builds smaller.
