@@ -13,3 +13,9 @@
 ## Current gate
 
 Map truth is approved. Graybox passability checks pass, but `grayboxStatus` remains `pending` until a corrected player-height Lalay view is accepted. Final houses, vegetation, drains, landmark art and placeholder colors remain editable.
+
+## MINI-097 inspection candidate
+
+- Evidence: `Logs/Tasks/MINI-097/MapLab-Overview-1600x1000.png`, `MapLab-Lalay-1280x720.png`, `MapLab-Highland-1280x720.png`, and `MapLab-Bay-1280x720.png`.
+- Automated result: 172 collidable road ribbons including 42 short gap connectors; 5 collidable bridge groups; 15 blocked future exits; 95 house roots; no rendered pink Highland annotation; no houses in the lower-bay exclusion.
+- Status: pending user visual approval. This evidence does not authorize gameplay-scene migration yet.

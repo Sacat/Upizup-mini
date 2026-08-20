@@ -48,3 +48,9 @@ The Google map screenshot remains an internal visual reference only. It must not
 - The MINI-094 OSM preview is the approved phase-one road-network reference.
 - The original Lalay street screenshot supplied back by the user is the approved road-scale target: narrow two-lane asphalt, grey sidewalks, close houses, and a bay-facing view.
 - Highland is the first planting district, reached by an inroad from Lalay; one plot starts active and three parcels are reserved for later progression.
+
+## Lower bay and church correction (MINI-097)
+
+- The user confirmed that the lower beach/jetty strip contains no houses and that the church is the only building to retain there in this graybox.
+- The church uses the existing `grand_bay_catholic_church` anchor derived from OSM way `392195638`, cross-checked against public Church of St. Patrick place records.
+- User-provided satellite imagery is used only to judge land use and relative density. Pixels and individual building footprints are not traced, imported, or shipped.

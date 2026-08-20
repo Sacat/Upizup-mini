@@ -42,6 +42,16 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-097 — Connected phase-one graybox and corrected bay/Lalay land use
+
+- Date: 2026-08-20
+- Owner: Codex (released; awaiting user visual review)
+- Request: Connect disconnected roads, bridge river crossings, remove the temporary pink Highland mark, keep houses out of the lower bay except for the church, make Lalay denser with the existing Shanty Town assets, and block later-version areas.
+- Implementation: Added data-driven short-gap road connectors, collidable bridge decks/rails, visible future-exit barriers plus invisible phase perimeter colliders, a church graybox at the existing mapped Grand Bay Catholic Church anchor, a lower-bay housing exclusion, dense Shanty Town placement, and a fourth bay inspection camera. The playable `GrandBayProof` scene and its authoritative builder were not changed.
+- Verification: `BuildValidateCapture` passed: 172 road roots and 172 road colliders, 5 bridge groups and 15 bridge colliders, 15 blocked exits, 95 house roots, no rendered pink Highland outline, no houses inside the lower-bay exclusion. Four screenshots are in `Logs/Tasks/MINI-097/`.
+- Limitations: Screenshot/static validation cannot prove vehicle feel; graybox remains pending user approval and is not authorized for gameplay migration. Material count is 43 and needs an atlas/merge pass before mobile migration.
+- Next action: User reviews the MINI-097 overview, Lalay, Highland, and bay screenshots and accepts or gives precise corrections.
+
 ### MINI-096 — Reusable world-expansion workflow
 
 - Date: 2026-08-20
