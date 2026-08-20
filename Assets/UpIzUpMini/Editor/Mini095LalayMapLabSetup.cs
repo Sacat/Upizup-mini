@@ -15,7 +15,8 @@ namespace UpIzUpMini.Editor
         private const string HeightPath = "Assets/UpIzUpMini/Maps/GrandBayPhase1Height.json";
         private const string ScenePath = "Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity";
         private const string MaterialFolder = "Assets/UpIzUpMini/Maps/MapLab/Materials";
-        private const string EvidenceFolder = "Logs/Tasks/MINI-099";
+        private static string EvidenceFolder => Path.Combine("Logs", "Tasks",
+            Environment.GetEnvironmentVariable("UPIZUP_EVIDENCE_TASK") ?? "MINI-099");
         private static readonly Rect PhaseOneBounds = new Rect(-75f, -225f, 350f, 210f);
         private static readonly HashSet<string> PhaseOneSupportingRoadIds = new HashSet<string>
         {
@@ -67,6 +68,9 @@ namespace UpIzUpMini.Editor
         private static readonly List<Vector3[]> s_driveableGradeLines = new List<Vector3[]>();
         private static readonly List<(Vector3[] points, float halfWidth)> s_roadClearances = new List<(Vector3[], float)>();
         private static float s_lalayBaseHeight;
+        private static Vector3 s_farmPadCentre;
+        private static float s_farmPadHeight;
+        private static readonly Vector2 FarmPadHalfSize = new Vector2(24f, 18f);
 
         [MenuItem("Up Iz Up Mini/MINI-095/Build Lalay Highland Map Lab")]
         public static void BuildScene()
@@ -276,40 +280,45 @@ namespace UpIzUpMini.Editor
         {
             float rawHeight = RawHeightAt(x, z);
             Vector3 query = new Vector3(x, 0f, z);
-            float closestDistance = float.MaxValue;
-            float roadHeight = rawHeight;
-            foreach (Vector3[] line in s_lalayGradeLines)
+            float result = rawHeight;
+            if (TryNearestGrade(query, s_driveableGradeLines, out float roadHeight, out float closestDistance) && closestDistance < 55f)
+            {
+                // One shared terrain/road grade prevents the Lalay/Highland junction
+                // from choosing the Lalay height for the ground and a second height
+                // for the connector. The wide falloff removes the cliff walls while
+                // retaining the surrounding Dominica relief outside gameplay space.
+                float roadBlend = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(14f, 55f, closestDistance));
+                result = Mathf.Lerp(rawHeight, roadHeight, roadBlend);
+            }
+
+            // Farming needs a genuinely level working surface, not a visual slab
+            // sitting over a slope. Blend a bounded flat pad back into the graded
+            // Highland terrain; gameplay plots/safehouse are placed inside it.
+            float padEdgeDistance = Mathf.Max(
+                Mathf.Abs(x - s_farmPadCentre.x) - FarmPadHalfSize.x,
+                Mathf.Abs(z - s_farmPadCentre.z) - FarmPadHalfSize.y);
+            if (padEdgeDistance < 14f)
+            {
+                float padBlend = padEdgeDistance <= 0f ? 1f : 1f - Mathf.SmoothStep(0f, 1f, padEdgeDistance / 14f);
+                result = Mathf.Lerp(result, s_farmPadHeight, padBlend);
+            }
+            return result;
+        }
+
+        private static bool TryNearestGrade(Vector3 query, IEnumerable<Vector3[]> lines, out float height, out float distance)
+        {
+            distance = float.MaxValue;
+            height = 0f;
+            foreach (Vector3[] line in lines)
             for (int i = 1; i < line.Length; i++)
             {
                 float t;
-                float distance = DistanceToSegmentXZ(query, line[i - 1], line[i], out t);
-                if (distance >= closestDistance) continue;
-                closestDistance = distance;
-                roadHeight = Mathf.Lerp(line[i - 1].y, line[i].y, t);
+                float candidate = DistanceToSegmentXZ(query, line[i - 1], line[i], out t);
+                if (candidate >= distance) continue;
+                distance = candidate;
+                height = Mathf.Lerp(line[i - 1].y, line[i].y, t);
             }
-
-            // Preserve Dominica's surrounding relief, but make the narrow Lalay corridor
-            // gentler for walking, bikes and mobile steering. The blend also grades yards.
-            if (closestDistance < 45f)
-            {
-                float lalayBlend = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(12f, 45f, closestDistance));
-                return Mathf.Lerp(rawHeight, roadHeight, lalayBlend);
-            }
-
-            closestDistance = float.MaxValue;
-            roadHeight = rawHeight;
-            foreach (Vector3[] line in s_driveableGradeLines)
-            for (int i = 1; i < line.Length; i++)
-            {
-                float t;
-                float distance = DistanceToSegmentXZ(query, line[i - 1], line[i], out t);
-                if (distance >= closestDistance) continue;
-                closestDistance = distance;
-                roadHeight = Mathf.Lerp(line[i - 1].y, line[i].y, t);
-            }
-            if (closestDistance >= 22f) return rawHeight;
-            float roadBlend = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(8f, 22f, closestDistance));
-            return Mathf.Lerp(rawHeight, roadHeight, roadBlend);
+            return distance < float.MaxValue;
         }
 
         private static float RawHeightAt(float x, float z)
@@ -362,19 +371,40 @@ namespace UpIzUpMini.Editor
                     float z = p.z * data.compression;
                     return new Vector3(x, RawHeightAt(x, z), z);
                 }).ToArray();
-                float maximumSlope = road.id == "user/lalay_inland_coastal_connector" ? 0.045f
-                    : road.id == "user/highland_lalay_inroad" ? 0.055f
+                float maximumSlope = road.id == "user/lalay_inland_coastal_connector" ? 0.025f
+                    : road.id == "user/highland_lalay_inroad" ? 0.03f
+                    : road.id == "user/highland_farm_spur" ? 0.035f
                     : 0.08f;
-                s_driveableGradeLines.Add(SmoothRoadGrade(raw, maximumSlope));
+                s_driveableGradeLines.Add(SmoothRoadGrade(raw, maximumSlope, s_driveableGradeLines));
+            }
+            AnchorData farmAnchor = (data.anchors ?? Array.Empty<AnchorData>()).FirstOrDefault(anchor => anchor.id == "highland_first_farm");
+            if (farmAnchor != null)
+            {
+                s_farmPadCentre = new Vector3(farmAnchor.x * data.compression, 0f, farmAnchor.z * data.compression);
+                s_farmPadHeight = TryNearestGrade(s_farmPadCentre, s_driveableGradeLines, out float gradeHeight, out _)
+                    ? gradeHeight : RawHeightAt(s_farmPadCentre.x, s_farmPadCentre.z);
+                s_farmPadCentre.y = s_farmPadHeight;
             }
             s_lalayBaseHeight = s_lalayGradeLines.SelectMany(line => line).Min(point => point.y);
         }
 
-        private static Vector3[] SmoothRoadGrade(Vector3[] raw, float maximumSlope)
+        private static Vector3[] SmoothRoadGrade(Vector3[] raw, float maximumSlope, List<Vector3[]> connectedLines)
         {
             float length = LineLength(raw);
-            float startHeight = raw[0].y;
-            float endHeight = startHeight + Mathf.Clamp(raw[raw.Length - 1].y - startHeight, -length * maximumSlope, length * maximumSlope);
+            bool startConnected = TryKnownHeight(raw[0], connectedLines, out float connectedStart);
+            bool endConnected = TryKnownHeight(raw[raw.Length - 1], connectedLines, out float connectedEnd);
+            float startHeight = startConnected ? connectedStart : raw[0].y;
+            float endHeight;
+            if (endConnected)
+            {
+                endHeight = connectedEnd;
+                if (!startConnected)
+                    startHeight = endHeight - Mathf.Clamp(raw[raw.Length - 1].y - raw[0].y, -length * maximumSlope, length * maximumSlope);
+            }
+            else
+            {
+                endHeight = startHeight + Mathf.Clamp(raw[raw.Length - 1].y - raw[0].y, -length * maximumSlope, length * maximumSlope);
+            }
             Vector3[] line = new Vector3[raw.Length];
             float travelled = 0f;
             line[0] = new Vector3(raw[0].x, startHeight, raw[0].z);

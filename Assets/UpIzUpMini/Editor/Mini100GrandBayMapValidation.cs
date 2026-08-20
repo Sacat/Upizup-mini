@@ -15,7 +15,8 @@ namespace UpIzUpMini.EditorTools
     public static class Mini100GrandBayMapValidation
     {
         private const string ScenePath = "Assets/UpIzUpMini/Scenes/GrandBayProof.unity";
-        private static readonly string EvidenceFolder = Path.Combine(Directory.GetCurrentDirectory(), "Logs", "Tasks", "MINI-100");
+        private static string EvidenceTask => Environment.GetEnvironmentVariable("UPIZUP_EVIDENCE_TASK") ?? "MINI-100";
+        private static string EvidenceFolder => Path.Combine(Directory.GetCurrentDirectory(), "Logs", "Tasks", EvidenceTask);
 
         [MenuItem("Up Iz Up Mini/MINI-100/Validate Migrated Grand Bay")]
         public static void Validate()
@@ -34,15 +35,15 @@ namespace UpIzUpMini.EditorTools
         {
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             Directory.CreateDirectory(EvidenceFolder);
-            CaptureView("MINI-100-Overview-1600x1000.png", new Vector3(110f, 335f, -95f), new Vector3(110f, 0f, -95f), 1600, 1000, true, 225f);
-            CaptureView("MINI-100-Lalay-1280x720.png", new Vector3(20f, 20f, -186f), new Vector3(112f, 2.5f, -170f), 1280, 720, false, 0f);
-            CaptureView("MINI-100-Highland-1280x720.png", new Vector3(18f, 74f, -62f), new Vector3(92f, 2f, -126f), 1280, 720, false, 0f);
+            CaptureView($"{EvidenceTask}-Overview-1600x1000.png", new Vector3(110f, 335f, -95f), new Vector3(110f, 0f, -95f), 1600, 1000, true, 225f);
+            CaptureView($"{EvidenceTask}-LalayShops-1280x720.png", new Vector3(36f, 28f, -137f), new Vector3(91f, 1.5f, -174f), 1280, 720, false, 0f);
+            CaptureView($"{EvidenceTask}-HighlandConnection-1280x720.png", new Vector3(34f, 72f, -70f), new Vector3(86f, 1.5f, -128f), 1280, 720, false, 0f);
             GameObject sacat = FindAnywhere("Sacat");
             if (sacat != null)
-                CaptureView("MINI-100-Spawn-1280x720.png", sacat.transform.position + new Vector3(-7f, 7f, -10f), sacat.transform.position + Vector3.up * 1.4f, 1280, 720, false, 0f);
+                CaptureView($"{EvidenceTask}-Spawn-1280x720.png", sacat.transform.position + new Vector3(-7f, 7f, -10f), sacat.transform.position + Vector3.up * 1.4f, 1280, 720, false, 0f);
             GameObject farm = FindAnywhere("FarmPlot_00");
             if (farm != null)
-                CaptureView("MINI-100-HighlandFarm-1280x720.png", farm.transform.position + new Vector3(-20f, 19f, -22f), farm.transform.position + Vector3.up, 1280, 720, false, 0f);
+                CaptureView($"{EvidenceTask}-HighlandFarm-1280x720.png", farm.transform.position + new Vector3(-23f, 20f, -24f), farm.transform.position + Vector3.up, 1280, 720, false, 0f);
             Debug.Log("MINI-100 MIGRATION CAPTURE PASS: overview, Lalay, Highland, Highland farm, and playable spawn evidence saved.");
             if (Application.isBatchMode) EditorApplication.Exit(0);
         }
@@ -70,7 +71,12 @@ namespace UpIzUpMini.EditorTools
                 int futureFarms = mapItems.Count(t => t.name.StartsWith("Future_Farm_Parcel_", StringComparison.Ordinal));
                 int roadColliders = mapItems.Count(t => t.GetComponent<Collider>() != null && HasAncestor(t, "Roads_OSM"));
                 int bridgeColliders = mapItems.Count(t => t.GetComponent<Collider>() != null && HasAncestor(t, "Bridges"));
-                Require(lalayHouses >= 110, $"Lalay density regressed: {lalayHouses}", problems);
+                // MINI-101 intentionally replaces a small number of house placeholders
+                // with roadside shop lots while preserving a dense two-sided street.
+                int roadsideStalls = mapItems.Length == 0 ? 0 : UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                    .Count(transform => transform.name.StartsWith("Stall_", StringComparison.Ordinal));
+                Require(lalayHouses >= 100 && lalayHouses + roadsideStalls >= 110,
+                    $"Lalay occupied-lot density regressed after shop replacements: houses={lalayHouses}, stalls={roadsideStalls}", problems);
                 Require(highlandHouses >= 18, $"Highland density regressed: {highlandHouses}", problems);
                 Require(tallHighland >= 9, $"Highland needs two-storey/apartment massing: {tallHighland}", problems);
                 Require(futureFarms >= 7, $"future farm placeholders regressed: {futureFarms}", problems);
@@ -83,12 +89,91 @@ namespace UpIzUpMini.EditorTools
             Require(UnityEngine.Object.FindObjectsByType<TownNPCInteractable>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length >= 8,
                 "town NPC gameplay roles did not survive migration", problems);
 
+            ValidateRoadsideShops(problems);
+            ValidateHighlandFarm(problems);
+            ValidateRoadJoin("Road_way_22917921", "Road_user_highland_lalay_inroad", "Lalay to Highland inroad", problems);
+            ValidateRoadJoin("Road_user_highland_lalay_inroad", "Road_user_lalay_inland_coastal_connector", "Highland inroad to connector", problems);
+            ValidateRoadJoin("Road_user_highland_lalay_inroad", "Road_user_highland_farm_spur", "Highland inroad to farm spur", problems);
+
             foreach (GameObject root in scene.GetRootGameObjects())
                 foreach (Transform transform in root.GetComponentsInChildren<Transform>(true))
                     if (transform.gameObject.GetComponents<Component>().Any(component => component == null))
                         problems.Add("missing script: " + HierarchyPath(transform));
             return problems;
         }
+
+        private static void ValidateRoadsideShops(List<string> problems)
+        {
+            string[] stalls =
+            {
+                "Stall_FARM SHOP", "Stall_PRODUCE BUYER", "Stall_FOOD", "Stall_CLOTHES",
+                "Stall_PHARMACY", "Stall_LAND AND SURVEYS", "Stall_CAR DEALER"
+            };
+            foreach (string name in stalls)
+            {
+                GameObject stall = FindAnywhere(name);
+                Require(stall != null, $"roadside stall missing: {name}", problems);
+                if (stall == null) continue;
+                float x = stall.GetComponentsInChildren<Renderer>(true).Select(renderer => renderer.bounds.center.x).DefaultIfEmpty(stall.transform.position.x).Average();
+                Vector3 centre = stall.GetComponentsInChildren<Renderer>(true).Select(renderer => renderer.bounds.center).DefaultIfEmpty(stall.transform.position).Aggregate(Vector3.zero, (sum, point) => sum + point)
+                    / Mathf.Max(1, stall.GetComponentsInChildren<Renderer>(true).Length);
+                Vector3 road = ApproximateLalayCentre(x);
+                Require(HorizontalDistance(centre, road) >= 7.0f, $"{name} is still inside the road/sidewalk corridor ({HorizontalDistance(centre, road):0.00}m)", problems);
+            }
+        }
+
+        private static void ValidateHighlandFarm(List<string> problems)
+        {
+            FarmPlot[] plots = UnityEngine.Object.FindObjectsByType<FarmPlot>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            if (plots.Length == 0) return;
+            float minY = plots.Min(plot => plot.GetComponent<Renderer>()?.bounds.min.y ?? plot.transform.position.y);
+            float maxY = plots.Max(plot => plot.GetComponent<Renderer>()?.bounds.min.y ?? plot.transform.position.y);
+            Require(maxY - minY <= 0.25f, $"Highland farm plots are not level: delta={maxY - minY:0.00}m", problems);
+            Vector3 centre = plots.Select(plot => plot.transform.position).Aggregate(Vector3.zero, (sum, point) => sum + point) / plots.Length;
+            Require(centre.x >= 106f, $"Highland farm still blocks the inroad: centre x={centre.x:0.00}", problems);
+
+            GameObject safehouse = FindAnywhere("FarmSafehouse_Building");
+            if (safehouse != null)
+            {
+                Vector3 road = new Vector3(84f, safehouse.transform.position.y, -128f);
+                Require(HorizontalDistance(safehouse.transform.position, road) >= 20f, "farm safehouse is still blocking the Highland road", problems);
+            }
+        }
+
+        private static void ValidateRoadJoin(string firstName, string secondName, string label, List<string> problems)
+        {
+            GameObject first = FindAnywhere(firstName);
+            GameObject second = FindAnywhere(secondName);
+            if (first == null || second == null)
+            {
+                problems.Add($"{label} road mesh missing");
+                return;
+            }
+            Vector3[] a = WorldVertices(first);
+            Vector3[] b = WorldVertices(second);
+            float bestHorizontal = float.MaxValue;
+            float bestVertical = float.MaxValue;
+            foreach (Vector3 av in a)
+            foreach (Vector3 bv in b)
+            {
+                float horizontal = HorizontalDistance(av, bv);
+                if (horizontal >= bestHorizontal) continue;
+                bestHorizontal = horizontal;
+                bestVertical = Mathf.Abs(av.y - bv.y);
+            }
+            Require(bestHorizontal <= 2.5f, $"{label} has a horizontal gap of {bestHorizontal:0.00}m", problems);
+            Require(bestVertical <= 0.30f, $"{label} has a vertical step of {bestVertical:0.00}m", problems);
+        }
+
+        private static Vector3[] WorldVertices(GameObject root)
+        {
+            return root.GetComponentsInChildren<MeshFilter>(true)
+                .SelectMany(filter => filter.sharedMesh == null ? Array.Empty<Vector3>() : filter.sharedMesh.vertices.Select(vertex => filter.transform.TransformPoint(vertex)))
+                .ToArray();
+        }
+
+        private static Vector3 ApproximateLalayCentre(float x) => new Vector3(x, 0f, -149f - (x + 48f) * 0.1765f);
+        private static float HorizontalDistance(Vector3 a, Vector3 b) => Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
 
         private static void CaptureView(string fileName, Vector3 position, Vector3 target, int width, int height, bool orthographic, float size)
         {

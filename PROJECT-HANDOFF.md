@@ -28,7 +28,7 @@ reserved_files:
 ```yaml
 current_owner: None
 active_task: None
-claimed_at: null
+claimed_at: None
 reserved_files: []
 ```
 
@@ -41,6 +41,13 @@ After verification, append a change entry, update the verification results, and 
 - **Missions are not implemented.** The user asked for full missions (planting/selling/police/bosses/buying land). The underlying systems exist (economy, shop, seeds, heat, land item) but there is no mission/objective state machine, no boss NPCs, and buying land has no gameplay effect yet. This needs its own task.
 
 ## Change record
+
+### MINI-101 — Runtime map correction after first playtest
+
+- Date: 2026-08-20
+- Owner: Codex (released; waiting for user runtime acceptance)
+- Result: Corrected the first migrated build without changing approved VA-005 topology. Seven shops/sellers now occupy deterministic roadside lots and replace only conflicting placeholder houses; Lalay traffic lanes remain clear. Lalay, Highland and the farm spur now share gentler capped grades (2.5% connector, 3.0% inroad, 3.5% farm spur) with a wider terrain blend. The active farm, safehouse and breeding station are separated on a flat off-road Highland pad.
+- Verification: `MigrationValidation-Final.log` and `StaticValidation.log` pass. Fixed screenshots under `Logs/Tasks/MINI-101` show the roadside commerce, continuous Highland connection and flat farm. `WindowsBuild.log` reports a successful 390,453,914-byte Windows build. The legacy Edit-Mode `MINI-052` end-to-end NavMesh check still returns `PathPartial`; short navigation joins now follow the actual road centreline and must be confirmed by bringing a companion/NPC to Highland in the EXE. No user-owned `ObjectiveMarker.mat` or manual chain/profile placement was changed.
 
 ### MINI-100 — Approved map migrated into playable Mini
 

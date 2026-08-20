@@ -7,7 +7,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-100` has migrated the user-approved Lalay/Highland graybox (`VA-005`) into the generated playable scene while preserving the isolated map-lab and rollback commit `aed8854`. Static scene, migration and navigation gates pass; walking/driving acceptance is now owed.
+- Current production state: systems 1–3 are integrated and user-tested on `codex/mini-085-baseline-20260820`. `MINI-101` corrects the first migrated Lalay/Highland build: shops now occupy roadside lots, the active Highland farm is flat/off-road, and shared gentle grades connect Lalay, Highland and the farm spur. Static/map gates and the Windows build pass; runtime walking/driving/navigation acceptance is now owed.
 - Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
 - Last known good gameplay checkpoint: `3adb5c0` (`MINI-093` police melee retaliation; focused validation passed, no new Windows build).
 
@@ -34,7 +34,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 1. Visual acceptance: Sacat's two-piece chain placement is locked as `VA-002`; its visibility/swing while walking still needs the user's playtest. Most other movement and appearance remain unapproved.
 2. Visual debt: many changes compile or pass harnesses but have not been watched in real Play Mode. Static screenshots cannot prove animation, combat, riding, driving, NPC movement, or UI timing.
-3. Map runtime risk: the migration passes static and NavMesh gates, but the user still needs to walk, drive and ride the relocated world to accept road feel, cameras, prompts and NPC navigation.
+3. Map runtime risk: the migration passes static/map gates, but the legacy Edit-Mode NavMesh path check remains partial. A road-following navigation-link chain is present; the user still needs to walk, drive and bring a companion from Lalay to Highland to accept it.
 4. Mobile architecture: Built-in RP, legacy Input Manager, no touch/safe-area layer, no Android build gate.
 5. Build size: latest audited Windows build was about 388.6 MB; textures about 280.6 MB. TMAX source contributed about 172.2 MB and Range Rover about 43.5 MB.
 6. Combat visuals: contact is now timed/forward/LOS checked, but the current sword-like placeholder clip can still look warped and needs a later approved animation replacement.
@@ -54,7 +54,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 ## Recommended next sequence
 
 1. User checks the updated chain while walking/running, then accepts or reports only concrete fit/swing changes.
-2. User runtime-tests MINI-100: spawn/camera, Lalay walking, Highland farm route, car/TMAX two-way driving, interactions, boundaries and companion/NPC navigation.
+2. User runtime-tests MINI-101: clear Lalay traffic lanes, roadside shops, Highland farm route, car/TMAX two-way driving, interactions, boundaries and companion/NPC navigation.
 3. Prepare one Hitem3D character reference card. No paid generation until the user approves the reference.
 4. Integrator: introduce an input facade and asset-size/performance report before touch UI or more vehicles.
 5. Preserve the current gameplay scene until the separate map-lab layout is accepted.

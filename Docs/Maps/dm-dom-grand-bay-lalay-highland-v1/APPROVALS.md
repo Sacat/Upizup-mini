@@ -14,6 +14,13 @@
 
 Map truth and the corrected graybox are approved. The user described the simplified result as “exactly what i want” and then authorized transfer into Up Iz Up Mini. Final house meshes, vegetation, drains, landmark art and placeholder colors remain editable; topology, road width/continuity, Lalay density relationship, Highland connection, church/beach relationship and jetty-to-sea placement are locked for migration.
 
+## MINI-101 runtime correction candidate
+
+- User runtime evidence showed shops/stalls occupying the Lalay roadway and a steep/disconnected Highland approach with the farm and safehouse obstructing the route.
+- The corrected candidate keeps VA-005 topology but uses one shared mild road grade, places the seven shops in roadside lots that replace placeholder houses, moves the active farm/safehouse to a flat off-road Highland pad, and caps the connector/inroad grades at 2.5%/3.0%.
+- Evidence: `Logs/Tasks/MINI-101/MINI-101-LalayShops-1280x720.png`, `MINI-101-HighlandConnection-1280x720.png`, `MINI-101-HighlandFarm-1280x720.png`, and `MINI-101-Overview-1600x1000.png`.
+- Status: corrected Windows build ready; runtime walking/driving and companion navigation acceptance is pending the user’s retest.
+
 ## MINI-099 accepted graybox
 
 - Evidence: `Logs/Tasks/MINI-099/MapLab-Overview-1600x1000.png`, `MapLab-Lalay-1280x720.png`, `MapLab-Highland-1280x720.png`, and `MapLab-Bay-1280x720.png`.

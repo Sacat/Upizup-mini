@@ -1517,3 +1517,9 @@ Status: **Complete and approved for migration.** Nine road/collider roots, four 
 Goal: Replace the synthetic playable environment with VA-005 while preserving all gameplay IDs/roles and retaining a rollback-safe map backup.
 
 Status: **Evidence ready; awaiting user runtime acceptance.** Canonical rebuild, migration validator, static scene wiring and an eight-corner Sacat-to-Highland NavMesh route pass. The isolated map-lab and `aed8854` backup remain unchanged. User must now walk/drive/ride and report camera, road, interaction or navigation issues.
+
+### MINI-101 — Correct Lalay roadside roles and Highland grading
+
+Goal: Clear shops, farm and safehouse from the road; place commerce in Lalay roadside lots; flatten the active Highland farm; and make the Lalay–Highland–farm route continuous and gently graded.
+
+Status: **Evidence ready; awaiting runtime retest.** Map migration/static validators and Windows build pass. Fixed screenshots show clear traffic lanes, roadside shops and a flat off-road farm. The legacy Edit-Mode NavMesh end-to-end check remains partial; a road-following navigation-link chain must be judged with a companion/NPC in the EXE.

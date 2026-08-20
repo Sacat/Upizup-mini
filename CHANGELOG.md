@@ -137,3 +137,11 @@
 - Corrected road/terrain conformity, Lalay and Highland grades, coastal sand/no-house land use and jetty reach.
 - Built 115 Lalay houses and 18 Highland buildings; registered one active and seven inactive farm parcels.
 - Added `VA-005`, advanced the district to `approved_graybox`, and documented the reusable Caribbean map recipe.
+
+## 2026-08-20 — MINI-101 runtime map correction
+
+- Moved seven Lalay shops and their sellers into deterministic roadside lots, replacing only conflicting placeholder houses and keeping the paved road clear.
+- Regraded the Lalay/Highland connector and farm spur as one shared gentle corridor; flattened and relocated the active farm, safehouse and breeding station off the road.
+- Added repeatable road-join, shop-clearance and farm-level validators plus fixed map screenshots.
+- Added a road-following runtime navigation-link chain because the legacy Edit-Mode Sacat-to-farm NavMesh check still reports a partial route.
+- Rebuilt `Builds/GrandBayProof/UpIzUpMini.exe`; runtime driving and companion navigation remain the user acceptance gate.

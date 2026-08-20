@@ -23,9 +23,10 @@
   "grading": {
     "mainRoadMaximumGradePercent": 1.5,
     "secondaryRoadMaximumGradePercent": 8.0,
-    "highlandConnectorMaximumGradePercent": 4.5,
-    "highlandInroadMaximumGradePercent": 5.5,
-    "roadCorridorBlendMetres": 45.0,
+    "highlandConnectorMaximumGradePercent": 2.5,
+    "highlandInroadMaximumGradePercent": 3.0,
+    "highlandFarmSpurMaximumGradePercent": 3.5,
+    "roadCorridorBlendMetres": 55.0,
     "preserveSurroundingRelief": true
   },
   "passability": {
@@ -65,7 +66,7 @@
     "grayboxStatus": "approved",
     "grayboxEvidence": ["Logs/Tasks/MINI-099/MapLab-Overview-1600x1000.png", "Logs/Tasks/MINI-099/MapLab-Lalay-1280x720.png", "Logs/Tasks/MINI-099/MapLab-Highland-1280x720.png", "Logs/Tasks/MINI-099/MapLab-Bay-1280x720.png", "VA-005"],
     "rejectedEvidence": ["codex-clipboard-a1692bce-5179-4110-85ed-4d2b5a94d026.png"],
-    "runtimeStatus": "not_tested"
+    "runtimeStatus": "corrected_build_pending_retest"
   },
   "migration": {
     "rollbackCommit": "aed8854",
@@ -76,12 +77,13 @@
     "staticEvidence": [
       "Logs/Tasks/MINI-100/MigrationValidation-2.log",
       "Logs/Tasks/MINI-100/StaticSceneValidation.log",
-      "Logs/Tasks/MINI-100/NavMeshValidation.log",
-      "Logs/Tasks/MINI-100/MINI-100-Overview-1600x1000.png",
-      "Logs/Tasks/MINI-100/MINI-100-Lalay-1280x720.png",
-      "Logs/Tasks/MINI-100/MINI-100-Highland-1280x720.png",
-      "Logs/Tasks/MINI-100/MINI-100-HighlandFarm-1280x720.png",
-      "Logs/Tasks/MINI-100/MINI-100-Spawn-1280x720.png"
+      "Logs/Tasks/MINI-101/MigrationValidation-Final.log",
+      "Logs/Tasks/MINI-101/StaticValidation.log",
+      "Logs/Tasks/MINI-101/MINI-101-Overview-1600x1000.png",
+      "Logs/Tasks/MINI-101/MINI-101-LalayShops-1280x720.png",
+      "Logs/Tasks/MINI-101/MINI-101-HighlandConnection-1280x720.png",
+      "Logs/Tasks/MINI-101/MINI-101-HighlandFarm-1280x720.png",
+      "Logs/Tasks/MINI-101/MINI-101-Spawn-1280x720.png"
     ]
   },
   "mobileBudget": {

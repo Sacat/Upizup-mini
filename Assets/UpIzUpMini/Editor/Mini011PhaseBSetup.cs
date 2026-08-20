@@ -262,6 +262,7 @@ namespace UpIzUpMini.EditorTools
             // companion/villager/police steering) has real path coverage
             // around houses instead of a straight line.
             BuildNavigationMesh();
+            BuildMapMigrationNavigationLinks();
 
             EnsureFolder("Assets/UpIzUpMini/Scenes");
             bool saved = EditorSceneManager.SaveScene(scene, ScenePath);
@@ -690,6 +691,48 @@ namespace UpIzUpMini.EditorTools
             // keep the default humanoid agent settings, which comfortably
             // clear the narrow farm/road paths built elsewhere.
             surface.BuildNavMesh();
+        }
+
+        private static void BuildMapMigrationNavigationLinks()
+        {
+            // Road meshes meet visually and physically at these user-approved
+            // junctions, but NavMesh agent-radius erosion can split the narrow
+            // seams into separate islands. Short, wide links preserve normal
+            // walking across those joins without creating a cross-map shortcut.
+            var root = new GameObject("GrandBayNavigationJoins");
+            Vector3[] route =
+            {
+                new Vector3(48f, 0f, -159f),
+                new Vector3(61f, 0f, -161.5f),
+                new Vector3(73f, 0f, -164f),
+                new Vector3(78.5f, 0f, -157f),
+                new Vector3(80.5f, 0f, -148.5f),
+                new Vector3(83f, 0f, -141.5f),
+                new Vector3(84.5f, 0f, -136.5f),
+                new Vector3(94f, 0f, -133.5f),
+                new Vector3(105.5f, 0f, -130f),
+                new Vector3(114f, 0f, -129f),
+            };
+            for (int i = 0; i < route.Length - 1; i++)
+                AddJoin($"LalayHighlandRoute_{i:00}", route[i], route[i + 1]);
+
+            void AddJoin(string name, Vector3 from, Vector3 to)
+            {
+                if (!NavMesh.SamplePosition(from, out NavMeshHit fromHit, 7f, NavMesh.AllAreas) ||
+                    !NavMesh.SamplePosition(to, out NavMeshHit toHit, 7f, NavMesh.AllAreas))
+                    throw new System.InvalidOperationException($"MINI-101 navigation join {name} could not find both road edges.");
+
+                var go = new GameObject(name);
+                go.transform.SetParent(root.transform, false);
+                go.SetActive(false);
+                var link = go.AddComponent<NavMeshLink>();
+                link.startPoint = fromHit.position;
+                link.endPoint = toHit.position;
+                link.width = 3.5f;
+                link.bidirectional = true;
+                link.costModifier = 1f;
+                go.SetActive(true);
+            }
         }
 
         // ---------------------------------------------------------------

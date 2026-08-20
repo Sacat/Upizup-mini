@@ -17,6 +17,7 @@ namespace UpIzUpMini.EditorTools
     public static class Mini100GrandBayMapMigration
     {
         private const string MapLabScene = "Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity";
+        private static readonly Vector3 HighlandFarmCentre = new Vector3(114f, 0f, -129f);
         private static GameObject s_world;
 
         public static void ApplyToOpenScene(Scene gameplayScene)
@@ -30,7 +31,7 @@ namespace UpIzUpMini.EditorTools
             Physics.SyncTransforms();
 
             HashSet<string> farmRoots = new HashSet<string> { "MontineFarm", "FarmSafehouse", "BreedingStation" };
-            foreach (string rootName in farmRoots) MoveRootBoundsCentre(gameplayScene, rootName, new Vector3(85.5f, 0f, -129.5f));
+            PlaceHighlandFarm(gameplayScene);
 
             // Map remaining visible gameplay roots from the former synthetic road onto
             // the approved Lalay spine. Components and save-facing object names stay intact.
@@ -39,15 +40,17 @@ namespace UpIzUpMini.EditorTools
                 if (root == null || root == s_world || farmRoots.Contains(root.name) || root.name == "MooredBoat") continue;
                 if (!TryVisualBounds(root, out Bounds bounds)) continue;
                 if (root.GetComponentInChildren<Canvas>(true) != null) continue;
+                if (root.GetComponent<TownNPCInteractable>() != null || root.name.StartsWith("Market_", StringComparison.Ordinal)) continue;
                 Vector3 target = MapOldWorldPointToLalay(bounds.center);
                 MoveRootByBoundsCentre(root, target);
             }
 
-            MoveNamed(gameplayScene, "LalayHouse", new Vector3(48.5f, 0f, -154.5f));
-            MoveNamed(gameplayScene, "LalayEstate", new Vector3(25f, 0f, -151f));
+            PlaceLalayGameplay(gameplayScene);
+            MoveNamed(gameplayScene, "LalayHouse", RoadsidePosition(48f, 1, 9f));
+            MoveNamed(gameplayScene, "LalayEstate", RoadsidePosition(24f, -1, 10f));
             MoveNamed(gameplayScene, "Sacat", new Vector3(48.5f, 0f, -159f));
             MoveNamed(gameplayScene, "Franki", new Vector3(50.2f, 0f, -160.2f));
-            MoveNamed(gameplayScene, "NPC_RastaMentor", new Vector3(78f, 0f, -122f));
+            MoveNamed(gameplayScene, "NPC_RastaMentor", new Vector3(108f, 0f, -144f));
             MoveNamed(gameplayScene, "NPC_BoatMan", new Vector3(215f, 0f, -184f));
             if (oldBoat != null)
             {
@@ -77,6 +80,111 @@ namespace UpIzUpMini.EditorTools
             Physics.SyncTransforms();
             Debug.Log("MINI-100 MAP MIGRATION PASS: approved VA-005 world cloned; old synthetic environment removed; gameplay roots preserved and relocated.");
         }
+
+        private static void PlaceHighlandFarm(Scene gameplayScene)
+        {
+            // These used to share one bounds-centre target, stacking the safehouse,
+            // plots and breeding station on the inroad. Each now owns a separate
+            // position inside the flat Highland pad and stays clear of the spur.
+            MoveRootBoundsCentre(gameplayScene, "MontineFarm", HighlandFarmCentre);
+            MoveRootBoundsCentre(gameplayScene, "FarmSafehouse", new Vector3(125f, 0f, -115f));
+            MoveRootBoundsCentre(gameplayScene, "BreedingStation", new Vector3(132f, 0f, -137f));
+        }
+
+        private static void PlaceLalayGameplay(Scene gameplayScene)
+        {
+            (string stall, string npc, float x, int side)[] shops =
+            {
+                ("Stall_FARM SHOP", "NPC_FarmShop", -8f, 1),
+                ("Stall_PRODUCE BUYER", "NPC_Buyer", -8f, -1),
+                ("Stall_FOOD", "NPC_FoodShop", 24f, 1),
+                ("Stall_CLOTHES", "NPC_ApparelShop", 54f, 1),
+                ("Stall_PHARMACY", "NPC_Pharmacy", 82f, 1),
+                ("Stall_LAND AND SURVEYS", "NPC_LandOffice", 112f, -1),
+                ("Stall_CAR DEALER", "NPC_CarDealer", 145f, 1),
+            };
+
+            foreach ((string stall, string npc, float x, int side) shop in shops)
+            {
+                Vector3 road = RoadCentre(shop.x);
+                Vector3 stallTarget = RoadsidePosition(shop.x, shop.side, 8.4f);
+                ClearNearestHouseLot(stallTarget, 9.5f);
+                MoveAnywhere(shop.stall, stallTarget, road);
+                MoveAnywhere(shop.npc, RoadsidePosition(shop.x, shop.side, 5.8f), stallTarget);
+            }
+
+            // Other stationary sellers/story contacts use the same roadside-lot rule.
+            PlaceRoadsideNpc("NPC_Normy", 38f, 1, false);
+            PlaceRoadsideNpc("NPC_Vagrant", 70f, -1, true);
+            PlaceRoadsideNpc("NPC_BlackMarket", 91f, -1, true);
+            PlaceRoadsideNpc("NPC_BossJ", 116f, 1, true);
+            PlaceRoadsideNpc("NPC_BossC", 145f, -1, true);
+            PlaceRoadsideNpc("NPC_GangRecruiter", 169f, -1, true);
+            PlaceRoadsideNpc("NPC_Villager", 18f, -1, false);
+            PlaceRoadsideNpc("NPC_Police", 43f, -1, false);
+            PlaceRoadsideNpc("NPC_PoliceShops", 102f, -1, false);
+
+            foreach (PoliceOfficer officer in UnityEngine.Object.FindObjectsByType<PoliceOfficer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                Vector3 a = RoadsidePosition(18f, -1, 5.2f);
+                Vector3 b = RoadsidePosition(132f, -1, 5.2f);
+                officer.SetPatrol(Ground(a), Ground(b));
+                SerializedObject so = new SerializedObject(officer);
+                SerializedProperty patrolA = so.FindProperty("patrolA");
+                SerializedProperty patrolB = so.FindProperty("patrolB");
+                if (patrolA != null) patrolA.vector3Value = Ground(a);
+                if (patrolB != null) patrolB.vector3Value = Ground(b);
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        private static void PlaceRoadsideNpc(string name, float x, int side, bool clearLot)
+        {
+            Vector3 road = RoadCentre(x);
+            Vector3 target = RoadsidePosition(x, side, clearLot ? 7.6f : 5.4f);
+            if (clearLot) ClearNearestHouseLot(target, 8.5f);
+            MoveAnywhere(name, target, road);
+        }
+
+        private static Vector3 RoadCentre(float x)
+        {
+            // The approved phase-one Lalay spine is a mild bay-facing incline.
+            // This compact frame keeps gameplay roles deterministic between builds.
+            float z = -149f - (x + 48f) * 0.1765f;
+            return Ground(new Vector3(x, 0f, z));
+        }
+
+        private static Vector3 RoadsidePosition(float x, int sideSign, float offset)
+        {
+            Vector3 road = RoadCentre(x);
+            Vector3 forward = new Vector3(1f, 0f, -0.1765f).normalized;
+            Vector3 side = new Vector3(-forward.z, 0f, forward.x);
+            return Ground(road + side * sideSign * offset);
+        }
+
+        private static void MoveAnywhere(string name, Vector3 target, Vector3 lookAt)
+        {
+            Transform item = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .FirstOrDefault(transform => transform.name == name);
+            if (item == null) return;
+            Vector3 forward = lookAt - target; forward.y = 0f;
+            if (forward.sqrMagnitude > 0.01f) item.rotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
+            MoveRootByBoundsCentre(item.gameObject, target);
+        }
+
+        private static void ClearNearestHouseLot(Vector3 target, float maximumDistance)
+        {
+            Transform houses = s_world?.GetComponentsInChildren<Transform>(true)
+                .FirstOrDefault(transform => transform.name == "Lalay_Dense_House_Massing");
+            if (houses == null || houses.childCount == 0) return;
+            Transform nearest = houses.Cast<Transform>()
+                .OrderBy(child => HorizontalDistance(child.position, target)).FirstOrDefault();
+            if (nearest != null && HorizontalDistance(nearest.position, target) <= maximumDistance)
+                UnityEngine.Object.DestroyImmediate(nearest.gameObject);
+        }
+
+        private static float HorizontalDistance(Vector3 a, Vector3 b) =>
+            Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
 
         private static void UpdatePlantationRiskCentre()
         {

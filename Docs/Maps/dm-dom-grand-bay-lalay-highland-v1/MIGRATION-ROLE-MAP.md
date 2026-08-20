@@ -6,9 +6,9 @@ Rollback checkpoint: `aed8854`. Source backup: `Assets/UpIzUpMini/Scenes/MapLab_
 |---|---|---|---|
 | Sacat / Franki spawn | existing player roots | `upizup_block`, Lalay | both player roots active and above terrain |
 | Safehouse | existing safehouse root | `upizup_block`, off-road Lalay lot | respawn/safehouse ID preserved |
-| Starting farm | existing active farm/plot | `highland_first_farm` | one active plot reachable from Highland inroad |
+| Starting farm | existing active farm/plot | derived off-road `highland_first_farm` gameplay pad at approximately `(114,-129)` | one active plot on a flat pad beside the farm spur |
 | Future farms | existing land progression | `highland_future_plot_02..08` | inactive/locked IDs retained |
-| Boss/shop/mission NPCs | existing named roots | Lalay roadside anchors | interaction IDs/components preserved |
+| Boss/shop/mission NPCs | existing named roots | deterministic Lalay roadside lots; seven shop stalls replace conflicting placeholder houses | interaction IDs/components preserved and paved traffic lanes remain clear |
 | Police | existing police roots | Lalay/coastal road patrol positions | police/heat components preserved |
 | TMAX / car | existing vehicle roots | Lalay roadside/dealer anchor | vehicle components preserved |
 | Boat route / boatman | existing jetty/Guadeloupe roots | `story_jetty` | interaction remains land-accessible |
