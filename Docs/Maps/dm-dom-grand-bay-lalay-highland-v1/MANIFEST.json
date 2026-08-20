@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "mapId": "dm-dom-grand-bay-lalay-highland-v1",
   "displayName": "Grand Bay — Lalay to Highland",
-  "workflowStage": "approved_graybox",
+  "workflowStage": "migration",
   "identity": { "country": "Dominica", "island": "Dominica", "region": "Saint Patrick" },
   "coordinateSystem": {
     "sourceCrs": "EPSG:4326",
@@ -38,7 +38,7 @@
     "blockedFutureExitCount": 2,
     "buildingsClearDrivableRoads": true,
     "requiredConnectionsPresent": true,
-    "edgeAndFallRecoveryPlanned": false
+    "edgeAndFallRecoveryPlanned": true
   },
   "parcels": { "startingActiveCount": 1, "futureParcelCount": 7, "futureParcelsInactive": true },
   "landUse": {
@@ -68,10 +68,21 @@
     "runtimeStatus": "not_tested"
   },
   "migration": {
-    "rollbackCommit": "87fc3ea",
-    "roleMappingFile": "pending",
-    "saveCompatibilityReviewed": false,
-    "authoritativeBuilder": "pending"
+    "rollbackCommit": "aed8854",
+    "roleMappingFile": "Docs/Maps/dm-dom-grand-bay-lalay-highland-v1/MIGRATION-ROLE-MAP.md",
+    "saveCompatibilityReviewed": true,
+    "authoritativeBuilder": "Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs + Mini100GrandBayMapMigration.cs",
+    "gameplayScene": "Assets/UpIzUpMini/Scenes/GrandBayProof.unity",
+    "staticEvidence": [
+      "Logs/Tasks/MINI-100/MigrationValidation-2.log",
+      "Logs/Tasks/MINI-100/StaticSceneValidation.log",
+      "Logs/Tasks/MINI-100/NavMeshValidation.log",
+      "Logs/Tasks/MINI-100/MINI-100-Overview-1600x1000.png",
+      "Logs/Tasks/MINI-100/MINI-100-Lalay-1280x720.png",
+      "Logs/Tasks/MINI-100/MINI-100-Highland-1280x720.png",
+      "Logs/Tasks/MINI-100/MINI-100-HighlandFarm-1280x720.png",
+      "Logs/Tasks/MINI-100/MINI-100-Spawn-1280x720.png"
+    ]
   },
   "mobileBudget": {
     "maximumActiveBuildings": 100,
@@ -84,6 +95,8 @@
     "mapData": "Assets/UpIzUpMini/Maps/GrandBayPhase1MapData.json",
     "heightData": "Assets/UpIzUpMini/Maps/GrandBayPhase1Height.json",
     "mapLabScene": "Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity",
-    "mapLabBuilder": "Assets/UpIzUpMini/Editor/Mini095LalayMapLabSetup.cs"
+    "mapLabBuilder": "Assets/UpIzUpMini/Editor/Mini095LalayMapLabSetup.cs",
+    "gameplayScene": "Assets/UpIzUpMini/Scenes/GrandBayProof.unity",
+    "migrationBuilder": "Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs"
   }
 }

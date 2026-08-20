@@ -1511,3 +1511,9 @@ Status: Evidence ready. Police now retaliate through timed forward contact for 1
 Goal: Correct the map-lab into a simple connected, driveable phase-one network with dense Lalay, gentler Highland roads, correct church/beach/jetty land use, sparse-to-moderate Highland housing and progression-safe farm parcels.
 
 Status: **Complete and approved for migration.** Nine road/collider roots, four bridge groups, 115 Lalay houses, 18 Highland buildings and eight total farm parcel IDs pass the static gate. `VA-005` records user acceptance; the isolated map-lab remains the backup.
+
+### MINI-100 — Migrate approved Grand Bay map into gameplay
+
+Goal: Replace the synthetic playable environment with VA-005 while preserving all gameplay IDs/roles and retaining a rollback-safe map backup.
+
+Status: **Evidence ready; awaiting user runtime acceptance.** Canonical rebuild, migration validator, static scene wiring and an eight-corner Sacat-to-Highland NavMesh route pass. The isolated map-lab and `aed8854` backup remain unchanged. User must now walk/drive/ride and report camera, road, interaction or navigation issues.

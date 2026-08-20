@@ -252,6 +252,11 @@ namespace UpIzUpMini.EditorTools
             // this point - collects them all for the plantation theft risk.
             BuildPlantationTheft();
 
+            // MINI-100: replace the old synthetic environment only after every
+            // gameplay role exists, then relocate those stable roots onto VA-005.
+            // The isolated map-lab and rollback commit remain untouched.
+            Mini100GrandBayMapMigration.ApplyToOpenScene(scene);
+
             // MINI-052: bake last, after every static obstacle (buildings,
             // terrain, farm, coast) is in place, so NavPathSteerer (the
             // companion/villager/police steering) has real path coverage

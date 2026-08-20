@@ -1,5 +1,12 @@
 # Up Iz Up Mini — Changelog
 
+## 2026-08-20 — MINI-100
+
+- Migrated the approved VA-005 Lalay/Highland map into the generated playable `GrandBayProof` scene and removed the old synthetic terrain/road/coast roots.
+- Preserved gameplay-facing object names and systems, relocated players, safehouses, farming, NPCs, vehicles and the Guadeloupe boat role, and updated respawn and plantation-risk positions.
+- Retained the separate approved map-lab and commit `aed8854` as rollback backups.
+- Added a reusable migration validator and fixed evidence cameras. Migration, scene wiring, NavMesh and Windows build checks pass; user walking/driving acceptance remains owed.
+
 ## 2026-08-20 — MINI-098
 
 - Added the user-drawn inland-to-coastal connector as stable, collidable map data rather than a rendered annotation.

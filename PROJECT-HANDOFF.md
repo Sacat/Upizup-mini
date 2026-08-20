@@ -28,7 +28,7 @@ reserved_files:
 ```yaml
 current_owner: None
 active_task: None
-claimed_at: None
+claimed_at: null
 reserved_files: []
 ```
 
@@ -41,6 +41,15 @@ After verification, append a change entry, update the verification results, and 
 - **Missions are not implemented.** The user asked for full missions (planting/selling/police/bosses/buying land). The underlying systems exist (economy, shop, seeds, heat, land item) but there is no mission/objective state machine, no boss NPCs, and buying land has no gameplay effect yet. This needs its own task.
 
 ## Change record
+
+### MINI-100 — Approved map migrated into playable Mini
+
+- Date: 2026-08-20
+- Owner: Codex (released; waiting for user runtime acceptance)
+- Result: Replaced the old synthetic terrain/road/coast with the approved `VA-005` Lalay/Highland world in the canonical generated scene. Preserved stable gameplay names/components and relocated the players, safehouse/respawn, gameplay farm, plantation-risk centre, NPCs, vehicles and boat route. The map keeps 115 dense Lalay houses, 18 Highland houses (including five small apartments), one gameplay farm plus seven inactive future land anchors.
+- Verification: `BuildScene-2.log`, `MigrationValidation-2.log`, `StaticSceneValidation.log`, `NavMeshValidation.log`, and `WindowsBuild.log` pass under `Logs/Tasks/MINI-100`. The NavMesh finds a complete eight-corner path from Sacat to the Highland farm and excludes the safehouse interior. Five fixed screenshots were captured, and `Builds/GrandBayProof/UpIzUpMini.exe` built successfully.
+- Backup: `Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity` and rollback commit `aed8854` remain unchanged.
+- Honest gap: static evidence cannot prove walking, driving, riding, interaction timing, companion motion or camera feel. User runtime acceptance is required before `runtime_acceptance` stage.
 
 ### MINI-099 — Accepted simplified Lalay/Highland graybox
 
