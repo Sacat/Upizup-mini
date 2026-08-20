@@ -22,6 +22,12 @@ Acceptance criteria:
 
 ## In progress
 
+### MINI-096 — Reusable world-expansion workflow
+
+Goal: Turn MINI-094/095 into a repeatable, low-budget system for every future Dominica district or other map.
+
+Status: **Complete.** Added the canonical state machine, district packet/manifest templates, safe scaffolder, gate validator, agent-skill routing, and the first live `dm-dom-grand-bay-lalay-highland-v1` manifest. The live map passes `graybox` and correctly fails `approved_graybox` because the rejected Lalay camera cannot authorize migration.
+
 ### MINI-095 — Lalay/Highland Unity map-lab graybox
 
 Goal: Turn the approved MINI-094 map relationships into a separate, repeatable Unity road/lot/coast graybox without changing the working game scene.

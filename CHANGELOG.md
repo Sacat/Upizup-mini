@@ -109,3 +109,11 @@
 - Added the explicit Lalay-to-Highland inroad, first active Highland farm, three reserved future parcels, coastal jetty, waterways, landmarks, grey Lalay sidewalks, and 69 close low-poly house masses.
 - Smoothed Lalay into a bump-free maximum 1.5% continuous grade with a wide yard transition while retaining stronger Highland relief; densified road meshes so secondary roads follow terrain and reject house overlap.
 - Recorded the user's approved road network and original Lalay street target as `VA-004`; the playable `GrandBayProof` scene remains untouched pending a separate migration task.
+
+## 2026-08-20 — MINI-096 reusable world expansion
+
+- Added a mandatory gated workflow for every future Dominica district, island or unrelated map.
+- Added reusable district packet and manifest templates plus safe scaffold/validation commands.
+- Registered Lalay/Highland as `dm-dom-grand-bay-lalay-highland-v1` with sources, bounds, anchors, grading, connections, passability, approvals, rejected evidence, budgets and migration state.
+- Proved a fresh scaffold validates, incomplete map truth is rejected, existing districts cannot be overwritten, and Lalay cannot advance past graybox until its corrected player-height view is approved.
+- No Unity scene, prefab, package, project setting or production map data changed.

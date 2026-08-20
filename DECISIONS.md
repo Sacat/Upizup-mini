@@ -1,5 +1,12 @@
 # Up Iz Up Mini — Decisions
 
+## D-011 — Every world expansion uses a gated district manifest
+
+- Date: 2026-08-20
+- Decision owner: User
+- Decision: Future Dominica districts and other maps use `Docs/WORLD-EXPANSION-WORKFLOW.md`, a stable map ID, district packet and machine-readable manifest. Work advances only through scaffold, map truth, approved preview, graybox, approved graybox, migration and runtime acceptance.
+- Consequence: A sourced map cannot be migrated directly into gameplay; rejected evidence blocks promotion; road rendering alone does not prove passability; one integrator owns Unity migration; every district preserves licences, approvals, stable anchors, gameplay-role mappings, mobile budgets and rollback information.
+
 ## D-009 — Highland is the first remote planting district
 
 - Date: 2026-08-20

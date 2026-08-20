@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "mapId": "dm-dom-grand-bay-lalay-highland-v1",
+  "displayName": "Grand Bay — Lalay to Highland",
+  "workflowStage": "graybox",
+  "identity": { "country": "Dominica", "island": "Dominica", "region": "Saint Patrick" },
+  "coordinateSystem": {
+    "sourceCrs": "EPSG:4326",
+    "workingCrs": "local metric approximation; UTM 20N migration pending",
+    "originLatitude": 15.2450638,
+    "originLongitude": -61.3181049,
+    "metresPerUnityUnit": 1.0,
+    "travelCompression": 0.3333333
+  },
+  "bounds": { "south": 15.236, "west": -61.326, "north": 15.252, "east": -61.306 },
+  "sources": [
+    { "id": "osm-overpass-2026-08-20", "type": "roads_waterways_coast", "licence": "ODbL", "notesFile": "Docs/MAP-SOURCE-NOTES.md" },
+    { "id": "copernicus-glo30-2021", "type": "elevation", "licence": "Copernicus DEM licence and attribution", "notesFile": "Docs/MAP-SOURCE-NOTES.md" },
+    { "id": "user-local-map-annotations-2026-08-20", "type": "local_truth_reference", "licence": "user supplied; reference use", "notesFile": "Docs/Maps/dm-dom-grand-bay-lalay-highland-v1/APPROVALS.md" }
+  ],
+  "anchorsFile": "Docs/MAP-ANCHORS.json",
+  "connections": ["lalay_to_bay", "lalay_to_highland_inroad", "highland_to_first_farm", "coastal_road_to_story_jetty"],
+  "grading": {
+    "mainRoadMaximumGradePercent": 1.5,
+    "secondaryRoadMaximumGradePercent": 10.0,
+    "roadCorridorBlendMetres": 45.0,
+    "preserveSurroundingRelief": true
+  },
+  "passability": {
+    "roadsContinuous": true,
+    "roadRootCount": 130,
+    "roadColliderCount": 130,
+    "buildingsClearDrivableRoads": true,
+    "requiredConnectionsPresent": true,
+    "edgeAndFallRecoveryPlanned": false
+  },
+  "parcels": { "startingActiveCount": 1, "futureParcelsInactive": true },
+  "evidenceCameras": [
+    { "id": "overview", "purpose": "network", "resolution": "1600x1000" },
+    { "id": "main_street", "purpose": "player_distance", "resolution": "1280x720" },
+    { "id": "highland", "purpose": "player_distance", "resolution": "1280x720" }
+  ],
+  "approvals": {
+    "mapTruthStatus": "approved",
+    "mapTruthEvidence": ["Logs/Tasks/MINI-094/LalayToBeach-Overhead.png", "VA-004"],
+    "grayboxStatus": "pending",
+    "grayboxEvidence": ["Logs/Tasks/MINI-095/MapLab-Overview-1600x1000.png", "Logs/Tasks/MINI-095/MapLab-Lalay-1280x720.png", "Logs/Tasks/MINI-095/MapLab-Highland-1280x720.png"],
+    "rejectedEvidence": ["codex-clipboard-a1692bce-5179-4110-85ed-4d2b5a94d026.png"],
+    "runtimeStatus": "not_tested"
+  },
+  "migration": {
+    "rollbackCommit": "87fc3ea",
+    "roleMappingFile": "pending",
+    "saveCompatibilityReviewed": false,
+    "authoritativeBuilder": "pending"
+  },
+  "mobileBudget": {
+    "maximumActiveBuildings": 100,
+    "maximumActiveAnimatedNpcs": 20,
+    "maximumSharedMaterials": 40,
+    "maximumDynamicLights": 2,
+    "maximumRoadMeshVertices": 100000
+  },
+  "existingOutputs": {
+    "mapData": "Assets/UpIzUpMini/Maps/GrandBayPhase1MapData.json",
+    "heightData": "Assets/UpIzUpMini/Maps/GrandBayPhase1Height.json",
+    "mapLabScene": "Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity",
+    "mapLabBuilder": "Assets/UpIzUpMini/Editor/Mini095LalayMapLabSetup.cs"
+  }
+}

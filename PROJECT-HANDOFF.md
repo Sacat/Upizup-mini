@@ -42,6 +42,16 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-096 — Reusable world-expansion workflow
+
+- Date: 2026-08-20
+- Owner: Codex (released)
+- Request: Turn the Lalay/Highland process into the standard system for future Dominica expansion and other maps.
+- Implementation: Added `Docs/WORLD-EXPANSION-WORKFLOW.md`, reusable district packet/manifest templates, safe no-overwrite scaffolding and stage validation tools, and mandatory map routing in the production skill. Registered `dm-dom-grand-bay-lalay-highland-v1` as the first live instance with sourced map truth, approved/rejected evidence, grading, passability, parcel, budget and migration state.
+- Verification: Disposable scaffold under `Temp/MapWorkflowTest-MINI096` returned valid; promotion without sources/bounds/origin/anchors returned four expected errors; existing-district overwrite was refused; live Lalay manifest passes `graybox` (`Logs/Tasks/MINI-096/Validate-LalayGraybox.json`) and fails `approved_graybox` only because user approval is pending (`Reject-UnapprovedMigration.json`). No Unity scene or builder changed.
+- Limitation: Metadata validation cannot prove geographic truth or driving feel; those remain user/Unity runtime gates.
+- Next action: Produce a corrected Lalay player-height graybox view. Once approved, create the migration role map and move into the gameplay scene under a separate Class C task.
+
 ### MINI-095 — Lalay/Highland Unity map-lab graybox
 
 - Date: 2026-08-20

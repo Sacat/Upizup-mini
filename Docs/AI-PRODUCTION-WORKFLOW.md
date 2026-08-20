@@ -95,6 +95,8 @@ A visual lock does not freeze bug fixes. It prevents an agent from silently chan
 
 ## Accurate Grand Bay/Lalay world pipeline
 
+The detailed reusable state machine, artifacts, commands, passability gates and migration contract live in `Docs/WORLD-EXPANSION-WORKFLOW.md`. That document is mandatory for every Dominica district, other island, or unrelated future map; this section remains the short policy summary.
+
 1. Build Map Truth from licensed sources: OpenStreetMap/Geofabrik, public elevation data, user-owned photos/video, and user-confirmed landmarks. Do not copy Google imagery or Google 3D geometry into the shipped game.
 2. Store verified anchors and sources in `Docs/MAP-ANCHORS.json`; mark artistic approximations honestly.
 3. Use QGIS with a local metric origin (Dominica can start with WGS 84 / UTM Zone 20N, subject to source verification). One Unity unit equals one metre.

@@ -15,6 +15,8 @@ Before acting:
 4. Convert the request into one bounded work packet using `Docs/WORK-PACKET-TEMPLATE.md` before editing.
 5. Claim one task and reserve exact files. Only one agent may integrate scenes, prefabs, packages, project settings, or shared generated assets.
 
+For any terrain, road, district, island, landmark-layout, or map-expansion task, also read `Docs/WORLD-EXPANSION-WORKFLOW.md` completely. Create or resume a stable map ID under `Docs/Maps/<map-id>/`, validate the current gate with `Tools/World/Test-MapDistrict.ps1`, and never migrate research directly into the gameplay scene.
+
 Use the workflow's approval class:
 
 - Class A: invisible/reversible code or documentation; proceed after normal checks.

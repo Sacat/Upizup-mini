@@ -25,6 +25,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - `Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs` generates `GrandBayProof.unity`. Manual scene edits are overwritten.
 - The current world is a 320m procedural prototype, not measured Grand Bay: sinusoidal road, algorithmic houses, straight Montine spur, synthetic coast/jetty.
 - `Docs/MAP-ANCHORS.json` and compact Unity map/height data now exist. `VA-004` locks the approved OSM road network and Lalay street scale; the map-lab remains separate from gameplay.
+- `Docs/WORLD-EXPANSION-WORKFLOW.md` is mandatory for all map work. The first live manifest is `dm-dom-grand-bay-lalay-highland-v1`, currently at `graybox`; it cannot advance until a corrected player-height Lalay view is approved.
 - Locomotion uses the authored StarterAssets controller and `MotionSpeed`; do not regenerate it casually.
 - `HumanoidAnimationManager` is the reusable action-layer foundation.
 - Bike seating already uses `VehicleSeat`, `VehicleRider`, `BikeRiderAnimation`, and Humanoid IK. Improve profiles/clips/gates rather than starting over.
@@ -47,6 +48,7 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Parallelize read-only audits and non-overlapping files only.
 - One integrator owns Unity scenes, prefabs, packages, settings, imports, generated world data, and final visual integration.
 - Record accepted appearance/placement in `Docs/VISUAL-APPROVAL-REGISTER.md`.
+- For map work, scaffold/validate a stable district with `New-MapDistrict.ps1` and `Test-MapDistrict.ps1`; never skip its current gate.
 - Do not spend Hitem3D credits before the reference/asset card is approved.
 
 ## Recommended next sequence

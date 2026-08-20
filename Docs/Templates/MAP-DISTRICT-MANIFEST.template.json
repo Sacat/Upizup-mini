@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "mapId": "__MAP_ID__",
+  "displayName": "__DISPLAY_NAME__",
+  "workflowStage": "scaffold",
+  "identity": { "country": "__COUNTRY__", "island": "__ISLAND__", "region": "__REGION__" },
+  "coordinateSystem": {
+    "sourceCrs": "EPSG:4326",
+    "workingCrs": "pending",
+    "originLatitude": null,
+    "originLongitude": null,
+    "metresPerUnityUnit": 1.0,
+    "travelCompression": 0.3333333
+  },
+  "bounds": { "south": null, "west": null, "north": null, "east": null },
+  "sources": [],
+  "anchorsFile": "pending",
+  "connections": [],
+  "grading": {
+    "mainRoadMaximumGradePercent": 6.0,
+    "secondaryRoadMaximumGradePercent": 10.0,
+    "roadCorridorBlendMetres": 25.0,
+    "preserveSurroundingRelief": true
+  },
+  "passability": {
+    "roadsContinuous": false,
+    "roadRootCount": 0,
+    "roadColliderCount": 0,
+    "buildingsClearDrivableRoads": false,
+    "requiredConnectionsPresent": false,
+    "edgeAndFallRecoveryPlanned": false
+  },
+  "parcels": { "startingActiveCount": 0, "futureParcelsInactive": true },
+  "evidenceCameras": [
+    { "id": "overview", "purpose": "network", "resolution": "1600x1000" },
+    { "id": "main_street", "purpose": "player_distance", "resolution": "1280x720" },
+    { "id": "destination", "purpose": "player_distance", "resolution": "1280x720" }
+  ],
+  "approvals": {
+    "mapTruthStatus": "pending",
+    "mapTruthEvidence": [],
+    "grayboxStatus": "pending",
+    "grayboxEvidence": [],
+    "rejectedEvidence": [],
+    "runtimeStatus": "not_tested"
+  },
+  "migration": {
+    "rollbackCommit": "pending",
+    "roleMappingFile": "pending",
+    "saveCompatibilityReviewed": false,
+    "authoritativeBuilder": "pending"
+  },
+  "mobileBudget": {
+    "maximumActiveBuildings": 100,
+    "maximumActiveAnimatedNpcs": 20,
+    "maximumSharedMaterials": 40,
+    "maximumDynamicLights": 2,
+    "maximumRoadMeshVertices": 100000
+  }
+}
