@@ -1445,6 +1445,12 @@ Goal: Replace the generic locked-character response with the user's exact Domini
 
 Status: Complete. Exact requested text returned by a locked Boss C validation; canonical rebuild and Windows build succeeded. No other dialogue, progression gates, or visual profiles changed.
 
+### MINI-090 — Input and interaction foundation
+
+Goal: Introduce one keyboard-compatible, touch-ready input facade and route the core on-foot controls through it without changing the current control scheme or installing a new input package.
+
+Status: Complete. Move/run/jump/look, interact/clone/farmhand, character switching, tutorial, and melee now use the touch-ready `GameInput` facade with unchanged PC keys. Focused validation, canonical rebuild, Windows build, and headless smoke passed. Vehicles and menu numeric selections remain later migrations over the same facade.
+
 - `MINI-032`: Modular wardrobe + accessory IK/physics (chain jiggle, etc.) — attachment already exists (MINI-022 `CharacterEquipment`), this adds swing/sway physics and separate garment geometry instead of material recolor.
 - `MINI-033`: Bike — first vehicle, uses the MINI-031 FullBodyOverride layer for a seated pose; simplest vehicle (no wheel/engine physics needed).
 - `MINI-034`: Car — buy/enter/exit/seated driving, real vehicle physics; depends on MINI-033's enter/exit pattern.

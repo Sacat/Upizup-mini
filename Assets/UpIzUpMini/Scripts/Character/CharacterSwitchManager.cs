@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UpIzUpMini.Cameras;
+using UpIzUpMini.InputSystem;
 using UpIzUpMini.Interaction;
 
 namespace UpIzUpMini.Character
@@ -130,7 +131,7 @@ namespace UpIzUpMini.Character
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Tab) && slots.Length > 1)
+            if (GameInput.WasPressed(GameAction.SwitchCharacter) && slots.Length > 1)
             {
                 SwitchTo(1 - ActiveIndex);
             }

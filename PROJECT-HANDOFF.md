@@ -42,6 +42,15 @@ After verification, append a change entry, update the verification results, and 
 
 ## Change record
 
+### MINI-090 — Input and interaction foundation
+
+- Date: 2026-08-20
+- Owner: Codex
+- Request: Begin the recommended system work with a mobile-ready input/interaction foundation, then continue autonomously to NPC intelligence and combat contact.
+- Implementation: Added the static, named-action `GameInput` facade over the unchanged Legacy Input Manager, including virtual move/look/button injection for future touch UI. Migrated player movement/run/jump, camera look, interaction/clone/farmhand, character switching, tutorial, and melee without changing their PC bindings.
+- Verification: `MINI-090-Validate.log` passed exact binding parity, virtual vector/button behavior, and source checks for all six consumers; `MINI-090-Rebuild.log` rebuilt the canonical scene; `MINI-090-Build.log` produced a successful 407,523,598-byte Windows build; `MINI-090-PlayerSmoke.log` ran 15 seconds headlessly with no runtime exceptions.
+- Limitation: Vehicles, save/load, menus, number selections, pause, radio, cheats, and debug controls remain direct legacy input for later bounded migrations. No touch UI was added in this task.
+
 ### MINI-089 — Locked-progression dialogue wording
 
 - Date: 2026-08-20

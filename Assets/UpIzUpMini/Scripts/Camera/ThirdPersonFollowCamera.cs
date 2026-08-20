@@ -1,4 +1,5 @@
 using UnityEngine;
+using UpIzUpMini.InputSystem;
 
 namespace UpIzUpMini.Cameras
 {
@@ -79,8 +80,9 @@ namespace UpIzUpMini.Cameras
             }
             else if (Cursor.lockState == CursorLockMode.Locked)
             {
-                _yaw += Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-                _pitch -= Input.GetAxis("Mouse Y") * verticalSensitivity * Time.deltaTime;
+                Vector2 lookInput = GameInput.Look;
+                _yaw += lookInput.x * mouseSensitivity * Time.deltaTime;
+                _pitch -= lookInput.y * verticalSensitivity * Time.deltaTime;
                 _pitch = Mathf.Clamp(_pitch, minPitchDegrees, maxPitchDegrees);
             }
 

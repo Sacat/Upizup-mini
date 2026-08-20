@@ -1,6 +1,7 @@
 using UnityEngine;
 using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
+using UpIzUpMini.InputSystem;
 
 namespace UpIzUpMini.Combat
 {
@@ -38,15 +39,15 @@ namespace UpIzUpMini.Combat
             // F is both "punch" and "get on the bike" (MINI-069). Without this
             // guard you throw a punch on the same frame you mount, every time.
             if (Vehicles.BikeInteractable.ConsumedMountKeyThisFrame) return;
-            if (!IsControlled || !Input.GetKeyDown(KeyCode.F) || Time.time < nextHit) return;
+            if (!IsControlled || !GameInput.WasPressed(GameAction.Attack) || Time.time < nextHit) return;
             nextHit = Time.time + cooldown;
             Attack();
         }
 
         /// <summary>
         /// The actual swing, split out from Update() so it can be driven
-        /// directly by a test harness - Input.GetKeyDown can't be faked in
-        /// a headless batch-mode run, so a harness calling Update() itself
+        /// directly by a test harness - a physical key edge cannot be faked
+        /// in a headless batch-mode run, so a harness calling Update() itself
         /// would never reach this logic at all.
         /// </summary>
         public void Attack()

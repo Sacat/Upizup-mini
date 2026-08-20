@@ -1,5 +1,6 @@
 using UnityEngine;
 using UpIzUpMini.Character;
+using UpIzUpMini.InputSystem;
 
 namespace UpIzUpMini.Interaction
 {
@@ -18,9 +19,6 @@ namespace UpIzUpMini.Interaction
     public class InteractionDetector : MonoBehaviour
     {
         [SerializeField] private float interactRange = 2.75f;
-        [SerializeField] private KeyCode interactKey = KeyCode.E;
-        [SerializeField] private KeyCode cloneKey = KeyCode.R;
-        [SerializeField] private KeyCode farmhandKey = KeyCode.G;
         // MINI-053: "mission details must not disappear before the player
         // can read them" applies just as much to NPC dialogue - a fixed 3s
         // box could cut off a longer boss/shopkeeper line. Duration now
@@ -95,21 +93,21 @@ namespace UpIzUpMini.Interaction
 
             // While a dialogue box is up, E is consumed dismissing it -
             // stops the player re-triggering a seller mid-sentence.
-            if (_feedbackTimer > 0f && Input.GetKeyDown(interactKey))
+            if (_feedbackTimer > 0f && GameInput.WasPressed(GameAction.Interact))
             {
                 _feedbackTimer = 0f;   // keep the text; let it fade rather than pop
                 _feedbackHoldEndPos = transform.position;
                 return;
             }
 
-            if (_current != null && Input.GetKeyDown(interactKey) && _current.CanInteract(gameObject))
+            if (_current != null && GameInput.WasPressed(GameAction.Interact) && _current.CanInteract(gameObject))
             {
                 _current.Interact(gameObject);
                 _feedback = (_current as InteractableBase)?.GetInteractionFeedback();
                 _feedbackTimer = ReadingHold(_feedback);
             }
 
-            if (Input.GetKeyDown(farmhandKey))
+            if (GameInput.WasPressed(GameAction.AssignFarmhand))
             {
                 var switcher = Character.CharacterSwitchManager.Instance;
                 var slots = switcher?.Slots;
@@ -136,7 +134,7 @@ namespace UpIzUpMini.Interaction
             }
 
             // R clones a ripe plant for extra seed (see FarmPlot.Clone).
-            if (_current is Farming.FarmPlot plot && Input.GetKeyDown(cloneKey))
+            if (_current is Farming.FarmPlot plot && GameInput.WasPressed(GameAction.SecondaryInteract))
             {
                 string result = plot.Clone();
                 if (!string.IsNullOrEmpty(result))
@@ -149,7 +147,7 @@ namespace UpIzUpMini.Interaction
             // R also asks the Boat Man about Gardey Zafeh - a second,
             // explicit choice alongside E's produce trade, same dual-key
             // pattern as FarmPlot's Harvest/Clone above.
-            if (_current is TownNPCInteractable boatMan && Input.GetKeyDown(cloneKey))
+            if (_current is TownNPCInteractable boatMan && GameInput.WasPressed(GameAction.SecondaryInteract))
             {
                 string result = boatMan.InteractGardeyZafeh();
                 if (!string.IsNullOrEmpty(result))

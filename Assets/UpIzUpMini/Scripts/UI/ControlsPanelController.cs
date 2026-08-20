@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UpIzUpMini.InputSystem;
 
 namespace UpIzUpMini.UI
 {
@@ -37,7 +38,7 @@ namespace UpIzUpMini.UI
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.H) && panel != null)
+            if (GameInput.WasPressed(GameAction.Tutorial) && panel != null)
             {
                 panel.SetActive(!panel.activeSelf);
             }

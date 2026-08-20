@@ -1,4 +1,5 @@
 using UnityEngine;
+using UpIzUpMini.InputSystem;
 
 namespace UpIzUpMini.Character
 {
@@ -83,8 +84,9 @@ namespace UpIzUpMini.Character
 
             bool grounded = _controller.isGrounded;
 
-            float h = Input.GetAxisRaw("Horizontal");
-            float v = Input.GetAxisRaw("Vertical");
+            Vector2 moveInput = GameInput.Move;
+            float h = moveInput.x;
+            float v = moveInput.y;
             Vector3 inputDir = new Vector3(h, 0f, v);
             bool hasInput = inputDir.sqrMagnitude > 0.001f;
             if (inputDir.sqrMagnitude > 1f) inputDir.Normalize();
@@ -94,7 +96,7 @@ namespace UpIzUpMini.Character
             Vector3 camRight = Vector3.ProjectOnPlane(cam.right, Vector3.up).normalized;
             Vector3 moveDir = (camForward * inputDir.z + camRight * inputDir.x).normalized;
 
-            bool wantsRun = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            bool wantsRun = GameInput.IsHeld(GameAction.Sprint);
             if (vitals != null)
             {
                 vitals.SetRunning(wantsRun && hasInput);
@@ -138,7 +140,7 @@ namespace UpIzUpMini.Character
             {
                 if (_verticalVelocity < 0f) _verticalVelocity = -2f;
 
-                if (Input.GetKeyDown(KeyCode.Space))
+                if (GameInput.WasPressed(GameAction.Jump))
                 {
                     _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
                     animator?.SetBool(_animIDJump, true);

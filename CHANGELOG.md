@@ -67,3 +67,9 @@
 
 - Replaced the generic locked-progression response with the user's exact line: `Keep doing your ting. I'll maybe organize you when you build up ur self`.
 - Added a focused locked-Boss-C validator, rebuilt the generated scene, and produced a successful Windows build.
+
+## 2026-08-20 — MINI-090 input and interaction foundation
+
+- Added one named-action input facade over the unchanged Legacy Input Manager, with injectable virtual movement, look, and button state for future mobile controls.
+- Migrated core on-foot movement, run, jump, camera look, interaction, cloning, farmhand assignment, character switching, tutorial, and melee while preserving every existing PC key.
+- Passed focused validation, canonical scene rebuild, Windows build, and a 15-second headless player smoke.
