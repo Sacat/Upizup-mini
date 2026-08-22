@@ -1,5 +1,12 @@
 # Up Iz Up Mini — Changelog
 
+## 2026-08-22 — MINI-119 follow-up 4 (suspension root-cause fixes for both vehicles)
+
+- User asked to try a third-party "motocross bike" physics asset; declined per policy (no downloading/installing untrusted packages, no exceptions) and instead researched real Unity WheelCollider best practice, which turned up two concrete, well-documented bugs in our own setup:
+  1. **`forceAppPointDistance` was never set on the bike (defaulted to 0) and was explicitly set to `0f` on the Range Rover.** Unity's own scripting reference and community documentation call this out directly as a real, common cause of WheelCollider jitter/instability on rough terrain - the suspension force applies at the collider's own local origin instead of below the Rigidbody's real centre of mass. Fixed on both vehicles (`0.3f`, the commonly-documented starting point).
+  2. The bike's suspension had been deliberately tuned very stiff earlier this session (short travel, 3.2x critical damping) specifically to stop an unrelated bounce/launch problem - but that made it barely compress at all on a sharp hit, transmitting most of a sidewalk/ledge impact straight into the chassis. Safe to soften now: `ApplyLaunchCap`/`extraAirGravity` (added since that earlier fix) are independent systems for "don't bounce too high," so the suspension no longer has to fight that battle alone. Travel raised 0.17->0.20m, damping ratio lowered 3.2x->1.6x critical (still no oscillation, far less rigid) - a real step toward off-road-style compliance without changing the visual model's wheel-arch geometry.
+- Full vehicle+scene rebuild pipeline, all standing validators, and the MINI-065 drop test all re-run clean (drop test roll numbers improved slightly, not regressed). Windows build succeeded.
+
 ## 2026-08-22 — MINI-119 follow-up 3 (smoothed impact corrections, ramp jump height)
 
 - Bike/car "movements are not so smooth when it hits a sidewalk/ledge": found the cause - the yaw-lock re-snap, the ledge-reaction suppression, the launch cap, and the car's collision-spin cap were all instant, single-physics-step hard corrections (Slerp/Lerp with t=1, or a raw `Mathf.Clamp`). Technically correct end state, but reads as an abrupt jerk. Eased all four to settle over a handful of steps (~0.05-0.1s) via exponential smoothing instead of one, at rates still fast enough that none of the underlying fixes (no turning, no flipping, no launch) are weakened.

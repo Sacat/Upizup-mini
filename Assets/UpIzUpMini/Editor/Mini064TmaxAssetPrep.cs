@@ -104,12 +104,29 @@ namespace UpIzUpMini.EditorTools
         // on top of this one during exactly this scenario (front wheel
         // briefly airborne off a bump), which is at least as much of the
         // "way too high" complaint as this suspension tuning is.
-        private const float SuspensionTravelM = 0.17f;
+        // MINI-119 follow-up, user: "it still glitches bad on the same
+        // rough terrain and the sidewalks... i think i need motocross
+        // bike like scripts." The 0.17/3.2 pair above was earlier tuned
+        // AWAY from absorption specifically to stop a launch/bounce
+        // problem (see the history above this line) - but a heavily
+        // overdamped (3.2x critical), short-travel suspension barely
+        // compresses at all on a sharp hit, so most of a sidewalk/ledge
+        // impact transmits straight into the chassis instead of being
+        // absorbed - a real, physically-grounded cause of "glitchy",
+        // distinct from every rotation/collision fix already in place.
+        // Safe to soften again now: ApplyLaunchCap and extraAirGravity
+        // (both added since that history) are independent, dedicated
+        // systems for "don't bounce too high" - the suspension no longer
+        // has to fight that battle alone, so it can afford to actually
+        // absorb a hit again. More travel (room to compress before
+        // bottoming out) and closer to critical damping (still no
+        // oscillation, but far less rigid) - a real step toward the
+        // longer-travel, more-compliant feel of an off-road suspension,
+        // without changing the visual model's wheel-arch geometry enough
+        // to look wrong on this scooter body.
+        private const float SuspensionTravelM = 0.20f;
         private const float SuspensionTargetFraction = 0.5f;
-        // >1 = overdamped. Deliberately past critical so the suspension
-        // settles instead of oscillating, per the user's "make it heavy so it
-        // will not bounce so high".
-        private const float SuspensionDampingRatio = 3.2f;
+        private const float SuspensionDampingRatio = 1.6f;
 
         // Purely cosmetic - see CreateWheelDisc's comment. 1.0 = exact measured
         // radius, no padding.
@@ -718,6 +735,19 @@ namespace UpIzUpMini.EditorTools
             // now - raised so a hard hit's leftover spin energy bleeds off
             // too, rather than fighting the suspension on the next bounce.
             wc.wheelDampingRate = 1.0f;
+            // MINI-119 follow-up, user: "it still glitches bad on the
+            // same rough terrain and the sidewalks." Researched a
+            // specific, well-documented WheelCollider instability class:
+            // forceAppPointDistance defaults to 0, and Unity's own
+            // scripting reference/community explicitly call that out as
+            // a real cause of jitter/instability on rough terrain - the
+            // suspension force applies at the collider's own local
+            // origin instead of below the Rigidbody's real centre of
+            // mass, which is especially bad for a narrow, tall vehicle
+            // like a motorcycle. Never set before this. 0.3m below the
+            // wheel's rest position is the commonly-documented starting
+            // point for a normal vehicle's mass distribution.
+            wc.forceAppPointDistance = 0.3f;
             var fwdFriction = wc.forwardFriction;
             fwdFriction.stiffness = 1.6f;
             wc.forwardFriction = fwdFriction;

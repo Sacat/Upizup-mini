@@ -202,7 +202,16 @@ namespace UpIzUpMini.EditorTools
             wc.radius = radius;
             wc.suspensionDistance = 0.28f;
             wc.wheelDampingRate = 1.2f;
-            wc.forceAppPointDistance = 0f;
+            // MINI-119 follow-up, user: "it still glitches bad on the
+            // same rough terrain." This was explicitly set to 0 -
+            // Unity's own scripting reference/community explicitly
+            // documents forceAppPointDistance=0 as a real cause of
+            // WheelCollider jitter/instability on rough terrain, since
+            // the suspension force then applies at the collider's own
+            // local origin instead of below the Rigidbody's real centre
+            // of mass. 0.3m below the wheel's rest position is the
+            // commonly-documented starting point for a normal vehicle.
+            wc.forceAppPointDistance = 0.3f;
 
             // Spring sized from the car's own mass - a spring tuned for a 220kg
             // bike would let a 2.5-tonne SUV sink straight through its travel.
