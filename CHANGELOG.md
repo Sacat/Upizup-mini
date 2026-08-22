@@ -1,5 +1,11 @@
 # Up Iz Up Mini — Changelog
 
+## 2026-08-22 — MINI-119 follow-up 5 (bike bump/debounce, steep-ledge classification)
+
+- User: "the wheelieing bumps a bit high randomly on the road... i think its the back collider." Confirmed - it's the invisible rear trike-stabilizer spring (a documented MINI-080 bug class: it stacks a second spring on top of the WheelCollider suspension if the front wheel loses contact for a "sustained" period, debounced at 0.12s). The softer suspension from the previous round settles more slowly by design, so an ordinary bump can now legitimately keep the front airborne past that old debounce without anything being wrong - firing the stabilizer on plain road bumps. Raised the debounce to 0.22s.
+- User: "the bike also behaves wierd by steep ledges now but the smaller ledges it does very good." Root cause: the ledge/solid-obstacle height classification cut off at 0.6m - a steep ledge's contact point could land above that and get reclassified as a "solid obstacle" (walls/vehicles/NPCs), a branch that only ever capped yaw, nothing for roll/pitch at all. Raised the classification height to 1.2m (still well under any real wall/vehicle) so steep-but-legitimate ledges keep the full ledge treatment, and added a softer roll/pitch safety cap to the solid-obstacle branch itself for whatever's left above that.
+- Full vehicle+scene rebuild pipeline, all standing validators, and the MINI-065 drop test all re-run clean. Windows build succeeded.
+
 ## 2026-08-22 — MINI-119 follow-up 4 (suspension root-cause fixes for both vehicles)
 
 - User asked to try a third-party "motocross bike" physics asset; declined per policy (no downloading/installing untrusted packages, no exceptions) and instead researched real Unity WheelCollider best practice, which turned up two concrete, well-documented bugs in our own setup:

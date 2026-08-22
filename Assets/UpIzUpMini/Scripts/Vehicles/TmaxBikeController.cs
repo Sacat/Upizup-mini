@@ -668,7 +668,18 @@ namespace UpIzUpMini.Vehicles
         // suppressor.
         [Header("Ledge / Sidewalk Reaction (default: none at all)")]
         [Tooltip("How high above the bike's own current ground level a collision contact point can be and still count as a low kerb/ledge/sidewalk lip, rather than a real solid obstacle (wall, vehicle, NPC) that should still behave normally.")]
-        [SerializeField] private float ledgeMaxHeight = 0.6f;
+        // MINI-119 follow-up, user: "the bike also behaves wierd by steep
+        // ledges now but the smaller ledges it does very good this
+        // time." Root cause: a STEEP ledge is still a ledge, but one
+        // whose contact point can sit higher up its own face - if that
+        // point lands above this threshold, the whole hit was reclassified
+        // as a "solid obstacle" (walls/vehicles/NPCs), which only caps
+        // YAW spin, not roll/pitch at all - exactly the gap that would
+        // read as "weird" specifically on a taller/steeper ledge while a
+        // shorter one (correctly classified) stayed smooth. Raised well
+        // past any real kerb/sidewalk height while staying well below an
+        // actual wall/vehicle/NPC.
+        [SerializeField] private float ledgeMaxHeight = 1.2f;
         [Tooltip("MINI-119 follow-up round 3, user: \"i dont want the bike fliping spinning or doing anything but moving straight... dont make it react to the sidewalk or ledges... then you can create a slider for me to make it react if i want.\" 0 (the default) = zero rotational reaction to a ledge-classified collision at all, every step, actively pulled back level too - not just capped. 1 = full, unsuppressed physical reaction, same as if this whole system didn't exist. Values in between let a proportional amount through.")]
         [SerializeField, Range(0f, 1f)] private float ledgeReactionStrength = 0f;
         [Tooltip("MINI-119 follow-up round 7: how many physics steps the ledge correction takes to settle (higher = faster/snappier, lower = smoother/softer). Was an instant one-step snap; this eases it instead.")]
@@ -740,6 +751,19 @@ namespace UpIzUpMini.Vehicles
                 av += Vector3.up * (capped * Mathf.Deg2Rad);
                 rb.angularVelocity = av;
             }
+
+            // MINI-119 follow-up: this branch previously only capped YAW,
+            // nothing at all for roll/pitch - so anything tall enough to
+            // land here (now only genuine walls/vehicles/NPCs, ledgeMaxHeight
+            // having been raised above) could still tumble unopposed. A
+            // much softer cap than the ledge system's own (which fully
+            // zeroes) - this is a safety net for a real solid hit, not a
+            // "never react" suppressor.
+            Vector3 localAv = transform.InverseTransformDirection(rb.angularVelocity);
+            float capRad = collisionYawSpinCap * 1.5f * Mathf.Deg2Rad;
+            localAv.x = Mathf.Clamp(localAv.x, -capRad, capRad);
+            localAv.z = Mathf.Clamp(localAv.z, -capRad, capRad);
+            rb.angularVelocity = transform.TransformDirection(localAv);
         }
 
         private void ApplyRampAssist(Collision collision)
@@ -852,7 +876,22 @@ namespace UpIzUpMini.Vehicles
         // Debounced: the front wheel now has to stay ungrounded for a
         // SUSTAINED period before this clause activates, which a genuine
         // wheelie clears easily and a quick bump hop does not.
+        //
+        // MINI-119 follow-up, user: "the wheelieing bumps a bit high
+        // randomly on the road... i think its the back collider." This
+        // debounce (0.12s) was tuned against the OLD, stiffer suspension
+        // (0.17m travel, 3.2x critical damping). The softer suspension
+        // from this same round (0.20m, 1.6x critical) settles more slowly
+        // by design - a completely ordinary bump can now legitimately
+        // keep the front wheel airborne past 0.12s without anything
+        // actually being wrong, which was firing this SECOND spring on
+        // top of the suspension on plain road bumps, reading as a random
+        // pop. Raised so only a genuinely sustained loss of contact
+        // (well past what a normal bump's now-longer settle time
+        // produces) triggers it.
         private float _frontUngroundedSeconds;
+        [Tooltip("MINI-119 follow-up: how long the front wheel must stay off the ground before the trike stabilizer activates outside a deliberate wheelie - raised after softening the suspension, which naturally keeps the front airborne slightly longer on an ordinary bump.")]
+        [SerializeField] private float trikeStabilizerDebounceSeconds = 0.22f;
 
         private void ApplyTrikeStabilizers()
         {
@@ -864,7 +903,7 @@ namespace UpIzUpMini.Vehicles
             bool active =
                 (wheelieHeld && WheelieEligible)
                 || currentWheelieTarget > 1f
-                || _frontUngroundedSeconds > 0.12f;
+                || _frontUngroundedSeconds > trikeStabilizerDebounceSeconds;
 
             if (!active) return;
 

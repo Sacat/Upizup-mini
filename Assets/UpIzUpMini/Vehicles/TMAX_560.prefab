@@ -295,6 +295,7 @@ MonoBehaviour:
   extraAirGravity: 2500
   airborneGraceSeconds: 0.01
   airGravityRampSeconds: 0
+  trikeStabilizerDebounceSeconds: 0.22
   hillClimbAssist: 9
   hillClimbMaxSlopeDeg: 35
 --- !u!114 &903998040358924103
