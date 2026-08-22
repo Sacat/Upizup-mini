@@ -9,3 +9,10 @@
 /Assets/UpIzUpMini/Art/Characters/Mainchar.fbx filter=lfs diff=lfs merge=lfs -text
 /Assets/UpIzUpMini/Art/Characters/Strong.fbx filter=lfs diff=lfs merge=lfs -text
 /Assets/Tmax[[:space:]]560.glb filter=lfs diff=lfs merge=lfs -text
+/Docs/CharacterPipeline/MINI-105/EnvelopeRigProof/Sacat-ModularBase-EnvelopeRig.blend filter=lfs diff=lfs merge=lfs -text
+/Docs/CharacterPipeline/MINI-105/HitemCandidate01/Candidate01-Staging.blend filter=lfs diff=lfs merge=lfs -text
+/Docs/CharacterPipeline/MINI-105/IdentityCompositeProof/Sacat-IdentityComposite-Proof.blend filter=lfs diff=lfs merge=lfs -text
+/Docs/CharacterPipeline/MINI-105/IdentityCompositeProof/Sacat-IdentityComposite-Proof.blend1 filter=lfs diff=lfs merge=lfs -text
+/Docs/CharacterPipeline/MINI-105/RigProof/Sacat-ModularBase-RigProof.blend filter=lfs diff=lfs merge=lfs -text
+/Docs/CharacterPipeline/MINI-105/SacatNoHeadphones/Sacat-NoHeadphones-Staging.blend filter=lfs diff=lfs merge=lfs -text
+/Docs/CharacterPipeline/MINI-105/WeightTransferProof/Sacat-ModularBase-WeightTransfer.blend filter=lfs diff=lfs merge=lfs -text

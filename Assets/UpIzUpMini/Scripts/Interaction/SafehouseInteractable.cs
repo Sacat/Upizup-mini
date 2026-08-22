@@ -137,6 +137,7 @@ namespace UpIzUpMini.Interaction
                 ? $"{who} rest up at {safehouseName}. Health and stamina full, heat down to {Mathf.RoundToInt(heatAfter)}. Saved."
                 : $"{who} rest up at {safehouseName}. Health and stamina full. Saved.";
             _menuOpen = false;
+            Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.RestAtSafehouse, safehouseName);
         }
 
         public override string GetInteractionFeedback() => _lastFeedback;

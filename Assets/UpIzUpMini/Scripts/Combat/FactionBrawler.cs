@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UpIzUpMini.Character;
 using UpIzUpMini.Progression;
+using UpIzUpMini.Navigation;
 
 namespace UpIzUpMini.Combat
 {
@@ -35,6 +36,13 @@ namespace UpIzUpMini.Combat
         }
 
         [SerializeField] private Side side = Side.NotAhWord;
+
+        /// <summary>MINI-112: true while this fighter has a live chase
+        /// target or is mid-swing - PatrolNPC on the same GameObject checks
+        /// this so ambient wandering and combat steering never fight over
+        /// the same CharacterController in the same frame.</summary>
+        public bool IsEngaged => _chaseTarget != null || _swing.IsRunning;
+
         [Tooltip("How far away an enemy is noticed in the first place.")]
         [SerializeField] private float engageRange = 8f;
         [Tooltip("Once a fight has started, how far this fighter will PURSUE before giving up. Larger than engageRange - that is what makes it a chase rather than a shove at arm's length.")]
@@ -63,6 +71,7 @@ namespace UpIzUpMini.Combat
         private FactionBrawler _chaseTarget;
         private FactionBrawler _pendingStrikeTarget;
         private readonly MeleeSwingTimeline _swing = new MeleeSwingTimeline();
+        private readonly NpcObstacleJumpMotor _jumpMotor = new NpcObstacleJumpMotor();
 
         /// <summary>Every brawler in the scene, so target selection is a list walk
         /// rather than a FindObjectsByType sweep per fighter per rescan. Same
@@ -215,7 +224,8 @@ namespace UpIzUpMini.Combat
             // CharacterController does not fall on its own.
             if (characterController != null && characterController.enabled)
             {
-                characterController.Move(step + Vector3.down * 9.81f * Time.deltaTime);
+                Vector3 vertical = _jumpMotor.Step(transform, characterController, direction, true, Time.deltaTime);
+                characterController.Move(step + vertical);
             }
             else
             {

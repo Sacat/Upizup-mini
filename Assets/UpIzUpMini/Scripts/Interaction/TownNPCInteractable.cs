@@ -90,6 +90,22 @@ namespace UpIzUpMini.Interaction
             "Facts. Quality does sell itself.",
         };
 
+        // MINI-119, user: "the dialogue for the boatman should be dynamic
+        // as well." GuadeloupeTrade.Interact() already varies its dialogue
+        // by real state (no route yet / boat away / cash short / trip
+        // just started, etc.) - but the single most common repeat case,
+        // walking up with nothing loaded, always answered with the exact
+        // same fixed sentence. HandleBoatMan() now rotates that one case
+        // through a small set of lines, the same NextLine mechanism every
+        // other villager already uses for repeat-talk variety.
+        [TextArea(1, 3)]
+        [SerializeField] private string[] boatManIdleLines =
+        {
+            "Bring produce and I go carry it across, yah wii. Nothing to load right now.",
+            "Boat ready when allu have something worth di crossing, mn.",
+            "Nothing in your hand for me today, nuh. Come back when you loaded up.",
+        };
+
         [TextArea(1, 3)]
         [SerializeField] private string policeCalmLine = "Morning. Everything alright over dey?";
         [TextArea(1, 3)]
@@ -98,10 +114,15 @@ namespace UpIzUpMini.Interaction
         // MINI-057: Normy - self-interested assistance (a bribe that cools
         // heat) plus a relationship that makes repeat business cheaper.
         [Tooltip("Base bribe cost - reduced slightly as NormyReputation grows (repeat business).")]
-        [SerializeField] private int normyBaseBribeCost = 80;
-        [SerializeField] private int normyMinBribeCost = 30;
-        [SerializeField] private float normyHeatReduction = 35f;
+        [SerializeField] private int normyBaseBribeCost = 100;
+        [SerializeField] private int normyMinBribeCost = 100;
+        [SerializeField] private float normyHeatReduction = 20f;
         [SerializeField] private float normyBribeCooldownSeconds = 45f;
+        // MINI-109: the Clean Face (M5B) mission payment is a distinct,
+        // one-time transaction from the reusable ambient bribe below - see
+        // HandleNormy's missionPending branch for why they must not share
+        // the ambient service's heat/cooldown gate.
+        [SerializeField] private int normyMissionPaymentCost = 100;
         private float _normyReadyAt;
 
         // MINI-058: Not Ah Word recruitment. Pooled, not instantiated on
@@ -153,6 +174,7 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private Dialogue.DialogueSet dialogueSet;
 
         private string _lastFeedback;
+        private bool _cleanTalkCounted;
 
         // MINI-060 follow-up-2 bugfix: "boatman disappeared, he did not
         // return." Root cause - DisappearForTrip used to
@@ -222,7 +244,10 @@ namespace UpIzUpMini.Interaction
                     break;
 
                 case NpcRole.Vagrant:
-                    SellCrops(true, false, 0.65f, "Vagrant");
+                    if (firstMeeting)
+                        _lastFeedback = FirstMeetingDialogue();
+                    else
+                        SellCrops(true, false, 0.65f, "Vagrant");
                     break;
 
                 case NpcRole.BlackMarket:
@@ -236,6 +261,13 @@ namespace UpIzUpMini.Interaction
                     float heat = EconomyManager.Instance != null ? EconomyManager.Instance.Heat : 0f;
                     _lastFeedback = heat > 40f ? policeSuspiciousLine : policeCalmLine;
                     Debug.Log($"{npcName} (police): {_lastFeedback}");
+                    if (!_cleanTalkCounted && EconomyManager.Instance != null && !EconomyManager.Instance.HasIllegalGoods()
+                        && Missions.MissionSystem.Instance != null
+                        && Missions.MissionSystem.Instance.IsCurrentObjective(Missions.ObjectiveKind.TalkToCleanPolice, "Police"))
+                    {
+                        _cleanTalkCounted = true;
+                        Missions.MissionSystem.Instance.Notify(Missions.ObjectiveKind.TalkToCleanPolice, "Police");
+                    }
                     break;
 
                 case NpcRole.FarmShop:
@@ -257,9 +289,21 @@ namespace UpIzUpMini.Interaction
                     // illegal strain's starter seeds (MINI-039: priced,
                     // previously free) so the player can take the
                     // higher-paying, higher-heat work.
-                    int weedHeld = bossSeedCrop != null && EconomyManager.Instance != null
-                        ? EconomyManager.Instance.GetCount(bossSeedCrop.cropId) : 0;
-                    if (weedHeld > 0)
+                    //
+                    // MINI-109: root cause of "Black Sugar delivery to Boss
+                    // J sometimes does not advance" - this gate used to
+                    // check ONLY bossSeedCrop (hardcoded to whichever crop
+                    // is first found isIllegal, i.e. Bushers) even though
+                    // Boss J's own sellableCrops list (and TrySellCrops
+                    // itself) already handles every illegal strain. A
+                    // player holding harvested Black Sugar but zero Bushers
+                    // measured weedHeld==0 and SellCrops() was never even
+                    // called, so the sale - and the SellCrop/BossK mission
+                    // notify inside it - never happened. Now checks whether
+                    // ANY of Boss J's actual sellable illegal crops are
+                    // held, matching what a sale would really do.
+                    bool anyWeedHeld = HasAnySellableIllegalStock();
+                    if (anyWeedHeld)
                     {
                         SellCrops(true, false, 1.35f, "BossK");
                     }
@@ -289,12 +333,22 @@ namespace UpIzUpMini.Interaction
                     break;
 
                 default:
+                    // MINI-119, user: "rasta would have to sell blue cheese
+                    // seeds. he can say try out this new strain i have
+                    // blue cheese" - a real, repeatable sell (like Boss J's
+                    // own seed sales), not a one-time gift, so the player
+                    // can restock. Returns null (falls through to normal
+                    // villager dialogue) until Blue Cheese is actually
+                    // unlocked - never advertised early.
+                    string rastaOffer = npcName == "Rasta" ? TryOfferRastaBlueCheeseSeed() : null;
+                    if (rastaOffer != null) { _lastFeedback = rastaOffer; break; }
+
                     var line = dialogueSet != null ? dialogueSet.SelectLine() : null;
                     _lastFeedback = line != null ? line.text : NextLine(villagerLines, "Yea wii.");
                     break;
             }
 
-            if (firstMeeting)
+            if (firstMeeting && role != NpcRole.Vagrant)
             {
                 string intro = FirstMeetingDialogue();
                 if (!string.IsNullOrEmpty(intro)) _lastFeedback = $"{intro}\n{_lastFeedback}";
@@ -341,7 +395,14 @@ namespace UpIzUpMini.Interaction
             NpcRole.Boss => "Boss J: I hearing Sacat and Franki trying to make a name farming up Highland.",
             NpcRole.StrainBoss => $"{npcName}: Boss J send allu? Higher-grade work have higher consequences.",
             NpcRole.Police => $"{npcName}: First time I seeing allu on this stretch. Keep out of trouble.",
-            NpcRole.BoatMan => "Boat Man: I run the Guadeloupe route from the bay when the conditions right.",
+            // MINI-110: the approved four-line first introduction, per
+            // Docs/CLAUDE-HANDOFF-CURRENT.md section 6 - replacing the
+            // earlier generic one-liner.
+            NpcRole.BoatMan =>
+                "Boat Man: I see allu on allu hustle. Dat is a good ting.\n" +
+                "Boat Man: When allu want go up and make some euro, talk to me.\n" +
+                "Sacat/Franki: So you could check some business by Gardey in Gwada?\n" +
+                "Boat Man: Awright. I will introduce allu to the scene up dere one time.",
             NpcRole.Normy => "Normy: People call me Normy. If you need information, we could reason.",
             NpcRole.GangRecruiter => "Recruiter: Respect come before numbers. Show the block allu serious first.",
             _ => $"{npcName}: Wah happen? I seeing allu around Grand Bay now.",
@@ -372,6 +433,35 @@ namespace UpIzUpMini.Interaction
         /// character - the field is still used for the single-crop Boss
         /// (K/J) and legacy single-crop StrainBoss paths.
         /// </summary>
+        /// <summary>
+        /// MINI-119, user: "rasta would have to sell blue cheese seeds. he
+        /// can say try out this new strain i have blue cheese." Rasta's
+        /// sellableCrops was wired (Mini011PhaseBSetup.BuildRastaMentor) to
+        /// the full crop list specifically so this lookup works. Gated on
+        /// ProgressionManager.IsCropUnlocked so Rasta never advertises
+        /// Blue Cheese before his own teaching mission has actually taught
+        /// it (RastaTaughtBlueCheese, set via Mission.unlocksCropId). Price
+        /// matches Boss C's own Blue Cheese seed price for consistency.
+        /// Returns null (falls through to normal villager dialogue) when
+        /// not applicable - crop missing, not yet unlocked, or already
+        /// stocked - rather than always answering with a sales pitch.
+        /// </summary>
+        private string TryOfferRastaBlueCheeseSeed()
+        {
+            if (ProgressionManager.Instance == null || !ProgressionManager.Instance.IsCropUnlocked("blue_cheese"))
+                return null;
+
+            var crop = sellableCrops != null
+                ? System.Array.Find(sellableCrops, c => c != null && c.cropId == "blue_cheese")
+                : null;
+            if (crop == null) return null;
+
+            var economy = EconomyManager.Instance;
+            if (economy != null && economy.GetSeeds(crop.cropId) > 0) return null;
+
+            return TryBuySeed(crop, 650, "Rasta: Try out this new strain I have, Blue Cheese.");
+        }
+
         private string TryBuySeed(CropDefinition crop, int price, string successLine)
         {
             var economy = EconomyManager.Instance;
@@ -451,12 +541,72 @@ namespace UpIzUpMini.Interaction
         /// "information" flavour instead - a natural place for
         /// reputation/heat-conditional insider lines.
         /// </summary>
+        /// <summary>MINI-110: Normy's item favour ("Small Ting") - checked
+        /// FIRST, before the M5B mission-payment branch and the ambient
+        /// service, since it's a distinct earlier obligation. Returns null
+        /// (not handled) if the current objective isn't a DeliverItem one,
+        /// so HandleNormy can fall through to its other branches.</summary>
+        private string HandleNormyFavour()
+        {
+            // DeliverItem's targetId is the ITEM id, not an NPC id - this
+            // is only ever invoked from Normy's own role branch below, so
+            // any active DeliverItem objective is understood to be for him.
+            var mission = Missions.MissionSystem.Instance;
+            var obj = mission?.CurrentObjective;
+            if (obj == null || obj.kind != Missions.ObjectiveKind.DeliverItem) return null;
+
+            var economy = EconomyManager.Instance;
+            if (economy == null) return "Not now, mn.";
+
+            int need = Mathf.Max(1, obj.requiredCount);
+            if (!economy.TrySpendConsumable(obj.targetId, need, out string shortMsg))
+            {
+                return shortMsg;
+            }
+
+            mission.NotifyCount(Missions.ObjectiveKind.DeliverItem, obj.targetId, need);
+            return "Preciate dat, yeah. Dat go help.";
+        }
+
         private string HandleNormy()
         {
+            var favourResponse = HandleNormyFavour();
+            if (favourResponse != null) return favourResponse;
+
             var economy = EconomyManager.Instance;
             var prog = UpIzUpMini.Progression.ProgressionManager.Instance;
 
             if (economy == null) return "Not now, mn.";
+
+            // MINI-109: root cause of "Clean Face can remain stuck at
+            // Normy" - the mission's BribeNormy objective previously had
+            // no path except the ambient service below it, which refuses
+            // to do anything once economy.Heat <= 0.5f. M5A (the mission
+            // immediately before this one) is "go rest at the safehouse
+            // and cool down" - so the player reaches Normy for M5B with
+            // heat already at or near zero, the exact state the ambient
+            // gate treats as "nothing to bribe for," and the mission could
+            // never complete. This is a separate, one-time payment: it
+            // does not touch the ambient cooldown/heat gate at all, and it
+            // is naturally idempotent - once Notify() advances the
+            // mission past this objective, IsCurrentObjective stops
+            // matching and this branch stops firing on its own.
+            bool missionPending = Missions.MissionSystem.Instance != null
+                && Missions.MissionSystem.Instance.IsCurrentObjective(Missions.ObjectiveKind.BribeNormy, "Normy");
+
+            if (missionPending)
+            {
+                if (economy.Money < normyMissionPaymentCost)
+                {
+                    return $"Dat go cost you ${normyMissionPaymentCost}. Allu short, nuh - come back when you have it.";
+                }
+
+                economy.AddMoney(-normyMissionPaymentCost);
+                economy.AddHeat(-normyHeatReduction);
+                prog?.AddReputation(UpIzUpMini.Progression.Faction.Normy, 5);
+                Missions.MissionSystem.Instance.Notify(Missions.ObjectiveKind.BribeNormy, "Normy");
+                return $"Say no more. Dat cost you ${normyMissionPaymentCost}. We square.";
+            }
 
             if (economy.Heat <= 0.5f)
             {
@@ -482,8 +632,9 @@ namespace UpIzUpMini.Interaction
             economy.AddHeat(-normyHeatReduction);
             prog?.AddReputation(UpIzUpMini.Progression.Faction.Normy, 5);
             _normyReadyAt = Time.time + normyBribeCooldownSeconds;
+            Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.BribeNormy, "Normy");
 
-            return $"Say no more. Consider it forgotten - dat cost you ${cost}.";
+            return $"Say no more. I cool it by 20%. Dat cost you ${cost}.";
         }
 
         /// <summary>
@@ -544,6 +695,14 @@ namespace UpIzUpMini.Interaction
             string tradeResult = GuadeloupeTrade.Instance != null ? GuadeloupeTrade.Instance.Interact() : "Boat not running today.";
             bool tripStartedNow = GuadeloupeTrade.Instance != null && GuadeloupeTrade.Instance.TripActive && !tripAlreadyActive;
             if (tripStartedNow) StartCoroutine(DisappearForTrip());
+
+            // MINI-119: the "nothing to load" line is by far the most
+            // common repeat interaction with him (every walk-up before the
+            // player is actually carrying produce) - swap in a rotating
+            // line instead of always the exact same sentence.
+            if (tradeResult == "Bring produce and I go carry it across, yah wii. Nothing to load right now.")
+                return NextLine(boatManIdleLines, tradeResult);
+
             return tradeResult;
         }
 
@@ -552,7 +711,9 @@ namespace UpIzUpMini.Interaction
         /// second choice (not an automatic fallback) per the user's "make
         /// a dialogue to choose which option you want."</summary>
         public string GardeyZafehLabel => role == NpcRole.BoatMan
-            ? (Progression.ProgressionManager.Instance != null && Progression.ProgressionManager.Instance.DogLifeRevealed
+            && Progression.ProgressionManager.Instance != null
+            && Progression.ProgressionManager.Instance.BlackSugarUnlocked
+            ? (Progression.ProgressionManager.Instance.DogLifeRevealed
                 ? "[ R ] Ask Gardey Zafeh for a reading"
                 : $"[ R ] Ask about Gardey Zafeh (${gardeyZafehRevealCost})")
             : null;
@@ -567,6 +728,7 @@ namespace UpIzUpMini.Interaction
             var progression = Progression.ProgressionManager.Instance;
             var economy = EconomyManager.Instance;
             if (progression == null || economy == null) { _lastFeedback = "Not now, mn."; return _lastFeedback; }
+            if (!progression.BlackSugarUnlocked) return null;
 
             if (_pendingDogLifeReveal)
             {
@@ -643,6 +805,16 @@ namespace UpIzUpMini.Interaction
             if (_away) _awayUntil -= seconds;
         }
 
+        public void EnsurePresentForMission()
+        {
+            if (role != NpcRole.BoatMan) return;
+            _away = false;
+            _awayUntil = 0f;
+            if (_visual == null) _visual = transform.Find("Visual");
+            if (_visual != null) _visual.gameObject.SetActive(true);
+            CompletePendingDogLifeReveal();
+        }
+
         public override bool CanInteract(GameObject interactor)
         {
             if (_away) return false;
@@ -656,18 +828,18 @@ namespace UpIzUpMini.Interaction
                 _away = false;
                 if (_visual == null) _visual = transform.Find("Visual");
                 if (_visual != null) _visual.gameObject.SetActive(true);
-
-                // MINI-081: deliver the Dog Life reveal now that he is
-                // actually back, rather than back when he was paid.
-                if (_pendingDogLifeReveal)
-                {
-                    _pendingDogLifeReveal = false;
-                    Progression.ProgressionManager.Instance?.RevealDogLife();
-                    string revealLine = $"Is Dog Life volehing yuh Zeb, chile - dey watching yuh plantation when you gone. Guard it, or send me back to Gwada for protection sometime.";
-                    _lastFeedback = revealLine;
-                    Missions.MissionSystem.Instance?.Alert($"GARDEY ZAFEH\n{revealLine}");
-                }
+                CompletePendingDogLifeReveal();
             }
+        }
+
+        private void CompletePendingDogLifeReveal()
+        {
+            if (!_pendingDogLifeReveal) return;
+            _pendingDogLifeReveal = false;
+            Progression.ProgressionManager.Instance?.RevealDogLife();
+            string revealLine = "Is Dog Life volehing yuh Zeb, chile - dey watching yuh plantation when you gone. Guard it, or send me back to Gwada for protection sometime.";
+            _lastFeedback = revealLine;
+            Missions.MissionSystem.Instance?.Alert($"GARDEY ZAFEH\n{revealLine}");
         }
 
         /// <summary>Cycles through an NPC's lines so repeat talks vary.</summary>
@@ -680,6 +852,20 @@ namespace UpIzUpMini.Interaction
         }
 
         public override string GetInteractionFeedback() => _lastFeedback;
+
+        /// <summary>MINI-109: whether the player holds ANY illegal crop
+        /// this NPC's own sellableCrops list would actually accept -
+        /// mirrors TrySellCrops' real sell criteria (illegal + count > 0),
+        /// rather than a single hardcoded crop ID.</summary>
+        private bool HasAnySellableIllegalStock()
+        {
+            if (EconomyManager.Instance == null || sellableCrops == null) return false;
+            foreach (var c in sellableCrops)
+            {
+                if (c != null && c.isIllegal && EconomyManager.Instance.GetCount(c.cropId) > 0) return true;
+            }
+            return false;
+        }
 
         private void SellCrops(bool illegalOnly, bool legalOnly, float multiplier, string buyerId)
         {
@@ -720,10 +906,17 @@ namespace UpIzUpMini.Interaction
                 // MINI-055: display-only "Boss J" (see PromptLabel note) -
                 // buyerId/targetId matching still uses the internal "BossK"
                 // identifier, unaffected by this text.
+                string productionPraise = new[]
+                {
+                    "Boii, you know how to plant dat.",
+                    "Yah, dat is some good stuff.",
+                    "Boii, you getting some nice buds.",
+                    "Yah my boi, I like that production. Keep on doing your ting."
+                }[Random.Range(0, 4)];
                 _lastFeedback = bossSale && earned <= 0
-                    ? "Boss J: Money tight. I holding your payment this time. Do the next job and we settle, nuh."
+                    ? "Boss J: Next time I'll give allu more.\nFranki: Always a next time."
                     : bossSale
-                        ? $"Boss J: Good. ${earned} for that. You can sell small amounts to the Paro in Lalay too, but he paying less."
+                        ? $"Boss J: {productionPraise} ${earned} for that. You can sell small amounts to the Paro in Lalay too, but he paying less."
                         : buyerId == "Vagrant"
                             ? $"Paro: Respect, boss. I scrape up ${earned}. Doh bring police by me, nuh."
                             : $"Yea mn, sold for ${earned}.";

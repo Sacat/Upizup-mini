@@ -167,3 +167,28 @@ user_words: "this is a lot better ... this exactly what i want" / "i am ready to
 supersedes: null
 notes: Map-lab remains the rollback-safe visual backup. Migration must preserve stable gameplay/save IDs.
 ```
+
+```yaml
+id: VA-006
+status: APPROVED
+date: 2026-08-20
+task: MINI-105
+subject: Sacat canonical modular base appearance
+scene_or_prefab: PREVIEW_ONLY_NOT_INTEGRATED
+evidence:
+  - E:\Unity\Up Iz Up Mini\Docs\CharacterPipeline\MINI-105\Approved\Sacat-ModularBase-Approved.png
+approved_aspects:
+  - recognizable Sacat face and skin tone
+  - short black haircut with a sharp shape-up and no cap or headphones
+  - approved body silhouette and proportions
+  - fitted white vest and fitted black boxer pants as the modest wardrobe base
+  - bare feet so footwear can remain modular
+  - neutral T-pose modeling target
+still_editable:
+  - topology, UV layout, skin weights and LODs needed to reproduce this appearance
+  - hidden body-region masks beneath future garments
+  - hair geometry detail provided the approved silhouette and hairline remain unchanged
+user_words: "ok great use this one"
+supersedes: null
+notes: This locks the modeling target, not an AI-generated production mesh. Preserve the existing Sacat identity and skeleton; obtain new approval from fixed screenshots before replacing the playable character.
+```

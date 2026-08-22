@@ -29,6 +29,10 @@ namespace UpIzUpMini.UI
         [SerializeField] private Image reputationFill;
         [SerializeField] private Text reputationPercent;
         [SerializeField] private CropDefinition[] knownCrops;
+        // MINI-110: "must show the return countdown" - connects to
+        // GuadeloupeTrade's already-existing TripActive/AwayCharacterIndex/
+        // SecondsRemaining API rather than tracking travel state here.
+        [SerializeField] private Text courierTimerLabel;
 
         [Header("Meter percentage labels")]
         [SerializeField] private Text healthPercent;
@@ -116,6 +120,25 @@ namespace UpIzUpMini.UI
             if (moneyLabel != null && EconomyManager.Instance != null)
             {
                 moneyLabel.text = $"${EconomyManager.Instance.Money}";
+            }
+
+            if (courierTimerLabel != null)
+            {
+                var trade = GuadeloupeTrade.Instance;
+                if (trade != null && trade.TripActive && trade.AwayCharacterIndex >= 0)
+                {
+                    string awayName = "Someone";
+                    var awaySlots = CharacterSwitchManager.Instance?.Slots;
+                    if (awaySlots != null && trade.AwayCharacterIndex < awaySlots.Length)
+                        awayName = awaySlots[trade.AwayCharacterIndex].displayName;
+                    int seconds = Mathf.CeilToInt(trade.SecondsRemaining);
+                    courierTimerLabel.text = $"{awayName} in Guadeloupe - back in {seconds}s";
+                    courierTimerLabel.enabled = true;
+                }
+                else
+                {
+                    courierTimerLabel.enabled = false;
+                }
             }
 
             UpdateNameFlash(slot);

@@ -31,7 +31,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 188642249017188887}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &651222569709206494
+--- !u!1 &311526062603967257
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -39,52 +39,88 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6096066677983868431}
-  - component: {fileID: 2433460802434271577}
+  - component: {fileID: 5005896527720353353}
+  - component: {fileID: 1114920232793287982}
+  - component: {fileID: 7877093257980413232}
   m_Layer: 0
-  m_Name: PillionSeat_Seat
+  m_Name: WheelDiscVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6096066677983868431
+--- !u!4 &5005896527720353353
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 651222569709206494}
+  m_GameObject: {fileID: 311526062603967257}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.65560746, y: 0.02, z: 0.65560746}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 188642249017188887}
+  m_Father: {fileID: 919428093199834455}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2433460802434271577
-MonoBehaviour:
+--- !u!33 &1114920232793287982
+MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 651222569709206494}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1ac30fc394aa8d4ba0bc7b826f51af9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Vehicles.VehicleSeat
-  role: 1
-  style: 0
-  seatAnchor: {fileID: 1187655850562447489}
-  leftHandTarget: {fileID: 4989693328894853091}
-  rightHandTarget: {fileID: 247768696851771707}
-  leftFootTarget: {fileID: 741080777249879825}
-  rightFootTarget: {fileID: 7225956852351128350}
-  ridePoseActionId: RidePillion
-  mountActionId: MountBike
-  ridePoseStartTimeSeconds: 3.6
+  m_GameObject: {fileID: 311526062603967257}
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &7877093257980413232
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 311526062603967257}
+  m_Enabled: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: bead934fa567ff140b2f85c3ac946933, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &653983956727985409
 GameObject:
   m_ObjectHideFlags: 0
@@ -192,9 +228,10 @@ GameObject:
   - component: {fileID: 188642249017188887}
   - component: {fileID: 1202193491830651783}
   - component: {fileID: 918191634091808183}
-  - component: {fileID: 5326415937542408795}
-  - component: {fileID: 4102563725991180330}
-  - component: {fileID: 7257821390790626247}
+  - component: {fileID: 2646930526161961932}
+  - component: {fileID: 5812221653505188856}
+  - component: {fileID: 6884279297509637205}
+  - component: {fileID: 49549720163238268}
   m_Layer: 0
   m_Name: TMAX_560
   m_TagString: Untagged
@@ -229,8 +266,8 @@ Transform:
   - {fileID: 247768696851771707}
   - {fileID: 741080777249879825}
   - {fileID: 7225956852351128350}
-  - {fileID: 4350933772413451214}
-  - {fileID: 6096066677983868431}
+  - {fileID: 6240894552478761877}
+  - {fileID: 7348236639045700808}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &1202193491830651783
@@ -241,7 +278,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1858156053030975409}
   serializedVersion: 5
-  m_Mass: 220
+  m_Mass: 480
   m_LinearDamping: 0.05
   m_AngularDamping: 2.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -281,7 +318,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.49349406, y: 0.84210587, z: 1.7559999}
   m_Center: {x: 0, y: 0.6942227, z: 0}
---- !u!114 &5326415937542408795
+--- !u!114 &2646930526161961932
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -300,8 +337,8 @@ MonoBehaviour:
   centerOfMass: {fileID: 4869154231040436883}
   visualLeanRoot: {fileID: 4861678918703204409}
   maxSpeedKmh: 150
-  motorTorque: 320
-  brakeTorque: 550
+  motorTorque: 950
+  brakeTorque: 1200
   maxReverseSpeedKmh: 18
   maxSteerAngle: 28
   highSpeedSteerAngle: 7
@@ -321,10 +358,10 @@ MonoBehaviour:
   wheelieMinSpeedKmh: 8
   wheelieMaxSpeedKmh: 70
   maxWheelieAngle: 90
-  wheelieRiseRate: 60
+  wheelieRiseRate: 72
   wheelieHydraulicStrength: 9
   wheelieSteerMultiplier: 0.35
-  wheelieRearTorqueBoost: 900
+  wheelieRearTorqueBoost: 1960
   wheelieAirSteerTorque: 14
   wheelieRollAssist: 18
   debugForcedPitchAngle: 0
@@ -334,7 +371,14 @@ MonoBehaviour:
   stabilizerRayRange: 0.15
   stabilizerSpringRate: 6000
   stabilizerDamping: 400
---- !u!114 &4102563725991180330
+  yawSpinThreshold: 220
+  yawSpinDamping: 0.65
+  extraAirGravity: 30
+  airborneGraceSeconds: 0.18
+  airGravityRampSeconds: 0.25
+  hillClimbAssist: 9
+  hillClimbMaxSlopeDeg: 35
+--- !u!114 &5812221653505188856
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -350,7 +394,7 @@ MonoBehaviour:
   rearCollider: {fileID: 6782057262543986294}
   frontWheelVisual: {fileID: 3331322960812965561}
   rearWheelVisual: {fileID: 919428093199834455}
---- !u!114 &7257821390790626247
+--- !u!114 &6884279297509637205
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -363,8 +407,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Vehicles.BikeInteractable
   promptHeightOffset: 2
-  driverSeat: {fileID: 8320068444705860439}
-  pillionSeat: {fileID: 2433460802434271577}
+  driverSeat: {fileID: 8796827614000942827}
+  pillionSeat: {fileID: 2409422384513352263}
   dismountSideOffset: 1.1
   wheelieCounterLean: 0
   wheelieFollowAmount: 1
@@ -378,6 +422,19 @@ MonoBehaviour:
   mountKey: 102
   mountRange: 3.2
   pillionBoardRadius: 8
+--- !u!114 &49549720163238268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1858156053030975409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b399adc132ccb5428dfc911f8f792dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Vehicles.TmaxWheelieTuner
+  toggleKey: 116
 --- !u!1 &2585621904193508169
 GameObject:
   m_ObjectHideFlags: 0
@@ -407,7 +464,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4620888929123017393}
+  - {fileID: 5005896527720353353}
   m_Father: {fileID: 4861678918703204409}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3428844846309927440
@@ -441,60 +498,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 188642249017188887}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &3476601812034435816
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4350933772413451214}
-  - component: {fileID: 8320068444705860439}
-  m_Layer: 0
-  m_Name: DriverSeat
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4350933772413451214
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3476601812034435816}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 188642249017188887}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8320068444705860439
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3476601812034435816}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1ac30fc394aa8d4ba0bc7b826f51af9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Vehicles.VehicleSeat
-  role: 0
-  style: 0
-  seatAnchor: {fileID: 1604383739277275153}
-  leftHandTarget: {fileID: 1139899579969391923}
-  rightHandTarget: {fileID: 9132646541730299797}
-  leftFootTarget: {fileID: 2641031065745241300}
-  rightFootTarget: {fileID: 4097434538457477723}
-  ridePoseActionId: RideBike
-  mountActionId: MountBike
-  ridePoseStartTimeSeconds: 0
 --- !u!1 &3587520422825426271
 GameObject:
   m_ObjectHideFlags: 0
@@ -838,6 +841,60 @@ Transform:
   m_Children: []
   m_Father: {fileID: 188642249017188887}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5481405296164247919
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7348236639045700808}
+  - component: {fileID: 2409422384513352263}
+  m_Layer: 0
+  m_Name: PillionSeat_Seat
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7348236639045700808
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5481405296164247919}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 188642249017188887}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2409422384513352263
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5481405296164247919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1ac30fc394aa8d4ba0bc7b826f51af9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Vehicles.VehicleSeat
+  role: 1
+  style: 0
+  seatAnchor: {fileID: 1187655850562447489}
+  leftHandTarget: {fileID: 4989693328894853091}
+  rightHandTarget: {fileID: 247768696851771707}
+  leftFootTarget: {fileID: 741080777249879825}
+  rightFootTarget: {fileID: 7225956852351128350}
+  ridePoseActionId: RidePillion
+  mountActionId: MountBike
+  ridePoseStartTimeSeconds: 3.6
 --- !u!1 &5605764498583136471
 GameObject:
   m_ObjectHideFlags: 0
@@ -912,8 +969,8 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.30352196
   m_SuspensionSpring:
-    spring: 12695.295
-    damper: 7563.0635
+    spring: 27698.824
+    damper: 16501.229
     targetPosition: 0.5
   m_SuspensionDistance: 0.17
   m_ForceAppPointDistance: 0
@@ -971,96 +1028,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 188642249017188887}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &6927282926029088322
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4620888929123017393}
-  - component: {fileID: 7748157445434700449}
-  - component: {fileID: 7170874967266679329}
-  m_Layer: 0
-  m_Name: WheelDiscVisual
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4620888929123017393
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6927282926029088322}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.65560746, y: 0.02, z: 0.65560746}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 919428093199834455}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &7748157445434700449
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6927282926029088322}
-  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &7170874967266679329
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6927282926029088322}
-  m_Enabled: 0
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: bead934fa567ff140b2f85c3ac946933, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 1
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &7087858481705591202
 GameObject:
   m_ObjectHideFlags: 0
@@ -1104,8 +1071,8 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.30352196
   m_SuspensionSpring:
-    spring: 12695.295
-    damper: 7563.0635
+    spring: 27698.824
+    damper: 16501.229
     targetPosition: 0.5
   m_SuspensionDistance: 0.17
   m_ForceAppPointDistance: 0
@@ -1163,6 +1130,60 @@ Transform:
   m_Children: []
   m_Father: {fileID: 188642249017188887}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8634955219932345956
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6240894552478761877}
+  - component: {fileID: 8796827614000942827}
+  m_Layer: 0
+  m_Name: DriverSeat
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6240894552478761877
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8634955219932345956}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 188642249017188887}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8796827614000942827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8634955219932345956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1ac30fc394aa8d4ba0bc7b826f51af9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Vehicles.VehicleSeat
+  role: 0
+  style: 0
+  seatAnchor: {fileID: 1604383739277275153}
+  leftHandTarget: {fileID: 1139899579969391923}
+  rightHandTarget: {fileID: 9132646541730299797}
+  leftFootTarget: {fileID: 2641031065745241300}
+  rightFootTarget: {fileID: 4097434538457477723}
+  ridePoseActionId: RideBike
+  mountActionId: MountBike
+  ridePoseStartTimeSeconds: 0
 --- !u!1 &8716642596132998634
 GameObject:
   m_ObjectHideFlags: 0

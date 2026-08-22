@@ -73,6 +73,7 @@ namespace UpIzUpMini.Interaction
         private CharacterVitals _pendingVictim;
         private readonly MeleeSwingTimeline _strike = new MeleeSwingTimeline();
         private readonly NavPathSteerer _steerer = new NavPathSteerer();
+        private readonly NpcObstacleJumpMotor _jumpMotor = new NpcObstacleJumpMotor();
 
         public bool IsChasing { get; private set; }
         public float Stamina => _stamina;
@@ -250,7 +251,9 @@ namespace UpIzUpMini.Interaction
                 return;
             }
 
-            _controller.SimpleMove(safeDirection * speed);
+            Vector3 vertical = _jumpMotor.Step(transform, _controller, safeDirection,
+                CurrentState == PoliceMovementState.Chase, Time.deltaTime);
+            _controller.Move(safeDirection * speed * Time.deltaTime + vertical);
             Face(transform.position + safeDirection);
             Animate(speed);
         }
@@ -329,7 +332,8 @@ namespace UpIzUpMini.Interaction
             if (_animBlend < 0.01f) _animBlend = 0f;
             animator.SetFloat("Speed", _animBlend);
             animator.SetFloat("MotionSpeed", speed > 0.01f ? 1f : 0f);
-            animator.SetBool("Grounded", true);
+            animator.SetBool("Grounded", !_jumpMotor.IsAirborne);
+            animator.SetBool("Jump", _jumpMotor.IsAirborne);
         }
     }
 }

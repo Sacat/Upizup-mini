@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
 using UpIzUpMini.Interaction;
+using UpIzUpMini.Missions;
 using UpIzUpMini.Progression;
 
 namespace UpIzUpMini.EditorTools
@@ -38,10 +39,11 @@ namespace UpIzUpMini.EditorTools
             var switcher = Object.FindFirstObjectByType<CharacterSwitchManager>();
             var spawnerGo = GameObject.Find("DogLifeSpawner");
             var chevyGo = GameObject.Find("NotAhWord_Zoomy");
+            var missionSystem = Object.FindFirstObjectByType<MissionSystem>();
 
-            if (recruiterGo == null || economy == null || progression == null || switcher == null || spawnerGo == null || chevyGo == null)
+            if (recruiterGo == null || economy == null || progression == null || switcher == null || spawnerGo == null || chevyGo == null || missionSystem == null)
             {
-                Debug.LogError("MINI-058 VALIDATION FAIL: one of NPC_GangRecruiter/EconomyManager/ProgressionManager/CharacterSwitchManager/DogLifeSpawner/NotAhWord_Zoomy not found in the built scene.");
+                Debug.LogError("MINI-058 VALIDATION FAIL: one of NPC_GangRecruiter/EconomyManager/ProgressionManager/CharacterSwitchManager/DogLifeSpawner/NotAhWord_Zoomy/MissionSystem not found in the built scene.");
                 return;
             }
 
@@ -52,8 +54,46 @@ namespace UpIzUpMini.EditorTools
             economy.AddMoney(7000);
             InvokeMethod(progression, "Awake");
             InvokeMethod(switcher, "Awake");
+            InvokeMethod(missionSystem, "Awake");
+
+            // MINI-117: the recruiter is gated on ProgressionGate.
+            // IsMissionReached("M15") (the mission that literally sends the
+            // player to him), which reads MissionSystem.Instance. This test
+            // never invoked MissionSystem.Awake() before, so Instance stayed
+            // null and the gate refused every attempt regardless of
+            // anything else - a validator gap, not a broken recruiter.
+            // Advance the simulated mission index to M15's own position
+            // (found by id, not hardcoded, since MINI-110/111 inserted
+            // several missions before it) so the test reflects a player who
+            // has actually reached that point in the story.
+            var missionsField = typeof(MissionSystem).GetField("missions", BindingFlags.NonPublic | BindingFlags.Instance);
+            var missionIndexField = typeof(MissionSystem).GetField("_missionIndex", BindingFlags.NonPublic | BindingFlags.Instance);
+            var missions = (System.Collections.Generic.List<Mission>)missionsField.GetValue(missionSystem);
+            int m15Index = missions.FindIndex(m => m.missionId == "M15");
+            if (m15Index < 0)
+            {
+                Debug.LogError("MINI-058 VALIDATION FAIL: M15 not found in the built mission list.");
+                return;
+            }
+            missionIndexField.SetValue(missionSystem, m15Index);
+
+            // CanUseCurrentRole's GangRecruiter case also requires
+            // GangReputation >= 20 (the same threshold GangMemberInteractable
+            // uses for Chevy's separate respect-gated path below) - give the
+            // paid-recruit test that too, since a player who has genuinely
+            // reached M15 would plausibly have built at least this much rep.
+            progression.AddReputation(Faction.GrandBayGangs, 20);
 
             var actor = new GameObject("Actor");
+
+            // MINI-117: M15's own objective is "TalkTo GangRecruiter" -
+            // the FIRST paid-recruit interaction (now that MissionSystem is
+            // actually alive) also completes M15 itself via the generic
+            // end-of-Interact TalkTo notify every NPC fires, paying out its
+            // rewardMoney in the same call. Read the real value rather than
+            // hardcoding it, so this stays correct if the reward is ever
+            // retuned.
+            int m15Reward = missions[m15Index].rewardMoney;
 
             // --- 1) Paid pool: recruit exactly 3, the 4th must fail. ---
             for (int i = 0; i < 3 && pass; i++)
@@ -63,8 +103,9 @@ namespace UpIzUpMini.EditorTools
                 string fb = recruiter.GetInteractionFeedback();
                 Check(ref pass, ref fail, fb.Contains("in now") && fb.Contains("$2000"),
                     $"paid recruit #{i + 1}: expected a successful $2000 recruit line, got '{fb}'.");
-                Check(ref pass, ref fail, economy.Money == moneyBefore - 2000,
-                    $"paid recruit #{i + 1}: expected money to drop by exactly 2000, got a drop of {moneyBefore - economy.Money}.");
+                int expectedDrop = i == 0 ? 2000 - m15Reward : 2000;
+                Check(ref pass, ref fail, economy.Money == moneyBefore - expectedDrop,
+                    $"paid recruit #{i + 1}: expected money to drop by exactly {expectedDrop} (recruit #1 also completes M15's own {m15Reward} reward), got a drop of {moneyBefore - economy.Money}.");
             }
             if (pass)
             {
@@ -109,6 +150,12 @@ namespace UpIzUpMini.EditorTools
                     }
                 }
             }
+
+            // MINI-117: Chevy's own test below needs GangReputation to
+            // start at 0 (it proves money-only fails, then that +20 rep
+            // succeeds) - undo the +20 given to the paid-recruiter section
+            // above so the two sections don't interfere with each other.
+            progression.AddReputation(Faction.GrandBayGangs, -20);
 
             // --- 3) Chevy: money alone must NOT recruit him; respect must. ---
             if (pass)

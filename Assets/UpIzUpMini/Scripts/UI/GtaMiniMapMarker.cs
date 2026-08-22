@@ -5,7 +5,9 @@ namespace UpIzUpMini.UI
 {
     public enum MiniMapMarkerKind
     {
-        Shop, Mission, Police, Gang, Farm, Safehouse, Church, Boat, Person
+        Shop, Mission, Police, Gang, Farm, Safehouse, Church, Boat, Person,
+        // MINI-113, user: "add minimap markers for owned/usable vehicles."
+        Vehicle
     }
 
     /// <summary>Reusable data marker for this district and future maps.</summary>

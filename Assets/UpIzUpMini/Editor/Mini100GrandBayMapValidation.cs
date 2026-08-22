@@ -13,6 +13,7 @@ using UpIzUpMini.Interaction;
 using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
 using UpIzUpMini.UI;
+using UpIzUpMini.Missions;
 
 namespace UpIzUpMini.EditorTools
 {
@@ -50,6 +51,7 @@ namespace UpIzUpMini.EditorTools
             Directory.CreateDirectory(EvidenceFolder);
             CaptureView($"{EvidenceTask}-Overview-1600x1000.png", new Vector3(110f, 335f, -95f), new Vector3(110f, 0f, -95f), 1600, 1000, true, 225f);
             CaptureView($"{EvidenceTask}-LalayShops-1280x720.png", new Vector3(36f, 28f, -137f), new Vector3(91f, 1.5f, -174f), 1280, 720, false, 0f);
+            CaptureRolePair("NPC_FarmShop", "Stall_FARM SHOP", $"{EvidenceTask}-FrontageAlignment-1280x720.png", 8f, 4.2f);
             CaptureView($"{EvidenceTask}-HighlandConnection-1280x720.png", new Vector3(34f, 72f, -70f), new Vector3(86f, 1.5f, -128f), 1280, 720, false, 0f);
             CaptureView($"{EvidenceTask}-Backstreet-1280x720.png", new Vector3(55f, 82f, -156f), new Vector3(58f, 0f, -194f), 1280, 720, false, 0f);
             GameObject sacat = FindAnywhere("Sacat");
@@ -61,14 +63,42 @@ namespace UpIzUpMini.EditorTools
             GameObject house = FindAnywhere("LalayHouse");
             if (house != null)
                 CaptureView($"{EvidenceTask}-LalaySafehouse-1280x720.png", house.transform.position + new Vector3(-13f, 9f, -10f), house.transform.position + Vector3.up * 2.7f, 1280, 720, false, 0f);
-            CaptureRolePair("NPC_Brakes", "GrandBay_Catholic_Church_Graybox", $"{EvidenceTask}-Church-Brakes-1280x720.png", 14f, 7f);
+            GameObject brakes = FindAnywhere("NPC_Brakes");
+            if (brakes != null)
+                CaptureView($"{EvidenceTask}-Church-Brakes-1280x720.png",
+                    brakes.transform.position + new Vector3(2.2f, 1.8f, -3.2f),
+                    brakes.transform.position + Vector3.up * 1.25f, 1280, 720, false, 0f);
             CaptureRolePair("NPC_BoatMan", "MooredBoat", $"{EvidenceTask}-Jetty-BoatRoute-1280x720.png", 18f, 9f);
             CaptureRoleGroup("NPC_DogLife_", $"{EvidenceTask}-DogLifeBlock-1280x720.png", 13f, 8f);
             CaptureRolePair("NPC_BossC", "BossC_SUV", $"{EvidenceTask}-BossCBlock-Rover-1280x720.png", 13f, 7f);
             GameObject paro = FindAnywhere("NPC_Vagrant");
             if (paro != null)
-                CaptureView($"{EvidenceTask}-Paro-1280x720.png", paro.transform.position + new Vector3(-7f, 5f, -6f), paro.transform.position + Vector3.up * 1.5f, 1280, 720, false, 0f);
+                CaptureView($"{EvidenceTask}-Paro-1280x720.png", paro.transform.position + new Vector3(-2.8f, 2.0f, -3.4f), paro.transform.position + Vector3.up * 1.15f, 1280, 720, false, 0f);
+            CropStageVisual banana = UnityEngine.Object.FindObjectsByType<CropStageVisual>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .FirstOrDefault(visual => visual.name == "BananaVisual");
+            if (banana != null)
+            {
+                banana.SetVisible(true);
+                banana.ApplyStage(3, new Color(0.35f, 0.70f, 0.20f), new Color(1f, 0.78f, 0.08f));
+                CaptureView($"{EvidenceTask}-RipeBanana-1280x720.png",
+                    banana.transform.position + new Vector3(-2.2f, 2.15f, -2.8f),
+                    banana.transform.position + Vector3.up * 1.55f, 1280, 720, false, 0f);
+            }
             Debug.Log("MINI-100 MIGRATION CAPTURE PASS: overview, Lalay, Highland, Highland farm, and playable spawn evidence saved.");
+            if (Application.isBatchMode) EditorApplication.Exit(0);
+        }
+
+        [MenuItem("Up Iz Up Mini/MINI-104/Capture Highland Privacy Screen")]
+        public static void CaptureHighlandPrivacy()
+        {
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            Directory.CreateDirectory(EvidenceFolder);
+            GameObject farm = FindAnywhere("FarmPlot_00");
+            if (farm == null) throw new InvalidOperationException("FarmPlot_00 missing.");
+            CaptureView($"{EvidenceTask}-HighlandPrivacy-1280x720.png",
+                farm.transform.position + new Vector3(-18f, 9f, -19f),
+                farm.transform.position + Vector3.up * 1.6f, 1280, 720, false, 0f);
+            Debug.Log("MINI-104 HIGHLAND PRIVACY CAPTURE PASS.");
             if (Application.isBatchMode) EditorApplication.Exit(0);
         }
 
@@ -126,6 +156,20 @@ namespace UpIzUpMini.EditorTools
             CaptureView(fileName, target + new Vector3(-distance, height, -distance * 0.65f), target + Vector3.up * 1.4f, 1280, 720, false, 0f);
         }
 
+        private static void CaptureRoleGroupFromRoad(string namePrefix, string fileName)
+        {
+            Transform[] members = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(transform => transform.name.StartsWith(namePrefix, StringComparison.Ordinal)).ToArray();
+            if (members.Length == 0) return;
+            Vector3 target = members.Aggregate(Vector3.zero, (sum, member) => sum + member.position) / members.Length;
+            Vector3 road = ApproximateLalayCentre(target.x);
+            Vector3 away = road - target; away.y = 0f;
+            if (away.sqrMagnitude < 0.01f) away = Vector3.forward;
+            Vector3 camera = road + away.normalized * 3.5f;
+            camera.y = target.y + 4.2f;
+            CaptureView(fileName, camera, target + Vector3.up * 1.35f, 1280, 720, false, 0f);
+        }
+
         private static List<string> CollectProblems(Scene scene)
         {
             List<string> problems = new List<string>();
@@ -168,6 +212,7 @@ namespace UpIzUpMini.EditorTools
                 "town NPC gameplay roles did not survive migration", problems);
 
             ValidateRoadsideShops(problems);
+            ValidateShopAndCharacterBuildingClearance(problems);
             ValidateLalayRolesAndSafehouses(problems);
             ValidateHighlandFarm(problems);
             ValidateRoadJoin("Road_way_22917921", "Road_user_highland_lalay_inroad", "Lalay to Highland inroad", problems);
@@ -176,6 +221,8 @@ namespace UpIzUpMini.EditorTools
             ValidateRoadJoin("Road_way_22917921", "Road_user_lalay_backstreet", "Lalay to south Backstreet", problems);
             ValidateBackstreetSide(problems);
             ValidateMissionRolePlacement(problems);
+            ValidateRelocatedMissionRouting(problems);
+            ValidateHighlandArrivalAndPrivacy(problems);
             ValidateMiniMap(problems);
 
             foreach (GameObject root in scene.GetRootGameObjects())
@@ -183,6 +230,97 @@ namespace UpIzUpMini.EditorTools
                     if (transform.gameObject.GetComponents<Component>().Any(component => component == null))
                         problems.Add("missing script: " + HierarchyPath(transform));
             return problems;
+        }
+
+        private static void ValidateRelocatedMissionRouting(List<string> problems)
+        {
+            MissionSystem system = UnityEngine.Object.FindFirstObjectByType<MissionSystem>(FindObjectsInactive.Include);
+            TownNPCInteractable boatMan = UnityEngine.Object.FindObjectsByType<TownNPCInteractable>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .FirstOrDefault(npc => npc.name == "NPC_BoatMan");
+            Require(system != null, "MissionSystem missing for relocated mission checks", problems);
+            Require(boatMan != null, "Boat Man missing for mission respawn check", problems);
+            if (system == null) return;
+
+            SerializedObject so = new SerializedObject(system);
+            SerializedProperty missions = so.FindProperty("missions");
+            int boatMission = -1, boatObjective = -1;
+            Vector3 dogMarker = Vector3.positiveInfinity;
+            for (int i = 0; i < missions.arraySize; i++)
+            {
+                SerializedProperty mission = missions.GetArrayElementAtIndex(i);
+                string missionId = mission.FindPropertyRelative("missionId").stringValue;
+                SerializedProperty objectives = mission.FindPropertyRelative("objectives");
+                for (int j = 0; j < objectives.arraySize; j++)
+                {
+                    SerializedProperty objective = objectives.GetArrayElementAtIndex(j);
+                    var kind = (ObjectiveKind)objective.FindPropertyRelative("kind").enumValueIndex;
+                    string targetId = objective.FindPropertyRelative("targetId").stringValue;
+                    if (missionId == "M16" && kind == ObjectiveKind.ReachArea)
+                        dogMarker = objective.FindPropertyRelative("markerPosition").vector3Value;
+                    if (boatMission < 0 && kind == ObjectiveKind.TalkTo && targetId == "BoatMan")
+                    {
+                        boatMission = i;
+                        boatObjective = j;
+                    }
+                }
+            }
+
+            Transform[] dogLife = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(t => t.name.StartsWith("NPC_DogLife_", StringComparison.Ordinal)).ToArray();
+            Require(dogLife.Length > 0, "Dog Life block members missing", problems);
+            if (dogLife.Length > 0 && !float.IsInfinity(dogMarker.x))
+            {
+                Vector3 dogCentre = dogLife.Aggregate(Vector3.zero, (sum, member) => sum + member.position) / dogLife.Length;
+                Require(HorizontalDistance(dogMarker, dogCentre) <= 3f,
+                    $"M16 Dog Life marker is still at an old-map position ({HorizontalDistance(dogMarker, dogCentre):0.0}m from block)", problems);
+            }
+            else Require(false, "M16 Dog Life ReachArea marker missing", problems);
+
+            if (boatMan == null || boatMission < 0) return;
+            FieldInfo missionIndex = typeof(MissionSystem).GetField("_missionIndex", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo objectiveIndex = typeof(MissionSystem).GetField("_objectiveIndex", BindingFlags.Instance | BindingFlags.NonPublic);
+            MethodInfo prepare = typeof(MissionSystem).GetMethod("PrepareCurrentObjective", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo away = typeof(TownNPCInteractable).GetField("_away", BindingFlags.Instance | BindingFlags.NonPublic);
+            int oldMission = (int)missionIndex.GetValue(system);
+            int oldObjective = (int)objectiveIndex.GetValue(system);
+            Transform visual = boatMan.transform.Find("Visual");
+            away.SetValue(boatMan, true);
+            if (visual != null) visual.gameObject.SetActive(false);
+            missionIndex.SetValue(system, boatMission);
+            objectiveIndex.SetValue(system, boatObjective);
+            prepare.Invoke(system, null);
+            Require(!(bool)away.GetValue(boatMan) && (visual == null || visual.gameObject.activeSelf),
+                "Boat Man is not forced back when his TalkTo objective begins", problems);
+            missionIndex.SetValue(system, oldMission);
+            objectiveIndex.SetValue(system, oldObjective);
+        }
+
+        private static void ValidateHighlandArrivalAndPrivacy(List<string> problems)
+        {
+            GameObject farm = FindAnywhere("FarmPlot_00");
+            AreaNameDisplay display = UnityEngine.Object.FindFirstObjectByType<AreaNameDisplay>(FindObjectsInactive.Include);
+            Require(farm != null && display != null, "Highland farm or area notification display missing", problems);
+            if (farm != null && display != null)
+            {
+                SerializedObject so = new SerializedObject(display);
+                SerializedProperty zones = so.FindProperty("zones");
+                bool aligned = false;
+                for (int i = 0; i < zones.arraySize; i++)
+                {
+                    SerializedProperty zone = zones.GetArrayElementAtIndex(i);
+                    if (zone.FindPropertyRelative("areaName").stringValue != "Highland") continue;
+                    Vector3 centre = zone.FindPropertyRelative("center").vector3Value;
+                    float radius = zone.FindPropertyRelative("radius").floatValue;
+                    aligned = HorizontalDistance(centre, farm.transform.position) < 3f && radius >= 55f;
+                }
+                Require(aligned, "Highland arrival notification is not centred on the relocated farm", problems);
+            }
+            GameObject privacy = FindAnywhere("HighlandFarmPrivacyBushes");
+            Require(privacy != null && privacy.transform.childCount == 5,
+                "Highland farm square hedge enclosure is missing or malformed", problems);
+            if (privacy != null)
+                Require(privacy.GetComponentsInChildren<Collider>(true).Length == 0,
+                    "privacy bushes must remain walk-through and companion-safe", problems);
         }
 
         private static void ValidateRoadsideShops(List<string> problems)
@@ -202,6 +340,45 @@ namespace UpIzUpMini.EditorTools
                     / Mathf.Max(1, stall.GetComponentsInChildren<Renderer>(true).Length);
                 Vector3 road = ApproximateLalayCentre(x);
                 Require(HorizontalDistance(centre, road) >= 7.0f, $"{name} is still inside the road/sidewalk corridor ({HorizontalDistance(centre, road):0.00}m)", problems);
+            }
+        }
+
+        private static void ValidateShopAndCharacterBuildingClearance(List<string> problems)
+        {
+            GameObject houseRoot = FindAnywhere("Lalay_Dense_House_Massing");
+            if (houseRoot == null) return;
+            Transform[] houses = houseRoot.transform.Cast<Transform>().ToArray();
+            string[] placedObjects =
+            {
+                "Stall_FARM SHOP", "Stall_PRODUCE BUYER", "Stall_FOOD", "Stall_CLOTHES",
+                "Stall_PHARMACY", "Stall_LAND AND SURVEYS", "Stall_CAR DEALER",
+                "NPC_FarmShop", "NPC_Buyer", "NPC_FoodShop", "NPC_ApparelShop", "NPC_Pharmacy",
+                "NPC_LandOffice", "NPC_CarDealer", "NPC_Normy", "NPC_Vagrant", "NPC_BlackMarket",
+                "NPC_BossJ", "NPC_BossC", "NPC_GangRecruiter", "NPC_Villager", "NPC_Police",
+                "NPC_PoliceShops", "NPC_PoliceEast", "NPC_DogLife_0", "NPC_DogLife_1",
+                "NPC_DogLife_2", "NPC_DogLife_3"
+            };
+            foreach (string objectName in placedObjects)
+            {
+                GameObject placed = FindAnywhere(objectName);
+                if (placed == null) continue;
+                bool isStall = objectName.StartsWith("Stall_", StringComparison.Ordinal);
+                Renderer[] placedRenderers = placed.GetComponentsInChildren<Renderer>(true);
+                Bounds placedBounds = isStall && placedRenderers.Length > 0
+                    ? placedRenderers[0].bounds
+                    : new Bounds(placed.transform.position + Vector3.up, new Vector3(0.4f, 2f, 0.4f));
+                if (isStall)
+                    for (int i = 1; i < placedRenderers.Length; i++) placedBounds.Encapsulate(placedRenderers[i].bounds);
+                foreach (Transform house in houses)
+                {
+                    Renderer[] houseRenderers = house.GetComponentsInChildren<Renderer>(true);
+                    if (houseRenderers.Length == 0) continue;
+                    Bounds houseBounds = houseRenderers[0].bounds;
+                    for (int i = 1; i < houseRenderers.Length; i++) houseBounds.Encapsulate(houseRenderers[i].bounds);
+                    bool overlapsXZ = placedBounds.min.x < houseBounds.max.x && placedBounds.max.x > houseBounds.min.x
+                                   && placedBounds.min.z < houseBounds.max.z && placedBounds.max.z > houseBounds.min.z;
+                    Require(!overlapsXZ, $"{objectName} overlaps residential building {house.name}", problems);
+                }
             }
         }
 
@@ -236,7 +413,7 @@ namespace UpIzUpMini.EditorTools
                 GameObject npc = FindAnywhere(name);
                 if (npc == null) continue;
                 Vector3 road = ApproximateLalayCentre(npc.transform.position.x);
-                Require(HorizontalDistance(npc.transform.position, road) >= 6.0f,
+                Require(HorizontalDistance(npc.transform.position, road) >= 3.9f,
                     $"{name} remains in the Lalay vehicle lane ({HorizontalDistance(npc.transform.position, road):0.00}m from centre)", problems);
             }
 

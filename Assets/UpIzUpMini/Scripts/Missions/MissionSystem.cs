@@ -21,6 +21,11 @@ namespace UpIzUpMini.Missions
         AssignFarmhand,// leave the inactive protagonist tending a crop
         ChoosePath,    // L legitimate farming / K risky weed route
         FollowNpc,     // MINI-081: stay near a named, moving NPC (walking or driving) for a stretch of time
+        RestAtSafehouse,
+        TalkToCleanPolice,
+        BribeNormy,
+        DeliverItem,   // MINI-110: hand over a specific held consumable item (targetId = item id) to whoever asked for it
+        DefeatAllRivals, // MINI-119: every member of a named RivalGangSpawner's pool (targetId = spawner GameObject name) must be knocked out
     }
 
     [Serializable]
@@ -28,6 +33,7 @@ namespace UpIzUpMini.Missions
     {
         public ObjectiveKind kind;
         [TextArea(1, 2)] public string instruction;
+        [TextArea(1, 5)] public string dialogueBanner;
         public string targetId;       // npc name / crop id / shop item id
         public int requiredCount = 1;
         public Vector3 markerPosition;
@@ -55,6 +61,13 @@ namespace UpIzUpMini.Missions
         [TextArea(1, 3)] public string briefing;
         public int rewardMoney;
         public CareerPath requiredPath = CareerPath.Undecided;
+        public bool commitToWeedRouteOnComplete;
+        // MINI-111: applied the moment this mission BECOMES current (mirrors
+        // commitToWeedRouteOnComplete's own apply-on-transition pattern) -
+        // Rasta's teaching missions unlock their tier's crop as soon as the
+        // mission starts (its own briefing IS the teaching moment), rather
+        // than needing NPC-specific code to react to a later interaction.
+        public string unlocksCropId;
         public List<MissionObjective> objectives = new List<MissionObjective>();
     }
 
@@ -159,7 +172,8 @@ namespace UpIzUpMini.Missions
             if (_objectiveIndex < mission.objectives.Count)
             {
                 PrepareCurrentObjective();
-                ShowBanner(CurrentObjective.instruction);
+                ShowBanner(string.IsNullOrEmpty(CurrentObjective.dialogueBanner)
+                    ? CurrentObjective.instruction : CurrentObjective.dialogueBanner);
                 return;
             }
 
@@ -172,6 +186,9 @@ namespace UpIzUpMini.Missions
                        (mission.rewardMoney > 0 ? $"\n+${mission.rewardMoney}" : string.Empty));
             OnMissionComplete?.Invoke(mission);
 
+            if (mission.commitToWeedRouteOnComplete)
+                ProgressionManager.Instance?.CommitToWeedRoute();
+
             _missionIndex++;
             _objectiveIndex = 0;
             SkipUnavailableMissions();
@@ -179,6 +196,8 @@ namespace UpIzUpMini.Missions
             if (Current != null)
             {
                 PrepareCurrentObjective();
+                if (!string.IsNullOrEmpty(Current.unlocksCropId))
+                    ProgressionManager.Instance?.MarkRastaTaught(Current.unlocksCropId);
                 // Small delay isn't modelled; the next briefing simply
                 // replaces the completion banner on the next event.
                 _pendingBriefing = $"{Current.title}\n{Current.briefing}";
@@ -259,6 +278,24 @@ namespace UpIzUpMini.Missions
                     AdvanceObjective();
                 }
             }
+            else if (obj.kind == ObjectiveKind.DefeatAllRivals)
+            {
+                // MINI-119: cached the same way FollowNpc caches its
+                // target above - GameObject.Find is a name lookup, done
+                // once per objective rather than every frame.
+                if (obj.followTargetCache == null && !string.IsNullOrEmpty(obj.targetId))
+                {
+                    obj.followTargetCache = GameObject.Find(obj.targetId);
+                }
+                var spawner = obj.followTargetCache != null
+                    ? obj.followTargetCache.GetComponent<Interaction.RivalGangSpawner>()
+                    : null;
+                if (spawner != null && spawner.AllDefeated)
+                {
+                    obj.progress = obj.requiredCount;
+                    AdvanceObjective();
+                }
+            }
         }
 
         private void PrepareCurrentObjective()
@@ -267,6 +304,36 @@ namespace UpIzUpMini.Missions
             if (obj == null) return;
             obj.followTimer = 0f;
             obj.followTargetCache = null;
+
+            // MINI-109: retrospective completion, one consistent rule -
+            // when the game can already PROVE an objective's requirement
+            // is satisfied (the player provably owns the item outright),
+            // credit it immediately instead of forcing a repeat purchase
+            // EconomyManager.TryPurchase would refuse anyway ("You already
+            // have X", since non-consumables can't be bought twice) with
+            // no path left to ever notify this objective. This is a
+            // one-way CREDIT only, never a lock: an objective the player
+            // has not yet actually satisfied is left completely untouched
+            // and must still be earned the normal way. Every other
+            // objective kind keeps today's behaviour (progression lock) -
+            // deliberately not extended blind to kinds with no equally
+            // provable "already done" signal.
+            if (obj.kind == ObjectiveKind.BuyItem && !string.IsNullOrEmpty(obj.targetId)
+                && EconomyManager.Instance != null && EconomyManager.Instance.OwnsItem(obj.targetId))
+            {
+                obj.progress = Mathf.Max(1, obj.requiredCount);
+                AdvanceObjective();
+                return;
+            }
+
+            if (obj.kind == ObjectiveKind.TalkTo
+                && string.Equals(obj.targetId, "BoatMan", StringComparison.OrdinalIgnoreCase))
+            {
+                var boatMen = UnityEngine.Object.FindObjectsByType<Interaction.TownNPCInteractable>(
+                    FindObjectsInactive.Include, FindObjectsSortMode.None);
+                foreach (var boatMan in boatMen)
+                    if (boatMan != null && boatMan.name == "NPC_BoatMan") boatMan.EnsurePresentForMission();
+            }
         }
 
         public bool HasReachedMission(string missionId)
@@ -316,6 +383,15 @@ namespace UpIzUpMini.Missions
         }
 
         public void Alert(string text) => ShowBanner(text);
+
+        public void CompleteCurrentMissionCheat()
+        {
+            Mission mission = Current;
+            if (mission == null) return;
+            _objectiveIndex = Mathf.Max(0, mission.objectives.Count - 1);
+            if (CurrentObjective != null) CurrentObjective.progress = Mathf.Max(1, CurrentObjective.requiredCount);
+            AdvanceObjective();
+        }
 
         public void FinishOpeningConversation()
         {

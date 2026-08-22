@@ -78,7 +78,21 @@ namespace UpIzUpMini.EditorTools
         // MINI-066 adds a rider, their mass should be ADDED at mount time
         // (rb.mass += riderMassKg or similar), not folded back into this
         // constant.
-        private const float BikeMassKg = 220f;
+        // MINI-118, user: "make the bike heavier a lot heavier but still
+        // keep the same wheeling and leaning... anytime i hit a slight
+        // bump... the bike bumps too high or too much." Was 220f (real
+        // TMAX wet weight). Increased ~2.18x: the spring rate/damper below
+        // are BOTH derived from this constant, so a heavier bike gets a
+        // proportionally stiffer/more damped suspension automatically -
+        // same sag depth, same settle behaviour - while a fixed-size bump
+        // impulse now produces a proportionally smaller velocity change
+        // (Δv = impulse / mass), which is the actual physics of "harder to
+        // launch." The wheelie mechanic is fully kinematic (MoveRotation,
+        // not torque) and the lean/stability corrections use
+        // ForceMode.Acceleration (mass-independent by Unity's own
+        // definition) - neither can be affected by this change, so
+        // "keep the same wheeling and leaning" holds without touching them.
+        private const float BikeMassKg = 480f;
         // MINI-077, then MINI-080 (user: "still... lower this a lot"): a real
         // IMPACT complaint, distinct from an earlier fix that only tuned
         // settling (small-amplitude behaviour) at rest. Pushed further both

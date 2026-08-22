@@ -1,6 +1,7 @@
 using UnityEngine;
 using UpIzUpMini.Character;
 using UpIzUpMini.Missions;
+using UpIzUpMini.UI;
 
 namespace UpIzUpMini.Vehicles
 {
@@ -35,8 +36,75 @@ namespace UpIzUpMini.Vehicles
 
         private bool _tmaxSpawned;
         private bool _roverSpawned;
+        // MINI-113: distinct from every other GtaMiniMapMarker colour
+        // already in use (shop/mission/police/gang/community/property).
+        private static readonly Color VehicleMarkerColour = new Color(0.95f, 0.55f, 0.10f);
+
+        // MINI-119 follow-up, user: "you will have to spawn a bike and car
+        // close to where i start the game because i am unable to buy the
+        // bike and car right now. to test." A temporary testing aid, same
+        // on/off-flag convention as Mini065TmaxPhysicsTest.IncludeDevTuner -
+        // flip back to false once bike/hill tuning is done and the normal
+        // dealer-purchase flow is reachable again. Does not touch the
+        // scene file at all (pure runtime code), so it is safe to ship
+        // without re-running any scene builder and re-wiping the user's
+        // own manual hedge/farm-plot/safehouse placement edits.
+        private const bool DevSpawnNearPlayerOnStart = true;
+        private bool _devSpawnDone;
 
         private void Awake() => Instance = this;
+
+        private void Update()
+        {
+            if (!DevSpawnNearPlayerOnStart || _devSpawnDone) return;
+
+            var active = CharacterSwitchManager.Instance?.Active;
+            if (active?.root == null) return; // keep waiting - player may not exist yet (intro/dialogue delay)
+
+            _devSpawnDone = true;
+            DevSpawnNearPlayer(active.root.transform);
+        }
+
+        /// <summary>
+        /// Spawns both vehicles right next to the player's own current
+        /// position instead of at the dealer - see DevSpawnNearPlayerOnStart's
+        /// own comment. Marks both as already-spawned (same _tmaxSpawned/
+        /// _roverSpawned flags SpawnPurchasedVehicle checks), so a later
+        /// real purchase attempt at the dealer just says "already have it"
+        /// instead of stacking a second copy.
+        /// </summary>
+        private void DevSpawnNearPlayer(Transform player)
+        {
+            Vector3 forward = player.forward;
+            Vector3 right = player.right;
+
+            if (tmaxPrefab != null && !_tmaxSpawned)
+            {
+                Vector3 pos = GroundSnap(player.position + forward * 3f - right * 2.5f);
+                var bike = Instantiate(tmaxPrefab, pos, Quaternion.LookRotation(forward, Vector3.up));
+                bike.name = "PlayerTMAX";
+                _tmaxSpawned = true;
+                bike.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "TMAX 560", VehicleMarkerColour);
+                Debug.Log("MINI-119 DEV SPAWN: TMAX placed next to the player for testing (DevSpawnNearPlayerOnStart).");
+            }
+
+            if (roverPrefab != null && !_roverSpawned)
+            {
+                Vector3 pos = GroundSnap(player.position + forward * 3f + right * 2.5f);
+                var rover = Instantiate(roverPrefab, pos, Quaternion.LookRotation(forward, Vector3.up));
+                rover.name = "PlayerRangeRover";
+                _roverSpawned = true;
+                rover.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "Range Rover", VehicleMarkerColour);
+                Debug.Log("MINI-119 DEV SPAWN: Range Rover placed next to the player for testing (DevSpawnNearPlayerOnStart).");
+            }
+        }
+
+        private static Vector3 GroundSnap(Vector3 pos)
+        {
+            if (Physics.Raycast(pos + Vector3.up * 10f, Vector3.down, out RaycastHit hit, 30f))
+                return hit.point;
+            return pos;
+        }
 
         /// <summary>
         /// Puts the player's bike back on its home spot outside the farm
@@ -101,6 +169,10 @@ namespace UpIzUpMini.Vehicles
                 var rover = Instantiate(roverPrefab, roverPos, roverRot);
                 rover.name = "PlayerRangeRover";
                 _roverSpawned = true;
+                // MINI-113: "add minimap markers for owned/usable vehicles" -
+                // added at spawn time (not build time) since the vehicle
+                // GameObject doesn't exist until actually purchased.
+                rover.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "Range Rover", VehicleMarkerColour);
 
                 string roverFeedback = "Parked on the road, keys in it.";
                 MissionSystem.Instance?.Alert("RANGE ROVA DELIVERED\n" + roverFeedback);
@@ -138,6 +210,8 @@ namespace UpIzUpMini.Vehicles
             }
             bike.name = "PlayerTMAX";
             _tmaxSpawned = true;
+            if (bike.GetComponent<GtaMiniMapMarker>() == null)
+                bike.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "TMAX 560", VehicleMarkerColour);
 
             string feedback = "Parked on the road, keys in it.";
             MissionSystem.Instance?.Alert("TNAX 560 DELIVERED\n" + feedback);

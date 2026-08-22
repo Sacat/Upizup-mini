@@ -21,8 +21,15 @@ namespace UpIzUpMini.EditorTools
 
         /// <summary>MINI-080: whether the live tuning panel (T key) ships on
         /// the real bike. Off while not actively tuning - flip back to true
-        /// and re-run WireController whenever tuning resumes.</summary>
-        private const bool IncludeDevTuner = false;
+        /// and re-run WireController whenever tuning resumes.
+        /// MINI-119 follow-up, user: "i want to do this in the game scene...
+        /// i can tell you to save it when i have done all the edits" -
+        /// flipped back on so the panel (now including the anti-spin/hill-
+        /// climb/air-gravity sliders) rides along on the real, purchasable
+        /// bike in GrandBayProof itself. Flip back to false and re-run
+        /// WireController once the user reports final numbers and they're
+        /// baked into this file's own defaults.</summary>
+        private const bool IncludeDevTuner = true;
 
         [MenuItem("Up Iz Up Mini/MINI-065/Wire TMAX Controller Onto Prefab")]
         public static void WireController()
@@ -67,6 +74,19 @@ namespace UpIzUpMini.EditorTools
             // (the same trap already hit this project's wheelie key and the
             // Range Rover's centre of mass).
             bikeSo.FindProperty("wheelieMinSpeedKmh").floatValue = 8f;
+            // MINI-118: same trap - motorTorque/brakeTorque/
+            // wheelieRearTorqueBoost were scaled up in the C# defaults to
+            // match the heavier bike, but an already-existing
+            // TmaxBikeController on the prefab would otherwise keep its
+            // old, now-undersized values forever.
+            // MINI-119: raised again, past the MINI-118 mass-parity value,
+            // per the user's "should have enough power to climb hill and
+            // ledges" - same trap, written explicitly so an existing
+            // prefab's TmaxBikeController actually picks up the new value.
+            bikeSo.FindProperty("motorTorque").floatValue = 950f;
+            bikeSo.FindProperty("brakeTorque").floatValue = 1200f;
+            bikeSo.FindProperty("wheelieRearTorqueBoost").floatValue = 1960f;
+            bikeSo.FindProperty("wheelieRiseRate").floatValue = 72f;
             // MINI-079: was 42.36deg - far past the rider's own 15deg roll
             // clamp (riderMaxLeanDegrees). At full lean the BIKE BODY kept
             // leaning all the way to 42deg while the rider's own lean got

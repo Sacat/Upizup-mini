@@ -1,0 +1,42 @@
+{
+  "$schema": "../System/CharacterManifest.schema.json",
+  "schemaVersion": 1,
+  "characterId": "sacat",
+  "displayName": "Sacat",
+  "source": {
+    "masterFbx": "Docs/CharacterPipeline/MINI-105/AccuRigOutput/Sacat-ModularBase-Rigged-Unity.fbx",
+    "approvedReference": "Docs/CharacterPipeline/MINI-105/References/Sacat-approved-reference.png",
+    "licenseRecord": "User-created Hitem3D output; approval recorded by MINI-105/VA-006",
+    "identityLock": "VA-006"
+  },
+  "unity": {
+    "assetRoot": "Assets/UpIzUpMini/Art/Characters/Modular/Sacat",
+    "mobilePrefab": "Assets/UpIzUpMini/Art/Characters/Modular/Sacat/Mobile/Prefabs/SacatModularBase_Mobile.prefab",
+    "axisCorrectionEuler": [90, 0, 0]
+  },
+  "rig": {
+    "type": "Humanoid",
+    "requiredFingerJoints": 30,
+    "maxWeightsPerVertex": 4
+  },
+  "mobile": {
+    "lodTriangleTargets": [25000, 12000, 4500],
+    "androidTextureMax": 1024,
+    "materialCap": 1
+  },
+  "proof": {
+    "idle": { "asset": "Assets/UpIzUpMini/Art/Animations/Stand--Idle.anim.fbx", "clip": "Idle" },
+    "walk": { "asset": "Assets/UpIzUpMini/Art/Animations/Locomotion--Walk_N.anim.fbx", "clip": "Walk_N" },
+    "run": { "asset": "Assets/UpIzUpMini/Art/Animations/Locomotion--Run_N.anim.fbx", "clip": "Run_N" },
+    "jumpStart": { "asset": "Assets/UpIzUpMini/Art/Animations/Jump--Jump.anim.fbx", "clip": "JumpStart" },
+    "inAir": { "asset": "Assets/UpIzUpMini/Art/Animations/Jump--InAir.anim.fbx", "clip": "InAir" },
+    "jumpLand": { "asset": "Assets/UpIzUpMini/Art/Animations/Jump--Jump.anim.fbx", "clip": "JumpLand" },
+    "fist": { "asset": "Assets/Kevin Iglesias/Human Animations/Animations/Masked Poses/Human@HandsClosed01.fbx", "clip": "Human@HandsClosed01" },
+    "grip": { "asset": "Assets/Kevin Iglesias/Human Animations/Animations/Masked Poses/Human@ObjectGripHands01.fbx", "clip": "Human@ObjectGripHands01" }
+  },
+  "gates": {
+    "staticApproved": true,
+    "motionApproved": false,
+    "playableIntegration": false
+  }
+}

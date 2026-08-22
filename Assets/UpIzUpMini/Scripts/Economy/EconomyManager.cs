@@ -79,6 +79,13 @@ namespace UpIzUpMini.Economy
 
         public int GetSeeds(string cropId) => _seeds.TryGetValue(cropId, out int c) ? c : 0;
 
+        public bool HasIllegalGoods()
+        {
+            foreach (string id in new[] { "bushers", "black_sugar", "purple", "purple_black", "blue_cheese", "sugar_cheese", "purple_cheese" })
+                if (GetCount(id) > 0 || GetSeeds(id) > 0) return true;
+            return false;
+        }
+
         public void AddSeeds(string cropId, int amount)
         {
             _seeds.TryGetValue(cropId, out int current);
@@ -215,6 +222,25 @@ namespace UpIzUpMini.Economy
 
         public int GetConsumableCount(string itemId) =>
             _consumables.TryGetValue(itemId, out int c) ? c : 0;
+
+        /// <summary>MINI-110: hands a stashed consumable over to an NPC
+        /// (Normy's item favour) rather than using it - deliberately does
+        /// NOT apply the item's vitals effect the way UseConsumable does.</summary>
+        public bool TrySpendConsumable(string itemId, int count, out string message)
+        {
+            int have = GetConsumableCount(itemId);
+            if (have < count)
+            {
+                string name = _consumableCatalog.TryGetValue(itemId, out var def) && def != null ? def.displayName : itemId;
+                message = $"Allu need {count} {name} - only have {have}.";
+                return false;
+            }
+
+            _consumables[itemId] = have - count;
+            message = null;
+            OnChanged?.Invoke();
+            return true;
+        }
 
         /// <summary>Every stashed item id with a count > 0 and its catalog
         /// definition, for the inventory panel to list. A List snapshot

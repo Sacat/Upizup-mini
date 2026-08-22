@@ -60,9 +60,17 @@ namespace UpIzUpMini.EditorTools
                 "expected Seat/HandlebarLeft/HandlebarRight/LeftFootTarget/RightFootTarget/CameraTarget anchors.");
 
             // --- Physics component sanity. ---
+            // MINI-118, user: "make the bike heavier a lot heavier... anytime
+            // i hit a slight bump... the bike bumps too high." A real-world
+            // TMAX (100-400kg) is no longer the intended target - deliberately
+            // heavier than reality now (480kg) so ordinary bumps impart a
+            // smaller velocity change (Δv = impulse/mass). Range widened to
+            // still catch a genuine mistake (e.g. an accidental 0 or a
+            // four-figure typo) without re-imposing real-world realism this
+            // task deliberately abandoned.
             var rb = prefab.GetComponent<Rigidbody>();
-            Check(ref pass, ref fail, rb != null && rb.mass > 100f && rb.mass < 400f,
-                $"expected a Rigidbody with a plausible mass (100-400kg), got {(rb == null ? "none" : rb.mass.ToString())}.");
+            Check(ref pass, ref fail, rb != null && rb.mass > 100f && rb.mass < 900f,
+                $"expected a Rigidbody with a plausible mass (100-900kg, deliberately above real-world TMAX weight per MINI-118), got {(rb == null ? "none" : rb.mass.ToString())}.");
 
             var bodyCollider = prefab.GetComponent<BoxCollider>();
             Check(ref pass, ref fail, bodyCollider != null, "expected a simple BoxCollider for body collision (not a full mesh collider).");

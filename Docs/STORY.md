@@ -142,9 +142,30 @@ carrots.
 
 ## Chapter Two — Fast Money
 
+### Current playable bridge into Fast Money
+
+After the first legal deliveries, Sacat and Franki explicitly choose how quickly to approach Boss J. Pressing K goes directly to him. Pressing L continues two more legal tomato harvest-and-sale loops: the low pay becomes increasingly frustrating, Franki says, “Gasah, that frustrating me,” and Sacat reluctantly agrees to check the bossman despite hearing that he “does bobol people on paying.” Both choices therefore rejoin the same Boss J route without pretending that the temporary legal choice is a separate ending.
+
+After the first Bushers handoff, the playable heat lesson is split into two clear beats: rest at the Highland safehouse, then approach two different regular police officers while carrying no weed or weed seeds. Normy is introduced separately as a corrupt contact; $100 removes 20% heat after his cooldown. Boss J's withheld or reduced payments are revealed in dialogue after delivery, not spoiled in the objective text.
+
+### Approved revised Grand Bay progression after the early heat lesson
+
+The user's 2026-08-21 playtest establishes this order for the next implementation packets. It supersedes the current late-mission ordering wherever the two conflict, while retaining existing save-compatible IDs.
+
+1. **Clean Face repair:** Normy takes the mission payment once and the mission completes. His repeat heat service remains an ambient later interaction, not a reason to trap the mission.
+2. **Normy's favour:** before sending the boys to the Boat Man, Normy asks for specific food and pharmacy items. After delivery, he admits he does not know who is taking their crop/stuff and suggests asking the Boat Man about Gardey Zafeh in Guadeloupe.
+3. **Boat Man introduction:** he recognizes their hustle and offers future euro work, then agrees to connect them to the scene around Gardey in Gwada. Earlier dialogue should mention rising gang attention without revealing Dog Life too early.
+4. **Rasta's strain school:** Rasta no longer requests tomatoes. He tests three Bushers, then three Black Sugar, three Purple, Blue Cheese and, later, the mixed strains Purple Sugar, Sugar Cheese and Purple Cheese. Each step is more valuable and remains hidden until its mission unlock.
+5. **Grand Bay market confidence:** only after the boys master the strain ladder and build meaningful stock do they believe they are winning Grand Bay and become ready for Guadeloupe.
+6. **Dog Life jealousy:** the rival gang reacts to the boys' growing stock and reputation. The boys must build their own crew before the block confrontation. Dog Life can regroup and return rather than being permanently erased.
+7. **Guadeloupe before Roseau:** the inactive protagonist can travel with the Boat Man, disappear from the playable scene, remain unswitchable and return after a visible timer. Guadeloupe progression must be established before Roseau opens.
+8. **Community counterweight:** Brakes, the priest, gives community/supply errands and health-restoring blessings without selling personal favors. This supports the legitimate/community side of the story while risk increases.
+
+The cellphone becomes a progression reward: first to call the farming partner, later to call recruited crew for backup. These systems should be introduced through missions and hints rather than being available without context.
+
 ### Mission 5: The Offer
 
-A fictional middleman known temporarily as Boss K approaches them.
+A fictional middleman known as Boss J approaches them. The legacy internal identifier `BossK` remains save-compatible only and is never player-facing.
 
 Boss K has been watching their deliveries and knows they can grow reliable
 crops without attracting attention. He offers them Bushers, the cheapest

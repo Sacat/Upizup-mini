@@ -37,6 +37,14 @@ namespace UpIzUpMini.Combat
         public bool IsDown { get; private set; }
         public float Health => health;
 
+        /// <summary>MINI-112: Time.time this fighter was last knocked out
+        /// via the despawn path (float.NegativeInfinity if never). Read by
+        /// RivalGangSpawner to gate how soon a defeated Dog Life member is
+        /// allowed to reappear - previously OnEnable's own ResetForRespawn
+        /// meant simply reactivating the GameObject undid a defeat
+        /// instantly, however little time had actually passed.</summary>
+        public float LastDefeatedAt { get; private set; } = float.NegativeInfinity;
+
         void Awake()
         {
             health = maxHealth;
@@ -47,7 +55,12 @@ namespace UpIzUpMini.Combat
         void OnEnable()
         {
             if (!All.Contains(this)) All.Add(this);
-            if (despawnOnDefeat && IsDown) ResetForRespawn();
+            // MINI-112: used to unconditionally ResetForRespawn() here,
+            // which meant simply reactivating the GameObject undid a
+            // defeat instantly regardless of how little time had passed.
+            // The only caller that reactivates a despawnOnDefeat character
+            // (RivalGangSpawner) now calls ResetForRespawn() itself, after
+            // checking a real cooldown against LastDefeatedAt.
         }
 
         void OnDisable()
@@ -67,6 +80,7 @@ namespace UpIzUpMini.Combat
             {
                 IsDown = true;
                 recoverAt = Time.time + recoverSeconds;
+                LastDefeatedAt = Time.time;
                 if (despawnOnDefeat) despawnAt = Time.time + despawnDelay;
                 // Held at full weight (no auto-fade, unlike a one-shot
                 // PlayAction) so the character stays lying down for the

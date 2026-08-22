@@ -54,12 +54,19 @@ namespace UpIzUpMini.Interaction
             {
                 if (!recruitViaReputation) return; // handled by the paid recruiter NPC instead
 
-                if (!ProgressionGate.CanRecruit)
+                // MINI-117: this used to check the combined
+                // ProgressionGate.CanRecruit (mission-reached AND
+                // rep>=recruitReputationThreshold), which meant a
+                // low-reputation refusal always landed here with this
+                // generic message - the more specific "You nuh have di
+                // respect yet" message below could never actually fire,
+                // since CanRecruit's own rep check always caught it first.
+                // Split: only gate on the mission being reached here: the
+                // reputation threshold is this component's own business,
+                // checked once, right below, with its own clearer message.
+                if (!ProgressionGate.IsMissionReached("M15"))
                 {
-                    int current = ProgressionManager.Instance != null
-                        ? ProgressionManager.Instance.GetReputation(Faction.GrandBayGangs)
-                        : 0;
-                    _feedback = $"{member.MemberName}: Build your name first, boss. Street rep at {current}%.";
+                    _feedback = $"{member.MemberName}: Not ready to talk business yet, boss.";
                     return;
                 }
 

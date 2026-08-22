@@ -27,6 +27,7 @@ namespace UpIzUpMini.UI
         private RenderTexture _texture;
         private Sprite _dotSprite;
         private RectTransform _objectiveIcon;
+        private Image _objectiveImage;
 
         private void Start()
         {
@@ -96,10 +97,10 @@ namespace UpIzUpMini.UI
             _objectiveIcon = objective.GetComponent<RectTransform>();
             _objectiveIcon.SetParent(blipRoot, false);
             _objectiveIcon.sizeDelta = new Vector2(19f, 19f);
-            Image objectiveImage = objective.GetComponent<Image>();
-            objectiveImage.sprite = _dotSprite;
-            objectiveImage.color = new Color(1f, 0.78f, 0.12f, 1f);
-            objectiveImage.raycastTarget = false;
+            _objectiveImage = objective.GetComponent<Image>();
+            _objectiveImage.sprite = _dotSprite;
+            _objectiveImage.color = new Color(1f, 0.78f, 0.12f, 1f);
+            _objectiveImage.raycastTarget = false;
         }
 
         private void UpdateBlips()
@@ -121,15 +122,27 @@ namespace UpIzUpMini.UI
             }
             MissionObjective active = MissionSystem.Instance?.CurrentObjective;
             bool showObjective = active != null && active.hasMarker;
-            if (showObjective) showObjective = PositionIcon(_objectiveIcon, active.markerPosition);
+            if (showObjective) showObjective = PositionIcon(_objectiveIcon, active.markerPosition, true);
             if (_objectiveIcon != null) _objectiveIcon.gameObject.SetActive(showObjective);
+            if (showObjective && _objectiveImage != null)
+            {
+                float pulse = 0.55f + Mathf.PingPong(Time.unscaledTime * 1.8f, 0.45f);
+                _objectiveImage.color = new Color(1f, 0.78f, 0.08f, pulse);
+                _objectiveIcon.localScale = Vector3.one * Mathf.Lerp(0.85f, 1.25f, pulse);
+            }
         }
 
-        private bool PositionIcon(RectTransform icon, Vector3 worldPosition)
+        private bool PositionIcon(RectTransform icon, Vector3 worldPosition, bool clampToEdge = false)
         {
             if (icon == null || mapCamera == null) return false;
             Vector3 viewport = mapCamera.WorldToViewportPoint(worldPosition + Vector3.up * 1.5f);
-            if (viewport.z <= 0f || viewport.x < 0f || viewport.x > 1f || viewport.y < 0f || viewport.y > 1f) return false;
+            if (viewport.z <= 0f) return false;
+            if (!clampToEdge && (viewport.x < 0f || viewport.x > 1f || viewport.y < 0f || viewport.y > 1f)) return false;
+            if (clampToEdge)
+            {
+                viewport.x = Mathf.Clamp(viewport.x, 0.07f, 0.93f);
+                viewport.y = Mathf.Clamp(viewport.y, 0.07f, 0.93f);
+            }
             Rect rect = blipRoot.rect;
             icon.anchoredPosition = new Vector2((viewport.x - 0.5f) * rect.width, (viewport.y - 0.5f) * rect.height);
             return true;

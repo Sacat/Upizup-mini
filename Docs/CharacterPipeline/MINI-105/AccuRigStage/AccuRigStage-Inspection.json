@@ -1,0 +1,11 @@
+{
+  "source": "C:\\Users\\PCSS-PC\\Downloads\\Hi3D_Untitled_allparts_20260820_223739.glb",
+  "target_height_m": 1.85,
+  "before_vertices": 1014685,
+  "before_polygons": 2000000,
+  "after_vertices": 61704,
+  "after_polygons": 100000,
+  "fbx_exported": true,
+  "obj_exported": true,
+  "purpose": "Full body and five-finger AccuRIG calibration proof; not the final mobile mesh."
+}

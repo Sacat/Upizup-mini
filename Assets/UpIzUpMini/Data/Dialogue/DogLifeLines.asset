@@ -31,3 +31,18 @@ MonoBehaviour:
     category: 0
     text: Watch yuhself round here, mn.
     conditions: []
+  - speaker: Dog Life
+    category: 4
+    text: Allu doing good for yuhself lately, eh? Black Sugar, Purple... Grand Bay
+      getting small for two gangs.
+    conditions:
+    - type: 7
+      faction: 0
+      threshold: 0
+      careerPath: 0
+      cropId: 
+    - type: 4
+      faction: 0
+      threshold: 0
+      careerPath: 0
+      cropId: black_sugar

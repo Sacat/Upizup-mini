@@ -1,0 +1,18 @@
+{
+  "source": "C:\\Users\\PCSS-PC\\Downloads\\Hi3D_Untitled_allparts_20260820_223739.glb",
+  "source_bytes": 58037736,
+  "mesh_count": 1,
+  "armature_count": 0,
+  "meshes": [
+    {
+      "name": "geometry_0",
+      "vertices": 1014685,
+      "polygons": 2000000,
+      "materials": [
+        "pbr_material"
+      ],
+      "shape_keys": [],
+      "vertex_groups": 0
+    }
+  ]
+}

@@ -1,5 +1,111 @@
 # Up Iz Up Mini — Changelog
 
+## 2026-08-22 — MINI-119
+
+- Dialogue truncation ("not showing full dialogue" on the boss NPCs): root cause was a background-panel height cap (330px in `MissionHUD.ResizeBanner`), not hold duration - long text rendered past the dark backing with nothing behind it, illegible against the game world except in the middle, exactly the reported symptom. Raised the cap to 620px.
+- Boat Man's most common repeat line ("nothing to load") now rotates through 3 lines instead of always the exact same sentence.
+- Fixed a villager's stale, pre-migration patrol route (was pointed at the old map's terrain) - `PlaceRoadsideNpc` now resets `PatrolNPC` waypoints after repositioning, generically, for every patrol-enabled NPC it places.
+- Rasta now sells Blue Cheese seed directly ($650 for 3 seeds) once his own teaching mission actually unlocks it, with a themed line; never advertised early, never re-offered while already stocked.
+- Blue Cheese/Purple Sugar's plant-selection number keys swapped (7=Blue Cheese, 8=Purple Sugar) to match Rasta's real teaching order; added a minimap marker for the breeding station; extended per-crop hints to every Rasta-taught base strain (Black Sugar/Purple/Blue Cheese), not just the three hybrids.
+- War Story (M16) now requires a real `DefeatAllRivals` objective (every Dog Life member in the block knocked out) before laying low - previously winnable by just walking in.
+- Bike: `motorTorque` raised past MINI-118's mass-parity value (which only preserved the old power-to-weight ratio, not actually stronger); new slope-proportional hill-climb assist (0 on flat ground, full strength on a real incline/ledge under the rear wheel); new yaw-spin assist that damps only the portion of yaw angular velocity above a real-world-tuned threshold, so a hedge/ledge hit still spins - just far less wildly - while ordinary steering-induced yaw is untouched.
+- Cheat `000000` now also sets Normy reputation to 100, matching every other faction it already unlocks.
+- New focused validator (`Mini119BatchFixValidation`) covers every item above with a real gameplay-state assertion; full vehicle+scene rebuild pipeline, every standing validator (058/065/109/110/111/112/113), and the MINI-065 real-physics drop test all re-run clean. Windows build succeeded.
+- Manual road-intersection/farm-hedge adjustment instructions given directly to the user, per their own request to do that part by hand - not implemented as code this round.
+
+## 2026-08-22 — MINI-118
+
+- Bike mass increased ~2.18x (220kg -> 480kg, deliberately above real-world TMAX weight) so ordinary bumps impart a proportionally smaller velocity change and stop launching the bike. The suspension spring/damper are formula-derived from mass, so sag depth and damping ratio stay identical - only stiffness/damping scale up to match.
+- The wheelie mechanic (fully kinematic, `MoveRotation`-driven) and the lean/stability corrections (`ForceMode.Acceleration`, mass-independent by Unity's own definition) needed no changes at all - confirmed by code reading, not assumed.
+- `motorTorque`/`brakeTorque`/`wheelieRearTorqueBoost` scaled by the same mass ratio, since these ARE real mass-dependent drive/brake forces, so acceleration/braking/wheelie-forward-creep don't feel weaker as an unintended side effect.
+- Measured a real, if minor, side effect: real wheelie pitch dropped from an 85.9deg baseline to 77.4deg (still passing the drop test's 76.6deg minimum, but with far less margin) - compensated by raising `wheelieRiseRate`, re-verified at 89.6deg.
+- Added a second, independent safety net per the user's own follow-up suggestion: extra downward "air gravity" once the bike has been genuinely airborne (both wheels off the ground) for a sustained period, gated off during an actual wheelie so it can never fight the intentional lift.
+- All standing vehicle/faction/map validators pass except one unrelated, pre-existing issue (`Mini069GangWarValidation`, an NPC-position check untouched by this task) flagged separately. Windows build and headless smoke clean.
+
+## 2026-08-22 — MINI-113
+
+- Fixed the one real road-ribbon bump: measured every road-pair rather than guessing, found the Highland inroad/farm-spur junction had a 0.286m vertical step (right at the existing static check's own tolerance ceiling), fixed it to 0.000m with a localized post-migration mesh blend.
+- Found and fixed a real, more serious bug: `BikeHomePoint` (the bike's save/load return point) was never included in the map migration's tracked-and-repositioned objects, and was measured 303.52m from the real, migrated safehouse - fixed to 7.34m.
+- Investigated the farm-hedge/road overlap and corrected an earlier wrong measurement: `Collider.ClosestPoint` is unreliable on non-convex road MeshColliders and was falsely reporting 0.00m clearance; re-measured with real mesh vertices and found the hedge was never actually on the road (0.92m-15.21m genuine clearance). A defensive no-op safety net was kept anyway.
+- Added minimap markers for owned/usable vehicles, attached at purchase time.
+- New focused validator, all standing regressions (MINI-058/100/108/109/112) pass, Windows build and headless smoke clean.
+
+## 2026-08-22 — MINI-117
+
+- Fixed the `Mini058FactionsValidation` failure found during MINI-112's regression pass: the validator never initialized `MissionSystem`, so the recruiter's own `IsMissionReached("M15")` gate always refused regardless of anything else - a validator gap, not a real gameplay bug.
+- Found and fixed a second, real bug while fixing the first: `GangMemberInteractable`'s Chevy recruitment path checked a combined mission+reputation gate before its own, more specific reputation check - meaning that second check's clearer refusal message could never actually fire. Split the checks so each does its own job.
+- Added three new in-game hints (`GameplayHintController`) explaining the breeding-station process for each hybrid crop and its plant-selection number key (Purple Sugar = 7, Sugar Cheese = 9, Purple Cheese = 0), per the user's direct request.
+- All standing validators (MINI-108 through MINI-112, plus MINI-058 and MINI-100) pass. Windows build succeeded; 12-second headless smoke test clean.
+
+## 2026-08-22 — MINI-112
+
+- Found and fixed a real steering-contention bug: `FactionBrawler` and `PatrolNPC` both drove the same `CharacterController` every frame with no coordination, so a Dog Life member mid-chase/fight was fought over by two movement systems at once. `PatrolNPC` now yields while `FactionBrawler.IsEngaged`, which also delivers "stop chasing, return to block, resume block behaviour" for free - once a fight/chase ends, the member simply resumes its own ambient waypoint wander.
+- Added a real respawn cooldown: defeated Dog Life members previously reset instantly the moment their GameObject was reactivated, however little time had passed. `NpcCombatHealth.LastDefeatedAt` plus a `RivalGangSpawner`-side ~100-second check now gates each member's reactivation individually.
+- Added a jealousy dialogue line for Dog Life, gated on the existing `CropUnlocked` condition (already true via either the Boss-exploitation path or MINI-111's Rasta ladder) - no new dialogue-condition machinery needed.
+- Added an occasional small-group walk: up to two active, uninvolved (`!IsEngaged`, not knocked out) members periodically walk further down the road on a temporary waypoint swap, then return to their normal spot.
+- New focused validator (`Mini112DogLifeEscalationValidation`). Windows build and a 12-second headless smoke test pass.
+- **Found but left unfixed, deliberately out of scope**: `Mini058FactionsValidation` now fails on a `GangMemberInteractable` reputation-gate line, in a file this packet doesn't touch or reserve - flagged as a new blocker for a future task rather than absorbed here.
+- Hands-on playtesting of a real Dog Life confrontation remains explicitly requested before MINI-113 begins.
+
+## 2026-08-22 — MINI-111
+
+- Rasta stops asking for tomatoes: M13's harvest objective now asks for 3 Bushers, tier one of a new production/strain school.
+- Added six new Rasta missions (M13C2-M13C7), immediately after M13, teaching Black Sugar -> Purple -> Blue Cheese -> Purple Sugar (the `purple_black` hybrid, renamed player-facing) -> Sugar Cheese -> Purple Cheese in order. Each crop is locked until its own mission becomes current, then unlocks automatically via a new `Mission.unlocksCropId` field.
+- New `ProgressionManager.RastaTaught*` flags OR into the existing `IsCropUnlocked` checks - additive to the pre-existing Boss-exploitation-stage unlock path, not a replacement. This gives the Legitimate Farmer career path (which never sees the WeedRoute-only M9W-M11W missions) its first-ever route to any strain past the basics.
+- Found and fixed a real bug along the way: the scene builder's manual field-by-field copy from the in-memory mission list to the built `MissionSystem` component had no line for the new `unlocksCropId` field, so every mission's unlock would have silently baked in as empty - caught by the new focused validator before it shipped broken.
+- New focused validator (`Mini111RastaLadderValidation`), confirming per-tier story-gating and that the pre-existing Boss-exploitation path still independently works. Standing regressions (MINI-108/109/110), a Windows build, and a 12-second headless smoke test all pass. Evidence under `Logs/Tasks/MINI-111/`.
+- Hands-on playtesting on both career paths remains explicitly requested before MINI-112 begins.
+
+## 2026-08-22 — MINI-110
+
+- Added Normy's item favour ("Small Ting", mission M13B) between M13 and M14: a new `ObjectiveKind.DeliverItem` requires actually holding a bought `food_bakes` and `pill_energy` (item-ID/inventory truth via a new `EconomyManager.TrySpendConsumable`), not just visiting the shops.
+- M14's briefing now carries Normy's uncertain street-info hint (somebody may be taking the boys' stock, he doesn't know who, check the Boat Man about Gardey Zafeh), reusing the existing next-mission-briefing banner.
+- Rewrote the Boat Man's first-meeting dialogue to the approved four-line introduction exchange, replacing the old generic one-liner.
+- Added a HUD courier-timer readout, shown only while a Guadeloupe trip is active, naming the away character and a live countdown - connects to `GuadeloupeTrade`'s existing lock/hide/timer API rather than recreating travel.
+- Found and fixed a real bug along the way: the map migration's mission-marker remapper had no case for `DeliverItem`, which would have left M13B's Normy marker stale after migration - the same class of bug MINI-109 fixed for Rasta.
+- New focused validator (`Mini110NarrativeBridgeValidation`). Standing regressions (including MINI-109's own validator), a Windows build, and a 12-second headless smoke test all pass. Evidence and screenshots under `Logs/Tasks/MINI-110/`.
+- Hands-on playtesting (Normy's favour -> Boat Man intro -> a real Guadeloupe courier run) remains explicitly requested before MINI-111 begins.
+
+## 2026-08-22 — MINI-109
+
+- Fixed Clean Face (M5B) getting permanently stuck at Normy: the mission's BribeNormy objective previously had no path except Normy's ambient heat-service bribe, which refuses to do anything once heat is at/near zero - exactly the state M5A ("go rest and cool down") leaves the player in. The mission payment is now a separate, idempotent transaction that doesn't touch the ambient cooldown/heat gate.
+- Fixed Black Sugar delivery to Boss J (M10W) sometimes not advancing: the interact-time gate only checked the player's Bushers count (hardcoded), not any of Boss J's actually-sellable illegal crops, so a player holding only harvested Black Sugar never triggered a sale attempt at all. Now checks for any sellable illegal stock actually held.
+- Fixed M13's Rasta marker pointing at his old location: `Mini100GrandBayMapMigration.ApplyToOpenScene` moved Rasta (and Sacat/Franki) to their final migrated positions AFTER `RemapMissionObjectives()` had already baked in their pre-move positions. Reordered so remapping runs last, against final positions.
+- Added a consistent retrospective-completion rule: a `BuyItem` objective now credits immediately if the player already owns the item outright, instead of forcing a repeat purchase `EconomyManager.TryPurchase` would refuse anyway. Every other objective kind keeps today's progression-lock behaviour.
+- New focused validator (`Mini109MissionRepairValidation`) reproduces all three defects and proves the retrospective-completion rule against the real built scene. Standing mission/map regressions, a Windows build, and a 12-second headless built-player smoke test all pass. Evidence and screenshots under `Logs/Tasks/MINI-109/`.
+- Hands-on mission playtesting (Clean Face -> Black Sugar delivery -> Rasta) remains explicitly requested from the user before MINI-110 begins.
+
+## 2026-08-21 — MINI-109 handoff preparation
+
+- Added a compact, detailed Claude handoff covering the game vision, current architecture, generated-scene truth, completed systems, visual locks, map/character/asset pipelines, tool/live-control rules and verification contract.
+- Replaced the outdated next-agent prompt with a ready-to-paste Claude startup prompt.
+- Created the approved bounded MINI-109 packet for the stuck Normy objective, Black Sugar delivery and stale Rasta marker.
+- Split the larger requested progression into proposed MINI-110 through MINI-116 packets so the user can playtest between changes.
+- Updated current story/design truth; no gameplay code, scenes, assets or build were changed.
+
+## 2026-08-21 — MINI-108
+
+- Added a universal blinking yellow objective that remains on the minimap edge for every distant marked mission, plus a one-time navigation hint.
+- Added a dynamically sized transparent black mission/dialogue background and retained E fast-forward for the opening exchange.
+- Rebuilt the early route: K goes directly to Boss J; L runs an increasingly frustrating legal-farming loop before rejoining Boss J.
+- Replaced the flawed cooldown with Highland safehouse rest, two distinct clean-police conversations, and Normy's $100 service removing 20% heat.
+- Added `111111` mission-skip testing, renamed M6 to `Stock Up`, made Paro's first meeting dialogue-only, improved Boss J delivery dialogue, built curved bananas with a brown hanging stalk, protected bridge approaches and tightened the Boss C-side shanty collider.
+- Map-lab, migrated map and focused MINI-108 validations pass. The Windows build succeeds and its 12-second headless startup contains no errors; hands-on runtime acceptance remains. The user froze the temporary banana for later Hitem3D replacement.
+
+## 2026-08-21 — MINI-106
+
+- Created independent 25k, 12k and 4.5k mobile LOD candidates for the approved Sacat modular base.
+- Preserved the 101-bone Humanoid/finger hierarchy, one material, zero unweighted vertices and four maximum skin influences.
+- Added an isolated Unity three-level LODGroup prefab and corrected the Blender/Unity 90-degree visual-axis difference after fixed screenshots rejected two lying-down attempts.
+- Unity validation and upright static comparison pass; playable replacement, animation deformation and Android device profiling remain gated.
+
+## 2026-08-21 — MINI-105
+
+- Produced and locally rigged the user-approved Sacat modular base with full separate finger chains.
+- Added an isolated Unity Humanoid import package, external 2K texture, Standard material and proof prefab; playable Sacat and all locked accessories remain unchanged.
+- Unity validation passed: valid Humanoid, 30/30 finger joints, one skinned mesh/material, four maximum skin influences and fixed front/back screenshots.
+- The 100k-triangle source remains a high-quality LOD0 candidate; mobile LOD generation and an animation-deformation proof are required before gameplay integration.
+
 ## 2026-08-20 — MINI-102
 
 - Moved Backstreet to the user-marked south side of Lalay, connected both ends to the main road, and removed the accidental northern route.
@@ -153,3 +259,8 @@
 - Added repeatable road-join, shop-clearance and farm-level validators plus fixed map screenshots.
 - Added a road-following runtime navigation-link chain because the legacy Edit-Mode Sacat-to-farm NavMesh check still reports a partial route.
 - Rebuilt `Builds/GrandBayProof/UpIzUpMini.exe`; runtime driving and companion navigation remain the user acceptance gate.
+# 2026-08-21 — MINI-107 (paused)
+
+- Added the reusable Up Iz Up Mini character manifest schema, Sacat manifest, production workflow, generic Blender LOD tool, PowerShell runner and isolated Unity motion-proof builder.
+- Confirmed the original 100K Sacat rig animates correctly with the owned Humanoid clips.
+- Rejected the current decimated mobile LODs for motion because joint deformation tears; no playable character or gameplay scene was changed.

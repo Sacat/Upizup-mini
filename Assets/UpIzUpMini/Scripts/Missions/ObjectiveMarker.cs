@@ -17,7 +17,7 @@ namespace UpIzUpMini.Missions
         [SerializeField] private float bobHeight = 0.35f;
         [SerializeField] private float bobSpeed = 2.2f;
         [SerializeField] private float spinSpeed = 55f;
-        [SerializeField] private float hideWithinDistance = 3f;
+        [SerializeField] private float hideWithinDistance = 1.25f;
 
         private void LateUpdate()
         {
@@ -46,6 +46,8 @@ namespace UpIzUpMini.Missions
                 float bob = Mathf.Sin(Time.time * bobSpeed) * bobHeight;
                 arrow.localPosition = new Vector3(0f, 2.6f + bob, 0f);
                 arrow.Rotate(Vector3.up, spinSpeed * Time.deltaTime, Space.World);
+                float pulse = 0.90f + Mathf.PingPong(Time.unscaledTime * 1.8f, 0.22f);
+                arrow.localScale = Vector3.one * pulse;
             }
         }
     }

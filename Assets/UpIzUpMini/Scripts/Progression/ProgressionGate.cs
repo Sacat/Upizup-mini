@@ -45,7 +45,7 @@ namespace UpIzUpMini.Progression
                 && MissionSystem.Instance != null
                 && MissionSystem.Instance.CurrentMissionId == "M11W");
         public static bool CanUseBlackMarket => IsMissionReached("M12");
-        public static bool CanUseNormy => IsMissionReached("M12");
+        public static bool CanUseNormy => IsMissionReached("M5B");
         public static bool CanRecruit
         {
             get

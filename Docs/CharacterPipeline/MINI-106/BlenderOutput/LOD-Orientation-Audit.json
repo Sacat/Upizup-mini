@@ -1,0 +1,116 @@
+{
+  "source": {
+    "mesh": "Mesh_0",
+    "mesh_location": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "mesh_rotation_euler": [
+      -1.570796,
+      0.0,
+      0.0
+    ],
+    "mesh_scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "mesh_world_bounds_min": [
+      -0.936795,
+      -0.0,
+      -0.161628
+    ],
+    "mesh_world_bounds_max": [
+      0.936795,
+      1.850102,
+      0.165308
+    ],
+    "mesh_world_bounds_size": [
+      1.87359,
+      1.850102,
+      0.326936
+    ],
+    "armature": "Armature",
+    "armature_location": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "armature_rotation_euler": [
+      1.570796,
+      -0.0,
+      0.0
+    ],
+    "armature_scale": [
+      0.01,
+      0.01,
+      0.01
+    ],
+    "root_bones": [
+      "root"
+    ],
+    "bone_count": 101,
+    "mesh_parent": "Armature",
+    "armature_modifier": [
+      "Armature"
+    ]
+  },
+  "lod0": {
+    "mesh": "SacatModularBase_LOD0",
+    "mesh_location": [
+      0.0,
+      6e-06,
+      1e-06
+    ],
+    "mesh_rotation_euler": [
+      -1.570796,
+      0.0,
+      -0.0
+    ],
+    "mesh_scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "mesh_world_bounds_min": [
+      -0.937933,
+      -0.000654,
+      -0.162187
+    ],
+    "mesh_world_bounds_max": [
+      0.937352,
+      1.850928,
+      0.165682
+    ],
+    "mesh_world_bounds_size": [
+      1.875285,
+      1.851582,
+      0.327869
+    ],
+    "armature": "SacatModularBase_LOD0_Armature",
+    "armature_location": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "armature_rotation_euler": [
+      1.570796,
+      -0.0,
+      0.0
+    ],
+    "armature_scale": [
+      0.01,
+      0.01,
+      0.01
+    ],
+    "root_bones": [
+      "root"
+    ],
+    "bone_count": 101,
+    "mesh_parent": "SacatModularBase_LOD0_Armature",
+    "armature_modifier": [
+      "SacatModularBase_LOD0_Armature"
+    ]
+  }
+}

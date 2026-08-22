@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "upizup-character-manifest-v1",
+  "title": "Up Iz Up Mini Character Manifest",
+  "type": "object",
+  "required": ["schemaVersion", "characterId", "displayName", "source", "unity", "rig", "mobile", "proof", "gates"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "characterId": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+    "displayName": { "type": "string" },
+    "source": {
+      "type": "object",
+      "required": ["masterFbx", "licenseRecord", "identityLock"],
+      "properties": {
+        "masterFbx": { "type": "string" },
+        "approvedReference": { "type": "string" },
+        "licenseRecord": { "type": "string" },
+        "identityLock": { "type": "string" }
+      }
+    },
+    "unity": {
+      "type": "object",
+      "required": ["assetRoot", "mobilePrefab", "axisCorrectionEuler"],
+      "properties": {
+        "assetRoot": { "type": "string" },
+        "mobilePrefab": { "type": "string" },
+        "axisCorrectionEuler": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } }
+      }
+    },
+    "rig": {
+      "type": "object",
+      "required": ["type", "requiredFingerJoints", "maxWeightsPerVertex"],
+      "properties": {
+        "type": { "const": "Humanoid" },
+        "requiredFingerJoints": { "const": 30 },
+        "maxWeightsPerVertex": { "const": 4 }
+      }
+    },
+    "mobile": {
+      "type": "object",
+      "required": ["lodTriangleTargets", "androidTextureMax", "materialCap"],
+      "properties": {
+        "lodTriangleTargets": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "integer", "minimum": 1 } },
+        "androidTextureMax": { "type": "integer", "maximum": 2048 },
+        "materialCap": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "proof": { "type": "object" },
+    "gates": {
+      "type": "object",
+      "required": ["staticApproved", "motionApproved", "playableIntegration"],
+      "properties": {
+        "staticApproved": { "type": "boolean" },
+        "motionApproved": { "type": "boolean" },
+        "playableIntegration": { "type": "boolean" }
+      }
+    }
+  }
+}

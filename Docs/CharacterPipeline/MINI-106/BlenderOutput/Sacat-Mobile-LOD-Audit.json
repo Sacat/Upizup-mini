@@ -1,0 +1,47 @@
+{
+  "source": "E:\\Unity\\Up Iz Up Mini\\Docs\\CharacterPipeline\\MINI-105\\AccuRigOutput\\Sacat-ModularBase-Rigged-Unity.fbx",
+  "lods": [
+    {
+      "label": "LOD0",
+      "target_triangles": 25000,
+      "source_triangles": 100000,
+      "triangles": 25000,
+      "vertices": 20606,
+      "ratio": 0.25,
+      "bone_count": 101,
+      "deform_bone_count": 101,
+      "unweighted_vertices": 0,
+      "max_source_influences": 4,
+      "vertices_over_four_source_influences": 0,
+      "fbx": "E:\\Unity\\Up Iz Up Mini\\Docs\\CharacterPipeline\\MINI-106\\BlenderOutput\\SacatModularBase_LOD0.fbx"
+    },
+    {
+      "label": "LOD1",
+      "target_triangles": 12000,
+      "source_triangles": 100000,
+      "triangles": 12000,
+      "vertices": 10451,
+      "ratio": 0.12,
+      "bone_count": 101,
+      "deform_bone_count": 101,
+      "unweighted_vertices": 0,
+      "max_source_influences": 4,
+      "vertices_over_four_source_influences": 0,
+      "fbx": "E:\\Unity\\Up Iz Up Mini\\Docs\\CharacterPipeline\\MINI-106\\BlenderOutput\\SacatModularBase_LOD1.fbx"
+    },
+    {
+      "label": "LOD2",
+      "target_triangles": 4500,
+      "source_triangles": 100000,
+      "triangles": 4500,
+      "vertices": 4433,
+      "ratio": 0.045,
+      "bone_count": 101,
+      "deform_bone_count": 101,
+      "unweighted_vertices": 0,
+      "max_source_influences": 4,
+      "vertices_over_four_source_influences": 0,
+      "fbx": "E:\\Unity\\Up Iz Up Mini\\Docs\\CharacterPipeline\\MINI-106\\BlenderOutput\\SacatModularBase_LOD2.fbx"
+    }
+  ]
+}

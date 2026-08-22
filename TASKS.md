@@ -22,6 +22,188 @@ Acceptance criteria:
 
 ## In progress
 
+### MINI-119 — Post-playtest batch: dialogue, Rasta selling, crop key order, breeding marker, hints, War Story win condition, bike climbing/anti-spin, cheat rep
+
+Goal: fix a full batch of post-playtest reports in one pass (see
+`Docs/WorkPackets/MINI-119.md` for the full item list and root-cause
+writeup).
+
+Status: **Built and verified by Claude on 2026-08-22; awaiting user
+playtest.** Dialogue truncation traced to a background-panel height cap
+(330px, not hold duration - corrected after the user's explicit
+clarification), raised to 620px. Boat Man's repeat "nothing to load" line
+now rotates. A villager's stale pre-migration patrol route fixed
+generically for every patrol-enabled NPC placed via `PlaceRoadsideNpc`.
+Rasta now sells Blue Cheese seed directly once unlocked. Blue Cheese/
+Purple Sugar number keys swapped to match Rasta's real teaching order;
+breeding-station minimap marker added; hints extended to every Rasta-
+taught base strain. War Story (M16) now requires a real `DefeatAllRivals`
+objective, not just a walk-in. Bike `motorTorque` raised past MINI-118's
+mass-parity value, plus a new slope-proportional hill-climb assist and a
+yaw-spin damping assist (clips only the spin above a real threshold,
+never ordinary steering yaw). Cheat `000000` now grants Normy rep too.
+New focused validator, every standing validator (058/065/109/110/111/
+112/113) plus the MINI-065 drop test re-run clean, Windows build
+succeeded. Manual road-intersection/farm-hedge instructions given
+directly to the user, not implemented as code (their own explicit
+request). See the MINI-119 entry in `PROJECT-HANDOFF.md`. Not yet
+hands-on playtested.
+
+### MINI-118 — Bike made a lot heavier to stop bump-launching, plus a second "extra air gravity" safety net
+
+Goal: fix the bike bumping too high on ordinary road/hill bumps by making
+it substantially heavier, while keeping wheelie/lean feeling the same.
+
+Status: **Built and verified by Claude on 2026-08-22; awaiting user
+playtest.** Confirmed via code reading that the wheelie mechanic (fully
+kinematic) and lean/stability corrections (`ForceMode.Acceleration`) are
+already mass-independent by design, so a mass increase can't touch them.
+Increased `BikeMassKg` 220->480 (~2.18x); the suspension spring/damper are
+formula-derived from mass so sag depth/damping stay identical, while a
+fixed-size bump now imparts a proportionally smaller velocity change.
+Scaled `motorTorque`/`brakeTorque`/`wheelieRearTorqueBoost` by the same
+ratio since those ARE real mass-dependent forces. Measured a real side
+effect (drop-test wheelie pitch fell from an 85.9deg baseline to 77.4deg,
+still passing but with much less margin) and compensated by raising
+`wheelieRiseRate`, re-verified at 89.6deg. Also added a second, independent
+safety net per the user's own follow-up suggestion: extra downward "air
+gravity" once genuinely airborne for a sustained period, gated off during
+an actual wheelie. All vehicle/faction/map validators pass except one
+unrelated pre-existing issue (`Mini069GangWarValidation`, NPC positioning,
+flagged separately). Windows build and headless smoke clean. See the
+MINI-118 entry in `PROJECT-HANDOFF.md`. Not yet hands-on driven.
+
+### MINI-113 — World and navigation cleanup: road-junction smoothing, BikeHomePoint repair, vehicle minimap markers
+
+Status: **Built and verified by Claude on 2026-08-22; awaiting user
+playtest.** Measured every road-junction pair before touching anything -
+found one real bump (0.286m at the Highland inroad/farm-spur junction,
+fixed to 0.000m). Found and fixed a more serious bug along the way:
+`BikeHomePoint` was orphaned 303.52m from the migrated safehouse (fixed to
+7.34m) - a real save/load bug, not cosmetic. Corrected an earlier wrong
+measurement of the farm hedge (a broken Collider API gave false "0.00m
+overlap" readings; real vertex-based measurement showed genuine
+0.92-15.21m clearance - the hedge was never actually on the road). Added
+vehicle minimap markers. All standing validators pass, Windows build and
+smoke test clean. See the MINI-113 entry in `PROJECT-HANDOFF.md`. Not yet
+hands-on playtested.
+
+### MINI-117 — Fixed the recruiter regression (two real bugs), plus breeding hints
+
+Goal: fix the `Mini058FactionsValidation` failure found during MINI-112,
+and explain how the hybrid strains are actually planted.
+
+Status: **Built and verified by Claude on 2026-08-22; awaiting user
+playtest.** Two real bugs, not one: (1) the validator itself never
+initialized `MissionSystem`, so the recruiter's own mission gate always
+refused regardless of anything else - the real recruiter was never
+actually broken; (2) fixing that exposed a genuine dead-code bug in
+`GangMemberInteractable` - Chevy's more specific reputation-refusal message
+could never fire because a combined gate always caught low reputation
+first. Both fixed. Also added three in-game hints explaining the breeding-
+station process and plant-selection number key for each hybrid crop
+(Purple Sugar=7, Sugar Cheese=9, Purple Cheese=0), per the user's direct
+follow-up ask. All standing validators (MINI-108 through MINI-112, plus
+MINI-058/100) pass. Windows build and a 12s headless smoke test pass. See
+the MINI-117 entry in `PROJECT-HANDOFF.md`. Not yet hands-on playtested.
+
+### MINI-112 — Dog Life escalation: jealousy, respawn cooldown, leash/return-to-block, occasional group walks
+
+Goal: Dog Life becomes jealous as strains/stock grow; defeated members stay
+down ~100s; fighters stop chasing when the player is too far, return to
+their block and resume block behaviour; a small group occasionally walks
+Lalay; the whole pool stays non-permanent.
+
+Status: **Built and verified by Claude on 2026-08-22; awaiting user
+playtest.** Found and fixed a real bug at the core of this: `FactionBrawler`
+and `PatrolNPC` both drove the same `CharacterController` every frame with
+no coordination, so ambient wandering was fighting combat steering and
+nothing ever walked a fighter back to the block after a chase. A new
+`FactionBrawler.IsEngaged` flag fixes the contention AND gives "return to
+block" for free - `PatrolNPC` already handles idle wandering, it just
+needed to stop being fought over. Added a real ~100s respawn cooldown
+(previously instant on reactivation), a jealousy dialogue line reusing the
+existing `CropUnlocked` condition, and an occasional two-member group walk
+down the road. New focused validator, Windows build and a 12s headless
+smoke test all pass. See the MINI-112 entry in `PROJECT-HANDOFF.md`. Not
+yet hands-on playtested. **Found but NOT fixed, out of scope**:
+`Mini058FactionsValidation` now fails on a pre-existing `GangMemberInteractable`
+recruit-reputation-gate issue unrelated to this packet's files - flagged as
+a new blocker for its own future task.
+
+### MINI-111 — Rasta's strain-mentorship ladder
+
+Goal: Rasta stops asking for tomatoes and becomes the production/strain
+school for both career paths - Bushers -> Black Sugar -> Purple -> Blue
+Cheese -> Purple Sugar (hybrid) -> Sugar Cheese -> Purple Cheese, each tier
+story-gated.
+
+Status: **Built and verified by Claude on 2026-08-22; awaiting user
+playtest.** M13 now asks for 3 Bushers. Six new missions (M13C2-M13C7)
+follow immediately, each unlocking its own crop the moment it becomes
+current via a new `Mission.unlocksCropId` field - additive to the existing
+Boss-exploitation unlock path, not a replacement, and the FIRST route to
+advanced strains for Legitimate Farmer players (who never see the
+WeedRoute-only M9W-M11W missions). Found and fixed a real bug: the scene
+builder's field-by-field mission copy had no line for the new
+`unlocksCropId` field, so it would have silently baked in empty - caught by
+the new validator before shipping broken. Standing regressions (MINI-108/
+109/110), Windows build and a 12s headless smoke test all pass. Evidence
+(Rasta screenshot + full ladder content dump) under `Logs/Tasks/MINI-111/`.
+See the MINI-111 entry in `PROJECT-HANDOFF.md`. Not yet hands-on
+playtested on either career path. Note: MINI-109, MINI-110 and MINI-111
+have all now shipped back-to-back without an intervening human playtest,
+per the user's own repeated choice to skip that gate.
+
+### MINI-110 — Normy's item favour, Boat Man introduction, and Guadeloupe courier HUD timer
+
+Goal: Normy's food/pharmacy item favour (real inventory truth) before the
+Boat Man chapter, his uncertain street-info hint pointing at Gardey Zafeh,
+a real Boat Man first-meeting introduction, and a visible HUD countdown for
+Guadeloupe courier trips.
+
+Status: **Built and verified by Claude on 2026-08-22; awaiting user
+playtest.** New mission M13B ("Small Ting") sits between M13 and M14 with
+a new `DeliverItem` objective kind, gated on actually holding the bought
+item (not just visiting the shop). M14's briefing now carries Normy's hint.
+The Boat Man's first-meeting dialogue is the approved four-line exchange.
+HUD shows "<name> in Guadeloupe - back in Xs" while a courier trip is
+active, reading `GuadeloupeTrade`'s existing API (untouched). Found and
+fixed a real bug along the way: the map migration's marker remapper had no
+case for `DeliverItem` and would have gone stale, same class of bug as
+MINI-109's Rasta fix. New focused validator, standing regressions
+(including MINI-109's own), Windows build and a 12s headless smoke test all
+pass. Evidence/screenshots (including a forced-state HUD shot) under
+`Logs/Tasks/MINI-110/`. See the MINI-110 entry in `PROJECT-HANDOFF.md`. Not
+yet hands-on playtested. Note: the user chose to proceed to this task
+without first playtesting MINI-109, so those fixes also remain unconfirmed
+by a human, though re-run clean as part of this round's regressions.
+
+### MINI-109 — Grand Bay progression repair (Normy/Black Sugar/Rasta) and retrospective-completion rule
+
+Goal: fix Clean Face getting stuck at Normy, Black Sugar delivery to Boss J
+not advancing, Rasta's stale M13 marker, and establish a consistent
+retrospective-completion vs progression-lock rule.
+
+Status: **Built and verified by Claude on 2026-08-22; awaiting user
+playtest.** Each defect had a distinct, confirmed root cause (not guessed):
+Normy's Clean Face payment shared the ambient bribe's zero-heat gate;
+Boss J's sell check only counted Bushers, not any held illegal crop; Rasta's
+M13 marker was baked in by the map migration BEFORE he was moved to his
+final position. Also added retrospective `BuyItem` completion so an
+already-owned item no longer forces a repeat purchase. New focused
+validator (`Mini109MissionRepairValidation`), standing mission/map
+regressions, Windows build, and a 12s headless smoke test all pass.
+Evidence/screenshots under `Logs/Tasks/MINI-109/`. See the MINI-109 entry
+in `PROJECT-HANDOFF.md` for full detail. Not yet hands-on playtested - user
+should confirm Clean Face -> Black Sugar delivery -> Rasta before MINI-110.
+
+### MINI-108 — Early mission clarity and universal waypoint guidance
+
+Goal: Make the intro readable, make every mission destination navigable, repair the early Boss J/heat flow, and clean the reported bridge/collider/Paro/banana issues.
+
+Status: **Built; awaiting user runtime confirmation.** Map-lab, migrated-world and focused MINI-108 validation pass. The Windows build succeeds and starts cleanly headless. The temporary banana is intentionally frozen for later Hitem3D replacement. Remaining uncertainty is hands-on minimap pulse/readability, dialogue timing and full mission progression.
+
 ### MINI-102 — South Backstreet, Lalay roles and GTA minimap
 
 Goal: Correct the user-marked Backstreet side, organize the new map around existing missions, and add a readable GTA-style minimap.
@@ -1419,6 +1601,14 @@ out of scope here and tracked as its own later tasks below.
 
 ## Later
 
+### MINI-105 — Sacat canonical modular body and full-finger Unity proof
+
+Status: Evidence ready. The approved Sacat vest/boxer/barefoot appearance is rigged as a valid isolated Unity Humanoid with all 30 finger joints, an external 2K texture and four-weight skinning. It has not replaced playable Sacat. Its 100k-triangle source must receive mobile LODs and an isolated animation/deformation visual gate before integration.
+
+### MINI-106 — Sacat mobile LOD proof
+
+Status: Evidence ready; static user approval pending. Three independent derived LODs meet 25k/12k/4.5k triangle budgets, retain the full Humanoid/finger rig and four-weight skinning, and are assembled into one isolated three-level Unity LODGroup. The initial lying-down exports were rejected and corrected with a zero-rotation gameplay wrapper plus visual-axis correction. Playable Sacat is unchanged; motion deformation and Android profiling remain later gates.
+
 ### MINI-084 — AI production workflow and visual approval harness
 
 Goal: Establish one low-cost, repo-owned workflow that Codex and Claude can both follow for parallel read-only investigation, single-owner Unity integration, Hitem3D/Blender asset intake, visual approval gates, mobile-first validation, and durable handoffs.
@@ -1529,3 +1719,41 @@ Status: **Evidence ready; awaiting user runtime acceptance.** Canonical rebuild,
 Goal: Clear shops, farm and safehouse from the road; place commerce in Lalay roadside lots; flatten the active Highland farm; and make the Lalay–Highland–farm route continuous and gently graded.
 
 Status: **Evidence ready; awaiting runtime retest.** Map migration/static validators and Windows build pass. Fixed screenshots show clear traffic lanes, roadside shops and a flat off-road farm. The legacy Edit-Mode NavMesh end-to-end check remains partial; a road-following navigation-link chain must be judged with a companion/NPC in the EXE.
+# MINI-107 — PAUSED BY USER
+
+- Reusable character manifest/workflow/tooling implemented.
+- Original 100K Sacat motion proof passes visually.
+- Decimated mobile LODs fail animated deformation; do not integrate them into gameplay.
+- Resume only when requested, starting with deformation-preserving LOD/weight transfer and repeated visual proof.
+
+### MINI-109 — Mission truth repair (approved; next Claude packet)
+
+Fix Clean Face so one Normy mission payment completes without double charge, fix Black Sugar delivery to Boss J, update Rasta's stale objective marker and establish consistent retrospective-credit/progression-lock rules. Full packet: `Docs/WorkPackets/MINI-109.md`. Stop for user playtest after one compounded build.
+
+### MINI-110 — Normy favour and Boat Man narrative bridge (proposed after MINI-109 acceptance)
+
+Add food/pharmacy item delivery for Normy before the Boat Man mission; first-meeting Boat Man dialogue; earlier gang foreshadowing; inactive-protagonist boat dispatch; and a visible return timer using the existing `GuadeloupeTrade` foundation.
+
+### MINI-111 — Rasta strain and hybrid school (proposed)
+
+Replace the stale tomato errand with mission-gated production tests: 3 Bushers, 3 Black Sugar, 3 Purple, Blue Cheese, Purple Sugar, Sugar Cheese and Purple Cheese. Keep locked strains hidden and increase value/reputation by tier.
+
+### MINI-112 — Dog Life escalation and regrouping (proposed)
+
+Build jealousy/crew/confrontation story beats; 100-second out-of-scene rival respawn; chase leash and return-to-block behavior; and occasional small Dog Life group walks along Lalay within mobile pooling limits.
+
+### MINI-113 — Road, hedge and vehicle navigation cleanup (proposed)
+
+Smooth intersecting-road collision bumps without changing accepted topology, pull the farm hedge off the Highland road, add vehicle minimap markers and make owned vehicles spawn aligned in road-safe parking areas.
+
+### MINI-114 — Brakes community and blessing missions (proposed)
+
+Create non-cash church/community errands. Brakes refuses personal payment; successful blessings restore health to 100%. Keep later spiritual/strain content story-gated.
+
+### MINI-115 — Cellphone unlock and staged calling (proposed)
+
+Introduce `phone_basic` through a mission/tutorial: call the farming partner first, unlock crew backup calls later, and retain Q through the input facade with a defined future touch action.
+
+### MINI-116 — TMAX visual and mobile production repair (proposed)
+
+Diagnose see-through geometry/material defects, rebuild a safe optimized production copy, reduce the current oversized payload, preserve rider anchors, then prove visuals, riding motion and build-size improvement.

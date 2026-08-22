@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -851,6 +852,12 @@ namespace UpIzUpMini.EditorTools
         private static Vector3 _expansionPlotPos;
         private static Vector3 _bossPos;
         private static Vector3 _bossCPos;
+        // MINI-109: Rasta's real built position, so M13's marker can read
+        // it directly instead of recomputing the placement formula
+        // (see BuildRastaMentor's own note - a prior duplication of that
+        // formula there was missing the farmRight*3f offset, landing the
+        // marker 3m off from where Rasta actually stands).
+        private static Vector3 _rastaPos;
 
         private static void BuildSea()
         {
@@ -1556,8 +1563,57 @@ namespace UpIzUpMini.EditorTools
 
             BuildFarmSafehouse(terrain, farmCenter, right, dir);
             BuildExpansionPlots(terrain, farmCenter, right, dir, soilEmptyMat, farmParent.transform);
+            BuildFarmPrivacyScreen(terrain, farmCenter, right, dir, farmParent.transform);
 
             farmPlot = firstPlot;
+        }
+
+        /// <summary>
+        /// A cheap, mobile-friendly living screen around the Highland plots.
+        /// The bushes are visual only, so companions cannot become trapped, and
+        /// the generous gap facing the dirt track remains the obvious entrance.
+        /// </summary>
+        private static void BuildFarmPrivacyScreen(
+            Terrain terrain, Vector3 farmCenter, Vector3 right, Vector3 dir, Transform parent)
+        {
+            var screen = new GameObject("HighlandFarmPrivacyBushes");
+            screen.transform.SetParent(parent);
+            Material foliage = GetOrCreateMaterial("FarmPrivacyFoliage", new Color(0.055f, 0.22f, 0.07f));
+
+            void AddHedge(Vector3 position, Vector3 size)
+            {
+                position.y = SampleHeight(terrain, position.x, position.z) + size.y * 0.5f;
+                var hedge = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                hedge.name = "WalkThroughHedge";
+                hedge.transform.SetParent(screen.transform);
+                hedge.transform.position = position;
+                hedge.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+                hedge.transform.localScale = size;
+                hedge.GetComponent<Renderer>().sharedMaterial = foliage;
+                Object.DestroyImmediate(hedge.GetComponent<Collider>());
+            }
+
+            // Clean rectangular enclosure. The two front runs stop short of the
+            // centre, leaving a 6m entrance exactly where the dirt road arrives.
+            const float halfWidth = 11.2f;
+            const float frontDepth = -7.6f;
+            const float rearDepth = 14.5f;
+            const float enclosureDepth = rearDepth - frontDepth;
+            const float enclosureCentreDepth = (rearDepth + frontDepth) * 0.5f;
+            const float hedgeHeight = 2.8f;
+            const float hedgeDepth = 1.25f;
+            const float entranceWidth = 6f;
+            AddHedge(farmCenter + dir * rearDepth,
+                new Vector3(halfWidth * 2f + hedgeDepth, hedgeHeight, hedgeDepth));
+            AddHedge(farmCenter - right * halfWidth + dir * enclosureCentreDepth,
+                new Vector3(hedgeDepth, hedgeHeight, enclosureDepth));
+            AddHedge(farmCenter + right * halfWidth + dir * enclosureCentreDepth,
+                new Vector3(hedgeDepth, hedgeHeight, enclosureDepth));
+            float frontRun = halfWidth - entranceWidth * 0.5f;
+            AddHedge(farmCenter + dir * frontDepth - right * (entranceWidth * 0.5f + frontRun * 0.5f),
+                new Vector3(frontRun, hedgeHeight, hedgeDepth));
+            AddHedge(farmCenter + dir * frontDepth + right * (entranceWidth * 0.5f + frontRun * 0.5f),
+                new Vector3(frontRun, hedgeHeight, hedgeDepth));
         }
 
         /// <summary>
@@ -1851,9 +1907,10 @@ namespace UpIzUpMini.EditorTools
         /// </summary>
         private static CropStageVisual BuildBananaVisual(Transform plot)
         {
-            // bananatree2 is the highest-detail of the three (2781 verts vs
-            // 1477/1479), so it reads best as the crop plant.
-            const string meshPath = "Assets/UpIzUpMini/Art/BananaImported/bananatree2.fbx";
+            // MINI-108 visual correction: tree1 is the cleaner, lower-detail
+            // variant. It keeps the crown at the top without the dense wall
+            // of leaves that hid the fruit on tree2, and is cheaper on mobile.
+            const string meshPath = "Assets/UpIzUpMini/Art/BananaImported/bananatree1.fbx";
             var root = new GameObject("BananaVisual");
             root.transform.SetParent(plot, false);
             root.transform.localPosition = new Vector3(0f, 0.4f, 0f);
@@ -1889,25 +1946,63 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("plantRenderer").objectReferenceValue =
                 root.GetComponentInChildren<Renderer>(true);
             var fruitsProp = so.FindProperty("fruitRenderers");
-            // Three hanging fruit spheres clustered at the top of the plant
-            // read as a banana bunch (they ripen to the crop's yellow via
-            // CropStageVisual). Staggered heights so it reads as a cluster,
-            // not a single floating ball.
-            fruitsProp.arraySize = 3;
-            float[] ys = { 1.45f, 1.30f, 1.18f };
-            float[] xs = { -0.30f, 0.00f, 0.28f };
-            for (int i = 0; i < 3; i++)
+            // MINI-108: a small hanging hand of individually curved bananas.
+            // Each fruit uses three short capsules along an upward curve,
+            // which still stays cheap but reads unmistakably as banana rather
+            // than the old cluster of floating spheres.
+            const int bananaCount = 5;
+            const int segmentsPerBanana = 3;
+            fruitsProp.arraySize = bananaCount * segmentsPerBanana;
+            int fruitIndex = 0;
+            for (int banana = 0; banana < bananaCount; banana++)
             {
-                var fruit = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                fruit.name = $"BananaBunch_{i}";
-                fruit.transform.SetParent(plantRoot.transform, false);
-                fruit.transform.localPosition = new Vector3(xs[i], ys[i], 0f);
-                fruit.transform.localScale = new Vector3(0.34f, 0.50f, 0.34f);
-                Object.DestroyImmediate(fruit.GetComponent<Collider>());
-                fruit.GetComponent<Renderer>().sharedMaterial =
-                    GetOrCreateMaterial("CropFruit", Color.green);
-                fruitsProp.GetArrayElementAtIndex(i).objectReferenceValue =
-                    fruit.GetComponent<Renderer>();
+                float angle = banana * Mathf.PI * 2f / bananaCount;
+                Vector3 radial = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+                for (int segment = 0; segment < segmentsPerBanana; segment++)
+                {
+                    var fruit = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                    fruit.name = $"Banana_{banana + 1}_Segment_{segment + 1}";
+                    fruit.transform.SetParent(plantRoot.transform, false);
+                    float along = segment * 0.16f;
+                    fruit.transform.localPosition = new Vector3(0f, 1.82f - along, 0f)
+                        + radial * (0.20f + segment * 0.08f);
+                    fruit.transform.localRotation = Quaternion.LookRotation(radial, Vector3.up)
+                        * Quaternion.Euler(18f + segment * 15f, 0f, 90f);
+                    fruit.transform.localScale = new Vector3(0.095f, 0.16f, 0.095f);
+                    Object.DestroyImmediate(fruit.GetComponent<Collider>());
+                    Renderer renderer = fruit.GetComponent<Renderer>();
+                    renderer.sharedMaterial = GetOrCreateMaterial("CropFruit", Color.green);
+                    fruitsProp.GetArrayElementAtIndex(fruitIndex++).objectReferenceValue = renderer;
+                }
+            }
+
+            // The brown rachis/stalk makes the hand visibly attach to the
+            // plant instead of reading as floating yellow fruit.
+            GameObject stem = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            stem.name = "Banana_BrownStem";
+            stem.transform.SetParent(plantRoot.transform, false);
+            stem.transform.localPosition = new Vector3(0f, 2.02f, 0f);
+            stem.transform.localScale = new Vector3(0.11f, 0.16f, 0.11f);
+            Object.DestroyImmediate(stem.GetComponent<Collider>());
+            stem.GetComponent<Renderer>().sharedMaterial =
+                GetOrCreateMaterial("BananaStemBrown", new Color(0.52f, 0.31f, 0.13f));
+
+            // A deliberately small five-leaf crown replaces the overly dense
+            // original canopy while keeping leaves above the fruit hand.
+            Material leafMaterial = GetOrCreateMaterial("BananaLeafCrown", new Color(0.22f, 0.58f, 0.16f));
+            for (int leafIndex = 0; leafIndex < 5; leafIndex++)
+            {
+                float angle = leafIndex * Mathf.PI * 2f / 5f;
+                Vector3 radial = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+                GameObject leaf = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                leaf.name = $"Banana_TopLeaf_{leafIndex + 1}";
+                leaf.transform.SetParent(plantRoot.transform, false);
+                leaf.transform.localPosition = new Vector3(0f, 2.22f, 0f) + radial * 0.24f;
+                leaf.transform.localRotation = Quaternion.FromToRotation(
+                    Vector3.up, (radial * 0.88f + Vector3.up * 0.34f).normalized);
+                leaf.transform.localScale = new Vector3(0.13f, 0.48f, 0.045f);
+                Object.DestroyImmediate(leaf.GetComponent<Collider>());
+                leaf.GetComponent<Renderer>().sharedMaterial = leafMaterial;
             }
             so.FindProperty("fullScale").floatValue = 1f;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -2526,6 +2621,7 @@ namespace UpIzUpMini.EditorTools
             BuildNpc(terrain, roadPoints, index: 9, sideMul: -1f, goName: "NPC_Vagrant",
                 modelPath: "Assets/Floreswa/Models/male03_1.fbx", role: NpcRole.Vagrant,
                 cropsForBuyer: allCrops, animController: animController, patrols: false, reactsToHeat: false);
+            StyleParo(GameObject.Find("NPC_Vagrant"));
 
             BuildNpc(terrain, roadPoints, index: 13, sideMul: -1f, goName: "NPC_BlackMarket",
                 modelPath: "Assets/Floreswa/Models/male02_3.fbx", role: NpcRole.BlackMarket,
@@ -2569,7 +2665,7 @@ namespace UpIzUpMini.EditorTools
             // against) watching over the plantation, narratively "teaching
             // advanced strain work" by congratulating the player on
             // whichever tier they've actually reached.
-            BuildRastaMentor(terrain, roadPoints, animController);
+            BuildRastaMentor(terrain, roadPoints, animController, allCrops);
 
             // MINI-058: factions. Not Ah Word (player gang, recruitable up
             // to the roster's own size) and Dog Life (rival gang,
@@ -2735,12 +2831,17 @@ namespace UpIzUpMini.EditorTools
         private static void BuildDogLifeGang(
             Terrain terrain, List<Vector3> roadPoints, RuntimeAnimatorController animController)
         {
-            Vector3 blockCentre = roadPoints[Mathf.Clamp(1, 1, roadPoints.Count - 2)];
+            int blockIndex = Mathf.Clamp(1, 1, roadPoints.Count - 2);
+            Vector3 blockCentre = roadPoints[blockIndex];
             blockCentre.y = SampleHeight(terrain, blockCentre.x, blockCentre.z);
 
             var spawnerGo = new GameObject("DogLifeSpawner");
             var spawner = spawnerGo.AddComponent<RivalGangSpawner>();
             spawner.SetBlockCentre(blockCentre);
+            // MINI-112: "a small group may occasionally leave the block
+            // and walk down Lalay together" - the same road-forward
+            // direction the rest of Lalay's roadside placement already uses.
+            spawner.SetRoadDirection(roadPoints[Mathf.Min(blockIndex + 1, roadPoints.Count - 1)] - roadPoints[Mathf.Max(blockIndex - 1, 0)]);
 
             EnsureFolder("Assets/UpIzUpMini/Data/Dialogue");
             const string path = "Assets/UpIzUpMini/Data/Dialogue/DogLifeLines.asset";
@@ -2768,6 +2869,24 @@ namespace UpIzUpMini.EditorTools
                 },
                 new DialogueLine { category = DialogueCategory.Faction, speaker = "Dog Life", text = "Dis block belong to us, nuh. Allu just passing through - keep it dat way." },
                 new DialogueLine { category = DialogueCategory.Normal, speaker = "Dog Life", text = "Watch yuhself round here, mn." },
+                // MINI-112: "Dog Life becomes jealous as the boys gain
+                // strains, stock and Grand Bay market share." Reuses the
+                // existing CropUnlocked condition (already true via either
+                // the Boss-exploitation path or Rasta's ladder, MINI-111)
+                // rather than a new condition type - eligible only once
+                // revealed, so it reads as escalation, not a random line
+                // firing before the plot justifies it.
+                new DialogueLine
+                {
+                    category = DialogueCategory.Faction,
+                    speaker = "Dog Life",
+                    text = "Allu doing good for yuhself lately, eh? Black Sugar, Purple... Grand Bay getting small for two gangs.",
+                    conditions = new List<DialogueCondition>
+                    {
+                        new DialogueCondition { type = DialogueConditionType.DogLifeRevealed },
+                        new DialogueCondition { type = DialogueConditionType.CropUnlocked, cropId = "black_sugar" }
+                    }
+                },
             };
             EditorUtility.SetDirty(set);
 
@@ -2923,7 +3042,7 @@ namespace UpIzUpMini.EditorTools
         /// Does not grant seeds or money - purely narrative "teaching," so
         /// it can't undercut Boss C's paid economy.
         /// </summary>
-        private static void BuildRastaMentor(Terrain terrain, List<Vector3> roadPoints, RuntimeAnimatorController animController)
+        private static void BuildRastaMentor(Terrain terrain, List<Vector3> roadPoints, RuntimeAnimatorController animController, CropDefinition[] allCrops)
         {
             if (_farmCenter == Vector3.zero)
             {
@@ -2942,6 +3061,7 @@ namespace UpIzUpMini.EditorTools
             Vector3 farmRight = Vector3.Cross(Vector3.up, farmDir).normalized;
             Vector3 pos = Vector3.Lerp(turnoff, _farmCenter, 0.4f) + farmRight * 3f;
             pos.y = SampleHeight(terrain, pos.x, pos.z);
+            _rastaPos = pos;
 
             var go = new GameObject("NPC_RastaMentor");
             go.transform.position = pos;
@@ -2961,6 +3081,14 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("role").enumValueIndex = (int)NpcRole.Villager;
             // MINI-073: nicknamed "Rasta" per the user.
             so.FindProperty("npcName").stringValue = "Rasta";
+            // MINI-119, user: "rasta would have to sell blue cheese seeds.
+            // he can say try out this new strain i have blue cheese" -
+            // wired so HandleRastaBlueCheeseOffer (TownNPCInteractable) can
+            // look up the real CropDefinition to sell seeds of.
+            var rastaCropsProp = so.FindProperty("sellableCrops");
+            rastaCropsProp.arraySize = allCrops.Length;
+            for (int i = 0; i < allCrops.Length; i++)
+                rastaCropsProp.GetArrayElementAtIndex(i).objectReferenceValue = allCrops[i];
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EnsureFolder("Assets/UpIzUpMini/Data/Dialogue");
@@ -3574,6 +3702,8 @@ namespace UpIzUpMini.EditorTools
         private static void ApplyPriestWhite(GameObject instance)
         {
             Color white = new Color(0.93f, 0.93f, 0.90f);
+            Color darkSkin = new Color(0.20f, 0.10f, 0.065f);
+            Color black = new Color(0.025f, 0.025f, 0.025f);
             foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>(true))
             {
                 Material[] materials = renderer.sharedMaterials;
@@ -3582,10 +3712,18 @@ namespace UpIzUpMini.EditorTools
                 {
                     if (materials[i] == null) continue;
                     string materialName = materials[i].name.ToLowerInvariant();
-                    if (!materialName.Contains("shirt") && !materialName.Contains("tshirt")
-                        && !materialName.Contains("pants") && !materialName.Contains("trouser")
-                        && !materialName.Contains("shoes")) continue;
-                    materials[i] = new Material(materials[i]) { color = white };
+                    Color? colour = null;
+                    if (materialName.Contains("cardigan")) colour = white;
+                    else if (materialName.Contains("skin")) colour = darkSkin;
+                    else if (materialName.Contains("shoe") || materialName.Contains("hair")
+                        || materialName.Contains("mustache") || materialName.Contains("beard")
+                        || materialName.Contains("goatee") || materialName.Contains("eyebrow")
+                        || materialName.Contains("pants")) colour = black;
+                    if (!colour.HasValue) continue;
+                    Material styled = new Material(materials[i]);
+                    styled.color = colour.Value;
+                    styled.mainTexture = null;
+                    materials[i] = styled;
                     changed = true;
                 }
                 if (changed) renderer.sharedMaterials = materials;
@@ -3658,6 +3796,43 @@ namespace UpIzUpMini.EditorTools
 
             // Boss J no longer wears a chain. The status chain belongs to
             // Boss C and can be purchased individually by Sacat or Franki.
+        }
+
+        /// <summary>MINI-108: cheap but readable Paro treatment. The owned
+        /// one-piece NPC mesh cannot have garment polygons deleted safely in
+        /// the generated scene, so skin-tone patches cover ragged shirt/pants
+        /// holes and simple bare feet cover the footwear silhouette.</summary>
+        private static void StyleParo(GameObject npcRoot)
+        {
+            if (npcRoot == null) return;
+            Material skin = GetOrCreateMaterial("ParoSkinPatch", new Color(0.28f, 0.13f, 0.075f));
+
+            (Vector3 position, Vector3 scale, string name)[] pieces =
+            {
+                (new Vector3(-0.16f, 1.28f, 0.18f), new Vector3(0.15f, 0.10f, 0.025f), "ShirtHole_Left"),
+                (new Vector3( 0.14f, 1.08f, 0.18f), new Vector3(0.12f, 0.08f, 0.025f), "ShirtHole_Right"),
+                (new Vector3(-0.13f, 0.68f, 0.16f), new Vector3(0.11f, 0.10f, 0.025f), "PantsHole_Left"),
+                (new Vector3( 0.14f, 0.52f, 0.16f), new Vector3(0.10f, 0.08f, 0.025f), "PantsHole_Right"),
+                (new Vector3(-0.12f, 0.07f, 0.08f), new Vector3(0.13f, 0.055f, 0.25f), "BareFoot_Left"),
+                (new Vector3( 0.12f, 0.07f, 0.08f), new Vector3(0.13f, 0.055f, 0.25f), "BareFoot_Right"),
+            };
+            foreach ((Vector3 position, Vector3 scale, string name) in pieces)
+            {
+                GameObject patch = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                patch.name = name;
+                patch.transform.SetParent(npcRoot.transform, false);
+                patch.transform.localPosition = position;
+                patch.transform.localScale = scale;
+                Object.DestroyImmediate(patch.GetComponent<Collider>());
+                patch.GetComponent<Renderer>().sharedMaterial = skin;
+            }
+
+            foreach (Renderer renderer in npcRoot.GetComponentsInChildren<Renderer>(true))
+            {
+                string lower = renderer.name.ToLowerInvariant();
+                if (lower.Contains("shoe") || lower.Contains("boot") || lower.Contains("sneaker"))
+                    renderer.enabled = false;
+            }
         }
 
         private static void BuildNpc(
@@ -4105,18 +4280,26 @@ namespace UpIzUpMini.EditorTools
             // time BuildScene runs.
             ("black_sugar", "Black Sugar", 38, true, "28351F", "D97314", null),
             ("purple", "Purple", 55, true, "35402B", "8C1FAD", null),
-            // MINI-047: Purple Black - interbred from Purple + Black
-            // Sugar (see CropBreedingStation). secondaryRipeHex set means
-            // ripe fruit alternates orange (Black Sugar's own colour) and
-            // purple (Purple's) instead of a single flat colour, so both
-            // parent strains show at once.
-            ("purple_black", "Purple Black", 90, true, "241A2B", "8C1FAD", "D97314"),
+            // MINI-119, user: "switch the bluecheese number with the
+            // purple black" - Blue Cheese is Rasta's tier-4 base strain,
+            // taught BEFORE the tier-5 Purple Sugar hybrid (see MINI-111's
+            // mission order), but the plant-selection number keys had them
+            // backwards (7=Purple Sugar, 8=Blue Cheese). Reordered here so
+            // key 7 is Blue Cheese and key 8 is Purple Sugar, matching the
+            // actual unlock order.
             // MINI-048: Blue Cheese - a new base strain (boss-granted, like
-            // Black Sugar/Purple), single blue ripe colour. Its two hybrids
-            // both alternate blue with their other parent's own colour -
+            // Black Sugar/Purple), single blue ripe colour.
+            ("blue_cheese", "Blue Cheese", 65, true, "1E3550", "2E6BAD", null),
+            // MINI-047: Purple Black ("Purple Sugar" player-facing) -
+            // interbred from Purple + Black Sugar (see CropBreedingStation).
+            // secondaryRipeHex set means ripe fruit alternates orange
+            // (Black Sugar's own colour) and purple (Purple's) instead of a
+            // single flat colour, so both parent strains show at once.
+            ("purple_black", "Purple Black", 90, true, "241A2B", "8C1FAD", "D97314"),
+            // Sugar Cheese/Purple Cheese - Blue Cheese's own two hybrids,
+            // each alternating blue with their other parent's own colour -
             // Sugar Cheese with Black Sugar's orange, Purple Cheese with
             // Purple's purple - in the order the user asked for them.
-            ("blue_cheese", "Blue Cheese", 65, true, "1E3550", "2E6BAD", null),
             ("sugar_cheese", "Sugar Cheese", 110, true, "1E3550", "2E6BAD", "D97314"),
             ("purple_cheese", "Purple Cheese", 130, true, "241A2B", "2E6BAD", "8C1FAD"),
         };
@@ -4361,6 +4544,7 @@ namespace UpIzUpMini.EditorTools
             // MINI-055: Boss C's single consolidated position, replacing
             // the separate BossM (index 10)/BossP (index 13) marker spots.
             Vector3 bossCPos = _bossCPos != Vector3.zero ? _bossCPos : farmCenter;
+            Vector3 rastaPos = _rastaPos != Vector3.zero ? _rastaPos : farmCenter;
 
             var missions = new List<Mission>
             {
@@ -4483,70 +4667,93 @@ namespace UpIzUpMini.EditorTools
                 new Mission
                 {
                     missionId = "M4",
-                    title = "The Offer",
-                    briefing = "A man name Boss J been watching allu deliveries. He waiting up by the farm track.",
+                    title = "Things Still Slow",
+                    briefing = "The legal farming money moving slow and people doe want to pay for all that hard work. Press [L] to keep farming clean for now, or [K] to check Boss J now.",
                     rewardMoney = 0,
                     objectives = new List<MissionObjective>
                     {
                         new MissionObjective
                         {
-                            kind = ObjectiveKind.TalkTo,
-                            targetId = "BossK",
-                            instruction = "Go and hear what Boss J have to say",
-                            markerPosition = bossPos,
-                        },
-                        new MissionObjective
-                        {
-                            kind = ObjectiveKind.PlantCrop,
-                            targetId = "bushers",
-                            instruction = "Plant the Bushers up at Highland  [ 4 ] to select",
-                            markerPosition = plotPos,
-                        },
-                        new MissionObjective
-                        {
-                            kind = ObjectiveKind.HarvestCrop,
-                            targetId = "bushers",
-                            requiredCount = 3,
-                            instruction = "Water it, let it grow, then harvest the Bushers",
-                            markerPosition = plotPos,
-                        },
-                        new MissionObjective
-                        {
-                            kind = ObjectiveKind.SellCrop,
-                            targetId = "BossK",
-                            instruction = "Bring the harvested Bushers back to Boss J  [ E ]",
-                            markerPosition = bossPos,
+                            kind = ObjectiveKind.ChoosePath,
+                            instruction = "Choose: [L] keep farming legit for now, or [K] go straight to Boss J",
+                            hasMarker = false,
                         },
                     }
                 },
                 new Mission
                 {
-                    missionId = "M5",
-                    title = "Cool Down",
-                    briefing = "Police watching allu now. Stay off di road till dey lose interest.",
+                    missionId = "M4L",
+                    title = "Try the Clean Way",
+                    briefing = "Sacat: Let we try and hold the farming end a little longer first.",
+                    requiredPath = CareerPath.LegitimateFarmer,
+                    commitToWeedRouteOnComplete = true,
+                    rewardMoney = 70,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "tomato", requiredCount = 6, instruction = "Grow and harvest 6 tomato in Highland", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, instruction = "Sell the tomato to the Produce Buyer", markerPosition = marketPos,
+                            dialogueBanner = "Franki: Gasah, that frustrating me.\nSacat: Yah, boi lets go and check the bossman." },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "tomato", requiredCount = 6, instruction = "Try one more legal tomato harvest", markerPosition = plotPos,
+                            dialogueBanner = "Sacat: Although i hear Mr. does bobol people on paying you know.\nFranki: But man can work for Mr. until we can hold our end." },
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, instruction = "Sell the last legal crop, then go check Boss J", markerPosition = marketPos,
+                            dialogueBanner = "Sacat: Well lah, we organize." },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M4W",
+                    title = "The Offer",
+                    requiredPath = CareerPath.WeedRoute,
+                    briefing = "A man name Boss J been watching allu deliveries. He waiting up by the farm track.",
+                    rewardMoney = 0,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossK", instruction = "Go and hear what Boss J have to say", markerPosition = bossPos },
+                        new MissionObjective { kind = ObjectiveKind.PlantCrop, targetId = "bushers", instruction = "Plant the Bushers up at Highland  [ 4 ] to select", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "bushers", requiredCount = 3, instruction = "Water it, let it grow, then harvest the Bushers", markerPosition = plotPos },
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Bring the harvested Bushers back to Boss J  [ E ]", markerPosition = bossPos },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M5A",
+                    title = "Lay Low",
+                    briefing = "Aye, police hot. Go to the Highland safehouse, rest, and let things cool down.",
                     rewardMoney = 120,
                     objectives = new List<MissionObjective>
                     {
                         new MissionObjective
                         {
-                            kind = ObjectiveKind.EscapeHeat,
-                            instruction = "Get away from Lalay and let the heat cool right down",
+                            kind = ObjectiveKind.RestAtSafehouse,
+                            instruction = "Go to the Highland safehouse and rest in the bed",
                             markerPosition = farmCenter,
-                        },
-                        new MissionObjective
-                        {
-                            kind = ObjectiveKind.TalkTo,
-                            targetId = "Police",
-                            instruction = "Plant or sell any weed and seeds, then talk to the officer with low heat",
-                            markerPosition = policePos,
                         },
                     }
                 },
                 new Mission
                 {
+                    missionId = "M5B",
+                    title = "Clean Face",
+                    briefing = "Move clean around the regular police so they know your face, then find Normy and give him a little ting.",
+                    rewardMoney = 80,
+                    objectives = new List<MissionObjective>
+                    {
+                        new MissionObjective
+                        {
+                            kind = ObjectiveKind.TalkToCleanPolice,
+                            targetId = "Police",
+                            requiredCount = 2,
+                            instruction = "Carry no weed or weed seeds and talk to 2 regular police officers",
+                            markerPosition = policePos,
+                        },
+                        new MissionObjective { kind = ObjectiveKind.BribeNormy, targetId = "Normy", instruction = "Find Normy and give him $100 to remove 20% heat", markerPosition = roadPoints[Mathf.Clamp(4,1,roadPoints.Count-2)] },
+                    }
+                },
+                new Mission
+                {
                     missionId = "M6",
-                    title = "Build the Stock",
-                    briefing = "Keep working the Highland plots and build enough stock for the next move.",
+                    title = "Stock Up",
+                    briefing = "Keep working the Highland plots. Build enough Bushers stock for the next move.",
                     rewardMoney = 100,
                     objectives = new List<MissionObjective>
                     {
@@ -4600,29 +4807,13 @@ namespace UpIzUpMini.EditorTools
                 },
                 new Mission
                 {
-                    missionId = "M8", title = "Choose Your Road",
-                    briefing = "Press L to expand legitimate farming, or K to commit to Boss J's weed route.",
-                    objectives = new List<MissionObjective> { new MissionObjective { kind = ObjectiveKind.ChoosePath, instruction = "Choose now: [L] Legitimate farming  or  [K] Weed route", hasMarker = false } }
-                },
-                new Mission
-                {
-                    missionId = "M9L", title = "Roots in the Soil", requiredPath = CareerPath.LegitimateFarmer,
-                    briefing = "Build respect with farmers and expand without Boss J owning allu.", rewardMoney = 300,
-                    objectives = new List<MissionObjective> {
-                        new MissionObjective { kind = ObjectiveKind.AssignFarmhand, targetId = "tomato", instruction = "Select Tomato [1], then ask the other boy to manage three plots", markerPosition = farmCenter },
-                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "tomato", requiredCount = 9, instruction = "Harvest 9 tomato for the legitimate market", markerPosition = plotPos },
-                        new MissionObjective { kind = ObjectiveKind.BuyItem, targetId = "land_hillside", instruction = "Buy the Hillside Survey Lot", markerPosition = roadPoints[Mathf.Clamp(14,1,roadPoints.Count-2)] }
-                    }
-                },
-                new Mission
-                {
                     missionId = "M9W", title = "Boss J's Cut", requiredPath = CareerPath.WeedRoute,
-                    briefing = "Boss J lower the price after allu take the risk. He say loyalty first, payment later.",
+                    briefing = "Boss J have another Bushers run ready. Keep production moving and bring it back.",
                     objectives = new List<MissionObjective> {
-                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossK", instruction = "Return to Boss J for a worse job", markerPosition = bossPos },
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossK", instruction = "Return to Boss J for the next job", markerPosition = bossPos },
                         new MissionObjective { kind = ObjectiveKind.AssignFarmhand, targetId = "bushers", instruction = "Select Bushers [4], then assign the other boy to manage three plots", markerPosition = farmCenter },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "bushers", requiredCount = 3, instruction = "Grow and harvest 3 Bushers", markerPosition = plotPos },
-                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver to Boss J - he is cutting your payment", markerPosition = bossPos }
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver the Bushers to Boss J", markerPosition = bossPos }
                     }
                 },
                 new Mission
@@ -4633,7 +4824,7 @@ namespace UpIzUpMini.EditorTools
                     objectives = new List<MissionObjective> {
                         new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BossC", instruction = "Meet Boss C and unlock Black Sugar [5]", markerPosition = bossCPos },
                         new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "black_sugar", requiredCount = 3, instruction = "Grow and harvest Black Sugar [5]", markerPosition = plotPos },
-                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver it to Boss J - payment may be withheld", markerPosition = bossPos }
+                        new MissionObjective { kind = ObjectiveKind.SellCrop, targetId = "BossK", instruction = "Deliver the Black Sugar to Boss J", markerPosition = bossPos }
                     }
                 },
                 new Mission
@@ -4678,14 +4869,126 @@ namespace UpIzUpMini.EditorTools
                     briefing = "Rasta been watching the plantation long time - go hear what he have to say.",
                     rewardMoney = 60,
                     objectives = new List<MissionObjective> {
-                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Rasta", instruction = "Go talk to Rasta on the farm track", markerPosition = Vector3.Lerp(roadPoints[roadPoints.Count/2], farmCenter, 0.4f) },
-                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "tomato", requiredCount = 4, instruction = "Rasta say bring him proof allu still working - harvest 4 more tomato", markerPosition = plotPos },
+                        // MINI-109: was recomputing Rasta's placement
+                        // formula here without the farmRight*3f offset
+                        // BuildRastaMentor actually applies, landing the
+                        // marker 3m off from where he really stands. Now
+                        // reads his real built position directly.
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Rasta", instruction = "Go talk to Rasta on the farm track", markerPosition = rastaPos },
+                        // MINI-111: "Rasta should stop asking for tomatoes.
+                        // His chapter becomes the production/strain
+                        // school" - tier 1 of the ladder, Bushers, already
+                        // unlocked from the start so it needs no
+                        // unlocksCropId.
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "bushers", requiredCount = 3, instruction = "Rasta say bring him proof allu still working - harvest 3 Bushers", markerPosition = plotPos },
+                    }
+                },
+                // MINI-111: Rasta's strain-mentorship ladder, tiers 2-7.
+                // Each mission's unlocksCropId fires the moment IT becomes
+                // current (see MissionSystem.AdvanceObjective), so the
+                // crop is buyable/breedable before its own harvest
+                // objective is even reached - never shown/buyable earlier.
+                // Placed before M13B/M14 so the Boat Man/Guadeloupe chapter
+                // follows strain mastery, not the other way around, per
+                // the handoff's own "only after the boys hold all core
+                // strains... open the Guadeloupe opportunity."
+                new Mission
+                {
+                    missionId = "M13C2", title = "Black Sugar School",
+                    briefing = "Rasta: \"Bushers is just the start, yout. Mi show yuh how fi work Black Sugar now - stronger ting, more careful hand.\"",
+                    rewardMoney = 65,
+                    unlocksCropId = "black_sugar",
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Rasta", instruction = "Go hear Rasta teach Black Sugar", markerPosition = rastaPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "black_sugar", requiredCount = 3, instruction = "Grow and harvest 3 Black Sugar", markerPosition = plotPos },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M13C3", title = "Purple, Rasta's Way",
+                    briefing = "Rasta: \"Allu ready for Purple now. Mind it - dis one bring more heat, but more money too.\"",
+                    rewardMoney = 75,
+                    unlocksCropId = "purple",
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Rasta", instruction = "Go hear Rasta teach Purple", markerPosition = rastaPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "purple", requiredCount = 3, instruction = "Grow and harvest 3 Purple", markerPosition = plotPos },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M13C4", title = "Blue Cheese Proof",
+                    briefing = "Rasta: \"Now a next strain altogether - Blue Cheese. Grow one an' show mi, prove yuh have di hand for it.\"",
+                    rewardMoney = 85,
+                    unlocksCropId = "blue_cheese",
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Rasta", instruction = "Go hear Rasta teach Blue Cheese", markerPosition = rastaPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "blue_cheese", requiredCount = 1, instruction = "Grow and harvest 1 Blue Cheese to prove it", markerPosition = plotPos },
+                    }
+                },
+                new Mission
+                {
+                    // MINI-111: "teach the first mixed strain, Purple Sugar
+                    // (if the implementation retains the legacy
+                    // purple_black ID, document the player-facing rename)"
+                    // - internal crop id stays purple_black; every
+                    // player-visible string here says Purple Sugar.
+                    missionId = "M13C5", title = "Purple Sugar",
+                    briefing = "Rasta: \"Now mi teach yuh di real skill - crossing strains. Purple and Black Sugar together make Purple Sugar. Tek dem to the breeding station.\"",
+                    rewardMoney = 95,
+                    unlocksCropId = "purple_black",
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Rasta", instruction = "Go hear Rasta teach Purple Sugar", markerPosition = rastaPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "purple_black", requiredCount = 1, instruction = "Cross Purple and Black Sugar at the breeding station, then grow and harvest 1 Purple Sugar", markerPosition = plotPos },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M13C6", title = "Sugar Cheese",
+                    briefing = "Rasta: \"Blue Cheese and Black Sugar cross to Sugar Cheese. Yuh close to di top now.\"",
+                    rewardMoney = 105,
+                    unlocksCropId = "sugar_cheese",
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Rasta", instruction = "Go hear Rasta teach Sugar Cheese", markerPosition = rastaPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "sugar_cheese", requiredCount = 1, instruction = "Cross Blue Cheese and Black Sugar, then grow and harvest 1 Sugar Cheese", markerPosition = plotPos },
+                    }
+                },
+                new Mission
+                {
+                    missionId = "M13C7", title = "Purple Cheese",
+                    briefing = "Rasta: \"Di last one, Iyah - Purple Cheese. Blue Cheese and Purple together. After dis, allu know every strain in Grand Bay.\"",
+                    rewardMoney = 120,
+                    unlocksCropId = "purple_cheese",
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Rasta", instruction = "Go hear Rasta teach Purple Cheese", markerPosition = rastaPos },
+                        new MissionObjective { kind = ObjectiveKind.HarvestCrop, targetId = "purple_cheese", requiredCount = 1, instruction = "Cross Blue Cheese and Purple, then grow and harvest 1 Purple Cheese", markerPosition = plotPos },
+                    }
+                },
+                new Mission
+                {
+                    // MINI-110: Normy's item favour, ahead of the Boat
+                    // Man/Gardey bridge - "before the Boat Man chapter,
+                    // Normy asks the player to bring requested food and
+                    // pharmacy items."
+                    missionId = "M13B", title = "Small Ting",
+                    briefing = "Normy want a little favour before he put allu onto anything else - some food and a little pharmacy ting.",
+                    rewardMoney = 50,
+                    objectives = new List<MissionObjective> {
+                        new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Normy", instruction = "Go hear what Normy want", markerPosition = roadPoints[Mathf.Clamp(4,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.DeliverItem, targetId = "food_bakes", requiredCount = 1, instruction = "Buy Bakes and Saltfish from the Food shop, then bring it to Normy", markerPosition = roadPoints[Mathf.Clamp(4,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.DeliverItem, targetId = "pill_energy", requiredCount = 1, instruction = "Buy Energy Pills from the Pharmacy, then bring it to Normy", markerPosition = roadPoints[Mathf.Clamp(4,1,roadPoints.Count-2)] },
                     }
                 },
                 new Mission
                 {
                     missionId = "M14", title = "Ason Ki Move",
-                    briefing = "The Boat Man see and hear everything that pass Grand Bay - go find him at the jetty.",
+                    // MINI-110: carries Normy's uncertain street-info hint
+                    // from M13B's completion straight into this mission's
+                    // own briefing banner - "somebody may be taking the
+                    // boys' crop/stuff, he doesn't know who, check the
+                    // Boat Man about Gardey Zafeh" - reusing the existing
+                    // next-mission-briefing banner instead of new dialogue
+                    // plumbing.
+                    briefing = "Normy: \"Preciate dat. Listen - I hearing people talking bout somebody taking weh from allu stock and stuff. I doe know who exactly, but if I was allu, I woulda check the Boat Man about a man name Gardey Zafeh, down Gwada way. He does know more than he let on.\"",
                     rewardMoney = 70,
                     objectives = new List<MissionObjective> {
                         new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "BoatMan", instruction = "Meet the Boat Man at the jetty", markerPosition = new Vector3(0f, SeaLevelY, TerrainSize*.5f) },
@@ -4705,8 +5008,16 @@ namespace UpIzUpMini.EditorTools
                     missionId = "M16", title = "War Story",
                     briefing = "Dog Life been watching allu plantation too long. Bring your crew and step to their block.",
                     rewardMoney = 150,
+                    // MINI-119, user: "i think for the war story you would
+                    // have to fight off and kill all dog life members to
+                    // win the war story" - previously just ReachArea +
+                    // EscapeHeat, no combat requirement at all. Now the
+                    // player must actually knock out every pooled Dog Life
+                    // member (RivalGangSpawner.AllDefeated) before laying
+                    // low, matching a real "war" rather than a walk-in.
                     objectives = new List<MissionObjective> {
                         new MissionObjective { kind = ObjectiveKind.ReachArea, instruction = "Walk your crew into Dog Life's block on the Lalay road", markerPosition = roadPoints[Mathf.Clamp(1,1,roadPoints.Count-2)] },
+                        new MissionObjective { kind = ObjectiveKind.DefeatAllRivals, targetId = "DogLifeSpawner", instruction = "Fight off and knock out every Dog Life member holding the block", markerPosition = roadPoints[Mathf.Clamp(1,1,roadPoints.Count-2)] },
                         new MissionObjective { kind = ObjectiveKind.EscapeHeat, instruction = "Lay low until police heat cools back down", hasMarker = false },
                     }
                 },
@@ -4752,6 +5063,8 @@ namespace UpIzUpMini.EditorTools
                 mp.FindPropertyRelative("briefing").stringValue = mission.briefing;
                 mp.FindPropertyRelative("rewardMoney").intValue = mission.rewardMoney;
                 mp.FindPropertyRelative("requiredPath").enumValueIndex = (int)mission.requiredPath;
+                mp.FindPropertyRelative("commitToWeedRouteOnComplete").boolValue = mission.commitToWeedRouteOnComplete;
+                mp.FindPropertyRelative("unlocksCropId").stringValue = mission.unlocksCropId ?? string.Empty;
 
                 var objProp = mp.FindPropertyRelative("objectives");
                 objProp.arraySize = mission.objectives.Count;
@@ -4761,6 +5074,7 @@ namespace UpIzUpMini.EditorTools
                     var obj = mission.objectives[o];
                     op.FindPropertyRelative("kind").enumValueIndex = (int)obj.kind;
                     op.FindPropertyRelative("instruction").stringValue = obj.instruction;
+                    op.FindPropertyRelative("dialogueBanner").stringValue = obj.dialogueBanner ?? string.Empty;
                     op.FindPropertyRelative("targetId").stringValue = obj.targetId ?? string.Empty;
                     op.FindPropertyRelative("requiredCount").intValue = Mathf.Max(1, obj.requiredCount);
                     op.FindPropertyRelative("markerPosition").vector3Value = obj.markerPosition;
@@ -4990,6 +5304,17 @@ namespace UpIzUpMini.EditorTools
             nameLabel.rectTransform.sizeDelta = new Vector2(360f, 44f);
             nameLabel.alignment = TextAnchor.MiddleLeft;
 
+            // MINI-110: courier-away return countdown - only visible while
+            // GuadeloupeTrade.TripActive, hidden otherwise (HUDController's
+            // own Update() toggles Text.enabled).
+            Text courierTimerLabel = CreateLabel(canvasGo.transform, string.Empty, 22, new Vector2(20f, -190f), font);
+            courierTimerLabel.rectTransform.anchorMin = courierTimerLabel.rectTransform.anchorMax = new Vector2(0f, 1f);
+            courierTimerLabel.rectTransform.pivot = new Vector2(0f, 1f);
+            courierTimerLabel.rectTransform.sizeDelta = new Vector2(420f, 34f);
+            courierTimerLabel.alignment = TextAnchor.MiddleLeft;
+            courierTimerLabel.color = new Color(0.95f, 0.85f, 0.35f);
+            courierTimerLabel.enabled = false;
+
             var hud = canvasGo.AddComponent<HUDController>();
             var so = new SerializedObject(hud);
             so.FindProperty("healthFill").objectReferenceValue = healthFill;
@@ -5007,6 +5332,7 @@ namespace UpIzUpMini.EditorTools
             so.FindProperty("healthPercent").objectReferenceValue = healthPct;
             so.FindProperty("staminaPercent").objectReferenceValue = staminaPct;
             so.FindProperty("heatPercent").objectReferenceValue = heatPct;
+            so.FindProperty("courierTimerLabel").objectReferenceValue = courierTimerLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             BuildGtaMiniMap(canvasGo.transform, font);
@@ -5113,6 +5439,8 @@ namespace UpIzUpMini.EditorTools
             AddMiniMapMarker("FarmSafehouse_Building", MiniMapMarkerKind.Safehouse, "Highland Safehouse", property);
             AddMiniMapMarker("LalayHouse", MiniMapMarkerKind.Safehouse, "Lalay Safehouse", property, "M12");
             AddMiniMapMarker("FarmPlot_00", MiniMapMarkerKind.Farm, "Highland Farm", shop);
+            // MINI-119, user: "point marker for the interbreeding building."
+            AddMiniMapMarker("BreedingStation", MiniMapMarkerKind.Farm, "Breeding Station", shop);
             AddMiniMapMarker("GrandBay_Catholic_Church_Graybox", MiniMapMarkerKind.Church, "Church", community);
             AddMiniMapMarker("NPC_Brakes", MiniMapMarkerKind.Person, "Brakes", community);
             AddMiniMapMarker("NPC_BoatMan", MiniMapMarkerKind.Boat, "Boat Man", community, "M11W");
@@ -5205,17 +5533,32 @@ namespace UpIzUpMini.EditorTools
             bRect.anchorMin = bRect.anchorMax = new Vector2(0.5f, 0.5f);
             bRect.sizeDelta = new Vector2(1200f, 220f);
             bRect.anchoredPosition = new Vector2(0f, 180f);
-            var banner = bannerGo.AddComponent<Text>();
+            var bannerBackground = bannerGo.AddComponent<Image>();
+            bannerBackground.color = new Color(0f, 0f, 0f, 0f);
+            bannerBackground.raycastTarget = false;
+
+            var bannerTextGo = new GameObject("Text");
+            bannerTextGo.transform.SetParent(bannerGo.transform, false);
+            var bannerTextRect = bannerTextGo.AddComponent<RectTransform>();
+            bannerTextRect.anchorMin = Vector2.zero;
+            bannerTextRect.anchorMax = Vector2.one;
+            bannerTextRect.offsetMin = new Vector2(36f, 22f);
+            bannerTextRect.offsetMax = new Vector2(-36f, -22f);
+            var banner = bannerTextGo.AddComponent<Text>();
             banner.font = font;
             banner.fontSize = 44;
             banner.fontStyle = FontStyle.Bold;
             banner.alignment = TextAnchor.MiddleCenter;
             banner.color = new Color(1f, 1f, 1f, 0f);
+            banner.horizontalOverflow = HorizontalWrapMode.Wrap;
+            banner.verticalOverflow = VerticalWrapMode.Overflow;
 
             var missionHud = canvasGo.AddComponent<MissionHUD>();
             var mhSo = new SerializedObject(missionHud);
             mhSo.FindProperty("objectiveText").objectReferenceValue = objectiveText;
             mhSo.FindProperty("bannerText").objectReferenceValue = banner;
+            mhSo.FindProperty("bannerBackground").objectReferenceValue = bannerBackground;
+            mhSo.FindProperty("bannerPanelRect").objectReferenceValue = bRect;
             mhSo.FindProperty("objectivePanel").objectReferenceValue = objectivePanel;
             // MINI-073: without this, the card's auto-resize (ResizeObjectiveCard)
             // silently does nothing - it was written and left unwired in the same

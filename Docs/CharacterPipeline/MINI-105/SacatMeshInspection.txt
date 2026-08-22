@@ -1,0 +1,105 @@
+FBX version: 7700
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+WARNING: User property type 'Short' is not supported
+MESH Ch06 vertices=27341 polygons=27661 materials=3 groups=53
+  MATERIAL 0: Ch06_body faces=23773
+  MATERIAL 1: Ch06_eyelashes faces=352
+  MATERIAL 2: Ch06_body1 faces=3536
+  VERTEX_GROUPS mixamorig9:Hips, mixamorig9:Spine, mixamorig9:Spine1, mixamorig9:Spine2, mixamorig9:Neck, mixamorig9:Head, mixamorig9:HeadTop_End, mixamorig9:LeftShoulder, mixamorig9:LeftArm, mixamorig9:LeftForeArm, mixamorig9:LeftHand, mixamorig9:LeftHandThumb1, mixamorig9:LeftHandThumb2, mixamorig9:LeftHandThumb3, mixamorig9:LeftHandIndex1, mixamorig9:LeftHandIndex2, mixamorig9:LeftHandIndex3, mixamorig9:LeftHandMiddle1, mixamorig9:LeftHandMiddle2, mixamorig9:LeftHandMiddle3, mixamorig9:LeftHandRing1, mixamorig9:LeftHandRing2, mixamorig9:LeftHandRing3, mixamorig9:LeftHandPinky1, mixamorig9:LeftHandPinky2, mixamorig9:LeftHandPinky3, mixamorig9:RightShoulder, mixamorig9:RightArm, mixamorig9:RightForeArm, mixamorig9:RightHand, mixamorig9:RightHandThumb1, mixamorig9:RightHandThumb2, mixamorig9:RightHandThumb3, mixamorig9:RightHandIndex1, mixamorig9:RightHandIndex2, mixamorig9:RightHandIndex3, mixamorig9:RightHandMiddle1, mixamorig9:RightHandMiddle2, mixamorig9:RightHandMiddle3, mixamorig9:RightHandRing1, mixamorig9:RightHandRing2, mixamorig9:RightHandRing3, mixamorig9:RightHandPinky1, mixamorig9:RightHandPinky2, mixamorig9:RightHandPinky3, mixamorig9:LeftUpLeg, mixamorig9:LeftLeg, mixamorig9:LeftFoot, mixamorig9:LeftToeBase, mixamorig9:RightUpLeg, mixamorig9:RightLeg, mixamorig9:RightFoot, mixamorig9:RightToeBase
+  ISLAND 0: faces=7221 verts=6996 x=-0.7057..0.7074 y=-0.1686..0.1675 z=0.8536..1.6426 materials={0: 7221}
+  ISLAND 1: faces=4251 verts=4272 x=-0.0857..0.0880 y=-0.1383..0.0767 z=1.5603..1.7286 materials={0: 4251}
+  ISLAND 2: faces=2719 verts=2749 x=-0.2101..0.2126 y=-0.1178..0.1101 z=0.1404..0.9098 materials={0: 2719}
+  ISLAND 3: faces=2046 verts=2036 x=-0.2095..0.2092 y=-0.1416..0.1045 z=0.7550..0.8889 materials={0: 2046}
+  ISLAND 4: faces=1642 verts=1647 x=0.6733..0.8901 y=-0.0530..0.0684 z=1.4037..1.4952 materials={0: 1642}
+  ISLAND 5: faces=1642 verts=1647 x=-0.8901..-0.6733 y=-0.0530..0.0684 z=1.4037..1.4952 materials={0: 1642}
+  ISLAND 6: faces=1392 verts=1346 x=0.0687..0.1138 y=-0.0699..0.0232 z=1.6374..1.7305 materials={0: 1392}
+  ISLAND 7: faces=1392 verts=1346 x=-0.1138..-0.0687 y=-0.0699..0.0232 z=1.6374..1.7305 materials={0: 1392}
+  ISLAND 8: faces=1240 verts=1122 x=0.0923..0.2270 y=-0.2146..0.1115 z=-0.0021..0.2223 materials={2: 1240}
+  ISLAND 9: faces=1240 verts=1122 x=-0.2270..-0.0923 y=-0.2146..0.1115 z=-0.0021..0.2223 materials={2: 1240}
+  ISLAND 10: faces=888 verts=854 x=-0.0825..0.0812 y=-0.1329..0.0816 z=1.7070..1.8121 materials={2: 888}
+  ISLAND 11: faces=384 verts=385 x=0.0170..0.0472 y=-0.1064..-0.0925 z=1.6832..1.7137 materials={0: 384}
+  ISLAND 12: faces=384 verts=385 x=-0.0472..-0.0170 y=-0.1064..-0.0925 z=1.6832..1.7137 materials={0: 384}
+  ISLAND 13: faces=368 verts=362 x=-0.1118..0.1118 y=-0.0428..-0.0039 z=1.7229..1.8249 materials={0: 368}
+  ISLAND 14: faces=248 verts=250 x=-0.0963..0.0963 y=-0.0429..-0.0038 z=1.7490..1.8198 materials={0: 248}
+  ISLAND 15: faces=168 verts=160 x=-0.0808..0.0809 y=-0.1927..-0.0735 z=1.7064..1.7209 materials={2: 168}
+  ISLAND 16: faces=42 verts=56 x=0.1075..0.1120 y=-0.0345..-0.0122 z=1.6918..1.7243 materials={0: 42}
+  ISLAND 17: faces=42 verts=56 x=-0.1120..-0.1075 y=-0.0345..-0.0122 z=1.6918..1.7243 materials={0: 42}
+  ISLAND 18: faces=16 verts=25 x=-0.0498..-0.0431 y=-0.1050..-0.0990 z=1.6962..1.7014 materials={1: 16}
+  ISLAND 19: faces=16 verts=25 x=-0.0471..-0.0391 y=-0.1078..-0.1022 z=1.6990..1.7042 materials={1: 16}
+  ISLAND 20: faces=16 verts=25 x=-0.0442..-0.0328 y=-0.1105..-0.1044 z=1.7007..1.7055 materials={1: 16}
+  ISLAND 21: faces=16 verts=25 x=-0.0379..-0.0283 y=-0.1105..-0.1071 z=1.7016..1.7046 materials={1: 16}
+  ISLAND 22: faces=16 verts=25 x=-0.0337..-0.0218 y=-0.1110..-0.1070 z=1.7002..1.7051 materials={1: 16}
+  ISLAND 23: faces=16 verts=25 x=-0.0274..-0.0184 y=-0.1101..-0.1057 z=1.6975..1.7038 materials={1: 16}
+  ISLAND 24: faces=16 verts=25 x=-0.0310..-0.0198 y=-0.1099..-0.1056 z=1.6896..1.6930 materials={1: 16}
+  ISLAND 25: faces=16 verts=25 x=-0.0346..-0.0260 y=-0.1099..-0.1062 z=1.6886..1.6917 materials={1: 16}
+  ISLAND 26: faces=16 verts=25 x=-0.0403..-0.0311 y=-0.1094..-0.1042 z=1.6887..1.6909 materials={1: 16}
+  ISLAND 27: faces=16 verts=25 x=-0.0447..-0.0364 y=-0.1073..-0.1017 z=1.6880..1.6918 materials={1: 16}
+  ISLAND 28: faces=16 verts=25 x=-0.0500..-0.0399 y=-0.1052..-0.0982 z=1.6882..1.6937 materials={1: 16}
+  ISLAND 29: faces=16 verts=25 x=0.0424..0.0506 y=-0.1054..-0.0984 z=1.6956..1.7024 materials={1: 16}
+SACAT_MESH_INSPECTION_PASS
+Blender 5.0.1 (hash a3db93c5b259 built 2025-12-16 01:32:30)
+
+Blender quit

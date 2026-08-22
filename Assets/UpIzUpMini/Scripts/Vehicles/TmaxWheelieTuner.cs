@@ -293,6 +293,37 @@ namespace UpIzUpMini.Vehicles
                 v => _bike.CenterOfMassOffsetRight = v);
 
             GUILayout.Space(10f);
+            // MINI-119 follow-up, user: "sliders as not make it spin when
+            // hitting ledge or bump or hill and then sliders for keep the
+            // bike down like a gravity slider for when it leaves the
+            // ground. the sliders should [be] wide so i can drastically
+            // reduce the spinning and gravity." Ranges deliberately go
+            // well past the shipped defaults on both ends - low enough on
+            // yaw spin threshold/high enough on damping to all but kill
+            // spin entirely, and 0 on air gravity to turn it off outright.
+            GUILayout.Label("-- ANTI-SPIN (hedge/ledge/bump hits) --");
+            Slider("Yaw spin threshold (deg/s) - LOWER = assist kicks in sooner",
+                _bike.YawSpinThreshold, 0f, 800f, v => _bike.YawSpinThreshold = v);
+            Slider("Yaw spin damping - HIGHER = kills excess spin faster",
+                _bike.YawSpinDamping, 0f, 50f, v => _bike.YawSpinDamping = v);
+
+            GUILayout.Space(8f);
+            GUILayout.Label("-- HILL / LEDGE CLIMB ASSIST --");
+            Slider("Hill climb assist strength",
+                _bike.HillClimbAssist, 0f, 60f, v => _bike.HillClimbAssist = v);
+            Slider("Full-strength slope angle (deg)",
+                _bike.HillClimbMaxSlopeDeg, 1f, 89f, v => _bike.HillClimbMaxSlopeDeg = v);
+
+            GUILayout.Space(8f);
+            GUILayout.Label("-- AIR GRAVITY (pulls the bike back down once airborne) --");
+            Slider("Extra air gravity (0 = off)",
+                _bike.ExtraAirGravity, 0f, 500f, v => _bike.ExtraAirGravity = v);
+            Slider("Airborne grace before it kicks in (s)",
+                _bike.AirborneGraceSeconds, 0f, 2f, v => _bike.AirborneGraceSeconds = v);
+            Slider("Ramp-up time to full strength (s)",
+                _bike.AirGravityRampSeconds, 0f, 3f, v => _bike.AirGravityRampSeconds = v);
+
+            GUILayout.Space(10f);
             GUILayout.Label("-- DEBUG FORCE (last-resort override, bypasses everything) --");
             Slider("Force pitch to (deg, 90=max representable)",
                 _bike.DebugForcedPitchAngle, -450f, 450f, v => _bike.DebugForcedPitchAngle = v);

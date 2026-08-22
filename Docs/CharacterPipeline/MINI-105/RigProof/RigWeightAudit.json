@@ -1,0 +1,352 @@
+{
+  "vertices": 17146,
+  "polygons": 25000,
+  "deform_bones": 65,
+  "vertex_groups": 65,
+  "unweighted_count": 17146,
+  "unweighted_bounds": {
+    "min": [
+      -0.9367194175720215,
+      -0.16396073997020721,
+      -0.00010249965271214023
+    ],
+    "max": [
+      0.9367623925209045,
+      0.16331563889980316,
+      1.8505780696868896
+    ]
+  },
+  "max_influences": 0,
+  "over_four_influences": 0,
+  "weight_total_min": 0,
+  "weight_total_max": 0,
+  "empty_deform_groups": [
+    "mixamorig9:Head",
+    "mixamorig9:HeadTop_End",
+    "mixamorig9:Hips",
+    "mixamorig9:LeftArm",
+    "mixamorig9:LeftFoot",
+    "mixamorig9:LeftForeArm",
+    "mixamorig9:LeftHand",
+    "mixamorig9:LeftHandIndex1",
+    "mixamorig9:LeftHandIndex2",
+    "mixamorig9:LeftHandIndex3",
+    "mixamorig9:LeftHandIndex4",
+    "mixamorig9:LeftHandMiddle1",
+    "mixamorig9:LeftHandMiddle2",
+    "mixamorig9:LeftHandMiddle3",
+    "mixamorig9:LeftHandMiddle4",
+    "mixamorig9:LeftHandPinky1",
+    "mixamorig9:LeftHandPinky2",
+    "mixamorig9:LeftHandPinky3",
+    "mixamorig9:LeftHandPinky4",
+    "mixamorig9:LeftHandRing1",
+    "mixamorig9:LeftHandRing2",
+    "mixamorig9:LeftHandRing3",
+    "mixamorig9:LeftHandRing4",
+    "mixamorig9:LeftHandThumb1",
+    "mixamorig9:LeftHandThumb2",
+    "mixamorig9:LeftHandThumb3",
+    "mixamorig9:LeftHandThumb4",
+    "mixamorig9:LeftLeg",
+    "mixamorig9:LeftShoulder",
+    "mixamorig9:LeftToeBase",
+    "mixamorig9:LeftToe_End",
+    "mixamorig9:LeftUpLeg",
+    "mixamorig9:Neck",
+    "mixamorig9:RightArm",
+    "mixamorig9:RightFoot",
+    "mixamorig9:RightForeArm",
+    "mixamorig9:RightHand",
+    "mixamorig9:RightHandIndex1",
+    "mixamorig9:RightHandIndex2",
+    "mixamorig9:RightHandIndex3",
+    "mixamorig9:RightHandIndex4",
+    "mixamorig9:RightHandMiddle1",
+    "mixamorig9:RightHandMiddle2",
+    "mixamorig9:RightHandMiddle3",
+    "mixamorig9:RightHandMiddle4",
+    "mixamorig9:RightHandPinky1",
+    "mixamorig9:RightHandPinky2",
+    "mixamorig9:RightHandPinky3",
+    "mixamorig9:RightHandPinky4",
+    "mixamorig9:RightHandRing1",
+    "mixamorig9:RightHandRing2",
+    "mixamorig9:RightHandRing3",
+    "mixamorig9:RightHandRing4",
+    "mixamorig9:RightHandThumb1",
+    "mixamorig9:RightHandThumb2",
+    "mixamorig9:RightHandThumb3",
+    "mixamorig9:RightHandThumb4",
+    "mixamorig9:RightLeg",
+    "mixamorig9:RightShoulder",
+    "mixamorig9:RightToeBase",
+    "mixamorig9:RightToe_End",
+    "mixamorig9:RightUpLeg",
+    "mixamorig9:Spine",
+    "mixamorig9:Spine1",
+    "mixamorig9:Spine2"
+  ],
+  "groups": {
+    "mixamorig9:Hips": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:Spine": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:Spine1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:Spine2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:Neck": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:Head": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:HeadTop_End": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftShoulder": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftArm": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftForeArm": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHand": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandThumb1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandThumb2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandThumb3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandThumb4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandIndex1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandIndex2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandIndex3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandIndex4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandMiddle1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandMiddle2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandMiddle3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandMiddle4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandRing1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandRing2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandRing3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandRing4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandPinky1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandPinky2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandPinky3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftHandPinky4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightShoulder": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightArm": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightForeArm": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHand": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandThumb1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandThumb2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandThumb3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandThumb4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandIndex1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandIndex2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandIndex3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandIndex4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandMiddle1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandMiddle2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandMiddle3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandMiddle4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandRing1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandRing2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandRing3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandRing4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandPinky1": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandPinky2": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandPinky3": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightHandPinky4": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftUpLeg": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftLeg": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftFoot": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftToeBase": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:LeftToe_End": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightUpLeg": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightLeg": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightFoot": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightToeBase": {
+      "vertices": 0,
+      "max_weight": 0.0
+    },
+    "mixamorig9:RightToe_End": {
+      "vertices": 0,
+      "max_weight": 0.0
+    }
+  }
+}

@@ -20,6 +20,8 @@ namespace UpIzUpMini.UI
     {
         [SerializeField] private Text objectiveText;
         [SerializeField] private Text bannerText;
+        [SerializeField] private Image bannerBackground;
+        [SerializeField] private RectTransform bannerPanelRect;
         [SerializeField] private GameObject objectivePanel;
         [Tooltip("MINI-073: the objective card's background Image, resized every frame to fit the current text - see ResizeObjectiveCard. The fixed-height box previously TRUNCATED longer objectives (a title plus a wrapped instruction plus a distance line routinely exceeded it) with no visual sign anything was missing.")]
         [SerializeField] private RectTransform objectivePanelRect;
@@ -28,7 +30,19 @@ namespace UpIzUpMini.UI
         [SerializeField] private float bannerHoldMin = 3.2f;
         [Tooltip("Extra hold seconds per character, on top of bannerHoldMin - an average adult reads roughly 200-250 wpm, this is a conservative slower estimate so slang-heavy lines aren't rushed.")]
         [SerializeField] private float bannerHoldPerChar = 0.045f;
-        [SerializeField] private float bannerHoldMax = 9f;
+        // MINI-119, user: "first dialogue to bossman not showing full
+        // dialogue the other bossman long dialogue in the end as well."
+        // Root cause: the banner Text itself was never clipped
+        // (verticalOverflow is already Overflow, and nothing masks it) -
+        // the actual problem is READING TIME. bannerHoldPerChar already
+        // scales hold time with length, per MINI-053's own stated intent,
+        // but this ceiling silently defeated that for any long combined
+        // line (a first-meeting intro plus the immediate reply, or the
+        // Boat Man's four-line MINI-110 introduction, easily 200+ chars) -
+        // it faded mid-read well before bannerHoldPerChar's own math said
+        // it should. Was 9f; raised so a genuinely long line gets the read
+        // time the length-scaling formula already intended it to have.
+        [SerializeField] private float bannerHoldMax = 20f;
         [SerializeField] private float bannerFade = 1.2f;
 
         private void Update()
@@ -87,7 +101,30 @@ namespace UpIzUpMini.UI
                 var c = bannerText.color;
                 c.a = alpha;
                 bannerText.color = c;
+                if (bannerBackground != null)
+                {
+                    Color bg = bannerBackground.color;
+                    bg.a = alpha * 0.72f;
+                    bannerBackground.color = bg;
+                    bannerBackground.gameObject.SetActive(alpha > 0.001f && !string.IsNullOrEmpty(banner));
+                }
+                ResizeBanner(banner);
             }
+        }
+
+        private void ResizeBanner(string banner)
+        {
+            if (bannerPanelRect == null || bannerText == null || string.IsNullOrEmpty(banner)) return;
+            float width = bannerPanelRect.rect.width;
+            var settings = bannerText.GetGenerationSettings(new Vector2(width - 80f, 0f));
+            float preferred = bannerText.cachedTextGeneratorForLayout.GetPreferredHeight(banner, settings);
+            // MINI-119: 330f was tall enough for a short line but left the
+            // dark background panel visibly SHORTER than long dialogue
+            // (the text itself was never clipped - verticalOverflow is
+            // Overflow - but it rendered past the box, over whatever's
+            // behind it). Raised well past the longest real line in this
+            // game (the Boat Man's four-line MINI-110 introduction).
+            bannerPanelRect.sizeDelta = new Vector2(bannerPanelRect.sizeDelta.x, Mathf.Clamp(preferred + 54f, 110f, 620f));
         }
 
         /// <summary>

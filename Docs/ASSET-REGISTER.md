@@ -84,6 +84,12 @@ don't pan out visually or technically.
 |---|---|---|---|---|
 | MINI-AST-120 | TomatoPlant_LOD.asset / WeedPlant_LOD.asset | Decimated from `E:\Unity\Up iz up\Assets\Imported Plants\{Tomato,Weed} plant.fbx` | Same ownership as the larger project (user's own project; original scan provenance not recorded there either — worth confirming before release) | Realistic crop visuals. **The sources are ~2,000,000-triangle photogrammetry scans (183MB each), single submesh, no growth stages — unusable directly on a mobile target and never actually referenced in the larger game's scene.** Reduced to 3,259 / 5,561 triangles (0.16% / 0.28%) with `MeshDecimator.cs` (vertex-clustering), preserving stem/leaf/fruit silhouette. Verified by render: still clearly reads as a tomato plant with fruit, and a cannabis plant. The 366MB of source FBXs were deleted after conversion; only the 282KB of decimated meshes are in the repo. |
 
+## User-generated character candidate (MINI-105)
+
+| asset_id | asset_name | source | licence/provenance | purpose |
+|---|---|---|---|---|
+| MINI-AST-121 | Sacat Modular Base Rigged | User-generated Hitem3D download `C:\Users\PCSS-PC\Downloads\Hi3D_Untitled_allparts_20260820_223739.glb`; rigged locally with AccuRIG Free; cleaned/staged in Blender | Created under the user's paid Hitem3D subscription from the user's approved Sacat reference workflow; local derivative and AccuRIG export records retained in `Docs/CharacterPipeline/MINI-105/` | Isolated canonical body candidate: white vest, black boxer pants, barefoot, 101-bone full-finger Humanoid. The immutable 100k master now has derived 25k/12k/4.5k mobile LOD candidates under `Assets/UpIzUpMini/Art/Characters/Modular/Sacat/Mobile/`, with one material, four influences and a validated LODGroup. Playable Sacat remains unchanged until static and motion approval. |
+
 ## Explicitly rejected
 
 - Adventurer Character, Fighter Character, Warriors And Commoner (local `E:\Assets`) — fantasy/medieval sword-fighter aesthetic, wrong genre.

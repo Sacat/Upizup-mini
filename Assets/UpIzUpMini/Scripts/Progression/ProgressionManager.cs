@@ -46,10 +46,44 @@ namespace UpIzUpMini.Progression
         public bool SugarCheeseUnlocked => BossKReputation >= 30 && GangReputation >= 30 && BossExploitationStage >= 4;
         public bool PurpleCheeseUnlocked => GangReputation >= 50 && BossExploitationStage >= 5;
         public float BossPayoutMultiplier => BossExploitationStage switch { 0 => 1f, 1 => .75f, 2 => .4f, _ => 0f };
+
+        // MINI-111: Rasta's own strain-mentorship ladder - an ALTERNATE
+        // unlock path alongside the existing Boss-exploitation-stage
+        // formulas above, not a replacement. Legitimate-farming-path
+        // players never see M9W-M11W (those are WeedRoute-only), so
+        // without this, they had no route to any strain past the basics -
+        // Rasta's missions are that route for everyone, regardless of path.
+        public bool RastaTaughtBlackSugar { get; private set; }
+        public bool RastaTaughtPurple { get; private set; }
+        public bool RastaTaughtBlueCheese { get; private set; }
+        public bool RastaTaughtPurpleBlack { get; private set; }
+        public bool RastaTaughtSugarCheese { get; private set; }
+        public bool RastaTaughtPurpleCheese { get; private set; }
+
+        /// <summary>Applied automatically when one of Rasta's teaching
+        /// missions becomes current (see Mission.unlocksCropId) - not
+        /// called directly by NPC code, matching "use data definitions
+        /// rather than duplicating crop-specific logic."</summary>
+        public void MarkRastaTaught(string cropId)
+        {
+            switch (cropId)
+            {
+                case "black_sugar": RastaTaughtBlackSugar = true; break;
+                case "purple": RastaTaughtPurple = true; break;
+                case "blue_cheese": RastaTaughtBlueCheese = true; break;
+                case "purple_black": RastaTaughtPurpleBlack = true; break;
+                case "sugar_cheese": RastaTaughtSugarCheese = true; break;
+                case "purple_cheese": RastaTaughtPurpleCheese = true; break;
+                default: return; // bushers/tomato/etc. need no flag - already unlocked
+            }
+            OnChanged?.Invoke();
+        }
+
         public event Action OnChanged;
 
         void Awake() => Instance = this;
         public void ChoosePath(CareerPath path) { if (Path == CareerPath.Undecided) Path = path; OnChanged?.Invoke(); }
+        public void CommitToWeedRoute() { Path = CareerPath.WeedRoute; OnChanged?.Invoke(); }
         public void RevealDogLife() { if (DogLifeRevealed) return; DogLifeRevealed = true; OnChanged?.Invoke(); }
         public void AddReputation(Faction faction, int amount)
         {
@@ -96,6 +130,10 @@ namespace UpIzUpMini.Progression
             FarmerReputation = 100;
             PoliceReputation = 100;
             GangReputation = 100;
+            // MINI-119, user: "the cheat 000000 gives you 100 rep as well
+            // with all the others" - NormyReputation was the one faction
+            // this cheat forgot.
+            NormyReputation = 100;
             // Exactly 5, not higher - that's the deepest threshold any
             // unlock above actually checks (PurpleCheeseUnlocked). Note
             // BossPayoutMultiplier is already 0 for any stage >= 3 by
@@ -105,16 +143,21 @@ namespace UpIzUpMini.Progression
             // progression model, not something this cheat can dodge.
             BossExploitationStage = 5;
             GuadeloupeCharacterCourierUnlocked = true;
+            // MINI-111: keep the cheat's own promise ("unlock everything")
+            // true for Rasta's alternate path too, not just the Boss-stage
+            // formulas above.
+            RastaTaughtBlackSugar = RastaTaughtPurple = RastaTaughtBlueCheese
+                = RastaTaughtPurpleBlack = RastaTaughtSugarCheese = RastaTaughtPurpleCheese = true;
             OnChanged?.Invoke();
         }
         public bool IsCropUnlocked(string id)
         {
-            if (id == "black_sugar") return BlackSugarUnlocked;
-            if (id == "purple") return PurpleUnlocked;
-            if (id == "purple_black") return PurpleBlackUnlocked;
-            if (id == "blue_cheese") return BlueCheeseUnlocked;
-            if (id == "sugar_cheese") return SugarCheeseUnlocked;
-            if (id == "purple_cheese") return PurpleCheeseUnlocked;
+            if (id == "black_sugar") return BlackSugarUnlocked || RastaTaughtBlackSugar;
+            if (id == "purple") return PurpleUnlocked || RastaTaughtPurple;
+            if (id == "purple_black") return PurpleBlackUnlocked || RastaTaughtPurpleBlack;
+            if (id == "blue_cheese") return BlueCheeseUnlocked || RastaTaughtBlueCheese;
+            if (id == "sugar_cheese") return SugarCheeseUnlocked || RastaTaughtSugarCheese;
+            if (id == "purple_cheese") return PurpleCheeseUnlocked || RastaTaughtPurpleCheese;
             return true;
         }
     }

@@ -123,6 +123,7 @@ namespace UpIzUpMini.Editor
             GameObject geography = Child(root, "Geography");
             GameObject roadRoot = Child(root, "Roads_OSM");
             GameObject sidewalkRoot = Child(root, "Lalay_Sidewalks");
+            GameObject frontageRoot = Child(root, "Lalay_Levelled_Frontages");
             GameObject bridgeRoot = Child(root, "Bridges");
             GameObject boundaryRoot = Child(root, "PhaseOne_Boundaries");
             GameObject districtRoot = Child(root, "Approved_Districts_And_Lots");
@@ -147,6 +148,10 @@ namespace UpIzUpMini.Editor
                 {
                     CreateRibbon("Lalay_Sidewalk_Left_" + SafeName(road.id), road.points, data.compression, 1.25f, 3.85f, 0.76f, sidewalkMat, sidewalkRoot.transform, true, 0.015f);
                     CreateRibbon("Lalay_Sidewalk_Right_" + SafeName(road.id), road.points, data.compression, 1.25f, -3.85f, 0.76f, sidewalkMat, sidewalkRoot.transform, true, 0.015f);
+                    // Continuous level house-front strips cover terrain dips between
+                    // the sidewalk edge and the first row of Lalay homes.
+                    CreateRibbon("Lalay_Frontage_Left_" + SafeName(road.id), road.points, data.compression, 5.2f, 6.7f, 0.72f, terrainMat, frontageRoot.transform, true, 0.015f);
+                    CreateRibbon("Lalay_Frontage_Right_" + SafeName(road.id), road.points, data.compression, 5.2f, -6.7f, 0.72f, terrainMat, frontageRoot.transform, true, 0.015f);
                 }
             }
             int connectorCount = BuildRoadGapConnectors(data, sideRoadMat, roadRoot.transform);
@@ -167,6 +172,7 @@ namespace UpIzUpMini.Editor
             BuildChurch(anchors, data.compression, churchWallMat, churchRoofMat, districtRoot.transform, labelsRoot.transform);
             BuildBayShoreline(baySandMat, bayStoneMat, bayShoreRoot.transform);
             BuildDenseLalayHouses(data, lalayIds, anchors, wallMats, roofMats, housesRoot.transform);
+            AlignChildrenToRaisedFrontage(housesRoot.transform, frontageRoot.transform);
             BuildSparseHighlandHouses(data, anchors, wallMats, roofMats, highlandHousesRoot.transform);
 
             BuildLighting();
@@ -931,7 +937,9 @@ namespace UpIzUpMini.Editor
         {
             List<(Vector3 point, Vector3 forward)> samples = new List<(Vector3, Vector3)>();
             foreach (RoadData lalayRoad in data.roads.Where(r => lalayIds.Contains(r.id) && r.points != null && r.points.Length >= 2))
-                samples.AddRange(SamplePolyline(lalayRoad.points.Select(p => World(p, data.compression, 0f)).ToList(), 3.72f));
+                // Slightly tighter than the old 4.05m cadence so protecting
+                // bridge approaches does not leave Lalay visibly under-filled.
+                samples.AddRange(SamplePolyline(lalayRoad.points.Select(p => World(p, data.compression, 0f)).ToList(), 3.60f));
             if (samples.Count == 0) return;
             System.Random random = new System.Random(98);
             int houseIndex = 0;
@@ -943,13 +951,14 @@ namespace UpIzUpMini.Editor
                     string sideLabel = sideSign < 0 ? "SideA" : "SideB";
                     float setback = 7.8f + (float)random.NextDouble() * 1.8f;
                     Vector3 position = sample.point + side * sideSign * setback + sample.forward * ((float)random.NextDouble() - 0.5f) * 1.4f;
-                    float width = 4.2f + (float)random.NextDouble() * 1.2f;
+                    float width = 3.6f + (float)random.NextDouble() * 1.0f;
                     float depth = 3.8f + (float)random.NextDouble() * 1.0f;
                     // The user's phase-one satellite crop confirms the low coastal strip
                     // around the jetty is open land. The mapped church is built separately.
                     if (position.x > 200f || (position.x > 165f && position.z < -140f)) continue;
                     Vector3 houseForward = -side * sideSign;
                     if (OverlapsNonLalayRoad(position, width, depth, houseForward, data, lalayIds)) continue;
+                    if (OverlapsBridgeClearance(position, width, depth)) continue;
                     string[] protectedLots = { "highland_first_farm", "highland_future_plot_02", "highland_future_plot_03", "highland_future_plot_04", "grand_bay_primary_school", "grand_bay_catholic_church" };
                     if (protectedLots.Any(id => HorizontalDistance(position, AnchorPosition(anchors, id, data.compression)) < (id == "highland_first_farm" ? 23f : id == "grand_bay_catholic_church" ? 18f : 15f))) continue;
                     position.y = HeightAt(position.x, position.z);
@@ -982,6 +991,22 @@ namespace UpIzUpMini.Editor
                     houseIndex++;
                 }
             }
+        }
+
+        private static bool OverlapsBridgeClearance(Vector3 position, float width, float depth)
+        {
+            GameObject bridges = GameObject.Find("Bridges");
+            if (bridges == null) return false;
+            Bounds proposed = new Bounds(position, new Vector3(width + 8f, 20f, depth + 8f));
+            foreach (Renderer renderer in bridges.GetComponentsInChildren<Renderer>(true))
+            {
+                Bounds bridge = renderer.bounds;
+                bridge.Expand(new Vector3(6f, 0f, 6f));
+                bool overlapsXZ = proposed.min.x < bridge.max.x && proposed.max.x > bridge.min.x
+                               && proposed.min.z < bridge.max.z && proposed.max.z > bridge.min.z;
+                if (overlapsXZ) return true;
+            }
+            return false;
         }
 
         private static void BuildSparseHighlandHouses(MapData data, Dictionary<string, AnchorData> anchors, Material[] walls, Material[] roofs, Transform parent)
@@ -1111,6 +1136,26 @@ namespace UpIzUpMini.Editor
                 bounds.size.x / Mathf.Max(0.0001f, Mathf.Abs(scale.x)),
                 bounds.size.y / Mathf.Max(0.0001f, Mathf.Abs(scale.y)),
                 bounds.size.z / Mathf.Max(0.0001f, Mathf.Abs(scale.z)));
+        }
+
+        private static void AlignChildrenToRaisedFrontage(Transform houses, Transform frontage)
+        {
+            if (houses == null || frontage == null) return;
+            foreach (Transform house in houses.Cast<Transform>())
+            {
+                Renderer[] renderers = house.GetComponentsInChildren<Renderer>(true);
+                if (renderers.Length == 0) continue;
+                Bounds bounds = renderers[0].bounds;
+                for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+                RaycastHit[] hits = Physics.RaycastAll(
+                    new Vector3(bounds.center.x, 250f, bounds.center.z), Vector3.down, 500f);
+                RaycastHit? surface = hits
+                    .Where(hit => hit.collider != null && hit.collider.transform.IsChildOf(frontage))
+                    .OrderByDescending(hit => hit.point.y)
+                    .Cast<RaycastHit?>().FirstOrDefault();
+                if (!surface.HasValue) continue;
+                house.position += Vector3.up * (surface.Value.point.y - bounds.min.y);
+            }
         }
 
         private static float HorizontalDistance(Vector3 a, Vector3 b)

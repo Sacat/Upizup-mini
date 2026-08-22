@@ -43,11 +43,12 @@ namespace UpIzUpMini.UI
         // (and can't sensibly) reverse - there's no "undo" for cash spent
         // or a trip that already returned early.
         private const string HeatCode = "000000";
+        private const string MissionCode = "111111";
         private const float HeatCheatTimeSkip = 600f;
 
         private bool _heatCheatActive;
         private string _buffer = string.Empty;
-        private int MaxCodeLength => Mathf.Max(Code.Length, HeatCode.Length);
+        private int MaxCodeLength => Mathf.Max(Code.Length, Mathf.Max(HeatCode.Length, MissionCode.Length));
 
         private void Update()
         {
@@ -78,6 +79,12 @@ namespace UpIzUpMini.UI
             else if (_buffer.EndsWith(HeatCode))
             {
                 ToggleHeatCheat();
+                _buffer = string.Empty;
+            }
+            else if (_buffer.EndsWith(MissionCode))
+            {
+                MissionSystem.Instance?.CompleteCurrentMissionCheat();
+                MissionSystem.Instance?.Alert("MISSION SKIPPED\nCheat 111111 completed the current mission.");
                 _buffer = string.Empty;
             }
         }

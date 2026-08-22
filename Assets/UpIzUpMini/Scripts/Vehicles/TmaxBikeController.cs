@@ -57,8 +57,25 @@ namespace UpIzUpMini.Vehicles
 
         [Header("Drive")]
         [SerializeField] private float maxSpeedKmh = 150f;
-        [SerializeField] private float motorTorque = 320f;
-        [SerializeField] private float brakeTorque = 550f;
+        // MINI-118: scaled up by the same ~2.18x ratio as BikeMassKg
+        // (220->480). Unlike the wheelie/lean systems (kinematic/
+        // ForceMode.Acceleration, both mass-independent), motor and brake
+        // torque are real WheelCollider forces - acceleration and stopping
+        // distance ARE mass-dependent, so these need to scale with the
+        // heavier bike or it would feel sluggish/under-braked as an
+        // unintended side effect of the mass change, not "the same
+        // wheeling and leaning" the user asked to preserve.
+        // MINI-119, user: "the bike is still terrible... i cant climb
+        // simple hill with the bike, should have enough power to climb
+        // hill and ledges... this is a powerful bike." MINI-118 scaled
+        // motorTorque by the SAME ratio as the mass increase (700/320 ~=
+        // 480/220), which only preserved the bike's PRE-existing power-to-
+        // weight ratio - it never actually made hill-climbing stronger, so
+        // the complaint that hills still feel weak is real and expected.
+        // Raised further here, past parity, plus see hillClimbAssist below
+        // for a slope-specific boost on top of this.
+        [SerializeField] private float motorTorque = 950f;
+        [SerializeField] private float brakeTorque = 1200f;
         [Tooltip("Top speed in REVERSE. Reverse previously shared the forward limit entirely, so backing up accelerated to the same 150km/h the bike does going forward.")]
         [SerializeField] private float maxReverseSpeedKmh = 18f;
 
@@ -161,13 +178,25 @@ namespace UpIzUpMini.Vehicles
         [Tooltip("Degrees of nose-up pitch the front reaches while E is held. Now DIRECTLY DRIVEN (see ApplyWheelie) so any value works, including past 90 and all the way to a full 360 loop, per the user's \"make it go all the way to 360\". Slider goes to 360; 90 = front pointing straight up.")]
         [SerializeField] private float maxWheelieAngle = 90f;
         [Tooltip("Degrees/second the target pitch rises while held, and falls while released - keeps the lift progressive and the recovery smooth rather than snapping (\"no instant 90-degree rotation\"). Raised 30->45->60 across two rounds of the user's \"make it go up faster\".")]
-        [SerializeField] private float wheelieRiseRate = 60f;
+        // MINI-118: nudged 60->72 to compensate for a real, measured side
+        // effect of the heavier bike - real pitch dropped from a baseline
+        // 85.9deg to 77.4deg (still above the drop test's 76.6deg minimum,
+        // but with far less margin than before), most likely because the
+        // heavier bike's real WheelCollider traction curve isn't perfectly
+        // linear even with motorTorque scaled to match, shifting how much
+        // of the drop test's fixed duration is spent inside the wheelie's
+        // speed-eligible window. Re-verified with the same drop test after
+        // this change, not assumed fixed.
+        [SerializeField] private float wheelieRiseRate = 72f;
         [Tooltip("Round 12 - the user's own \"invisible hydraulic\" ask, simplified from round 11's separate rear-torque-boost/lift-clamp/recover-clamp sliders down to ONE number. Internally still gentle while climbing and much stronger while correcting an overshoot (a first attempt at a plain symmetric version measurably destabilised the bike - see ApplyWheelie's own comment) - that asymmetry is real, tested safety margin, not exposed complexity. Raising this raises both how hard it lifts AND its own recovery ceiling together, so there's no hidden ceiling the slider can't reach past.")]
         [SerializeField] private float wheelieHydraulicStrength = 9f;
         [Tooltip("Steering is scaled down by this much (0=no steering, 1=unchanged) at the peak of a wheelie.")]
         [SerializeField] private float wheelieSteerMultiplier = 0.35f;
         [Tooltip("Extra REAL motor torque added to the rear wheel while the wheelie button is held, on top of normal throttle - per the user's \"add more torque to help this on the rear wheels\".")]
-        [SerializeField] private float wheelieRearTorqueBoost = 900f;
+        // MINI-118: scaled with motorTorque/BikeMassKg - this is real drive
+        // torque (forward creep during a wheelie), not the pitch itself
+        // (which stays kinematic/mass-independent, see ApplyWheelie).
+        [SerializeField] private float wheelieRearTorqueBoost = 1960f;
 
         // User report: "it goes left sometimes... I think it needs something
         // to stabilize it in the air like hold it straight and only if I
@@ -336,6 +365,18 @@ namespace UpIzUpMini.Vehicles
         public float DebugForcedPitchAngle { get => debugForcedPitchAngle; set => debugForcedPitchAngle = value; }
         public float DebugForcedPitchStrength { get => debugForcedPitchStrength; set => debugForcedPitchStrength = value; }
 
+        // MINI-119 follow-up, user: "sliders as not make it spin when
+        // hitting ledge or bump or hill and then sliders for keep the
+        // bike down like a gravity slider for when it leaves the ground."
+        // Same live-tunable pattern as every property above.
+        public float YawSpinThreshold { get => yawSpinThreshold; set => yawSpinThreshold = value; }
+        public float YawSpinDamping { get => yawSpinDamping; set => yawSpinDamping = value; }
+        public float HillClimbAssist { get => hillClimbAssist; set => hillClimbAssist = value; }
+        public float HillClimbMaxSlopeDeg { get => hillClimbMaxSlopeDeg; set => hillClimbMaxSlopeDeg = value; }
+        public float ExtraAirGravity { get => extraAirGravity; set => extraAirGravity = value; }
+        public float AirborneGraceSeconds { get => airborneGraceSeconds; set => airborneGraceSeconds = value; }
+        public float AirGravityRampSeconds { get => airGravityRampSeconds; set => airGravityRampSeconds = value; }
+
         /// <summary>True right now if the normal (non-debug) wheelie could
         /// engage - i.e. every gate in ApplyWheelie's own "eligible" check
         /// is satisfied. Exposed for the tuner's pinned status box so the
@@ -449,14 +490,97 @@ namespace UpIzUpMini.Vehicles
         private void FixedUpdate()
         {
             ApplyTrikeStabilizers();
+            ApplyExtraAirGravity();
             ApplyCenterOfMass();
             ApplyDrive();
             ApplySteering();
             ApplyStability();
+            ApplyYawSpinAssist();
             ApplyWheelie();
             ApplyWheelieAirControl();
             ApplyUprightAssist();
             ApplyDebugForcedPitch();
+        }
+
+        [Header("Yaw Spin Assist (anti wild-spin on lateral impacts)")]
+        [Tooltip("MINI-119, user: \"i hit small hedge the bike spins like crazy... there should be an assist... make it lose control slightly but not all that spin, it should just be slightly.\" A hedge/kerb clipped at an angle dumps a large yaw impulse into the Rigidbody that nothing here previously opposed (ApplyStability only ever corrects ROLL, never yaw). This damps yaw angular velocity, but only the part ABOVE yawSpinThreshold, and only removes a FRACTION of that excess per second - ordinary steering-induced yaw (turning corners) sits far below the threshold and is completely untouched, and even a genuine hedge hit still spins, just far less wildly, matching \"lose control slightly, not all that spin.\"")]
+        [SerializeField] private float yawSpinThreshold = 220f;
+        // MINI-119 follow-up, user: "sliders as not make it spin when
+        // hitting ledge or bump or hill... the sliders should [be] wide
+        // so i can drastically reduce the spinning." Un-capped from the
+        // original Range(0,1) - that "1" was a fraction-per-second in
+        // name only; because it is multiplied by Time.fixedDeltaTime
+        // (~0.02s) before being applied (see ApplyYawSpinAssist), a value
+        // of 1 only ever removed ~2% of the excess spin per physics step,
+        // nowhere near "drastic". The field is now an uncapped rate: the
+        // per-step removal is still Clamp01'd internally so it can never
+        // remove MORE than 100% of the excess in one step (no overshoot,
+        // no reversal), but a high value (see TmaxWheelieTuner's slider,
+        // which now goes to 50) reaches that 100%-per-step ceiling and
+        // reads as the excess spin vanishing almost the instant it starts.
+        [SerializeField] private float yawSpinDamping = 0.65f;
+
+        private void ApplyYawSpinAssist()
+        {
+            if (rb == null || WheelieForcingPose) return; // wheelie already zeroes angularVelocity itself each step
+
+            float yawRateDeg = Vector3.Dot(rb.angularVelocity, Vector3.up) * Mathf.Rad2Deg;
+            float absYaw = Mathf.Abs(yawRateDeg);
+            if (absYaw <= yawSpinThreshold) return;
+
+            float excess = absYaw - yawSpinThreshold;
+            float removed = excess * Mathf.Clamp01(yawSpinDamping * Time.fixedDeltaTime);
+            float newYawRateDeg = Mathf.Sign(yawRateDeg) * (absYaw - removed);
+
+            Vector3 av = rb.angularVelocity;
+            av -= Vector3.up * Vector3.Dot(av, Vector3.up); // strip the old yaw component only
+            av += Vector3.up * (newYawRateDeg * Mathf.Deg2Rad);
+            rb.angularVelocity = av;
+        }
+
+        // MINI-118, user: "could there be a gravity added so when the bike
+        // reaches a certain height when it goes up from the ground if what
+        // you did doesnt work" - a real, standard technique (extra
+        // downward force once genuinely airborne, common in arcade vehicle
+        // physics) added as a second, independent layer alongside the mass
+        // increase, rather than waiting to find out the mass change alone
+        // wasn't enough. Gated on BOTH wheels being ungrounded for a
+        // sustained period (the same debounce idea as ApplyTrikeStabilizers'
+        // own _frontUngroundedSeconds, so an ordinary single-frame bump
+        // never triggers it) AND never during an actual wheelie (whose own
+        // kinematic rear-pivot rotation keeps the rear wheel grounded, so
+        // "both wheels off the ground" should not normally coincide with a
+        // real wheelie anyway - WheelieForcingPose is still checked
+        // explicitly as a second, belt-and-braces guard). Scales up with
+        // how long the bike has actually been airborne, so a brief hop off
+        // a bump barely feels it while a genuine launch gets pulled back
+        // down hard.
+        [Tooltip("MINI-118: extra downward acceleration (on top of normal gravity) once the bike has been genuinely airborne (both wheels off the ground) for longer than airborneGraceSeconds - pulls an unwanted launch back down faster without affecting an intentional wheelie.")]
+        [SerializeField] private float extraAirGravity = 30f;
+        [Tooltip("How long both wheels must stay ungrounded before extra air gravity kicks in - long enough that a normal bump/bike-hop never triggers it.")]
+        [SerializeField] private float airborneGraceSeconds = 0.18f;
+        [Tooltip("Seconds of sustained air time for extraAirGravity to ramp up to its full strength, rather than snapping on.")]
+        [SerializeField] private float airGravityRampSeconds = 0.25f;
+
+        private float _bothWheelsAirborneSeconds;
+
+        private void ApplyExtraAirGravity()
+        {
+            bool bothAirborne = frontWheel != null && rearWheel != null
+                && !frontWheel.isGrounded && !rearWheel.isGrounded;
+
+            if (!bothAirborne || WheelieForcingPose)
+            {
+                _bothWheelsAirborneSeconds = 0f;
+                return;
+            }
+
+            _bothWheelsAirborneSeconds += Time.fixedDeltaTime;
+            float pastGrace = _bothWheelsAirborneSeconds - airborneGraceSeconds;
+            if (pastGrace <= 0f) return;
+
+            float rampT = airGravityRampSeconds > 0.001f ? Mathf.Clamp01(pastGrace / airGravityRampSeconds) : 1f;
+            rb.AddForce(Vector3.down * (extraAirGravity * rampT), ForceMode.Acceleration);
         }
 
         private void Update()
@@ -543,6 +667,12 @@ namespace UpIzUpMini.Vehicles
             rb.AddForceAtPosition(Vector3.up * force, hit.point, ForceMode.Force);
         }
 
+        [Header("Hill Climb Assist")]
+        [Tooltip("MINI-119, user: \"should have enough power to climb hill and ledges because this is a powerful bike.\" Plain WheelCollider motorTorque alone was still losing too much speed on an incline once the bike got heavier (MINI-118). This adds extra forward push while grounded, throttling on, and climbing - proportional to how steep the ground ahead actually is (0 on flat ground, full at hillClimbMaxSlopeDeg), so ordinary flat-ground driving is completely unaffected. ForceMode.Acceleration - mass-independent by design (see this file's own header note on that), so it reads as a consistent power boost regardless of any future mass tuning.")]
+        [SerializeField] private float hillClimbAssist = 9f;
+        [Tooltip("Slope angle (degrees off horizontal) at which hillClimbAssist reaches full strength.")]
+        [SerializeField] private float hillClimbMaxSlopeDeg = 35f;
+
         private void ApplyDrive()
         {
             if (frontWheel == null || rearWheel == null)
@@ -570,6 +700,28 @@ namespace UpIzUpMini.Vehicles
             // motorcycle weight transfer under braking.
             frontWheel.brakeTorque = braking * 0.65f;
             rearWheel.brakeTorque = braking * 0.35f;
+
+            ApplyHillClimbAssist(belowMaxSpeed);
+        }
+
+        /// <summary>
+        /// Extra forward acceleration on an incline, on top of the normal
+        /// motorTorque above - see the Hill Climb Assist header comment.
+        /// Reads the rear wheel's own ground-contact normal (the real
+        /// slope under the bike right now, not the world terrain in the
+        /// abstract), so it naturally also fires on a ledge/kerb lip, not
+        /// only an open hillside.
+        /// </summary>
+        private void ApplyHillClimbAssist(bool belowMaxSpeed)
+        {
+            if (hillClimbAssist <= 0f || throttleInput <= 0.01f || !belowMaxSpeed) return;
+            if (!rearWheel.isGrounded || !rearWheel.GetGroundHit(out WheelHit hit)) return;
+
+            float slopeDeg = Vector3.Angle(hit.normal, Vector3.up);
+            if (slopeDeg < 1f) return; // flat ground - no assist, no change to normal feel
+
+            float slope01 = Mathf.Clamp01(slopeDeg / Mathf.Max(1f, hillClimbMaxSlopeDeg));
+            rb.AddForce(transform.forward * (hillClimbAssist * slope01 * throttleInput), ForceMode.Acceleration);
         }
 
         private void ApplySteering()

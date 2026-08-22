@@ -48,6 +48,17 @@ namespace UpIzUpMini.Interaction
             && EconomyManager.Instance.Heat >= heatAlertThreshold;
 
         private CharacterController _controller;
+        // MINI-112: real, pre-existing bug found while wiring Dog Life's
+        // "stop chasing, return to block, resume block behaviour" - this
+        // component and FactionBrawler both call CharacterController.Move
+        // on the same GameObject every frame with no coordination, so a
+        // Dog Life member mid-chase/fight was fought over by two steering
+        // systems at once. Skipping this component's own movement while a
+        // FactionBrawler on the same object is actively engaged both fixes
+        // that contention AND gives "resume block behaviour" for free -
+        // once the fight/chase ends, this simply starts steering back
+        // toward its own waypoints again, exactly like any other idle NPC.
+        private Combat.FactionBrawler _brawler;
 
         private void Awake()
         {
@@ -56,6 +67,7 @@ namespace UpIzUpMini.Interaction
             // Added by the scene builder so patrols are blocked by
             // building colliders instead of walking through walls.
             _controller = GetComponent<CharacterController>();
+            _brawler = GetComponent<Combat.FactionBrawler>();
             _sideSign = (GetInstanceID() & 1) == 0 ? 1f : -1f;
             // Stagger identical patrols so a row of NPCs does not begin
             // walking and stopping in mechanical lockstep.
@@ -68,8 +80,15 @@ namespace UpIzUpMini.Interaction
             _target = 0;
         }
 
+        /// <summary>MINI-112: lets RivalGangSpawner temporarily swap a
+        /// member onto a longer "group walk" route and restore their
+        /// original small ambient loop afterward.</summary>
+        public Vector3[] Waypoints => waypoints;
+
         private void Update()
         {
+            if (_brawler != null && _brawler.IsEngaged) return;
+
             float desiredBlend = 0f;
 
             if (waypoints != null && waypoints.Length >= 2)
