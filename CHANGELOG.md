@@ -1,5 +1,12 @@
 # Up Iz Up Mini — Changelog
 
+## 2026-08-22 — MINI-119 follow-up 3 (smoothed impact corrections, ramp jump height)
+
+- Bike/car "movements are not so smooth when it hits a sidewalk/ledge": found the cause - the yaw-lock re-snap, the ledge-reaction suppression, the launch cap, and the car's collision-spin cap were all instant, single-physics-step hard corrections (Slerp/Lerp with t=1, or a raw `Mathf.Clamp`). Technically correct end state, but reads as an abrupt jerk. Eased all four to settle over a handful of steps (~0.05-0.1s) via exponential smoothing instead of one, at rates still fast enough that none of the underlying fixes (no turning, no flipping, no launch) are weakened.
+- Range Rover: "it should go off the ground a little more after hitting a ramp" - `maxUpwardLaunchSpeed` raised 6->10 m/s; the self-righting/collision-spin-cap systems (not this number) are what actually keep a hard hit from reading as abnormal, so this can afford to be generous again.
+- Considered switching to a third-party Unity vehicle physics asset per the user's own question; recommended against it (see chat) - kept refining the existing custom controllers instead.
+- Full vehicle+scene rebuild pipeline, all 8 standing validators, and the MINI-065 drop test all re-run clean. Windows build succeeded.
+
 ## 2026-08-22 — MINI-119 follow-up 2 (vehicle anti-flip, launch cap, camera smoothing)
 
 - Researched Unity's own documented vehicle-physics practice (rollover prevention via `Rigidbody.maxAngularVelocity`, stabilizer/anti-roll bars, in-flight self-righting; camera jitter fixes via smoothing rotation the same way position already was) before implementing - not a guess, and no third-party asset was imported (would require downloading an untrusted package; the researched techniques were applied to our own existing controllers instead).

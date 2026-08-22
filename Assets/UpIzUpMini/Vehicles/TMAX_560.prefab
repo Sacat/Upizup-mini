@@ -281,12 +281,15 @@ MonoBehaviour:
   stabilizerSpringRate: 6000
   stabilizerDamping: 400
   maxUpwardLaunchSpeed: 6
+  launchCapEaseRate: 25
   yawSpinThreshold: 0
   yawSpinDamping: 250
   yawLockStrength: 1
   yawLockTurnRate: 110
+  yawLockCorrectionRate: 30
   ledgeMaxHeight: 0.6
   ledgeReactionStrength: 0
+  ledgeCorrectionRate: 25
   rampAssistStrength: 0
   collisionYawSpinCap: 40
   extraAirGravity: 2500

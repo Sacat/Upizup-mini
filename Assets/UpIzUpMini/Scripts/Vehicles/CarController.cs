@@ -119,14 +119,26 @@ namespace UpIzUpMini.Vehicles
         // impulse is capped directly at the source, not just reacted to
         // afterward. Horizontal motion is completely untouched.
         [Header("Launch Cap (prevents hard hits flinging the car upward)")]
-        [SerializeField] private float maxUpwardLaunchSpeed = 6f;
+        // MINI-119 follow-up round 2, user: "it should go off the ground
+        // a little more after hitting a ramp." 6 m/s was tuned purely
+        // against a hard-collision launch and, as an unwanted side
+        // effect, also flattened legitimate ramp jumps. Raised so a ramp
+        // still gives a satisfying hop; the self-righting/collision-spin-
+        // cap systems above are what actually stop a hard hit from
+        // reading as "abnormal", not this number - so this can afford to
+        // be generous.
+        [SerializeField] private float maxUpwardLaunchSpeed = 10f;
+        [Tooltip("MINI-119 follow-up round 2, user: \"movements are not so smooth.\" The excess above the cap used to be removed in one instant step - eased down over a couple of steps instead.")]
+        [SerializeField] private float launchCapEaseRate = 20f;
 
         private void ApplyLaunchCap()
         {
             if (maxUpwardLaunchSpeed <= 0f) return;
             float verticalSpeed = Vector3.Dot(_rb.linearVelocity, Vector3.up);
             if (verticalSpeed <= maxUpwardLaunchSpeed) return;
-            _rb.linearVelocity -= Vector3.up * (verticalSpeed - maxUpwardLaunchSpeed);
+            float excess = verticalSpeed - maxUpwardLaunchSpeed;
+            float reduce = excess * (1f - Mathf.Exp(-launchCapEaseRate * Time.fixedDeltaTime));
+            _rb.linearVelocity -= Vector3.up * reduce;
         }
 
         [Header("Self-Righting (anti-flip)")]
@@ -158,8 +170,10 @@ namespace UpIzUpMini.Vehicles
         // several steps. This clamps the SPIKE itself, immediately, the
         // instant a hard hit happens, same technique already proven on
         // the bike (TmaxBikeController.HandleChassisCollision).
-        [Tooltip("Hard cap (deg/s) on roll+pitch spin the instant the car's body collides with something. Lower = stays closer to level through a hard hit.")]
+        [Tooltip("Cap (deg/s) on roll+pitch spin the instant the car's body collides with something. Lower = stays closer to level through a hard hit.")]
         [SerializeField] private float collisionSpinCap = 90f;
+        [Tooltip("MINI-119 follow-up round 2, user: \"movements are not so smooth.\" The excess above the cap used to be removed in one instant step (Mathf.Clamp - a hard wall) - eased down over a couple of steps instead, same technique as the bike's own ledge-correction smoothing.")]
+        [SerializeField] private float collisionSpinEaseRate = 25f;
 
         private void OnCollisionEnter(Collision collision) => DampCollisionSpin();
         private void OnCollisionStay(Collision collision) => DampCollisionSpin();
@@ -174,8 +188,9 @@ namespace UpIzUpMini.Vehicles
             // (around forward/right) get capped.
             Vector3 localAv = transform.InverseTransformDirection(av);
             float capRad = collisionSpinCap * Mathf.Deg2Rad;
-            localAv.x = Mathf.Clamp(localAv.x, -capRad, capRad);
-            localAv.z = Mathf.Clamp(localAv.z, -capRad, capRad);
+            float easeT = 1f - Mathf.Exp(-collisionSpinEaseRate * Time.fixedDeltaTime);
+            localAv.x = Mathf.Lerp(localAv.x, Mathf.Clamp(localAv.x, -capRad, capRad), easeT);
+            localAv.z = Mathf.Lerp(localAv.z, Mathf.Clamp(localAv.z, -capRad, capRad), easeT);
             _rb.angularVelocity = transform.TransformDirection(localAv);
         }
 

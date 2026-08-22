@@ -325,10 +325,12 @@ MonoBehaviour:
   steerSmoothing: 8
   centreOfMass: {x: 0, y: -0.75, z: 0}
   downforce: 110
-  maxUpwardLaunchSpeed: 6
+  maxUpwardLaunchSpeed: 10
+  launchCapEaseRate: 20
   selfRightingStrength: 6
   selfRightingAirborneMultiplier: 4
   collisionSpinCap: 90
+  collisionSpinEaseRate: 25
 --- !u!114 &202989805949724111
 MonoBehaviour:
   m_ObjectHideFlags: 0

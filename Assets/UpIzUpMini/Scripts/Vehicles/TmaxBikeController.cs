@@ -524,15 +524,19 @@ namespace UpIzUpMini.Vehicles
         // Gated off during a deliberate wheelie (MovePosition there
         // legitimately raises the front over a pivot - not a launch).
         [Header("Launch Cap (prevents hard hits flinging the bike upward)")]
-        [Tooltip("Hard cap on how fast the bike can be launched straight upward by any impact, in m/s. Horizontal motion is completely untouched. Researched against Unity's own documented vehicle rollover/launch mitigations.")]
+        [Tooltip("Cap on how fast the bike can be launched straight upward by any impact, in m/s. Horizontal motion is completely untouched. Researched against Unity's own documented vehicle rollover/launch mitigations.")]
         [SerializeField] private float maxUpwardLaunchSpeed = 6f;
+        [Tooltip("MINI-119 follow-up round 7: the excess above the cap used to be removed in one instant step (a hard clamp) - reads as a wall. Eased down over a couple of steps instead; higher = snappier, lower = smoother.")]
+        [SerializeField] private float launchCapEaseRate = 25f;
 
         private void ApplyLaunchCap()
         {
             if (rb == null || WheelieForcingPose || maxUpwardLaunchSpeed <= 0f) return;
             float verticalSpeed = Vector3.Dot(rb.linearVelocity, Vector3.up);
             if (verticalSpeed <= maxUpwardLaunchSpeed) return;
-            rb.linearVelocity -= Vector3.up * (verticalSpeed - maxUpwardLaunchSpeed);
+            float excess = verticalSpeed - maxUpwardLaunchSpeed;
+            float reduce = excess * (1f - Mathf.Exp(-launchCapEaseRate * Time.fixedDeltaTime));
+            rb.linearVelocity -= Vector3.up * reduce;
         }
 
         [Header("Yaw Spin Assist (anti wild-spin on lateral impacts)")]
@@ -599,6 +603,8 @@ namespace UpIzUpMini.Vehicles
         [SerializeField, Range(0f, 1f)] private float yawLockStrength = 1f;
         [Tooltip("Degrees/second the locked heading turns at full steering input and typical riding speed - tune to match how sharply the bike should turn under normal steering.")]
         [SerializeField] private float yawLockTurnRate = 110f;
+        [Tooltip("MINI-119 follow-up round 7, user: \"the bike movements are not so smooth when it hits the sidewalk or ledge.\" At yawLockStrength=1 this used to Slerp with t=1 every single step - a full, instant snap back onto the locked heading, technically correct but reading as an abrupt jerk whenever a hit knocked the real rotation away from it. Eased to settle over a handful of steps (well under 0.1s) instead of one, at a rate still fast enough that a hit can't meaningfully turn the bike.")]
+        [SerializeField] private float yawLockCorrectionRate = 30f;
 
         private float _lockedYawDeg;
         private bool _yawLockInitialized;
@@ -625,13 +631,14 @@ namespace UpIzUpMini.Vehicles
 
             Vector3 euler = transform.eulerAngles;
             Quaternion target = Quaternion.Euler(euler.x, _lockedYawDeg, euler.z);
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, target, yawLockStrength));
+            float correctionT = yawLockStrength * (1f - Mathf.Exp(-yawLockCorrectionRate * Time.fixedDeltaTime));
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, target, correctionT));
 
             // Strip whatever physics-integrated yaw velocity remains,
             // proportionally, so nothing lingers to fight next step or
             // show up the instant this is turned back down.
             Vector3 av = rb.angularVelocity;
-            av -= Vector3.up * (Vector3.Dot(av, Vector3.up) * yawLockStrength);
+            av -= Vector3.up * (Vector3.Dot(av, Vector3.up) * correctionT);
             rb.angularVelocity = av;
         }
 
@@ -664,6 +671,8 @@ namespace UpIzUpMini.Vehicles
         [SerializeField] private float ledgeMaxHeight = 0.6f;
         [Tooltip("MINI-119 follow-up round 3, user: \"i dont want the bike fliping spinning or doing anything but moving straight... dont make it react to the sidewalk or ledges... then you can create a slider for me to make it react if i want.\" 0 (the default) = zero rotational reaction to a ledge-classified collision at all, every step, actively pulled back level too - not just capped. 1 = full, unsuppressed physical reaction, same as if this whole system didn't exist. Values in between let a proportional amount through.")]
         [SerializeField, Range(0f, 1f)] private float ledgeReactionStrength = 0f;
+        [Tooltip("MINI-119 follow-up round 7: how many physics steps the ledge correction takes to settle (higher = faster/snappier, lower = smoother/softer). Was an instant one-step snap; this eases it instead.")]
+        [SerializeField] private float ledgeCorrectionRate = 25f;
 
         [Header("Ramp Assist (rides up over ledges instead of catching)")]
         [Tooltip("MINI-119 follow-up round 2, user: \"can you maybe put ramp assistant so when the bike is about to hit a sharp colider it would be like going on the smooth ramp.\" On a ledge-classified collision (see ledgeMaxHeight above) whose contact normal reads as a roughly-vertical face (a kerb/ledge lip specifically, not a flat top surface), nudges the bike up and slightly forward at that real contact point - a genuine AddForceAtPosition, same 'real force at a real contact point' principle as the trike stabilizer springs - so it rides up and over instead of catching on the corner. 0 = off. Independent of ledgeReactionStrength above - this is a positive assist, not a reaction.")]
@@ -689,10 +698,17 @@ namespace UpIzUpMini.Vehicles
 
             if (isLedge)
             {
-                // Total (at default) rotational suppression - scale
-                // whatever angular velocity exists straight down, every
-                // step, rather than only capping its growth.
-                rb.angularVelocity *= ledgeReactionStrength;
+                // MINI-119 follow-up round 7, user: "the bike movements
+                // are not so smooth when it hits the sidewalk or ledge."
+                // Both corrections below used to apply in ONE single,
+                // full (t=1) step every physics tick during contact -
+                // technically correct (still ends up dead straight/level)
+                // but reads as an abrupt snap rather than a settle. Eased
+                // to reach the same end state over a handful of steps
+                // (~2-4, well under 0.1s) instead of one, at a rate still
+                // fast enough that "no turning/flipping" holds.
+                float correctionT = 1f - Mathf.Exp(-ledgeCorrectionRate * Time.fixedDeltaTime);
+                rb.angularVelocity = Vector3.Lerp(rb.angularVelocity, rb.angularVelocity * ledgeReactionStrength, correctionT);
 
                 // Also actively pull any roll/pitch/yaw ALREADY picked up
                 // from this same contact back toward level/forward - a
@@ -704,7 +720,7 @@ namespace UpIzUpMini.Vehicles
                     if (flatForward.sqrMagnitude > 0.0001f)
                     {
                         Quaternion levelled = Quaternion.LookRotation(flatForward.normalized, Vector3.up);
-                        rb.MoveRotation(Quaternion.Slerp(rb.rotation, levelled, 1f - ledgeReactionStrength));
+                        rb.MoveRotation(Quaternion.Slerp(rb.rotation, levelled, correctionT * (1f - ledgeReactionStrength)));
                     }
                 }
 
