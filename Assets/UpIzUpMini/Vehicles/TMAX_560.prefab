@@ -231,7 +231,6 @@ GameObject:
   - component: {fileID: 2646930526161961932}
   - component: {fileID: 5812221653505188856}
   - component: {fileID: 6884279297509637205}
-  - component: {fileID: 49549720163238268}
   m_Layer: 0
   m_Name: TMAX_560
   m_TagString: Untagged
@@ -371,11 +370,17 @@ MonoBehaviour:
   stabilizerRayRange: 0.15
   stabilizerSpringRate: 6000
   stabilizerDamping: 400
-  yawSpinThreshold: 220
-  yawSpinDamping: 0.65
-  extraAirGravity: 30
-  airborneGraceSeconds: 0.18
-  airGravityRampSeconds: 0.25
+  yawSpinThreshold: 0
+  yawSpinDamping: 250
+  yawLockStrength: 1
+  yawLockTurnRate: 110
+  ledgeMaxHeight: 0.6
+  ledgeReactionStrength: 0
+  rampAssistStrength: 0
+  collisionYawSpinCap: 40
+  extraAirGravity: 2500
+  airborneGraceSeconds: 0.01
+  airGravityRampSeconds: 0
   hillClimbAssist: 9
   hillClimbMaxSlopeDeg: 35
 --- !u!114 &5812221653505188856
@@ -422,19 +427,6 @@ MonoBehaviour:
   mountKey: 102
   mountRange: 3.2
   pillionBoardRadius: 8
---- !u!114 &49549720163238268
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1858156053030975409}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b399adc132ccb5428dfc911f8f792dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Vehicles.TmaxWheelieTuner
-  toggleKey: 116
 --- !u!1 &2585621904193508169
 GameObject:
   m_ObjectHideFlags: 0

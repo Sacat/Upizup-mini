@@ -301,11 +301,63 @@ namespace UpIzUpMini.Vehicles
             // well past the shipped defaults on both ends - low enough on
             // yaw spin threshold/high enough on damping to all but kill
             // spin entirely, and 0 on air gravity to turn it off outright.
-            GUILayout.Label("-- ANTI-SPIN (hedge/ledge/bump hits) --");
+            //
+            // Round 2, user: "i want to increase these sliders by 5
+            // positive and negative" (yaw spin) "and the air gravity...
+            // i still want to be able to put it 5 times higher" (was
+            // capped at 500, the value they'd already pushed it to).
+            // Yaw spin threshold/damping widened to a full negative
+            // mirror of the old positive cap (both fields are plain,
+            // uncapped floats - negative threshold is not nonsensical
+            // here: the assist compares against Mathf.Abs(yaw rate), so a
+            // negative threshold means "always treat this as excess,
+            // intervene constantly" - a real, useful extreme to test, not
+            // a no-op). Air gravity's own cap raised 500 -> 2500 (5x).
+            // Round 4, user: "the bike keeps turning when i hit a ledge...
+            // keep the bike straight... no turning." This is now the
+            // PRIMARY fix - yaw becomes entirely kinematic (steering-only)
+            // rather than physics-derived, so it can't be spun by a
+            // collision event OR wheel friction OR anything else. Defaults
+            // to 1 (fully locked) given the explicit ask.
+            GUILayout.Label("-- YAW LOCK (guarantees no turning except your own steering) --");
+            Slider("Yaw lock strength (1 = ONLY your steering can turn it)",
+                _bike.YawLockStrength, 0f, 1f, v => _bike.YawLockStrength = v);
+            Slider("Yaw lock turn rate (deg/s at full steering)",
+                _bike.YawLockTurnRate, 10f, 400f, v => _bike.YawLockTurnRate = v);
+
+            GUILayout.Space(8f);
+            GUILayout.Label("-- ANTI-SPIN (general, gradual - road bumps etc.) --");
             Slider("Yaw spin threshold (deg/s) - LOWER = assist kicks in sooner",
-                _bike.YawSpinThreshold, 0f, 800f, v => _bike.YawSpinThreshold = v);
+                _bike.YawSpinThreshold, -4000f, 4000f, v => _bike.YawSpinThreshold = v);
             Slider("Yaw spin damping - HIGHER = kills excess spin faster",
-                _bike.YawSpinDamping, 0f, 50f, v => _bike.YawSpinDamping = v);
+                _bike.YawSpinDamping, -250f, 250f, v => _bike.YawSpinDamping = v);
+
+            GUILayout.Space(8f);
+            // Round 3, user: "i want this to be so strict i dont want the
+            // bike fliping spinning or doing anything but moving
+            // straight... please fix this dont make it react to the
+            // sidewalk or ledges... then you can create a slider for me
+            // to make it react if i want." 0 (the far LEFT of this
+            // slider) is the default and means NO rotational reaction at
+            // all to a ledge-classified hit, every step, actively pulled
+            // back level too - not merely capped like the sliders above.
+            GUILayout.Label("-- LEDGE/SIDEWALK REACTION (0 = none at all, the default) --");
+            Slider("Ledge reaction (0 = none, 1 = full real physics)",
+                _bike.LedgeReactionStrength, 0f, 1f, v => _bike.LedgeReactionStrength = v);
+            Slider("Max height counted as a ledge/sidewalk, not a wall (m)",
+                _bike.LedgeMaxHeight, 0.05f, 2f, v => _bike.LedgeMaxHeight = v);
+
+            GUILayout.Space(8f);
+            // User: "put ramp assistant so when the bike is about to hit
+            // a sharp colider it would be like going on the smooth ramp."
+            GUILayout.Label("-- RAMP ASSIST (rides up over ledges instead of catching) --");
+            Slider("Ramp assist strength (0 = off)",
+                _bike.RampAssistStrength, 0f, 100f, v => _bike.RampAssistStrength = v);
+
+            GUILayout.Space(8f);
+            GUILayout.Label("-- COLLISION CAP (real obstacles - walls/vehicles/NPCs) --");
+            Slider("Collision yaw cap (deg/s) - LOWER = stays straighter on a hit",
+                _bike.CollisionYawSpinCap, 0f, 400f, v => _bike.CollisionYawSpinCap = v);
 
             GUILayout.Space(8f);
             GUILayout.Label("-- HILL / LEDGE CLIMB ASSIST --");
@@ -317,7 +369,7 @@ namespace UpIzUpMini.Vehicles
             GUILayout.Space(8f);
             GUILayout.Label("-- AIR GRAVITY (pulls the bike back down once airborne) --");
             Slider("Extra air gravity (0 = off)",
-                _bike.ExtraAirGravity, 0f, 500f, v => _bike.ExtraAirGravity = v);
+                _bike.ExtraAirGravity, 0f, 2500f, v => _bike.ExtraAirGravity = v);
             Slider("Airborne grace before it kicks in (s)",
                 _bike.AirborneGraceSeconds, 0f, 2f, v => _bike.AirborneGraceSeconds = v);
             Slider("Ramp-up time to full strength (s)",
@@ -353,6 +405,42 @@ namespace UpIzUpMini.Vehicles
                 _bike.UprightDamping, 0f, 75f, v => _bike.UprightDamping = v);
             Slider("Low-speed extra stability",
                 _bike.LowSpeedExtraStability, 0f, 100f, v => _bike.LowSpeedExtraStability = v);
+
+            GUILayout.Space(10f);
+            // MINI-119 follow-up, user: "save all these settings" - same
+            // "survives Stop" idea as the rider-seating print button
+            // above, but for every bike-physics slider on this panel
+            // (anti-spin/yaw-lock/ledge/ramp/hill-climb/air-gravity/
+            // drive/stability), not just rider pose. Printed as ready-to-
+            // paste C# field defaults so the exact numbers the user
+            // landed on can be baked into TmaxBikeController directly,
+            // rather than guessed at from memory.
+            if (GUILayout.Button("PRINT ALL BIKE PHYSICS VALUES to Console (survives Stop)"))
+            {
+                Debug.Log(
+                    "MINI-119 BIKE TUNING VALUES\n" +
+                    $"  yawLockStrength = {_bike.YawLockStrength:F3}f;\n" +
+                    $"  yawLockTurnRate = {_bike.YawLockTurnRate:F2}f;\n" +
+                    $"  yawSpinThreshold = {_bike.YawSpinThreshold:F2}f;\n" +
+                    $"  yawSpinDamping = {_bike.YawSpinDamping:F3}f;\n" +
+                    $"  ledgeReactionStrength = {_bike.LedgeReactionStrength:F3}f;\n" +
+                    $"  ledgeMaxHeight = {_bike.LedgeMaxHeight:F3}f;\n" +
+                    $"  rampAssistStrength = {_bike.RampAssistStrength:F2}f;\n" +
+                    $"  collisionYawSpinCap = {_bike.CollisionYawSpinCap:F2}f;\n" +
+                    $"  hillClimbAssist = {_bike.HillClimbAssist:F2}f;\n" +
+                    $"  hillClimbMaxSlopeDeg = {_bike.HillClimbMaxSlopeDeg:F2}f;\n" +
+                    $"  extraAirGravity = {_bike.ExtraAirGravity:F2}f;\n" +
+                    $"  airborneGraceSeconds = {_bike.AirborneGraceSeconds:F3}f;\n" +
+                    $"  airGravityRampSeconds = {_bike.AirGravityRampSeconds:F3}f;\n" +
+                    $"  maxSpeedKmh = {_bike.MaxSpeedKmh:F2}f;\n" +
+                    $"  maxReverseSpeedKmh = {_bike.MaxReverseSpeedKmh:F2}f;\n" +
+                    $"  motorTorque = {_bike.MotorTorque:F2}f;\n" +
+                    $"  uprightAssist = {_bike.UprightAssist:F2}f;\n" +
+                    $"  uprightAssistLowSpeedBoost = {_bike.UprightAssistLowSpeedBoost:F2}f;\n" +
+                    $"  uprightStrength = {_bike.UprightStrength:F2}f;\n" +
+                    $"  uprightDamping = {_bike.UprightDamping:F2}f;\n" +
+                    $"  lowSpeedExtraStability = {_bike.LowSpeedExtraStability:F2}f;");
+            }
 
             GUILayout.Space(10f);
             GUILayout.EndScrollView();

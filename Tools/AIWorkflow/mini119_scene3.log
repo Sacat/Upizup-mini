@@ -1,0 +1,661 @@
+Built from '6000.3/staging' branch; Version is '6000.3.10f1 (e35f0c77bd8e) revision 14901004'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::Module] Trying to connect to existing licensing client channel...
+OS: 'Windows 11  (10.0.26200) Professional' Language: 'en' Physical Memory: 15826 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-08-22T18:37:07Z
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-PCSS-PC" at "2026-08-22T18:37:07.3643447Z"
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+E:/Unity/Up Iz Up Mini
+-logFile
+E:/Unity/Up Iz Up Mini/Tools/AIWorkflow/mini119_scene3.log
+-executeMethod
+UpIzUpMini.EditorTools.Mini011PhaseBSetup.BuildScene
+Successfully changed project path to: E:/Unity/Up Iz Up Mini
+E:/Unity/Up Iz Up Mini
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [38304]  Target information:
+
+Player connection [38304]  * "[IP] 192.168.108.205 [Port] 55504 [Flags] 2 [Guid] 1295417348 [EditorId] 1295417348 [Version] 1048832 [Id] WindowsEditor(7,PC-22) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [38304]  * "[IP] 169.254.83.107 [Port] 55504 [Flags] 2 [Guid] 1295417348 [EditorId] 1295417348 [Version] 1048832 [Id] WindowsEditor(7,PC-22) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [38304]  * "[IP] 192.168.137.1 [Port] 55504 [Flags] 2 [Guid] 1295417348 [EditorId] 1295417348 [Version] 1048832 [Id] WindowsEditor(7,PC-22) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [38304] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [38304] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-42696" after 2.5 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              0c04f84828884d148695f3d6e16ba341
+  Correlation Id:          e00549e178f78246eeb9283def5eae31
+  External correlation Id: 7676397058757142686
+  Machine Id:              BSsZwx/0FUTXPDacKK/mAf12cyA=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-PCSS-PC" (connect: 0.00s, validation: 0.00s, handshake: 10.95s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-PCSS-PC-notifications" at "2026-08-22T18:37:18.3195855Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Module] Licensing Background thread has ended after 11.00s
+[Licensing::Module] Licensing is initialized (took 8.05s).
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 0.10 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.10f1 (e35f0c77bd8e)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path E:/Unity/Up Iz Up Mini/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56696
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.005294 seconds.
+- Loaded All Assemblies, in  1.923 seconds
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  1.343 seconds
+Domain Reload Profiling: 3200ms
+	BeginReloadAssembly (419ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (16ms)
+	RebuildCommonClasses (152ms)
+	RebuildNativeTypeToScriptingClass (48ms)
+	initialDomainReloadingComplete (287ms)
+	LoadAllAssembliesAndSetupDomain (949ms)
+		LoadAssemblies (407ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (937ms)
+			TypeCache.Refresh (928ms)
+				TypeCache.ScanAssembly (839ms)
+			BuildScriptInfoCaches (1ms)
+			ResolveRequiredComponents (3ms)
+	FinalizeReload (1344ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1218ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (364ms)
+			SetLoadedEditorAssemblies (23ms)
+			BeforeProcessingInitializeOnLoad (113ms)
+			ProcessInitializeOnLoadAttributes (454ms)
+			ProcessInitializeOnLoadMethodAttributes (263ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Application.AssetDatabase Initial Refresh Start
+Package Manager log level set to [2]
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 51 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.ai.navigation@2.0.14 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.ai.navigation@134dd6a3b97b)
+    com.unity.cloud.gltfast@6.9.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.cloud.gltfast@1bfd82b6f675)
+    com.unity.animation.rigging@1.4.1 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.animation.rigging@ae5f251e1ed4)
+    com.unity.searcher@4.9.4 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.searcher@d45a78918735)
+    com.unity.burst@1.8.28 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.burst@07790c2d06d9)
+    com.unity.collections@2.6.2 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.collections@aea9d3bd5e19)
+    com.unity.mathematics@1.3.3 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.mathematics@19a9377c4ffa)
+    com.unity.nuget.mono-cecil@1.11.6 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.test-framework.performance@3.2.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.test-framework.performance@0840f58e4562)
+  Built-in packages:
+    com.unity.multiplayer.center@1.0.1 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.multiplayer.center@f01f4ba8d00a)
+    com.unity.shadergraph@17.3.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.shadergraph@c8830f61858d)
+    com.unity.ugui@2.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.ugui@bb329a87fcdc)
+    com.unity.modules.accessibility@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.render-pipelines.core@17.3.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3)
+    com.unity.test-framework@1.6.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d)
+    com.unity.ext.nunit@2.0.5 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.10 seconds
+warn: Unity.AspNetCore.NamedPipeSupport.NamedPipeServer[0]
+      Exception occured while accepting client connection: System.IO.IOException: The pipe is being closed.
+         at System.IO.Pipes.NamedPipeServerStream.WaitForConnectionCoreAsync(CancellationToken cancellationToken)
+         at System.IO.Pipes.NamedPipeServerStream.WaitForConnectionAsync(CancellationToken cancellationToken)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer..ctor(String pipeName, NamedPipeListenerOptions options, ILogger`1 logger)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeListener..ctor(NamedPipeEndpoint endpoint, ILoggerFactory loggerFactory, NamedPipeListenerOptions namedPipeListenerOptions)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeListenerFactory.BindAsync(EndPoint _, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass30_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass30_0`1.<StartAsync>g__OnBind|0(ListenOptions options, CancellationToken onBindCancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.EndpointsStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.EndpointsStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(IEnumerable`1 listenOptions, AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(IEnumerable`1 listenOptions, AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Builder.WebApplication.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+         at Microsoft.AspNetCore.Builder.WebApplication.Run(String url)
+         at Program.<Main>$(String[] args)
+      --- End of stack trace from previous location ---
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:80
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: E:\Unity\Up Iz Up Mini\
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 982.2696ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: E:/Unity/Up Iz Up Mini
+DisplayProgressbar: Compiling Scripts
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\NetStandard\Extensions\2.0.0\System.Runtime.InteropServices.WindowsRuntime.dll"
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.componentmodel.composition has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\System.ComponentModel.Composition.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.ComponentModel.Composition.dll"
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@07790c2d06d9\Unity.Burst.CodeGen\Unity.Burst.Cecil.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Mono.Cecil, Version=0.11.5.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc - - 200 - application/grpc 1482.8938ms
+ExitCode: 0 Duration: 1s919ms
+[517/647    1s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+*** Tundra build success (1.79 seconds), 1 items updated, 647 evaluated
+AssetDatabase: script compilation time: 9.077889s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  3.288 seconds
+Refreshing native plugins compatible for Editor in 0.45 ms, found 0 plugins.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Up Iz Up Mini
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in 10.709 seconds
+Domain Reload Profiling: 13993ms
+	BeginReloadAssembly (1069ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (14ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (171ms)
+	RebuildCommonClasses (343ms)
+	RebuildNativeTypeToScriptingClass (121ms)
+	initialDomainReloadingComplete (244ms)
+	LoadAllAssembliesAndSetupDomain (1507ms)
+		LoadAssemblies (1342ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (922ms)
+			TypeCache.Refresh (604ms)
+				TypeCache.ScanAssembly (575ms)
+			BuildScriptInfoCaches (272ms)
+			ResolveRequiredComponents (34ms)
+	FinalizeReload (10709ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (9813ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (273ms)
+			SetLoadedEditorAssemblies (19ms)
+			BeforeProcessingInitializeOnLoad (314ms)
+			ProcessInitializeOnLoadAttributes (9022ms)
+			ProcessInitializeOnLoadMethodAttributes (173ms)
+			AfterProcessingInitializeOnLoad (9ms)
+			EditorAssembliesLoaded (3ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (41ms)
+Asset Pipeline Refresh (id=497b86c35e1a0eb4b9a6bdcc560bd633): Total: 24.601 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=11903 ms
+		Asset DB Callback time: managed=13 ms, native=116 ms
+		Scripting: domain reloads=1, domain reload time=3290 ms, compile time=9080 ms, other=197 ms
+		Project Asset Count: scripts=940, non-scripts=3566
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.002ms
+	InvokePackagesCallback: 118.089ms
+	ApplyChangesToAssetFolders: 0.605ms
+	Scan: 371.676ms
+	OnSourceAssetsModified: 0.003ms
+	CategorizeAssetsWithTransientArtifact: 29.409ms
+	ProcessAssetsWithTransientArtifactChanges: 382.066ms
+	CategorizeAssets: 56.756ms
+	ImportOutOfDateAssets: 10716.416ms (1632.915ms without children)
+		CompileScripts: 9080.127ms
+		ReloadNativeAssets: 0.001ms
+		UnloadImportedAssets: 0.206ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.697ms
+		InitializingProgressBar: 0.001ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.002ms
+		OnDemandSchedulerStart: 2.467ms
+	PostProcessAllAssets: 13.599ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.003ms
+	UnloadStreamsBegin: 1.652ms
+	PersistCurrentRevisions: 0.182ms
+	UnloadStreamsEnd: 0.002ms
+	GenerateScriptTypeHashes: 3.685ms
+	Untracked: 12910.315ms
+
+Application.AssetDatabase Initial Refresh End
+Scanning for USB devices : 2.000ms
+Initializing Unity extensions:
+Unloading 48 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 3310 unused Assets / (14.4 MB). Loaded Objects now: 3912.
+Memory consumption went from 174.9 MB to 160.5 MB.
+Total: 13.076600 ms (FindLiveObjects: 0.360300 ms CreateObjectMapping: 0.325200 ms MarkObjects: 6.577100 ms  DeleteObjects: 5.811600 ms)
+
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 0 unused Assets / (48.3 KB). Loaded Objects now: 3919.
+Memory consumption went from 149.9 MB to 149.9 MB.
+Total: 6.304100 ms (FindLiveObjects: 0.202400 ms CreateObjectMapping: 0.112100 ms MarkObjects: 5.973800 ms  DeleteObjects: 0.014200 ms)
+
+Mini011PhaseBSetup: using authored StarterAssetsThirdPerson controller.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:LoadLocomotionController () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:304)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildScene () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:66)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs Line: 304)
+
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.04 seconds
+Look rotation viewing vector is zero
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.Quaternion:Internal_LookRotation (UnityEngine.Vector3&,UnityEngine.Vector3&)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildNpc (UnityEngine.Terrain,System.Collections.Generic.List`1<UnityEngine.Vector3>,int,single,string,string,UpIzUpMini.Interaction.NpcRole,UpIzUpMini.Economy.CropDefinition[],UnityEngine.RuntimeAnimatorController,bool,bool) (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:3855)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildTownNPCs (UnityEngine.Terrain,System.Collections.Generic.List`1<UnityEngine.Vector3>,UnityEngine.RuntimeAnimatorController) (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:2560)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildScene () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:104)
+
+[Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs line 104]
+
+Opening scene 'Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity additively'
+Loaded scene 'Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity'
+	Deserialize:            52.471 ms
+	Integration:            24.672 ms
+	Integration of assets:  0.254 ms
+	Thread Wait Time:       -0.153 ms
+	Total Operation Time:   77.244 ms
+MINI-113: smoothed 'Road_user_highland_farm_spur' toward 'Road_user_highland_lalay_inroad' at their junction - height step was 0.286m, blended over 8.0m.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:SmoothRoadJunctionHeight (string,string,single) (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:447)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:ApplyToOpenScene (UnityEngine.SceneManagement.Scene) (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:81)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildScene () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:259)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs Line: 447)
+
+MINI-119: restored the user's manual farm/hedge/safehouse placement from their saved GrandBayProof.unity edit.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:RestoreManualHighlandFarmEdits () (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:264)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:ApplyToOpenScene (UnityEngine.SceneManagement.Scene) (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:96)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildScene () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:259)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs Line: 264)
+
+MINI-119: patched junction edge gap 'JunctionPatch_LalayConnector_23042701' between (-61.38, 9.43, -106.80) and (-61.21, 9.43, -107.46).
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:PatchEdgeGap (string,UnityEngine.Vector3,UnityEngine.Vector3,single,UnityEngine.Material) (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:317)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:PatchJunctionEdgeGaps () (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:283)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:ApplyToOpenScene (UnityEngine.SceneManagement.Scene) (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:97)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildScene () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:259)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs Line: 317)
+
+MINI-119: patched junction edge gap 'JunctionPatch_22917921_23042701' between (-63.72, 8.88, -147.54) and (-60.20, 8.88, -144.68).
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:PatchEdgeGap (string,UnityEngine.Vector3,UnityEngine.Vector3,single,UnityEngine.Material) (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:317)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:PatchJunctionEdgeGaps () (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:285)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:ApplyToOpenScene (UnityEngine.SceneManagement.Scene) (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:97)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildScene () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:259)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs Line: 317)
+
+MINI-113: relocated BikeHomePoint to (117.92, 5.03, -110.51) next to the migrated FarmSafehouse (was 303.52m away before this fix).
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:RelocateBikeHome () (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:206)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:ApplyToOpenScene (UnityEngine.SceneManagement.Scene) (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:169)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildScene () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:259)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs Line: 206)
+
+MINI-100 MAP MIGRATION PASS: approved VA-005 world cloned; old synthetic environment removed; gameplay roots preserved and relocated.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini100GrandBayMapMigration:ApplyToOpenScene (UnityEngine.SceneManagement.Scene) (at Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs:172)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildScene () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:259)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs Line: 172)
+
+Start importing Assets/UpIzUpMini/Art/Materials/Sea.mat using Guid(cb3554ea238f6634c911d8094864e312) (NativeFormatImporter) -> (artifact id: '45d8c7dfca2545ea43a574777e192aef') in 0.013653 seconds
+Start importing Assets/UpIzUpMini/Art/Materials/ObjectiveMarker.mat using Guid(6ce400ee479c7ab4ab3e05813b2c2365) (NativeFormatImporter) -> (artifact id: '3327649d107a816f5f38d66d2411d11e') in 0.0034585 seconds
+Start importing Assets/UpIzUpMini/Art/Animations/StarterAssetsThirdPerson.controller using Guid(40db3173a05ae3242b1c182a09b0a183) (NativeFormatImporter) -> (artifact id: 'ee0e26073cb4beed120b55303bbf72e4') in 0.003804 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/seed_carrot.asset using Guid(00776ae2349c2a542ab8cd8efb3875b7) (NativeFormatImporter) -> (artifact id: '5dc60430c8a9f58e0b4201e48da67f94') in 0.0022598 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/prop_lalay_estate.asset using Guid(20ba1b273ae588c4091f8c8e350f4aa2) (NativeFormatImporter) -> (artifact id: '523597b974cd70327dfa44deb77c83fd') in 0.0018538 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/pill_stamina.asset using Guid(40b823d6d540e934db67f0a7c4727602) (NativeFormatImporter) -> (artifact id: '7d9bc072acd2e3b851ca3400f22e1674') in 0.0018826 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/food_bakes.asset using Guid(502975eeb25fa504b90a997a18ca5dae) (NativeFormatImporter) -> (artifact id: '0d0f92c49845fba6fe70b9aaf762b543') in 0.0018259 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/seed_tomato.asset using Guid(9053eccd73cf619469671e15384e4e76) (NativeFormatImporter) -> (artifact id: 'fbea3bf1a9c4f9fbd3441a833311274f') in 0.0015538 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/chain_gold.asset using Guid(90dfbe4c8389b7e47b8f4a1536e5babe) (NativeFormatImporter) -> (artifact id: '4c903a42a3cd169e50d61028a7a52fcc') in 0.0120506 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/banana.asset using Guid(a005675084c8ef74387e4d3ee51c546d) (NativeFormatImporter) -> (artifact id: '740ef12458e5a623c068631135bf59a7') in 0.0038558 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/seed_banana.asset using Guid(c099dbc0b34a18848b0ff65fe92e9d85) (NativeFormatImporter) -> (artifact id: 'a5de61e6d3d1e51d5b7c4d083e08b55e') in 0.0017437 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/black_sugar.asset using Guid(c0ef7b2e8ea94cc4da6d565f9b08728c) (NativeFormatImporter) -> (artifact id: 'c6f8d82ef58db4a44e4758a54d27ca15') in 0.0026691 seconds
+Start importing Assets/UpIzUpMini/Data/Dialogue/RastaMentorLines.asset using Guid(e00e42a84dc9b1b47bc5a5ba0242c8db) (NativeFormatImporter) -> (artifact id: '85c97f90a7cf2a6b7d035f2340ab8551') in 0.0023484 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/sugar_cheese.asset using Guid(91bbb1fbff05ceb40991dafd507400ac) (NativeFormatImporter) -> (artifact id: 'bdf881478de8cdf0e4eaeb6c12bc5223') in 0.0016756 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/purple_cheese.asset using Guid(222735c98d2b11942922a758dca6f3ee) (NativeFormatImporter) -> (artifact id: 'c580e1fb65c298a4e8928c3225ccd83a') in 0.0020501 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/tmax_560.asset using Guid(6265d446000d5f845b6be3326ebd9e3e) (NativeFormatImporter) -> (artifact id: 'ddff3454ebc701bf36e0587aad38cd6b') in 0.0017097 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/purple_black.asset using Guid(a23023b3a7f1df849b222cb50ad8f992) (NativeFormatImporter) -> (artifact id: '11ad9b22de440991d1b913d0ef215d76') in 0.0025593 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/cap_mike.asset using Guid(631bce4039ae8204ea0d95090cd6978a) (NativeFormatImporter) -> (artifact id: '27749fb6449d212feb68f0f21070a8e7') in 0.0017615 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/bushers.asset using Guid(3494d05c3f26d1f438b9015cf0435f92) (NativeFormatImporter) -> (artifact id: 'bf959907f4733d7ae9fb827496b05694') in 0.0019652 seconds
+Start importing Assets/UpIzUpMini/Data/Dialogue/NormyLines.asset using Guid(64fb5da9c5698e54e894e96912e34fa7) (NativeFormatImporter) -> (artifact id: 'a9115ee14d74166bae8585f36f179c38') in 0.0021223 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/shorts_adibas.asset using Guid(d4288de805dcdb341bb7cbdeaa0d6e63) (NativeFormatImporter) -> (artifact id: '32f5dd8e6412c1a0d8869efd8a7f969f') in 0.0022354 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/land_montine.asset using Guid(95ade40d459dcb94cb9cdb159f736c1a) (NativeFormatImporter) -> (artifact id: 'a6d119c67854ac5ec1d960f313a7850e') in 0.0016627 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/food_provision.asset using Guid(f596c7a214df2bd4a811abbfdd48de2f) (NativeFormatImporter) -> (artifact id: 'ce932147dc06cbe6ae66a8829e34060f') in 0.0204744 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/shirt_lacos.asset using Guid(66b395a507a7d554faa4a783c8b7780c) (NativeFormatImporter) -> (artifact id: '3d24138d93c4d1671fdf038b56b7fc82') in 0.0026385 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/food_juice.asset using Guid(76b9663a6adba8045b3fadb7f34e8252) (NativeFormatImporter) -> (artifact id: 'c6c7225bc7d3f0d1de5feefe65965c87') in 0.0012588 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/shoes_pumba.asset using Guid(f6f6a6f255723b147a6a3c49eabbc59b) (NativeFormatImporter) -> (artifact id: '4b0a7ccd699d4d7267af7ac8144bd0a6') in 0.0018436 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/purple.asset using Guid(37634dc3cf929b84d984e3becd2164c5) (NativeFormatImporter) -> (artifact id: 'e55ff256dc9cfc4849887877db9b5371') in 0.0014362 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/tomato.asset using Guid(b7ea73307c90ecd40b247176853ac9ef) (NativeFormatImporter) -> (artifact id: '0f6231f6e66e9e4f4fbb7330d9b2b792') in 0.0025612 seconds
+Start importing Assets/UpIzUpMini/Data/Dialogue/VillagerLines.asset using Guid(0ada52a730bb79545994e392e63967a5) (NativeFormatImporter) -> (artifact id: '694056f868c789a871adac3dad9255a9') in 0.001779 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/land_hillside.asset using Guid(0b7bcb5e706006e4ead0b5aa02680327) (NativeFormatImporter) -> (artifact id: '4b2c8fa097bd4c79315c880bfe82f9f2') in 0.0023631 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/range_rova.asset using Guid(2c83d28d38ffa74479171cff1b1af2ef) (NativeFormatImporter) -> (artifact id: 'b82251c80d3d38c1d1d4431ef343185c') in 0.0022175 seconds
+Start importing Assets/UpIzUpMini/Data/Dialogue/DogLifeLines.asset using Guid(fcfead992f533804b88246f338849b59) (NativeFormatImporter) -> (artifact id: 'ba5a7eefc618dbaf461fc06aca26077e') in 0.0021428 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/shoes_mike.asset using Guid(1decc54f2682b40498951cdf12a15cff) (NativeFormatImporter) -> (artifact id: '8affb57e9e703a8c85409b43033084f5') in 0.0015282 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/watch_rollie.asset using Guid(7dd35a59a42378c4da2b99a361e3217f) (NativeFormatImporter) -> (artifact id: 'a959e905e06793fd0baa20e5c6117ded') in 0.0016649 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/prop_safehouse.asset using Guid(ad0d72851fec86247921502e31aa7aed) (NativeFormatImporter) -> (artifact id: 'abc5b0256a044346bef3368f6ad9bc55') in 0.0021102 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/shades_ray.asset using Guid(bdd6177ce54c17f449174726204a0876) (NativeFormatImporter) -> (artifact id: 'a4bd8d927755d09e6e51757171fe4428') in 0.0015273 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/carrot.asset using Guid(edaa4e932175b0e4088279819f37a16b) (NativeFormatImporter) -> (artifact id: '52ec8dde4b48524def7eb734600f02af') in 0.0049047 seconds
+Start importing Assets/UpIzUpMini/Data/Crops/blue_cheese.asset using Guid(be03b70908230a844afa80685a910276) (NativeFormatImporter) -> (artifact id: 'ad10e7d39cd67c578cf0ee652c35000d') in 0.0016942 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/pill_focus.asset using Guid(beea6e9990d98d04cb380f3badc120e8) (NativeFormatImporter) -> (artifact id: 'ddf90d9c6cc7d1901dc1c9706bca05eb') in 0.0017603 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/pill_energy.asset using Guid(deb0230d9c9c47e49b7b4c3654c9db33) (NativeFormatImporter) -> (artifact id: '52f75c6e27801415a0e6b54b706cf44d') in 0.0020893 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/food_broth.asset using Guid(9fac13bd4205bd84299674de91ec1d29) (NativeFormatImporter) -> (artifact id: '144298212549b9dedeb7a54af3fccbf8') in 0.0024582 seconds
+Start importing Assets/UpIzUpMini/Data/Shop/phone_basic.asset using Guid(bf0390b2d1219014e91fa2f07b41d87d) (NativeFormatImporter) -> (artifact id: 'ebe3359c85919233f92271f2eb3fbfc1') in 0.0018413 seconds
+Refreshing native plugins compatible for Editor in 0.40 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=0b5a7f501d0aba749851ff085d409f3f): Total: 0.822 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=42 (actual=42, local cache=0, cache server=0)
+		Asset DB Process Time: managed=7 ms, native=204 ms
+		Asset DB Callback time: managed=592 ms, native=17 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=940, non-scripts=3566
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 51
+	InvokeCustomDependenciesCallbacks: 0.001ms
+	InvokePackagesCallback: 0.001ms
+	ApplyChangesToAssetFolders: 0.111ms
+	Scan: 16.512ms
+	OnSourceAssetsModified: 2.183ms
+	CategorizeAssetsWithTransientArtifact: 0.048ms
+	ProcessAssetsWithTransientArtifactChanges: 0.034ms
+	CategorizeAssets: 30.176ms
+	ImportOutOfDateAssets: 159.273ms (0.455ms without children)
+		ImportManagerImport: 155.168ms (4.316ms without children)
+			ImportInProcess: 150.562ms
+			UpdateCategorizedAssets: 0.289ms
+		ReloadNativeAssets: 0.407ms
+		UnloadImportedAssets: 1.092ms
+		ReloadImportedAssets: 0.004ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.473ms
+		InitializingProgressBar: 0.008ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.003ms
+		OnDemandSchedulerStart: 0.663ms
+	PostProcessAllAssets: 594.164ms
+	Hotreload: 12.940ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.221ms
+	UnloadStreamsBegin: 1.475ms
+	PersistCurrentRevisions: 0.423ms
+	UnloadStreamsEnd: 0.082ms
+	Untracked: 3.936ms
+
+Start importing Assets/UpIzUpMini/Scenes/GrandBayProof.unity using Guid(55b944f86d69e7246a36784c6576c512) (DefaultImporter) -> (artifact id: '5ebf9804a1bdd5e49eafff7635d7e683') in 0.0016904 seconds
+Refreshing native plugins compatible for Editor in 0.29 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=0c8f0d6440f65d34a8f429cafd649c62): Total: 0.064 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=99a2d21a8fb9c0445ab5e3d30ef523eb): Total: 0.009 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+MINI-011 Phase B: GrandBayProof rebuilt and saved to Assets/UpIzUpMini/Scenes/GrandBayProof.unity.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini011PhaseBSetup:BuildScene () (at Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs:275)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini011PhaseBSetup.cs Line: 275)
+
+Batchmode quit successfully invoked - shutting down!
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-PCSS-PC-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-PCSS-PC channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+abort_threads: Failed aborting id: 000000000000A0D0, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000005CE4, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 000000000000A0D0, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000005CE4, mono_thread_manage will ignore it
+
+debugger-agent: Unable to listen on 3084
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

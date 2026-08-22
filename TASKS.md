@@ -22,6 +22,35 @@ Acceptance criteria:
 
 ## In progress
 
+### MINI-119 follow-up — Bike anti-spin final tuning, permanent manual-edit preservation, road/terrain smoothing
+
+Goal: after the user's own hands-on testing found the initial anti-spin fix
+insufficient, land a version that actually works; preserve the user's
+manual farm/hedge/safehouse placement permanently; fix "no 90 degree
+ledges" for real driving/riding.
+
+Status: **Built and verified by Claude on 2026-08-22; awaiting user
+playtest.** Bike yaw is no longer physics-derived at all - it's now a
+direct, kinematic function of the player's own steering input
+(`ApplyYawLock`), the same technique already proven for the wheelie's
+pitch; every earlier round (gradual damping, then a collision-triggered
+hard cap, then height-classified suppression) still let real spin
+through. Final user-tuned numbers baked into `TmaxBikeController`'s
+defaults. The user's manual `GrandBayProof.unity` edits (hedge scale/
+position/rotation, farm plots off the road, farm safehouse off the road)
+are now a permanent, replayed override in the migration script, captured
+read-only first via a new `Mini119ReadManualEdits` tool - the scene
+builder is safe to re-run again. Added real ramp geometry between road
+and sidewalk ribbons (previously a bare terrain gap). Found and fixed a
+genuine, previously-undiscovered bug: the map generator's own "tiny seam"
+gap-connector had a mathematically self-contradictory threshold check
+and had never sealed a single gap in any prior build - fixed via a new
+read-only measurement tool (`Mini119RoadSteepnessScan`), which also found
+and fixed one genuine unconnected road gap and two ribbon-edge junction
+mismatches. Full rebuild pipeline, all 8 standing validators, and the
+drop test all re-run clean, Windows build succeeded. See the MINI-119
+entry in `PROJECT-HANDOFF.md`. Not yet hands-on playtested.
+
 ### MINI-119 — Post-playtest batch: dialogue, Rasta selling, crop key order, breeding marker, hints, War Story win condition, bike climbing/anti-spin, cheat rep
 
 Goal: fix a full batch of post-playtest reports in one pass (see

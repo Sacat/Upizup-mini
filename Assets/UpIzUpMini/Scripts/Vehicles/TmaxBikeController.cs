@@ -371,6 +371,12 @@ namespace UpIzUpMini.Vehicles
         // Same live-tunable pattern as every property above.
         public float YawSpinThreshold { get => yawSpinThreshold; set => yawSpinThreshold = value; }
         public float YawSpinDamping { get => yawSpinDamping; set => yawSpinDamping = value; }
+        public float CollisionYawSpinCap { get => collisionYawSpinCap; set => collisionYawSpinCap = value; }
+        public float RampAssistStrength { get => rampAssistStrength; set => rampAssistStrength = value; }
+        public float LedgeMaxHeight { get => ledgeMaxHeight; set => ledgeMaxHeight = value; }
+        public float LedgeReactionStrength { get => ledgeReactionStrength; set => ledgeReactionStrength = value; }
+        public float YawLockStrength { get => yawLockStrength; set => yawLockStrength = value; }
+        public float YawLockTurnRate { get => yawLockTurnRate; set => yawLockTurnRate = value; }
         public float HillClimbAssist { get => hillClimbAssist; set => hillClimbAssist = value; }
         public float HillClimbMaxSlopeDeg { get => hillClimbMaxSlopeDeg; set => hillClimbMaxSlopeDeg = value; }
         public float ExtraAirGravity { get => extraAirGravity; set => extraAirGravity = value; }
@@ -496,6 +502,7 @@ namespace UpIzUpMini.Vehicles
             ApplySteering();
             ApplyStability();
             ApplyYawSpinAssist();
+            ApplyYawLock();
             ApplyWheelie();
             ApplyWheelieAirControl();
             ApplyUprightAssist();
@@ -504,7 +511,9 @@ namespace UpIzUpMini.Vehicles
 
         [Header("Yaw Spin Assist (anti wild-spin on lateral impacts)")]
         [Tooltip("MINI-119, user: \"i hit small hedge the bike spins like crazy... there should be an assist... make it lose control slightly but not all that spin, it should just be slightly.\" A hedge/kerb clipped at an angle dumps a large yaw impulse into the Rigidbody that nothing here previously opposed (ApplyStability only ever corrects ROLL, never yaw). This damps yaw angular velocity, but only the part ABOVE yawSpinThreshold, and only removes a FRACTION of that excess per second - ordinary steering-induced yaw (turning corners) sits far below the threshold and is completely untouched, and even a genuine hedge hit still spins, just far less wildly, matching \"lose control slightly, not all that spin.\"")]
-        [SerializeField] private float yawSpinThreshold = 220f;
+        // MINI-119 follow-up round 5, user-tuned final value ("save all
+        // these settings") - read directly off the live tuner panel.
+        [SerializeField] private float yawSpinThreshold = 0f;
         // MINI-119 follow-up, user: "sliders as not make it spin when
         // hitting ledge or bump or hill... the sliders should [be] wide
         // so i can drastically reduce the spinning." Un-capped from the
@@ -518,7 +527,8 @@ namespace UpIzUpMini.Vehicles
         // no reversal), but a high value (see TmaxWheelieTuner's slider,
         // which now goes to 50) reaches that 100%-per-step ceiling and
         // reads as the excess spin vanishing almost the instant it starts.
-        [SerializeField] private float yawSpinDamping = 0.65f;
+        // MINI-119 follow-up round 5, user-tuned final value.
+        [SerializeField] private float yawSpinDamping = 250f;
 
         private void ApplyYawSpinAssist()
         {
@@ -536,6 +546,174 @@ namespace UpIzUpMini.Vehicles
             av -= Vector3.up * Vector3.Dot(av, Vector3.up); // strip the old yaw component only
             av += Vector3.up * (newYawRateDeg * Mathf.Deg2Rad);
             rb.angularVelocity = av;
+        }
+
+        // MINI-119 follow-up round 4, user (after round 3's collision-
+        // event-based fix still failed): "the bike keeps turning when i
+        // hit a ledge... keep the bike straight when you hit the ledge no
+        // turning." Root problem with every earlier round: they all
+        // reacted to a COLLISION EVENT (OnCollisionEnter/Stay) or damped
+        // ANGULAR VELOCITY after the fact - but a short/low ledge can be
+        // caught entirely by a WheelCollider's own suspension/friction
+        // model, which never raises a chassis collision event at all, and
+        // PhysX can also resolve a sharp/thin contact with a direct
+        // one-step POSITION/ROTATION correction that doesn't show up as
+        // "high angular velocity" for these methods to damp in the first
+        // place. This is a fundamentally different, much blunter fix that
+        // sidesteps all of that: yaw stops being physics-derived at all
+        // and becomes DIRECTLY, KINEMATICALLY driven from the player's own
+        // steering input alone (MoveRotation every step) - the exact same
+        // proven technique ApplyWheelie already uses for pitch (see that
+        // method's own "round 14" history: torque-based persuasion never
+        // worked reliably; direct kinematic control did). Nothing else -
+        // not a curb, not wheel friction, not a chassis collision - can
+        // turn the bike anymore once this is active; only steerInput can.
+        [Header("Yaw Lock (guarantees the bike only turns from your own steering)")]
+        [Tooltip("0 = normal physics-driven yaw, fully exposed to being spun by collisions/wheel friction (the original problem). 1 = yaw is ENTIRELY kinematic - heading changes ONLY from your own steering input at yawLockTurnRate, and nothing else can turn it at all, period. Defaults to 1 this round given the explicit \"no turning, no matter what\" ask - drop it toward 0 if you want some real reaction back.")]
+        [SerializeField, Range(0f, 1f)] private float yawLockStrength = 1f;
+        [Tooltip("Degrees/second the locked heading turns at full steering input and typical riding speed - tune to match how sharply the bike should turn under normal steering.")]
+        [SerializeField] private float yawLockTurnRate = 110f;
+
+        private float _lockedYawDeg;
+        private bool _yawLockInitialized;
+
+        private void ApplyYawLock()
+        {
+            if (rb == null || yawLockStrength <= 0f || WheelieForcingPose)
+            {
+                _yawLockInitialized = false; // re-sync to the real heading next time this turns back on
+                return;
+            }
+
+            if (!_yawLockInitialized)
+            {
+                _lockedYawDeg = transform.eulerAngles.y;
+                _yawLockInitialized = true;
+            }
+
+            // Only the player's own steering advances the locked heading -
+            // speed-scaled so it can't spin on the spot at a standstill,
+            // same shape as ApplySteering's own yaw assist.
+            float speed01 = Mathf.Clamp01(Mathf.Abs(SpeedKmh) / 15f);
+            _lockedYawDeg += steerInput * yawLockTurnRate * speed01 * Time.fixedDeltaTime;
+
+            Vector3 euler = transform.eulerAngles;
+            Quaternion target = Quaternion.Euler(euler.x, _lockedYawDeg, euler.z);
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, target, yawLockStrength));
+
+            // Strip whatever physics-integrated yaw velocity remains,
+            // proportionally, so nothing lingers to fight next step or
+            // show up the instant this is turned back down.
+            Vector3 av = rb.angularVelocity;
+            av -= Vector3.up * (Vector3.Dot(av, Vector3.up) * yawLockStrength);
+            rb.angularVelocity = av;
+        }
+
+        // MINI-119 follow-up round 3, user: "i tested it now but its
+        // still doing the same thing, I want this to be so strict i dont
+        // want the bike fliping spinning or doing anything but moving
+        // straight... please fix this dont make it react to the sidewalk
+        // or ledges... then you can create a slider for me to make it
+        // react if i want." Rounds 1/2 (yawSpinThreshold/Damping,
+        // collisionYawSpinCap) only ever damped/capped the RATE of spin,
+        // gradually or on-contact - never strong enough, per the user's
+        // own report. This round is a different, much blunter
+        // instrument, matching the explicit ask: for a collision
+        // classified as ledge-like (every contact point sits at or below
+        // ledgeMaxHeight above the bike's own ground level - the same
+        // "is this a kerb/sidewalk, not a wall/car/NPC" test used below
+        // for ramp assist), angular velocity is scaled straight to
+        // ledgeReactionStrength * (whatever it was) - AT THE DEFAULT 0,
+        // that is a hard, total zero, every single physics step the
+        // contact persists, not a gradual settle - and the rotation
+        // itself is actively re-levelled back toward flat/forward at the
+        // same rate, so an already-started roll/pitch/yaw from this same
+        // contact gets pulled back out, not just prevented from growing
+        // further. A real wall/vehicle/NPC collision (every contact point
+        // ABOVE ledgeMaxHeight) is deliberately left alone - this is
+        // specifically the "sidewalk/ledge" case, not a general crash
+        // suppressor.
+        [Header("Ledge / Sidewalk Reaction (default: none at all)")]
+        [Tooltip("How high above the bike's own current ground level a collision contact point can be and still count as a low kerb/ledge/sidewalk lip, rather than a real solid obstacle (wall, vehicle, NPC) that should still behave normally.")]
+        [SerializeField] private float ledgeMaxHeight = 0.6f;
+        [Tooltip("MINI-119 follow-up round 3, user: \"i dont want the bike fliping spinning or doing anything but moving straight... dont make it react to the sidewalk or ledges... then you can create a slider for me to make it react if i want.\" 0 (the default) = zero rotational reaction to a ledge-classified collision at all, every step, actively pulled back level too - not just capped. 1 = full, unsuppressed physical reaction, same as if this whole system didn't exist. Values in between let a proportional amount through.")]
+        [SerializeField, Range(0f, 1f)] private float ledgeReactionStrength = 0f;
+
+        [Header("Ramp Assist (rides up over ledges instead of catching)")]
+        [Tooltip("MINI-119 follow-up round 2, user: \"can you maybe put ramp assistant so when the bike is about to hit a sharp colider it would be like going on the smooth ramp.\" On a ledge-classified collision (see ledgeMaxHeight above) whose contact normal reads as a roughly-vertical face (a kerb/ledge lip specifically, not a flat top surface), nudges the bike up and slightly forward at that real contact point - a genuine AddForceAtPosition, same 'real force at a real contact point' principle as the trike stabilizer springs - so it rides up and over instead of catching on the corner. 0 = off. Independent of ledgeReactionStrength above - this is a positive assist, not a reaction.")]
+        [SerializeField] private float rampAssistStrength = 0f;
+
+        [Header("Collision Impact Control (real obstacles - walls/vehicles/NPCs)")]
+        [Tooltip("Hard cap (deg/s) on yaw spin the instant the bike's own body collides with something taller than ledgeMaxHeight (a genuine solid obstacle, not a kerb/sidewalk - those are handled entirely by Ledge/Sidewalk Reaction above). Unlike Yaw Spin Threshold/Damping further up (a gradual per-second damping of excess), this clamps immediately and unconditionally on contact.")]
+        [SerializeField] private float collisionYawSpinCap = 40f;
+
+        private void OnCollisionEnter(Collision collision) => HandleChassisCollision(collision);
+        private void OnCollisionStay(Collision collision) => HandleChassisCollision(collision);
+
+        private void HandleChassisCollision(Collision collision)
+        {
+            if (rb == null || WheelieForcingPose) return; // stand down during a deliberate forced pose, same as every other stabiliser
+
+            float groundY = transform.position.y - 0.3f; // rough wheel-contact reference, same one ramp assist already used
+            bool isLedge = true;
+            foreach (var c in collision.contacts)
+            {
+                if (c.point.y - groundY > ledgeMaxHeight) { isLedge = false; break; }
+            }
+
+            if (isLedge)
+            {
+                // Total (at default) rotational suppression - scale
+                // whatever angular velocity exists straight down, every
+                // step, rather than only capping its growth.
+                rb.angularVelocity *= ledgeReactionStrength;
+
+                // Also actively pull any roll/pitch/yaw ALREADY picked up
+                // from this same contact back toward level/forward - a
+                // cap alone only stops it getting WORSE, it doesn't undo
+                // what already happened this step.
+                if (ledgeReactionStrength < 0.999f)
+                {
+                    Vector3 flatForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+                    if (flatForward.sqrMagnitude > 0.0001f)
+                    {
+                        Quaternion levelled = Quaternion.LookRotation(flatForward.normalized, Vector3.up);
+                        rb.MoveRotation(Quaternion.Slerp(rb.rotation, levelled, 1f - ledgeReactionStrength));
+                    }
+                }
+
+                ApplyRampAssist(collision);
+                return;
+            }
+
+            // A real solid obstacle (wall/vehicle/NPC) - keep the softer,
+            // general-purpose cap from round 2 rather than the ledge
+            // system's much harsher total suppression.
+            float yawRateDeg = Vector3.Dot(rb.angularVelocity, Vector3.up) * Mathf.Rad2Deg;
+            float capped = Mathf.Clamp(yawRateDeg, -collisionYawSpinCap, collisionYawSpinCap);
+            if (!Mathf.Approximately(capped, yawRateDeg))
+            {
+                Vector3 av = rb.angularVelocity;
+                av -= Vector3.up * Vector3.Dot(av, Vector3.up);
+                av += Vector3.up * (capped * Mathf.Deg2Rad);
+                rb.angularVelocity = av;
+            }
+        }
+
+        private void ApplyRampAssist(Collision collision)
+        {
+            if (rampAssistStrength <= 0f) return;
+            foreach (var contact in collision.contacts)
+            {
+                // Skip a flat top surface (normal near straight up) -
+                // only a roughly-vertical-faced lip counts as a
+                // rampable edge.
+                float normalUpDot = Vector3.Dot(contact.normal, Vector3.up);
+                if (Mathf.Abs(normalUpDot) > 0.5f) continue;
+
+                Vector3 nudge = (Vector3.up + transform.forward * 0.5f).normalized * rampAssistStrength;
+                rb.AddForceAtPosition(nudge, contact.point, ForceMode.Acceleration);
+            }
         }
 
         // MINI-118, user: "could there be a gravity added so when the bike
@@ -556,11 +734,15 @@ namespace UpIzUpMini.Vehicles
         // a bump barely feels it while a genuine launch gets pulled back
         // down hard.
         [Tooltip("MINI-118: extra downward acceleration (on top of normal gravity) once the bike has been genuinely airborne (both wheels off the ground) for longer than airborneGraceSeconds - pulls an unwanted launch back down faster without affecting an intentional wheelie.")]
-        [SerializeField] private float extraAirGravity = 30f;
+        // MINI-119 follow-up round 5, user-tuned final values ("save all
+        // these settings") - read directly off the live tuner panel:
+        // pushed to the 2500 ceiling, with almost no grace period and no
+        // ramp-up, i.e. "come down hard, almost immediately."
+        [SerializeField] private float extraAirGravity = 2500f;
         [Tooltip("How long both wheels must stay ungrounded before extra air gravity kicks in - long enough that a normal bump/bike-hop never triggers it.")]
-        [SerializeField] private float airborneGraceSeconds = 0.18f;
+        [SerializeField] private float airborneGraceSeconds = 0.01f;
         [Tooltip("Seconds of sustained air time for extraAirGravity to ramp up to its full strength, rather than snapping on.")]
-        [SerializeField] private float airGravityRampSeconds = 0.25f;
+        [SerializeField] private float airGravityRampSeconds = 0f;
 
         private float _bothWheelsAirborneSeconds;
 

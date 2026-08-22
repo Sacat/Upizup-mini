@@ -152,6 +152,24 @@ namespace UpIzUpMini.Editor
                     // the sidewalk edge and the first row of Lalay homes.
                     CreateRibbon("Lalay_Frontage_Left_" + SafeName(road.id), road.points, data.compression, 5.2f, 6.7f, 0.72f, terrainMat, frontageRoot.transform, true, 0.015f);
                     CreateRibbon("Lalay_Frontage_Right_" + SafeName(road.id), road.points, data.compression, 5.2f, -6.7f, 0.72f, terrainMat, frontageRoot.transform, true, 0.015f);
+
+                    // MINI-119, user: "no ledge or edge should not be 90
+                    // steep, should be smooth... i want to be able to
+                    // drive properly." Measured root cause: the road ribbon
+                    // (yOffset 0.62) and the sidewalk ribbon (yOffset 0.76)
+                    // are two independent FLAT strips with only a ~12cm
+                    // horizontal gap between the road's own edge (half-width
+                    // 3.1m for a 6.2m lalay road) and the sidewalk's inner
+                    // edge (3.85 - 0.625 = 3.225m) - a real, if small,
+                    // vertical kerb face with no ramp geometry at all, just
+                    // raw terrain in between. A real WheelCollider hits that
+                    // as a hard step. This bridges the gap with an actual
+                    // sloped ramp instead of leaving it to bare terrain.
+                    float roadHalfWidth = RoadWidth(road.roadClass, true) * 0.5f;
+                    CreateKerbRamp("Lalay_KerbRamp_Left_" + SafeName(road.id), road.points, data.compression,
+                        roadHalfWidth, 3.225f, 0.62f, 0.76f, sidewalkMat, sidewalkRoot.transform);
+                    CreateKerbRamp("Lalay_KerbRamp_Right_" + SafeName(road.id), road.points, data.compression,
+                        -roadHalfWidth, -3.225f, 0.62f, 0.76f, sidewalkMat, sidewalkRoot.transform);
                 }
             }
             int connectorCount = BuildRoadGapConnectors(data, sideRoadMat, roadRoot.transform);
@@ -596,6 +614,54 @@ namespace UpIzUpMini.Editor
             return CreateMeshObject(name, vertices, triangles, uv, material, parent, collider);
         }
 
+        /// <summary>
+        /// MINI-119: a genuinely SLOPED ribbon bridging two different
+        /// lateral offsets/heights along the same road - unlike CreateRibbon
+        /// (one flat strip at a single yOffset), each cross-section here has
+        /// its inner edge (nearLateralOffset, nearYOffset - the road side)
+        /// and outer edge (farLateralOffset, farYOffset - the sidewalk side)
+        /// at DIFFERENT heights, so the two vertices form a real ramp face
+        /// instead of two independent flat ribbons meeting over bare,
+        /// unpredictable terrain.
+        /// </summary>
+        private static GameObject CreateKerbRamp(string name, PointData[] source, float compression,
+            float nearLateralOffset, float farLateralOffset, float nearYOffset, float farYOffset,
+            Material material, Transform parent)
+        {
+            // Uses the same terrain-conforming centreline as CreateRibbon
+            // (yOffset=0 here - each edge applies its own offset below).
+            Vector3[] centres = TerrainConformingCentres(source, compression, 0f, 3.5f, -1f);
+            Vector3[] vertices = new Vector3[centres.Length * 2];
+            Vector2[] uv = new Vector2[vertices.Length];
+            int[] triangles = new int[(centres.Length - 1) * 6];
+            float distance = 0f;
+            for (int i = 0; i < centres.Length; i++)
+            {
+                Vector3 before = centres[Mathf.Max(0, i - 1)];
+                Vector3 after = centres[Mathf.Min(centres.Length - 1, i + 1)];
+                Vector3 forward = after - before; forward.y = 0f; forward.Normalize();
+                Vector3 side = new Vector3(-forward.z, 0f, forward.x);
+
+                Vector3 nearPoint = centres[i] + side * nearLateralOffset;
+                nearPoint.y = HeightAt(nearPoint.x, nearPoint.z) + nearYOffset;
+                Vector3 farPoint = centres[i] + side * farLateralOffset;
+                farPoint.y = HeightAt(farPoint.x, farPoint.z) + farYOffset;
+
+                vertices[i * 2] = nearPoint;
+                vertices[i * 2 + 1] = farPoint;
+                if (i > 0) distance += Vector3.Distance(centres[i - 1], centres[i]);
+                uv[i * 2] = new Vector2(0f, distance * 0.1f);
+                uv[i * 2 + 1] = new Vector2(1f, distance * 0.1f);
+            }
+            for (int i = 0; i < centres.Length - 1; i++)
+            {
+                int b = i * 6; int v = i * 2;
+                triangles[b] = v; triangles[b + 1] = v + 1; triangles[b + 2] = v + 2;
+                triangles[b + 3] = v + 1; triangles[b + 4] = v + 3; triangles[b + 5] = v + 2;
+            }
+            return CreateMeshObject(name, vertices, triangles, uv, material, parent, true);
+        }
+
         private static Vector3[] TerrainConformingCentres(PointData[] source, float compression, float yOffset, float maximumSpacing, float maximumGrade = -1f)
         {
             List<Vector3> centres = new List<Vector3>();
@@ -624,6 +690,39 @@ namespace UpIzUpMini.Editor
             CreateRibbon("Zone_Highland_UserApproved_Outline", closed, compression, 2.2f, 0f, 0.72f, material, parent, false);
         }
 
+        // MINI-119, user: "the road disconnection join it and fix it." A
+        // real, measured gap-scan (Mini119RoadSteepnessScan) against the
+        // built map found one genuine unconnected road-to-road gap this
+        // generic 0.65m "tiny seam" auto-connector doesn't reach:
+        // way/387239000 to way/23042701 (their CENTRELINES are ~6.7m
+        // apart in source data - a real gap, not a rendering artifact).
+        // Two OTHER candidates the same scan initially flagged (lalay
+        // inland coastal connector, and way/22917921, both against
+        // way/23042701) turned out on closer measurement to already share
+        // an EXACT centreline point with 23042701 - the visible gap there
+        // is a ribbon-EDGE misalignment where two roads meet at a sharp
+        // angle from the same point, not an actual disconnection, and is
+        // patched separately (see Mini100GrandBayMapMigration.
+        // PatchJunctionEdgeGaps, additive on the built world, not here).
+        // Added as an explicit, hand-verified allow-list (road-id pair ->
+        // a wider ceiling just for that pair) rather than raising the
+        // GENERAL 0.65m threshold - the surrounding comment already
+        // documents that a blanket wider auto-link previously created "a
+        // spiderweb" in Highland, so only this one measured-real gap
+        // gets the exception.
+        private static readonly (string a, string b, float maxDistance)[] ExplicitGapConnectorAllowList =
+        {
+            ("way/387239000", "way/23042701", 10f),
+        };
+
+        private static float GapConnectorMaxDistance(string idA, string idB)
+        {
+            foreach (var entry in ExplicitGapConnectorAllowList)
+                if ((entry.a == idA && entry.b == idB) || (entry.a == idB && entry.b == idA))
+                    return entry.maxDistance;
+            return 0.65f;
+        }
+
         private static int BuildRoadGapConnectors(MapData data, Material material, Transform parent)
         {
             HashSet<string> lalayIds = new HashSet<string>(data.lalayRoadIds ?? Array.Empty<string>());
@@ -640,18 +739,38 @@ namespace UpIzUpMini.Editor
                     if (!PhaseOneBounds.Contains(new Vector2(endpoint.x, endpoint.z))) continue;
                     RoadData bestRoad = null;
                     Vector3 bestPoint = Vector3.zero;
-                    // Only seal tiny digitising seams. Larger auto-links created the
-                    // spiderweb seen in Highland and must be explicit map data instead.
-                    float bestDistance = 0.65f;
+                    // MINI-119: rewritten. The ORIGINAL version of this loop
+                    // initialised bestDistance to the SAME 0.65f value used
+                    // as both floor (skip near-zero/already-touching gaps)
+                    // and ceiling (only seal tiny seams) - which meant the
+                    // "not an improvement" check (distance >= bestDistance)
+                    // and the "too close to be meaningful" check
+                    // (distance < 0.65f) covered the ENTIRE number line
+                    // between them with no gap at all: nothing could ever
+                    // satisfy both distance >= 0.65f (pass the floor) AND
+                    // distance < 0.65f (pass the "improvement" check,
+                    // since bestDistance started at exactly 0.65f). This
+                    // function had therefore never sealed a single seam,
+                    // ever, tiny or otherwise - confirmed by this session's
+                    // own read-only gap scan finding real, unsealed gaps
+                    // as small as 0.68m. bestDistance now starts at
+                    // float.MaxValue (no candidate yet) and each candidate
+                    // is checked against its OWN pair-specific ceiling
+                    // (0.65m by default, wider only for the hand-verified
+                    // pairs in ExplicitGapConnectorAllowList above).
+                    float bestDistance = float.MaxValue;
                     foreach (RoadData other in driveable)
                     {
                         if (other == road) continue;
+                        float maxAllowed = GapConnectorMaxDistance(road.id, other.id);
                         Vector3[] points = other.points.Select(p => World(p, data.compression)).ToArray();
                         for (int i = 1; i < points.Length; i++)
                         {
                             float t;
                             float distance = DistanceToSegmentXZ(endpoint, points[i - 1], points[i], out t);
-                            if (distance < 0.65f || distance >= bestDistance) continue;
+                            if (distance < 0.05f) continue; // already touching/overlapping - no connector needed
+                            if (distance >= maxAllowed) continue; // beyond this pair's own ceiling
+                            if (distance >= bestDistance) continue; // not an improvement over the closest candidate found so far
                             bestDistance = distance;
                             bestRoad = other;
                             bestPoint = Vector3.Lerp(points[i - 1], points[i], t);

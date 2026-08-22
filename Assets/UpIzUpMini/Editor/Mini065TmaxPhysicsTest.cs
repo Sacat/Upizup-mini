@@ -26,10 +26,12 @@ namespace UpIzUpMini.EditorTools
         /// i can tell you to save it when i have done all the edits" -
         /// flipped back on so the panel (now including the anti-spin/hill-
         /// climb/air-gravity sliders) rides along on the real, purchasable
-        /// bike in GrandBayProof itself. Flip back to false and re-run
-        /// WireController once the user reports final numbers and they're
-        /// baked into this file's own defaults.</summary>
-        private const bool IncludeDevTuner = true;
+        /// bike in GrandBayProof itself.
+        /// MINI-119 follow-up round 5, user: "save all these settings" -
+        /// final numbers reported and baked into the explicit writes
+        /// above; flipped back off per this file's own standing
+        /// convention now that tuning is done.</summary>
+        private const bool IncludeDevTuner = false;
 
         [MenuItem("Up Iz Up Mini/MINI-065/Wire TMAX Controller Onto Prefab")]
         public static void WireController()
@@ -87,6 +89,23 @@ namespace UpIzUpMini.EditorTools
             bikeSo.FindProperty("brakeTorque").floatValue = 1200f;
             bikeSo.FindProperty("wheelieRearTorqueBoost").floatValue = 1960f;
             bikeSo.FindProperty("wheelieRiseRate").floatValue = 72f;
+            // MINI-119 follow-up round 5, user: "save all these settings"
+            // - final numbers read directly off the live tuner panel
+            // after several rounds of hands-on ledge/hill testing. Same
+            // explicit-write trap as everything else on this prefab.
+            bikeSo.FindProperty("yawLockStrength").floatValue = 1f;
+            bikeSo.FindProperty("yawLockTurnRate").floatValue = 110f;
+            bikeSo.FindProperty("yawSpinThreshold").floatValue = 0f;
+            bikeSo.FindProperty("yawSpinDamping").floatValue = 250f;
+            bikeSo.FindProperty("ledgeReactionStrength").floatValue = 0f;
+            bikeSo.FindProperty("ledgeMaxHeight").floatValue = 0.6f;
+            bikeSo.FindProperty("rampAssistStrength").floatValue = 0f;
+            bikeSo.FindProperty("collisionYawSpinCap").floatValue = 40f;
+            bikeSo.FindProperty("hillClimbAssist").floatValue = 9f;
+            bikeSo.FindProperty("hillClimbMaxSlopeDeg").floatValue = 35f;
+            bikeSo.FindProperty("extraAirGravity").floatValue = 2500f;
+            bikeSo.FindProperty("airborneGraceSeconds").floatValue = 0.01f;
+            bikeSo.FindProperty("airGravityRampSeconds").floatValue = 0f;
             // MINI-079: was 42.36deg - far past the rider's own 15deg roll
             // clamp (riderMaxLeanDegrees). At full lean the BIKE BODY kept
             // leaning all the way to 42deg while the rider's own lean got

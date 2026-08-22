@@ -236,11 +236,18 @@ namespace UpIzUpMini.EditorTools
 
                     var so = new SerializedObject(bike);
                     float hillClimbAssist = so.FindProperty("hillClimbAssist").floatValue;
-                    float yawSpinThreshold = so.FindProperty("yawSpinThreshold").floatValue;
                     float yawSpinDamping = so.FindProperty("yawSpinDamping").floatValue;
                     Check(ref pass, ref fail, hillClimbAssist > 0f, "hillClimbAssist is 0 - hill/ledge climb assist is disabled.");
-                    Check(ref pass, ref fail, yawSpinThreshold > 0f && yawSpinDamping > 0f && yawSpinDamping <= 1f,
-                        $"yaw spin assist not sanely configured (threshold={yawSpinThreshold}, damping={yawSpinDamping}).");
+                    // MINI-119 follow-up: yawSpinDamping is deliberately
+                    // uncapped past 1 now (see TmaxBikeController's own
+                    // comment - the old Range(0,1) was a fake ceiling that
+                    // never actually reached "drastic"), and the user's
+                    // own final tuned threshold is legitimately 0 (means
+                    // "always treat as excess, intervene constantly", not
+                    // "misconfigured"). Just check damping is positive
+                    // (0 would mean the assist does nothing at all).
+                    Check(ref pass, ref fail, yawSpinDamping > 0f,
+                        $"yaw spin damping is {yawSpinDamping} - the assist would never remove any spin at all.");
                 }
             }
 

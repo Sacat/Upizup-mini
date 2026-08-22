@@ -79,6 +79,22 @@ namespace UpIzUpMini.EditorTools
             // tapering to zero effect a short distance away so nothing
             // else on the spur is disturbed.
             SmoothRoadJunctionHeight("Road_user_highland_farm_spur", "Road_user_highland_lalay_inroad", blendDistance: 8f);
+            // MINI-119, user: "you should have saved all what i did
+            // manually" - the user hand-repositioned the farm plots off
+            // the road, the privacy hedge segments (scale/position/
+            // rotation), and the farm safehouse, directly in a saved
+            // GrandBayProof.unity. Values captured via
+            // Mini119ReadManualEdits.Read() from that exact saved scene,
+            // right before this rebuild, and replayed here as an absolute
+            // world-space override AFTER the normal procedural placement
+            // above - so the edit is now a permanent part of every future
+            // rebuild instead of a one-off that would have been silently
+            // discarded. Must run before the safehouse spawnPoint block
+            // and RelocateBikeHome() below, which both read FarmSafehouse's
+            // CURRENT position - restoring it any later would bake in the
+            // stale, pre-restore position instead.
+            RestoreManualHighlandFarmEdits();
+            PatchJunctionEdgeGaps();
 
             // Map remaining visible gameplay roots from the former synthetic road onto
             // the approved Lalay spine. Components and save-facing object names stay intact.
@@ -188,6 +204,117 @@ namespace UpIzUpMini.EditorTools
             }
 
             Debug.Log($"MINI-113: relocated BikeHomePoint to {parkPos} next to the migrated FarmSafehouse (was 303.52m away before this fix).");
+        }
+
+        /// <summary>
+        /// MINI-119: replays the user's own manual GrandBayProof.unity edit
+        /// (captured via Mini119ReadManualEdits.Read() from their saved
+        /// scene) as an absolute world-space override, so it survives every
+        /// future rebuild. See this method's own call site for why it must
+        /// run before anything downstream reads FarmSafehouse's position.
+        /// </summary>
+        private static void RestoreManualHighlandFarmEdits()
+        {
+            GameObject farm = GameObject.Find("MontineFarm");
+            if (farm != null)
+            {
+                farm.transform.position = new Vector3(114.088f, 4.990f, -132.456f);
+                farm.transform.eulerAngles = Vector3.zero;
+            }
+            else
+            {
+                Debug.LogWarning("MINI-119: MontineFarm not found - could not restore the user's manual farm placement.");
+            }
+
+            GameObject safehouse = GameObject.Find("FarmSafehouse");
+            if (safehouse != null)
+            {
+                safehouse.transform.position = new Vector3(124.970f, 4.988f, -112.550f);
+                safehouse.transform.eulerAngles = new Vector3(0f, 268.659f, 0f);
+            }
+            else
+            {
+                Debug.LogWarning("MINI-119: FarmSafehouse not found - could not restore the user's manual placement.");
+            }
+
+            // Captured in build order from the user's own saved edit -
+            // absolute world transform per WalkThroughHedge segment,
+            // regardless of whatever parent chain it currently sits under.
+            var hedgeWorldTransforms = new (Vector3 pos, Vector3 euler, Vector3 scale)[]
+            {
+                (new Vector3(114.658f, 6.394f, -120.085f), new Vector3(359.990f, 26.188f, -0.005f), new Vector3(23.650f, 2.800f, 1.250f)),
+                (new Vector3(103.388f, 6.394f, -127.375f), new Vector3(359.988f, 358.659f, 0f), new Vector3(1.250f, 2.800f, 25.636f)),
+                (new Vector3(125.288f, 6.394f, -132.875f), new Vector3(359.988f, 358.659f, 0f), new Vector3(1.250f, 2.800f, 15.013f)),
+                (new Vector3(109.288f, 6.390f, -140.175f), new Vector3(359.988f, 358.659f, 0f), new Vector3(12.716f, 2.800f, 1.250f)),
+                (new Vector3(121.364f, 6.390f, -139.888f), new Vector3(359.988f, 358.659f, 0f), new Vector3(8.200f, 2.800f, 1.250f)),
+            };
+            Transform[] hedges = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(t => t.name == "WalkThroughHedge").ToArray();
+            if (hedges.Length != hedgeWorldTransforms.Length)
+            {
+                Debug.LogWarning($"MINI-119: expected {hedgeWorldTransforms.Length} WalkThroughHedge segments to restore, found {hedges.Length} - restoring as many as match by build order.");
+            }
+            for (int i = 0; i < hedges.Length && i < hedgeWorldTransforms.Length; i++)
+            {
+                hedges[i].position = hedgeWorldTransforms[i].pos;
+                hedges[i].eulerAngles = hedgeWorldTransforms[i].euler;
+                hedges[i].localScale = hedgeWorldTransforms[i].scale;
+            }
+
+            Debug.Log("MINI-119: restored the user's manual farm/hedge/safehouse placement from their saved GrandBayProof.unity edit.");
+        }
+
+        /// <summary>
+        /// MINI-119, user: "the road disconnection join it and fix it...
+        /// no ledge or edge should not be 90 steep." A read-only measure-
+        /// first scan (Mini119RoadSteepnessScan) found two spots where two
+        /// road ribbons' RENDERED EDGES leave a visible gap even though
+        /// their underlying centrelines already meet exactly - a sharp
+        /// junction angle means the two ribbons' half-width offsets point
+        /// in different enough directions that the edges themselves don't
+        /// line up. Patches each with a small flat connecting quad between
+        /// the exact measured world edge points, rather than reworking the
+        /// deeper JSON-driven ribbon generator's junction math for what is
+        /// only two known spots.
+        /// </summary>
+        private static void PatchJunctionEdgeGaps()
+        {
+            Material roadMaterial = GameObject.Find("Road_way_23042701")?.GetComponent<Renderer>()?.sharedMaterial;
+            PatchEdgeGap("JunctionPatch_LalayConnector_23042701",
+                new Vector3(-61.38f, 9.43f, -106.80f), new Vector3(-61.21f, 9.43f, -107.46f), 3.2f, roadMaterial);
+            PatchEdgeGap("JunctionPatch_22917921_23042701",
+                new Vector3(-63.72f, 8.88f, -147.54f), new Vector3(-60.20f, 8.88f, -144.68f), 3.2f, roadMaterial);
+        }
+
+        private static void PatchEdgeGap(string name, Vector3 a, Vector3 b, float width, Material material)
+        {
+            if (GameObject.Find(name) != null) return; // idempotent - a rebuild must not stack a second patch on top
+
+            Vector3 dir = (b - a).normalized;
+            Vector3 side = Vector3.Cross(Vector3.up, dir).normalized;
+            Vector3[] vertices =
+            {
+                a - side * width * 0.5f, a + side * width * 0.5f,
+                b - side * width * 0.5f, b + side * width * 0.5f,
+            };
+            int[] triangles = { 0, 1, 2, 1, 3, 2 };
+            Vector2[] uv = { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f) };
+
+            var mesh = new Mesh { name = name + "_Mesh" };
+            mesh.vertices = vertices;
+            mesh.triangles = triangles;
+            mesh.uv = uv;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            var go = new GameObject(name);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var renderer = go.AddComponent<MeshRenderer>();
+            if (material != null) renderer.sharedMaterial = material;
+            go.AddComponent<MeshCollider>().sharedMesh = mesh;
+            if (s_world != null) go.transform.SetParent(s_world.transform, true);
+
+            Debug.Log($"MINI-119: patched junction edge gap '{name}' between {a} and {b}.");
         }
 
         /// <summary>MINI-113: pushes each hedge SEGMENT (not the plots,
