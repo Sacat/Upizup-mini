@@ -1,5 +1,13 @@
 # Up Iz Up Mini — Changelog
 
+## 2026-08-22 — MINI-119 follow-up 2 (vehicle anti-flip, launch cap, camera smoothing)
+
+- Researched Unity's own documented vehicle-physics practice (rollover prevention via `Rigidbody.maxAngularVelocity`, stabilizer/anti-roll bars, in-flight self-righting; camera jitter fixes via smoothing rotation the same way position already was) before implementing - not a guess, and no third-party asset was imported (would require downloading an untrusted package; the researched techniques were applied to our own existing controllers instead).
+- Range Rover (`CarController`) had NO anti-flip system at all previously - only downforce and a low centre of mass, neither of which stops a genuine hard-collision angular impulse. Added: `Rigidbody.maxAngularVelocity` capped (was Unity's default 7 rad/s); a launch cap that clamps upward vertical velocity directly at the source; a self-righting assist (stronger while airborne) that pulls the car back toward level roll/pitch; and a collision-triggered hard clamp on roll/pitch spin specifically (yaw/spin-outs from a side hit are left alone - that's expected, not the reported "flipping").
+- Bike: added the same launch-cap fix (`ApplyLaunchCap`) for "front/back would go up fast then come back down quickly" - a straight linear vertical velocity spike from a hard hit, distinct from every rotation-based fix already in place, capped directly rather than only reacted to afterward. Also lowered `Rigidbody.maxAngularVelocity`.
+- Camera: rotation was previously a raw, unsmoothed `LookAt` snap every frame (only position was smoothed) - now smoothed the same way, reducing perceived jitter during any hard physics moment independent of the underlying physics fix.
+- Full vehicle+scene rebuild pipeline, all 8 standing validators, and the MINI-065 drop test all re-run clean. Windows build succeeded.
+
 ## 2026-08-22 — MINI-119 follow-up (bike final tuning + road/terrain smoothing)
 
 - Bike anti-spin: went through several rounds with the user hands-on (a gradual yaw damper, then a collision-triggered hard cap, then a ledge/sidewalk-height-classified full suppression) before landing on the actual fix - yaw stopped being physics-derived entirely and became a direct, kinematic function of the player's own steering input (`ApplyYawLock`), the same proven technique already used for the wheelie's pitch. Final user-tuned values baked into `TmaxBikeController`'s defaults and the prefab's explicit-write list: `yawLockStrength=1`, `yawSpinThreshold=0`, `yawSpinDamping=250`, `extraAirGravity=2500`, `airborneGraceSeconds=0.01`, `airGravityRampSeconds=0`.

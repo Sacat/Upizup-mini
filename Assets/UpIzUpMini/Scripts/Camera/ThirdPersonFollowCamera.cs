@@ -27,6 +27,20 @@ namespace UpIzUpMini.Cameras
         [SerializeField] private float obstructionBuffer = 0.18f;
         [SerializeField] private LayerMask obstructionLayers = ~0;
 
+        // MINI-119 follow-up, user: "the camera can get gittery [during a
+        // hard vehicle hit], can you fix it." Position was already
+        // SmoothDamped, but the LOOK rotation used a raw, unsmoothed
+        // LookAt every frame - snapping instantly to wherever the target
+        // currently faces. During a genuinely violent physics moment
+        // (a hard collision) that reads as camera jitter even once the
+        // underlying vehicle physics itself is tamer (see TmaxBikeController/
+        // CarController's own MINI-119 anti-flip/launch-cap fixes).
+        // Researched Unity's own documented camera-jitter fix (smooth in
+        // LateUpdate, avoid snapping to a physics-driven target's raw
+        // per-frame orientation) - applied here to rotation the same way
+        // position already was to translation.
+        [SerializeField] private float rotationSmoothTime = 0.08f;
+
         private Vector3 _velocity;
         [Tooltip("MINI-072: how fast the locked chase camera swings in behind the vehicle. Eased rather than snapped, or the view whips around on every steering input.")]
         [SerializeField] private float lockedYawFollowSpeed = 4.5f;
@@ -97,7 +111,15 @@ namespace UpIzUpMini.Cameras
             transform.position = Vector3.SmoothDamp(
                 transform.position, desiredPosition, ref _velocity, positionSmoothTime);
 
-            transform.LookAt(lookPoint);
+            Vector3 lookDir = lookPoint - transform.position;
+            if (lookDir.sqrMagnitude > 0.0001f)
+            {
+                Quaternion desiredLook = Quaternion.LookRotation(lookDir.normalized, Vector3.up);
+                float rotT = rotationSmoothTime > 0.0001f
+                    ? 1f - Mathf.Exp(-Time.deltaTime / rotationSmoothTime)
+                    : 1f;
+                transform.rotation = Quaternion.Slerp(transform.rotation, desiredLook, rotT);
+            }
         }
 
         private Vector3 ResolveObstruction(Vector3 lookPoint, Vector3 desiredPosition)

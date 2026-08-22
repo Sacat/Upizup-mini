@@ -377,6 +377,7 @@ namespace UpIzUpMini.Vehicles
         public float LedgeReactionStrength { get => ledgeReactionStrength; set => ledgeReactionStrength = value; }
         public float YawLockStrength { get => yawLockStrength; set => yawLockStrength = value; }
         public float YawLockTurnRate { get => yawLockTurnRate; set => yawLockTurnRate = value; }
+        public float MaxUpwardLaunchSpeed { get => maxUpwardLaunchSpeed; set => maxUpwardLaunchSpeed = value; }
         public float HillClimbAssist { get => hillClimbAssist; set => hillClimbAssist = value; }
         public float HillClimbMaxSlopeDeg { get => hillClimbMaxSlopeDeg; set => hillClimbMaxSlopeDeg = value; }
         public float ExtraAirGravity { get => extraAirGravity; set => extraAirGravity = value; }
@@ -507,6 +508,31 @@ namespace UpIzUpMini.Vehicles
             ApplyWheelieAirControl();
             ApplyUprightAssist();
             ApplyDebugForcedPitch();
+            ApplyLaunchCap();
+        }
+
+        // MINI-119 follow-up round 6, user: "when you ride fast and you
+        // hit the ledge the bike front or back would go up fast then come
+        // back down quickly." Distinct from every rotation-based fix
+        // above (yaw lock, yaw spin assist, ledge reaction) - this is a
+        // straight-up LINEAR vertical velocity spike from the suspension/
+        // collision impulse of a hard hit, not a rotation. Capping
+        // upward vertical speed directly, every step, stops the launch at
+        // its actual source instead of only reacting after the fact (like
+        // extraAirGravity already does, which pulls it back down fast -
+        // exactly the second half of the symptom the user described).
+        // Gated off during a deliberate wheelie (MovePosition there
+        // legitimately raises the front over a pivot - not a launch).
+        [Header("Launch Cap (prevents hard hits flinging the bike upward)")]
+        [Tooltip("Hard cap on how fast the bike can be launched straight upward by any impact, in m/s. Horizontal motion is completely untouched. Researched against Unity's own documented vehicle rollover/launch mitigations.")]
+        [SerializeField] private float maxUpwardLaunchSpeed = 6f;
+
+        private void ApplyLaunchCap()
+        {
+            if (rb == null || WheelieForcingPose || maxUpwardLaunchSpeed <= 0f) return;
+            float verticalSpeed = Vector3.Dot(rb.linearVelocity, Vector3.up);
+            if (verticalSpeed <= maxUpwardLaunchSpeed) return;
+            rb.linearVelocity -= Vector3.up * (verticalSpeed - maxUpwardLaunchSpeed);
         }
 
         [Header("Yaw Spin Assist (anti wild-spin on lateral impacts)")]

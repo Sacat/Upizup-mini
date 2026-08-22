@@ -210,6 +210,16 @@ namespace UpIzUpMini.EditorTools
             // detection against static geometry avoids dropping through the
             // road or clipping walls at speed.
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            // MINI-119 follow-up, user: "when you ride fast and you hit
+            // the ledge the bike front or back would go up fast then come
+            // back down quickly." Researched Unity's own documented
+            // rollover-prevention practice (Rigidbody.maxAngularVelocity
+            // defaults to 7 rad/s - ~401deg/s - which is high enough to
+            // let a single hard hit spin the bike through most of a full
+            // rotation in a fraction of a second). Capped well below that;
+            // still far faster than any legitimate steering/wheelie
+            // rotation rate ever asks for, per the drop test.
+            rb.maxAngularVelocity = 5f;
 
             // --- VisualLeanRoot (the only thing that visually leans). ---
             var visualLean = new GameObject("VisualLeanRoot");
