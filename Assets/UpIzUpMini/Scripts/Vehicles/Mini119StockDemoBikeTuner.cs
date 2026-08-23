@@ -33,12 +33,14 @@ namespace UpIzUpMini.Vehicles
         private RB_Controller _rb;
         private AutoLeveling _autoLevel;
         private CrashController _crash;
+        private SuperMotoTrikeStabilizer _trikeStab;
 
         private void Awake()
         {
             _rb = GetComponent<RB_Controller>();
             _autoLevel = GetComponent<AutoLeveling>();
             _crash = GetComponent<CrashController>();
+            _trikeStab = GetComponent<SuperMotoTrikeStabilizer>();
         }
 
         private void Update()
@@ -120,12 +122,34 @@ namespace UpIzUpMini.Vehicles
                     _rb.backFlipTorque, 0f, 1500f, v => _rb.backFlipTorque = v);
             }
 
+            GUILayout.Space(8f);
+            // User: "i prefer my wheelie system with the collider system
+            // activated on wheelie" - ported outrigger stabilizer, see
+            // SuperMotoTrikeStabilizer's own header.
+            GUILayout.Label("-- TRIKE STABILIZER (outriggers active on wheelie) --");
+            if (_trikeStab != null)
+            {
+                Slider("Outrigger side offset (m)",
+                    _trikeStab.outriggerSideOffset, 0.1f, 1f, v => _trikeStab.outriggerSideOffset = v);
+                Slider("Debounce before non-wheelie air counts as 'up' (s)",
+                    _trikeStab.debounceSeconds, 0.02f, 1f, v => _trikeStab.debounceSeconds = v);
+                Slider("Spring rate",
+                    _trikeStab.springRate, 500f, 15000f, v => _trikeStab.springRate = v);
+                Slider("Damping",
+                    _trikeStab.damping, 0f, 1500f, v => _trikeStab.damping = v);
+            }
+
             GUILayout.Space(10f);
             if (GUILayout.Button("PRINT ALL VALUES to Console (survives Stop)"))
             {
                 Debug.Log(
                     "MINI-119 STOCK DEMO BIKE TUNING VALUES\n" +
                     (_crash != null ? $"  CrashController.decelerationSpeedForCrash = {_crash.decelerationSpeedForCrash:F2}f;\n" : "") +
+                    (_trikeStab != null ?
+                        $"  SuperMotoTrikeStabilizer.outriggerSideOffset = {_trikeStab.outriggerSideOffset:F3}f;\n" +
+                        $"  SuperMotoTrikeStabilizer.debounceSeconds = {_trikeStab.debounceSeconds:F3}f;\n" +
+                        $"  SuperMotoTrikeStabilizer.springRate = {_trikeStab.springRate:F2}f;\n" +
+                        $"  SuperMotoTrikeStabilizer.damping = {_trikeStab.damping:F2}f;\n" : "") +
                     (_autoLevel != null ?
                         $"  AutoLeveling.autoLevelForce = {_autoLevel.autoLevelForce:F2}f;\n" +
                         $"  AutoLeveling.dotForAutoLevel = {_autoLevel.dotForAutoLevel:F3}f;\n" +

@@ -209,6 +209,24 @@ namespace UpIzUpMini.Vehicles
             if (shortcuts == null) shortcuts = instance.AddComponent<Gadd420.KeyBoardShortCuts>();
             shortcuts.currentBike = instance.transform;
 
+            // MINI-119 follow-up, user: "the E button to wheelie instead
+            // of left control and the Q button will be used instead of
+            // the left shift." Swapped BEFORE anything else runs a
+            // Start() that fetches Input_Manager (RB_Controller's own
+            // Start() is the only one that does, and Start() always runs
+            // strictly after this synchronous spawn method finishes, not
+            // during Instantiate itself) - same safe ordering the earlier
+            // GaddInputAdapter swap used at prefab-build time, just done
+            // here at runtime instead since this is the raw stock prefab.
+            var stockInput = instance.GetComponent<Gadd420.Input_Manager>();
+            if (stockInput != null) Destroy(stockInput);
+            instance.AddComponent<SuperMotoWheelieKeyRemap>();
+
+            // MINI-119 follow-up, user: "i prefer my wheelie system with
+            // the collider system activated on wheelie." Ported outrigger
+            // stabilizer - see SuperMotoTrikeStabilizer's own header.
+            instance.AddComponent<SuperMotoTrikeStabilizer>();
+
             // MINI-119 follow-up, user: "use my camera follow system, from
             // my bike system because for this one i must keep turning the
             // mouse to it can keep track but with my old system it
@@ -237,7 +255,7 @@ namespace UpIzUpMini.Vehicles
             if (instance.GetComponent<Mini119StockDemoBikeTuner>() == null)
                 instance.AddComponent<Mini119StockDemoBikeTuner>();
 
-            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own unmodified SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, tuner panel (T) live. Controls (the asset's own, unchanged): W/S throttle, A/D steer, Mouse0/Mouse1 lean, LeftShift/LeftCtrl wheelie forward/back, Space brake. R reloads the whole scene (hard reset), F flips the bike upright when it's flagged as crashed (soft reset). No mount/dismount key - you start already on it.");
+            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, trike stabilizer active on wheelie, tuner panel (T) live. Controls: W/S throttle, A/D steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake. R reloads the whole scene (hard reset), F flips the bike upright when it's flagged as crashed (soft reset). No mount/dismount key - you start already on it.");
         }
 
         private static Vector3 GroundSnap(Vector3 pos)
