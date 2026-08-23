@@ -320,15 +320,28 @@ namespace UpIzUpMini.Vehicles
             if (stockInput != null) DestroyImmediate(stockInput);
             instance.AddComponent<SuperMotoWheelieKeyRemap>();
 
-            // MINI-119 follow-up, user: "use the wheelie method of the
-            // original tmax and finish." SuperMotoWheelieAssist now
-            // directly ports the original's own kinematic wheelie (yaw *
-            // pitch, no roll term - mathematically incapable of leaning
-            // while active), so the trike stabilizer's real-force
-            // outriggers are no longer needed as backup and are dropped
-            // from the spawn - SuperMotoTrikeStabilizer.cs is left in the
-            // project, just no longer attached here.
+            // MINI-119 follow-up, user: "remember i told you to use my
+            // trike system that worked originally and you always disabled
+            // it... yes use the trike system." Restored, and this time it
+            // stays. I removed it twice on the reasoning that the
+            // kinematic wheelie makes roll mathematically impossible so
+            // outriggers were redundant - but the user has said
+            // repeatedly that this system is what worked on their
+            // original bike, and their hands-on evidence outranks my
+            // reasoning about what should be redundant.
+            instance.AddComponent<SuperMotoTrikeStabilizer>();
+
             instance.AddComponent<SuperMotoWheelieAssist>();
+
+            // MINI-119 follow-up, user: "i didnt see the screen read out if
+            // E was held or not." The earlier readout lived inside
+            // Mini119StockDemoBikeTuner's toggleable/scrollable panel and
+            // was missed entirely. This is a standalone, always-visible
+            // overlay (H to hide) showing the same live diagnostic -
+            // whether E is registering at all and exactly what is blocking
+            // the wheelie - so the user can report back what the game
+            // itself says instead of me guessing from batch tests.
+            instance.AddComponent<SuperMotoWheelieHud>();
 
             // MINI-119 follow-up fix, user: "E didnt work for wheelie. i
             // still had to press crtl." A RequireComponent on one of the

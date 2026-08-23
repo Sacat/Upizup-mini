@@ -33,6 +33,37 @@ namespace UpIzUpMini.Vehicles
     /// </summary>
     public class SuperMotoWheelieKeyRemap : Input_Manager
     {
+        // MINI-119 follow-up fix, user: "it still doesnt wheelie... i
+        // didnt see the screen read out if E was held or not."
+        //
+        // THE most likely reason the wheelie never worked in the real
+        // game while every batch test passed: Input_Manager.Update() -
+        // the method that actually reads the keyboard and sets
+        // wheelieInput - is declared PRIVATE in the vendor's base class.
+        // Unity's message dispatch finding a private Update() declared on
+        // a BASE class (when the live component is this subclass) is a
+        // known Unity gotcha and cannot be relied on. If it doesn't fire,
+        // wheelieInput stays 0 forever, no key is ever registered, and no
+        // amount of physics work downstream can produce a wheelie.
+        //
+        // That matches the evidence exactly: every batch test in this task
+        // set wheelieInput DIRECTLY via reflection (bypassing Update
+        // entirely) and always passed, while the real game - which has
+        // nothing but this Update to read the E key - never once
+        // wheelied. Declaring Update() here removes the ambiguity
+        // completely: Unity always dispatches to the most-derived
+        // Update(), so this is guaranteed to run. All five input readers
+        // are called explicitly, exactly as the base did, so throttle/
+        // steering/lean/brake behave identically to before.
+        private void Update()
+        {
+            VerticalInput();
+            HZInput();
+            GetLeanValue();
+            GetLeanBackValue();
+            FrontBreak();
+        }
+
         protected override void GetLeanBackValue()
         {
             if (Input.GetKey(KeyCode.E) || Input.GetKey(KeyCode.Q))
