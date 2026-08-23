@@ -66,6 +66,22 @@ namespace UpIzUpMini.Vehicles
 
             GUILayout.BeginArea(new Rect(panelX, 10, panelW, panelH), GUI.skin.box);
             GUILayout.Label("BIKE TUNER (T to hide)");
+
+            // MINI-119 follow-up, user: "it never worked even at high
+            // speeds" / "your testing is the worst it never works." Live
+            // truth, on screen, in the real running game - pinned OUTSIDE
+            // the scroll view so it's always visible. Shows exactly which
+            // condition is blocking a wheelie, and the REAL measured
+            // front-wheel lift in metres (the actual physical definition
+            // of a wheelie, which every earlier test in this task failed
+            // to check).
+            if (_wheelieAssist != null)
+            {
+                if (_statusStyle == null)
+                    _statusStyle = new GUIStyle(GUI.skin.box) { alignment = TextAnchor.UpperLeft, fontSize = 13, wordWrap = true };
+                GUILayout.Box(_wheelieAssist.LiveWheelieStatus(), _statusStyle);
+            }
+
             _scrollPos = GUILayout.BeginScrollView(_scrollPos);
 
             // User: "for the wheelie it goes up too fast... it should be
@@ -194,6 +210,7 @@ namespace UpIzUpMini.Vehicles
         }
 
         private GUIStyle _hintStyle;
+        private GUIStyle _statusStyle;
 
         /// <summary>User: "next to the sliders if you make new ones based
         /// on what i tell you, put like brief instructions for the

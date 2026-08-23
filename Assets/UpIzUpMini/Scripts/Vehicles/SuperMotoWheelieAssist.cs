@@ -36,6 +36,15 @@ namespace UpIzUpMini.Vehicles
     /// ground rather than the whole bike rotating in place - same
     /// technique, same reason, as the original.
     /// </summary>
+    // MINI-119 follow-up fix, user: "it never worked even at high speeds."
+    // Guarantees this component's FixedUpdate runs AFTER RB_Controller's
+    // and AutoLeveling's (Unity's default order between scripts is
+    // otherwise arbitrary) - this class deliberately has the last word on
+    // rotation each step, and an arbitrary order meant that was only
+    // sometimes true in the real game while always being true in the
+    // batch tests, which explicitly invoked it last. A real
+    // reproduce-in-game-only difference, not a tuning issue.
+    [DefaultExecutionOrder(1000)]
     [RequireComponent(typeof(RB_Controller), typeof(Rigidbody))]
     public class SuperMotoWheelieAssist : MonoBehaviour
     {
@@ -99,6 +108,51 @@ namespace UpIzUpMini.Vehicles
         public float TrueRollDeg => ComputeTrueRollDeg();
         public float TruePitchDeg => MeasurePitch();
 
+        /// <summary>MINI-119 follow-up, user: "it never worked even at
+        /// high speeds" / "your testing is the worst it never works."
+        /// A LIVE, on-screen readout of every value that decides whether a
+        /// wheelie happens, rendered in the real running game (see
+        /// Mini119StockDemoBikeTuner) - so what's actually going on is
+        /// visible in one play session instead of being inferred from
+        /// batch tests that have repeatedly disagreed with the real
+        /// game.</summary>
+        public string LiveWheelieStatus()
+        {
+            if (_rb == null || _input == null || _body == null) return "wheelie assist: not initialised";
+            if (_rb.wheelColliders == null || _rb.wheelColliders.Length < 2) return "wheelie assist: wheel colliders missing";
+
+            var rearWheel = _rb.wheelColliders[0];
+            var frontWheel = _rb.wheelColliders[1];
+            float speedKmh = _body.linearVelocity.magnitude * 3.6f;
+            float wheelieIn = _input.WheelieInput;
+            bool held = Mathf.Abs(wheelieIn) > 0.01f;
+            bool speedOk = speedKmh >= wheelieMinSpeedKmh && speedKmh <= wheelieMaxSpeedKmh;
+            bool brakeOk = _input.FrontBreakInput < 0.1f;
+            bool rearOk = rearWheel != null && rearWheel.isGrounded;
+
+            float liftM = 0f;
+            if (frontWheel != null)
+            {
+                Vector3 frontBottom = frontWheel.transform.position - Vector3.up * frontWheel.radius;
+                if (Physics.Raycast(frontBottom + Vector3.up * 0.05f, Vector3.down, out RaycastHit hit, 20f))
+                    liftM = Mathf.Max(0f, frontBottom.y - hit.point.y);
+            }
+
+            string blocker;
+            if (_rb.isCrashed) blocker = "BLOCKED: crashed (press F)";
+            else if (!held) blocker = "waiting for E";
+            else if (!brakeOk) blocker = "BLOCKED: brake held";
+            else if (_currentWheelieTarget <= 0.01f && !speedOk) blocker = $"BLOCKED: speed {speedKmh:F0} outside {wheelieMinSpeedKmh:F0}-{wheelieMaxSpeedKmh:F0}";
+            else if (_currentWheelieTarget <= 0.01f && !rearOk) blocker = "BLOCKED: rear wheel not grounded";
+            else blocker = "WHEELIE ACTIVE";
+
+            return
+                $"E held: {(held ? "YES" : "no")} (raw {wheelieIn:F1})   speed: {speedKmh:F0} km/h\n" +
+                $"wheelie angle: {_currentWheelieTarget:F0} deg   FRONT WHEEL LIFT: {liftM:F2} m\n" +
+                $"front grounded: {(frontWheel != null && frontWheel.isGrounded ? "yes" : "NO (lifted)")}   constraints: {_body.constraints}\n" +
+                $">> {blocker}";
+        }
+
         private void Awake()
         {
             _rb = GetComponent<RB_Controller>();
@@ -118,6 +172,22 @@ namespace UpIzUpMini.Vehicles
                 _rb.enableStoppiesBETA = false;
                 _rb.backFlipTorque = 0f;
                 _rb.wheelieTorque = 0f;
+
+                // MINI-119 follow-up fix, user: "cant ride up a hill."
+                // Real bug, found by reading RB_Controller.CalculateTorque()
+                // directly: firstGearTorque is NOT a config field there,
+                // it's a mutable working variable. Start() captures the
+                // real setting once (`ogTorque = firstGearTorque`), and
+                // then CalculateTorque() OVERWRITES firstGearTorque every
+                // single FixedUpdate from that captured ogTorque. So the
+                // hill-climb slider writing to firstGearTorque per-frame
+                // (as this class used to do) was being discarded
+                // immediately, every frame - it could never have done
+                // anything. Setting it here in Awake, BEFORE
+                // RB_Controller.Start() runs, is what actually makes it
+                // take effect, because that's the value Start() captures.
+                _rb.firstGearTorque = firstGearTorque;
+                _rb.topGearTorque = topGearTorque;
             }
 
             _crash = GetComponent<CrashController>();
@@ -165,8 +235,13 @@ namespace UpIzUpMini.Vehicles
                 return;
             }
 
-            _rb.firstGearTorque = firstGearTorque;
-            _rb.topGearTorque = topGearTorque;
+            // NOTE: firstGearTorque/topGearTorque are deliberately NOT
+            // written here any more - see Awake's own comment on why a
+            // per-frame write to firstGearTorque is silently discarded by
+            // RB_Controller.CalculateTorque(). Changing the hill-climb
+            // sliders now requires a respawn to take effect, which is
+            // honest, rather than appearing to work live while doing
+            // nothing at all.
             if (_crash != null) _crash.decelerationSpeedForCrash = crashDecelerationThreshold;
 
             ApplyWheelie();
@@ -222,8 +297,39 @@ namespace UpIzUpMini.Vehicles
             if (_currentWheelieTarget <= 0.01f)
             {
                 _wheelieYawLatched = false;
+                // Not wheelieing - hand the bike back to RB_Controller's
+                // own constraint handling completely untouched, so normal
+                // riding behaves exactly as it always has (user: "riding
+                // is perfect").
                 return;
             }
+
+            // MINI-119 follow-up fix, user: "it never worked even at high
+            // speeds." THE bug, and the reason every batch test passed
+            // while the real game never wheelied: RB_Controller.Update()
+            // force-sets `rb.constraints = RigidbodyConstraints.FreezeRotationZ`
+            // EVERY FRAME. That freezes rotation about the WORLD Z axis,
+            // not the bike's own roll axis. It only means "lock roll" if
+            // the bike happens to be facing along world Z. The Lalay road
+            // runs along world X - so while riding it, the bike's own
+            // PITCH axis is approximately world Z, and the constraint was
+            // freezing the wheelie itself. Direction-dependent by nature,
+            // which is exactly why it looked so inconsistent.
+            //
+            // The batch tests never caught it because Physics.Simulate()
+            // applies MoveRotation more directly than the real runtime
+            // solver, which enforces constraints on the resulting angular
+            // velocity - a genuine test-harness blind spot, not a tuning
+            // miss.
+            //
+            // Cleared only while a wheelie is actually in progress. This
+            // costs nothing in safety: the kinematic construction below
+            // builds the rotation as yaw * pitch with NO roll term, so
+            // roll is mathematically impossible during a wheelie anyway -
+            // the vendor's world-axis roll lock has nothing left to do
+            // here, and RB_Controller restores it by itself the moment
+            // the wheelie ends.
+            _body.constraints = RigidbodyConstraints.None;
 
             // Latch heading when the lift starts; steering can still turn
             // it in the air, but nothing else may drift it sideways.
