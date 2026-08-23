@@ -30,7 +30,7 @@ namespace UpIzUpMini.Vehicles
     ///    LIVE reading).
     ///  - "maybe we should have invisible holders to bring it up and hold
     ///    it upright that can be adjusted" - added the DEBUG FORCE section,
-    ///    which drives TmaxBikeController.ApplyDebugForcedPitch: a direct
+    ///    which drives TmaxBikeControllerCustom.ApplyDebugForcedPitch: a direct
     ///    override that ignores every gate the normal wheelie has (speed
     ///    window, brake, ground, eligibility) and just forces the bike
     ///    toward a chosen angle at a chosen strength.
@@ -60,24 +60,24 @@ namespace UpIzUpMini.Vehicles
     /// normal wheelie now works the same simple way it does.
     ///
     /// Every slider here writes straight into the matching
-    /// TmaxBikeController property, live, every frame - so a mid-air
+    /// TmaxBikeControllerCustom property, live, every frame - so a mid-air
     /// change takes effect immediately and can be felt on the very next
     /// wheelie. Values are NOT saved back into the prefab automatically;
     /// once a set of numbers feels right, report them back and they'll be
-    /// baked into TmaxBikeController's own serialized defaults.
+    /// baked into TmaxBikeControllerCustom's own serialized defaults.
     /// </summary>
-    [RequireComponent(typeof(TmaxBikeController))]
+    [RequireComponent(typeof(TmaxBikeControllerCustom))]
     public class TmaxWheelieTuner : MonoBehaviour
     {
         [SerializeField] private KeyCode toggleKey = KeyCode.T;
         private bool visible = true;
         private Vector2 scrollPos;
-        private TmaxBikeController _bike;
+        private TmaxBikeControllerCustom _bike;
         private readonly Dictionary<string, string> _editBuffers = new Dictionary<string, string>();
 
         private void Awake()
         {
-            _bike = GetComponent<TmaxBikeController>();
+            _bike = GetComponent<TmaxBikeControllerCustom>();
         }
 
         private void Update()
@@ -413,7 +413,7 @@ namespace UpIzUpMini.Vehicles
             // (anti-spin/yaw-lock/ledge/ramp/hill-climb/air-gravity/
             // drive/stability), not just rider pose. Printed as ready-to-
             // paste C# field defaults so the exact numbers the user
-            // landed on can be baked into TmaxBikeController directly,
+            // landed on can be baked into TmaxBikeControllerCustom directly,
             // rather than guessed at from memory.
             if (GUILayout.Button("PRINT ALL BIKE PHYSICS VALUES to Console (survives Stop)"))
             {

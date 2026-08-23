@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 28dd6f9ab87e5d64594c8a5978897dbe
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/Bikes/PushBike.prefab
+  uploadId: 454429

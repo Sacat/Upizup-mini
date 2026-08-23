@@ -75,7 +75,7 @@ namespace UpIzUpMini.EditorTools
             // bikes is now the expected steady state; more than one would
             // still mean ReturnBikeHome is stacking them, which is the thing
             // this check actually guards against.
-            var bikes = UnityEngine.Object.FindObjectsByType<Vehicles.TmaxBikeController>(FindObjectsSortMode.None);
+            var bikes = UnityEngine.Object.FindObjectsByType<Vehicles.TmaxBikeControllerCustom>(FindObjectsSortMode.None);
             Check(ref pass, ref fail, bikes.Length <= 1,
                 $"expected at most 1 TMAX in the scene (0 by default now the test bike is removed, or 1 if parked/returned home), found {bikes.Length}.");
 

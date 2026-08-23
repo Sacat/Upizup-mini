@@ -37,10 +37,10 @@ namespace UpIzUpMini.EditorTools
         {
             EditorSceneManager.OpenScene(TestScenePath, OpenSceneMode.Single);
 
-            var bike = Object.FindFirstObjectByType<TmaxBikeController>();
+            var bike = Object.FindFirstObjectByType<TmaxBikeControllerCustom>();
             if (bike == null)
             {
-                Debug.LogError("MINI-065 DROP TEST FAIL: no TmaxBikeController in the test scene.");
+                Debug.LogError("MINI-065 DROP TEST FAIL: no TmaxBikeControllerCustom in the test scene.");
                 return;
             }
 
@@ -240,7 +240,7 @@ namespace UpIzUpMini.EditorTools
             //   SignedAngle(Vector3.up, t.up, t.forward)
             // which uses the bike's RAW (pitched) forward as the roll axis -
             // exactly the axis-purity bug already fixed inside
-            // TmaxBikeController back in round 5, but still present here.
+            // TmaxBikeControllerCustom back in round 5, but still present here.
             // Once pitch is large (i.e. during any real wheelie) that
             // measurement stops meaning roll at all and simply reports the
             // pitch back: the round-14 trace showed roll matching REALpitch

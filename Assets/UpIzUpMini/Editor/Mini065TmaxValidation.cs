@@ -162,15 +162,15 @@ namespace UpIzUpMini.EditorTools
             }
 
             // --- Controller wiring. ---
-            var bike = prefab.GetComponent<TmaxBikeController>();
-            Check(ref pass, ref fail, bike != null, "expected a TmaxBikeController on the root.");
+            var bike = prefab.GetComponent<TmaxBikeControllerCustom>();
+            Check(ref pass, ref fail, bike != null, "expected a TmaxBikeControllerCustom on the root.");
             if (bike != null)
             {
                 var so = new SerializedObject(bike);
-                Check(ref pass, ref fail, so.FindProperty("frontWheel").objectReferenceValue != null, "expected TmaxBikeController.frontWheel to be wired.");
-                Check(ref pass, ref fail, so.FindProperty("rearWheel").objectReferenceValue != null, "expected TmaxBikeController.rearWheel to be wired.");
-                Check(ref pass, ref fail, so.FindProperty("centerOfMass").objectReferenceValue != null, "expected TmaxBikeController.centerOfMass to be wired.");
-                Check(ref pass, ref fail, so.FindProperty("visualLeanRoot").objectReferenceValue != null, "expected TmaxBikeController.visualLeanRoot to be wired.");
+                Check(ref pass, ref fail, so.FindProperty("frontWheel").objectReferenceValue != null, "expected TmaxBikeControllerCustom.frontWheel to be wired.");
+                Check(ref pass, ref fail, so.FindProperty("rearWheel").objectReferenceValue != null, "expected TmaxBikeControllerCustom.rearWheel to be wired.");
+                Check(ref pass, ref fail, so.FindProperty("centerOfMass").objectReferenceValue != null, "expected TmaxBikeControllerCustom.centerOfMass to be wired.");
+                Check(ref pass, ref fail, so.FindProperty("visualLeanRoot").objectReferenceValue != null, "expected TmaxBikeControllerCustom.visualLeanRoot to be wired.");
                 Check(ref pass, ref fail, so.FindProperty("enableWheelie").boolValue, "expected the wheelie mechanic to be enabled by default, per the user's explicit repeated request.");
             }
 
@@ -187,14 +187,14 @@ namespace UpIzUpMini.EditorTools
 
             // --- API surface: SetInput exists with the expected 3-float shape
             // (compile-time proof, but confirmed here structurally too). ---
-            var method = typeof(TmaxBikeController).GetMethod("SetInput");
+            var method = typeof(TmaxBikeControllerCustom).GetMethod("SetInput");
             Check(ref pass, ref fail, method != null && method.GetParameters().Length == 3,
                 "expected a public SetInput(float,float,float) method decoupling input from physics.");
 
             // --- Test scene. ---
             Scene scene = EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/TMAX_Physics_Test.unity", OpenSceneMode.Single);
-            var bikeInScene = Object.FindFirstObjectByType<TmaxBikeController>();
-            Check(ref pass, ref fail, bikeInScene != null, "expected a TmaxBikeController instance in TMAX_Physics_Test.unity.");
+            var bikeInScene = Object.FindFirstObjectByType<TmaxBikeControllerCustom>();
+            Check(ref pass, ref fail, bikeInScene != null, "expected a TmaxBikeControllerCustom instance in TMAX_Physics_Test.unity.");
             Check(ref pass, ref fail, bikeInScene != null && bikeInScene.GetComponent<TmaxTestInput>() != null,
                 "expected the test-scene bike to carry TmaxTestInput.");
             Check(ref pass, ref fail, Object.FindFirstObjectByType<Camera>() != null, "expected a camera in the test scene.");
@@ -351,7 +351,7 @@ namespace UpIzUpMini.EditorTools
 
             if (pass)
             {
-                Debug.Log("MINI-064/065 VALIDATION PASS: TMAX_560.prefab has the full specified hierarchy (Physics/COM/VisualLeanRoot/Body/FrontSteering/FrontWheel/RearWheel/Seat/Handlebars/FootTargets/CameraTarget), a plausible Rigidbody mass, simple BoxCollider collision (no mesh collider), a plausible measured wheelbase with both wheel bottoms at ground level and both wheels within the bike's own length, a Body mesh scaled to ~2.195m length, TmaxBikeController + TmaxWheelVisuals fully wired (including the wheelie mechanic enabled by default), a decoupled SetInput(throttle,steer,brake) entry point, TMAX_Physics_Test.unity exists with the bike, a camera, and turn/slope/collision test geometry, AND (added after the user's reported floating/spinning bug) both WheelColliders genuinely reach the real ground at spawn with some suspension travel still in hand, not floating or bottomed out. Actual FixedUpdate physics behaviour (acceleration, lean, wheelie, tip/recovery) is still NOT exercised here - Play Mode doesn't tick in this batch-mode environment, same limitation as every timer-driven system in this project; this needs the user's real Editor Play Mode test.");
+                Debug.Log("MINI-064/065 VALIDATION PASS: TMAX_560.prefab has the full specified hierarchy (Physics/COM/VisualLeanRoot/Body/FrontSteering/FrontWheel/RearWheel/Seat/Handlebars/FootTargets/CameraTarget), a plausible Rigidbody mass, simple BoxCollider collision (no mesh collider), a plausible measured wheelbase with both wheel bottoms at ground level and both wheels within the bike's own length, a Body mesh scaled to ~2.195m length, TmaxBikeControllerCustom + TmaxWheelVisuals fully wired (including the wheelie mechanic enabled by default), a decoupled SetInput(throttle,steer,brake) entry point, TMAX_Physics_Test.unity exists with the bike, a camera, and turn/slope/collision test geometry, AND (added after the user's reported floating/spinning bug) both WheelColliders genuinely reach the real ground at spawn with some suspension travel still in hand, not floating or bottomed out. Actual FixedUpdate physics behaviour (acceleration, lean, wheelie, tip/recovery) is still NOT exercised here - Play Mode doesn't tick in this batch-mode environment, same limitation as every timer-driven system in this project; this needs the user's real Editor Play Mode test.");
             }
             else
             {

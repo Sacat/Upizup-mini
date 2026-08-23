@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: e0ee809209227e747a71ff5038d534e1
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/Riders/RagdollRider.prefab
+  uploadId: 454429

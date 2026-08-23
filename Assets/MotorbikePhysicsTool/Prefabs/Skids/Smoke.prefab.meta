@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4270b83adc783f04abb05df51f4ec475
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/Skids/Smoke.prefab
+  uploadId: 454429

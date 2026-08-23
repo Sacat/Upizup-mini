@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: c030f9a0d22481949aefa7f6abdf5729
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Scripts/VehicleSelection/VehicleSelect.cs
+  uploadId: 454429

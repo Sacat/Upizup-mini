@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c73eb1759d6379341aca1b740e9ffd71
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/BikesWithRiders/MopedWRider.prefab
+  uploadId: 454429

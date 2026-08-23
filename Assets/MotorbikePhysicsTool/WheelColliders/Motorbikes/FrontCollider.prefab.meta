@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: dcef5104bce18f24abd5c07a6e2c3fe1
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/WheelColliders/Motorbikes/FrontCollider.prefab
+  uploadId: 454429

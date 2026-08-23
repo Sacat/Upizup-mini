@@ -227,8 +227,8 @@ namespace UpIzUpMini.EditorTools
             Check(ref pass, ref fail, bikePrefab != null, "TMAX_560.prefab not found.");
             if (bikePrefab != null)
             {
-                var bike = bikePrefab.GetComponent<TmaxBikeController>();
-                Check(ref pass, ref fail, bike != null, "TMAX_560.prefab has no TmaxBikeController.");
+                var bike = bikePrefab.GetComponent<TmaxBikeControllerCustom>();
+                Check(ref pass, ref fail, bike != null, "TMAX_560.prefab has no TmaxBikeControllerCustom.");
                 if (bike != null)
                 {
                     Check(ref pass, ref fail, bike.MotorTorque >= 900f,
@@ -239,7 +239,7 @@ namespace UpIzUpMini.EditorTools
                     float yawSpinDamping = so.FindProperty("yawSpinDamping").floatValue;
                     Check(ref pass, ref fail, hillClimbAssist > 0f, "hillClimbAssist is 0 - hill/ledge climb assist is disabled.");
                     // MINI-119 follow-up: yawSpinDamping is deliberately
-                    // uncapped past 1 now (see TmaxBikeController's own
+                    // uncapped past 1 now (see TmaxBikeControllerCustom's own
                     // comment - the old Range(0,1) was a fake ceiling that
                     // never actually reached "drastic"), and the user's
                     // own final tuned threshold is legitimately 0 (means

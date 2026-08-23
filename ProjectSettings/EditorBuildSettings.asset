@@ -8,5 +8,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/UpIzUpMini/Scenes/GrandBayProof.unity
     guid: 55b944f86d69e7246a36784c6576c512
+  - enabled: 1
+    path: Assets/MotorbikePhysicsTool/SampleScene/Demo_Scene.unity
+    guid: 34f57fd40e231aa4e861789084dafe35
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

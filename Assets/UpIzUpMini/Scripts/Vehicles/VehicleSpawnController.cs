@@ -26,6 +26,8 @@ namespace UpIzUpMini.Vehicles
         [SerializeField] private GameObject tmaxPrefab;
         [Tooltip("MINI-071: the driveable Range Rover. Same one-time spawn treatment as the bike.")]
         [SerializeField] private GameObject roverPrefab;
+        [Tooltip("MINI-119, user: \"i want to test this in my actual game scene to get the full gist.\" The new Motorbike Physics Tool-based bike (TMAX_560_SuperMoto.prefab) - purely a dev test spawn alongside the real tmaxPrefab/roverPrefab, never through the real purchase flow, and never touching either of those fields. The Range Rover stays completely untouched by any of this, per the user's own explicit \"the range rova system should be separate as its a car.\"")]
+        [SerializeField] private GameObject superMotoTestPrefab;
         [Tooltip("How far from the dealer, along the dealer's own facing direction (which points at the road - see Mini011PhaseBSetup.BuildNpc), the bike appears.")]
         [SerializeField] private float spawnForwardOffset = 5f;
         [SerializeField] private float spawnSideOffset = 1.5f;
@@ -36,6 +38,7 @@ namespace UpIzUpMini.Vehicles
 
         private bool _tmaxSpawned;
         private bool _roverSpawned;
+        private bool _superMotoSpawned;
         // MINI-113: distinct from every other GtaMiniMapMarker colour
         // already in use (shop/mission/police/gang/community/property).
         private static readonly Color VehicleMarkerColour = new Color(0.95f, 0.55f, 0.10f);
@@ -96,6 +99,16 @@ namespace UpIzUpMini.Vehicles
                 _roverSpawned = true;
                 rover.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "Range Rover", VehicleMarkerColour);
                 Debug.Log("MINI-119 DEV SPAWN: Range Rover placed next to the player for testing (DevSpawnNearPlayerOnStart).");
+            }
+
+            if (superMotoTestPrefab != null && !_superMotoSpawned)
+            {
+                Vector3 pos = GroundSnap(player.position + forward * 6f);
+                var moto = Instantiate(superMotoTestPrefab, pos, Quaternion.LookRotation(forward, Vector3.up));
+                moto.name = "TestSuperMoto";
+                _superMotoSpawned = true;
+                moto.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "SuperMoto (test)", VehicleMarkerColour);
+                Debug.Log("MINI-119 DEV SPAWN: SuperMoto test bike placed next to the player - press F to get on, E to wheelie, Space to brake.");
             }
         }
 

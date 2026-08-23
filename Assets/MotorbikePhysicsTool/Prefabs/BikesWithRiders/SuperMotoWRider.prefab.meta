@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 7dfdd02518ee0bb43a04d90697c39cf2
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/BikesWithRiders/SuperMotoWRider.prefab
+  uploadId: 454429

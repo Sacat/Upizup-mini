@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ff6f552e5d89fb84b895f3d55a1c70c6
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Materials/Ramps/MaterialConcrete.mat
+  uploadId: 454429

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: a67e80792509f2e43a7e2e9dbca155be
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/Riders/RiderNoRagdoll.prefab
+  uploadId: 454429
