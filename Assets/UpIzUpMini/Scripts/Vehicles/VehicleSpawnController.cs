@@ -195,23 +195,35 @@ namespace UpIzUpMini.Vehicles
                 return;
             }
 
-            // MINI-119 follow-up, user: "can you spawn on the lalay
-            // road." The "Sign_LALAY" street sign (Mini011PhaseBSetup.
-            // BuildSign) is built 4.6m sideways (world +X) from the actual
-            // Lalay road centerline point it marks - subtracting that same
-            // offset back out lands right on the road itself, not beside
-            // it. Falls back to the old near-player spawn if the sign
-            // can't be found (e.g. a scene without Mini011's world build).
+            // MINI-119 follow-up, user (with screenshot): "i want the bike
+            // to spawn... this the lalay road inbetween the two shops."
+            // Mini011PhaseBSetup.BuildMarketArea places "Stall_FARM SHOP"
+            // and "Stall_PRODUCE BUYER" flanking the road at the same road
+            // index, one either side - their midpoint IS the road between
+            // them. Falls back to the Sign_LALAY position, then the old
+            // near-player spawn, if the market stalls aren't found.
             Vector3 forward = player.transform.forward;
             Vector3 spawnPos;
-            var lalaySign = GameObject.Find("Sign_LALAY");
-            if (lalaySign != null)
+            var farmShopStall = GameObject.Find("Stall_FARM SHOP");
+            var produceBuyerStall = GameObject.Find("Stall_PRODUCE BUYER");
+            if (farmShopStall != null && produceBuyerStall != null)
             {
-                spawnPos = GroundSnap(lalaySign.transform.position - new Vector3(4.6f, 0f, 0f));
+                Vector3 mid = (farmShopStall.transform.position + produceBuyerStall.transform.position) * 0.5f;
+                spawnPos = GroundSnap(mid);
+                // Face along the road, not across it - the road runs
+                // perpendicular to the line between the two stalls (they
+                // flank opposite sides of it).
+                Vector3 acrossRoad = produceBuyerStall.transform.position - farmShopStall.transform.position;
+                acrossRoad.y = 0f;
+                if (acrossRoad.sqrMagnitude > 0.01f)
+                    forward = Vector3.Cross(Vector3.up, acrossRoad.normalized);
             }
             else
             {
-                spawnPos = GroundSnap(player.transform.position + forward * 8f);
+                var lalaySign = GameObject.Find("Sign_LALAY");
+                spawnPos = lalaySign != null
+                    ? GroundSnap(lalaySign.transform.position - new Vector3(4.6f, 0f, 0f))
+                    : GroundSnap(player.transform.position + forward * 8f);
             }
 
             var pc = player.GetComponent<PlayerController>();
@@ -255,6 +267,25 @@ namespace UpIzUpMini.Vehicles
             // the collider system activated on wheelie." Ported outrigger
             // stabilizer - see SuperMotoTrikeStabilizer's own header.
             instance.AddComponent<SuperMotoTrikeStabilizer>();
+
+            // MINI-119 follow-up, user: "the wheelie goes up too fast...
+            // it should be a lot more gradual... i want sliders for the
+            // wheelie assist." See SuperMotoWheelieAssist's own header.
+            instance.AddComponent<SuperMotoWheelieAssist>();
+
+            // MINI-119 follow-up fix, user: "E didnt work for wheelie. i
+            // still had to press crtl." A RequireComponent on one of the
+            // components just added silently reintroduced a second, stock
+            // Input_Manager alongside the remap (see SuperMotoWheelieAssist's
+            // own fix comment for the full story) - asserted here as a
+            // permanent safety net so the same failure mode can't recur
+            // silently if any future component's RequireComponent does
+            // the same thing: only the remap may survive.
+            var survivingInputMgrs = instance.GetComponents<Gadd420.Input_Manager>();
+            foreach (var mgr in survivingInputMgrs)
+            {
+                if (!(mgr is SuperMotoWheelieKeyRemap)) DestroyImmediate(mgr);
+            }
 
             // MINI-119 follow-up, user: "use my camera follow system, from
             // my bike system because for this one i must keep turning the

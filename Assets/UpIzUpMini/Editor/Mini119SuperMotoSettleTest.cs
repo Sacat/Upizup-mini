@@ -36,6 +36,27 @@ namespace UpIzUpMini.EditorTools
         [MenuItem("Up Iz Up Mini/MINI-119/Settle Test SuperMoto In GrandBayProof")]
         public static void Run()
         {
+            // MINI-119 follow-up fix: this test never set
+            // Physics.simulationMode = Script (the established pattern
+            // every other manual-Physics.Simulate() test in this project
+            // uses - Mini065TmaxDropTest, Mini071RoverDriveTest,
+            // Mini092CombatContactValidation). The project's own
+            // ProjectSettings/DynamicsManager.asset ships simulationMode
+            // = FixedUpdate (automatic), under which Physics.Simulate()
+            // calls are unreliable outside Play Mode. Caught only because
+            // a LATER test (Mini119WheelieAssistTest) logged
+            // rb.angularVelocity every step and it never left exactly
+            // (0,0,0) despite real torque being applied - the same
+            // "suspiciously identical/trivial result" tell that caught
+            // the FIRST version of this exact test earlier in MINI-119.
+            // This test's own spawn pose is already perfectly upright by
+            // construction (Quaternion.LookRotation(forward, Vector3.up)),
+            // so its old "roll=0, dot=1.00" pass may have been trivially
+            // true from never actually moving, not genuine settling -
+            // re-verified after this fix, see the commit message.
+            var previousSimMode = Physics.simulationMode;
+            Physics.simulationMode = SimulationMode.Script;
+
             EditorSceneManager.OpenScene("Assets/UpIzUpMini/Scenes/GrandBayProof.unity", OpenSceneMode.Single);
 
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/UpIzUpMini/Vehicles/TMAX_560_SuperMoto.prefab");
@@ -106,6 +127,7 @@ namespace UpIzUpMini.EditorTools
             Debug.Log($"MINI-119 SETTLE TEST: after {steps * dt:F1}s of REAL scripted simulation - roll={rollDeg:F1}deg, pitch={pitchDeg:F1}deg, upright dot={uprightDot:F2} (1=perfectly upright, <0.5 means fallen over), position={instance.transform.position}, rb.constraints={instance.GetComponent<Rigidbody>().constraints}, isCrashed={(gadd != null ? gadd.isCrashed.ToString() : "n/a")}");
 
             Object.DestroyImmediate(instance);
+            Physics.simulationMode = previousSimMode;
         }
 
         private static void InvokeIfExists(Object target, string methodName)

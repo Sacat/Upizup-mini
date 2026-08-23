@@ -112,7 +112,25 @@ namespace Gadd420
             float rightForce = forwardDot * autoLevelForce;
             
             //Add Forces if Upright
-            if (rb.transform.eulerAngles.z < 90 || rb.transform.eulerAngles.z > 270 && rbController.isGrounded)
+            // MINI-119 follow-up fix, user: "the original tends to lean on
+            // the side permanently while riding sometimes." Root cause,
+            // confirmed by reading this line's actual operator precedence
+            // (&& binds tighter than || in C#): as shipped, this parsed as
+            // "(z < 90) || (z > 270 && isGrounded)" - the comment above
+            // ("Add Forces if Upright") and the isGrounded check clearly
+            // intend "correct whenever roughly upright AND grounded", but
+            // that isGrounded check was only ever actually applied to the
+            // z > 270 half. The z < 90 half ran with NO grounded check at
+            // all, AND - the real bug - once the bike's roll (z) landed
+            // anywhere in [90, 270] (a lean past halfway on one specific
+            // side), BOTH halves were false and this correction stopped
+            // firing entirely, on the ground or not, until the roll
+            // happened to recover on its own. That is exactly "leans on a
+            // side permanently" - once far enough over, nothing was left
+            // to pull it back. Parenthesised to the evidently-intended
+            // grouping: correct whenever roughly upright (either side of
+            // vertical) AND grounded, with no gap.
+            if ((rb.transform.eulerAngles.z < 90 || rb.transform.eulerAngles.z > 270) && rbController.isGrounded)
             {
                 //If Input Leaning Left and Turning Right whilst actually leaning left 
 
