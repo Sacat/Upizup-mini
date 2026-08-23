@@ -64,6 +64,7 @@ namespace UpIzUpMini.EditorTools
             if (stockInput != null) Object.DestroyImmediate(stockInput);
             var remap = instance.AddComponent<SuperMotoWheelieKeyRemap>();
             var assist = instance.AddComponent<SuperMotoWheelieAssist>();
+            var trike = instance.AddComponent<SuperMotoTrikeStabilizer>();
 
             // Same safety net VehicleSpawnController now applies for real
             // spawns - see SuperMotoWheelieAssist's own fix comment for
@@ -86,6 +87,7 @@ namespace UpIzUpMini.EditorTools
             InvokeIfExists(autoLevel, "Start");
             InvokeIfExists(groundAngle, "Start");
             InvokeIfExists(assist, "Awake");
+            InvokeIfExists(trike, "Awake");
 
             // MINI-119 follow-up, user: "when i bring down the auto-level
             // force it wheelies but it doesnt stay upright." Matches the
@@ -115,7 +117,11 @@ namespace UpIzUpMini.EditorTools
             float maxAbsRoll = 0f, maxAbsYawRate = 0f;
             for (int i = 0; i < steps; i++)
             {
-                wheelieField?.SetValue(remap, 1f); // Q-equivalent held throughout
+                // Release at t=3s (step 150) - checks the grace-period fix
+                // (roll-lock user report: "the bike now rides at an
+                // angle" after the wheelie ended) rather than only ever
+                // testing a sustained hold.
+                wheelieField?.SetValue(remap, i < 150 ? 1f : 0f);
                 vInputField?.SetValue(remap, 1f); // W held throughout - real forward motion
 
                 InvokeIfExists(gadd, "Update");
@@ -126,13 +132,14 @@ namespace UpIzUpMini.EditorTools
                 InvokeIfExists(gadd, "FixedUpdate");
                 InvokeIfExists(autoLevel, "FixedUpdate");
                 InvokeIfExists(assist, "FixedUpdate");
+                InvokeIfExists(trike, "FixedUpdate");
                 Physics.Simulate(dt);
 
                 float roll = Vector3.SignedAngle(Vector3.up, instance.transform.up, instance.transform.forward);
                 maxAbsRoll = Mathf.Max(maxAbsRoll, Mathf.Abs(roll));
                 maxAbsYawRate = Mathf.Max(maxAbsYawRate, Mathf.Abs(rb.angularVelocity.y));
 
-                if (i == 49 || i == 149 || i == 299)
+                if (i == 49 || i == 149 || i == 199 || i == 299)
                 {
                     float pitch = Mathf.Asin(Mathf.Clamp(instance.transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
                     Debug.Log($"MINI-119 WHEELIE TEST t={i * dt:F1}s: ramp={assist.CurrentRampDeg:F1}deg measured pitch={pitch:F1}deg roll={roll:F1}deg angularVel={rb.angularVelocity}, wheelieTorque now={gadd.wheelieTorque:F1}");

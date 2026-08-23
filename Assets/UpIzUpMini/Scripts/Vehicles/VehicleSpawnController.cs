@@ -233,6 +233,26 @@ namespace UpIzUpMini.Vehicles
             var instance = (GameObject)Instantiate(stockDemoBikePrefab, spawnPos, Quaternion.LookRotation(forward, Vector3.up));
             instance.name = "StockDemoSuperMoto";
 
+            // MINI-119 follow-up, user: "the camera is not smooth research
+            // and get it to follow smooth." Real, well-documented Unity
+            // cause, not a camera-side tuning problem: the raw
+            // SuperMotoWRagdoll prefab ships its Rigidbody with
+            // Interpolate = None (confirmed in the prefab's own serialized
+            // data), so its visual transform only updates once per physics
+            // step (~50Hz) instead of being smoothed to the render
+            // framerate - the textbook cause of a jittery follow camera on
+            // a Rigidbody target, no amount of camera-side smoothing fully
+            // hides a source that's itself moving in discrete jumps. Our
+            // OWN TMAX_560_SuperMoto.prefab (Mini119SuperMotoBikeSetup)
+            // already sets this correctly - the raw stock-demo spawn here
+            // just never got the same treatment.
+            var stockDemoRb = instance.GetComponent<Rigidbody>();
+            if (stockDemoRb != null)
+            {
+                stockDemoRb.interpolation = RigidbodyInterpolation.Interpolate;
+                stockDemoRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            }
+
             // MINI-119 follow-up, user: "f respawns the bike only on
             // crash but i want it to respawn anytime." Replaces the
             // stock KeyBoardShortCuts (F gated on isCrashed) entirely -
@@ -267,15 +287,18 @@ namespace UpIzUpMini.Vehicles
             if (stockInput != null) DestroyImmediate(stockInput);
             instance.AddComponent<SuperMotoWheelieKeyRemap>();
 
-            // MINI-119 follow-up, user: "i tried the trike stabilizer but
-            // nothing works, no eve sure what string rate damping and
-            // debounce meant." Dropped - superseded by SuperMotoWheelieAssist's
-            // own roll-lock below, which is a direct, deterministic
-            // correction (roll forced to exactly 0 every step while
-            // wheelieing) rather than a tunable spring competing against
-            // gravity, so there's nothing left to configure or that can
-            // "not work". SuperMotoTrikeStabilizer.cs is left in the
-            // project, just no longer attached here.
+            // MINI-119 follow-up, user: "did you use the invisible
+            // colliders idea.. try to use it so it keeps the bike
+            // straight when wheelieing." Re-added as a real, continuous
+            // PHYSICAL backup alongside SuperMotoWheelieAssist's own
+            // deterministic roll-lock below - no sliders exposed this
+            // time (the user's own words last round: "not even sure what
+            // string rate damping and debounce meant"), just sensible
+            // fixed defaults. The roll-lock does the primary correction
+            // (instant, exact); this adds real ground-contact force on
+            // top as a second line of defence for anything the roll-lock's
+            // gating window might miss.
+            instance.AddComponent<SuperMotoTrikeStabilizer>();
 
             // MINI-119 follow-up, user: "the wheelie goes up too fast...
             // it should be a lot more gradual... i want sliders for the

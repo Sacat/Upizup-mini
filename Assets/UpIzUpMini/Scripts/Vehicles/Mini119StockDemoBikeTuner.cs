@@ -72,27 +72,33 @@ namespace UpIzUpMini.Vehicles
             GUILayout.Label("-- WHEELIE ASSIST (gradual, adapted from your original) --");
             if (_wheelieAssist != null)
             {
-                Slider("Rise rate (deg/s) - LOWER = more gradual",
-                    _wheelieAssist.riseRateDegPerSecond, 5f, 200f, v => _wheelieAssist.riseRateDegPerSecond = v);
+                Slider("Rise rate (deg/s)",
+                    _wheelieAssist.riseRateDegPerSecond, 5f, 200f, v => _wheelieAssist.riseRateDegPerSecond = v,
+                    "How fast a tap registers. Higher = a quick tap responds almost instantly.");
                 Slider("Ramp ceiling (deg)",
-                    _wheelieAssist.rampCeilingDeg, 5f, 120f, v => _wheelieAssist.rampCeilingDeg = v);
-                Slider("Wheelie torque at full ramp (stock RB_Controller field)",
-                    _wheelieAssist.maxWheelieTorque, 50f, 2000f, v => _wheelieAssist.maxWheelieTorque = v);
+                    _wheelieAssist.rampCeilingDeg, 5f, 120f, v => _wheelieAssist.rampCeilingDeg = v,
+                    "The angle a full, sustained hold ramps toward.");
+                Slider("Wheelie torque at full ramp",
+                    _wheelieAssist.maxWheelieTorque, 20f, 800f, v => _wheelieAssist.maxWheelieTorque = v,
+                    "How hard each press lifts. LOWER = gentler - tap/hold in bursts to build height instead of one press launching it.");
             }
 
             GUILayout.Space(10f);
             // User: "i want it to be like the original tmax controller
             // when we forced the wheelie to stay straight... apply logic
             // to it to transfer the idea to this system." Deterministic
-            // roll=0 correction while wheelieing - see
-            // SuperMotoWheelieAssist's own header for why this replaced
-            // the trike stabilizer (which the user found confusing and
-            // ineffective).
+            // roll=0 correction while wheelieing, backed up by the real
+            // outrigger stabilizer (see VehicleSpawnController's own
+            // comment on why that's back).
             GUILayout.Label("-- ROLL LOCK (forces the wheelie to stay straight) --");
             if (_wheelieAssist != null)
             {
-                Slider("Deadzone (deg) - roll below this is left alone",
-                    _wheelieAssist.rollLockDeadzoneDeg, 0f, 20f, v => _wheelieAssist.rollLockDeadzoneDeg = v);
+                Slider("Deadzone (deg)",
+                    _wheelieAssist.rollLockDeadzoneDeg, 0f, 20f, v => _wheelieAssist.rollLockDeadzoneDeg = v,
+                    "Small leans below this are left alone (normal cornering). Above it, roll snaps to 0 while wheelieing.");
+                Slider("Grace period (s)",
+                    _wheelieAssist.rollLockGraceSeconds, 0f, 2f, v => _wheelieAssist.rollLockGraceSeconds = v,
+                    "How long the correction keeps working after the wheelie visibly ends, so landing doesn't leave it leaned over.");
             }
 
             GUILayout.Space(10f);
@@ -105,10 +111,12 @@ namespace UpIzUpMini.Vehicles
             GUILayout.Label("-- UPRIGHT BALANCE (AutoLeveling, bug-fixed) --");
             if (_autoLevel != null)
             {
-                Slider("Auto-level force (gyro strength)",
-                    _autoLevel.autoLevelForce, 0f, 20f, v => _autoLevel.autoLevelForce = v);
-                Slider("Dot threshold before correcting (lower = corrects sooner)",
-                    _autoLevel.dotForAutoLevel, 0f, 1f, v => _autoLevel.dotForAutoLevel = v);
+                Slider("Auto-level force",
+                    _autoLevel.autoLevelForce, 0f, 20f, v => _autoLevel.autoLevelForce = v,
+                    "General self-righting strength while riding normally (not the wheelie roll-lock above).");
+                Slider("Dot threshold",
+                    _autoLevel.dotForAutoLevel, 0f, 1f, v => _autoLevel.dotForAutoLevel = v,
+                    "How far it has to lean before self-righting kicks in. Lower = corrects sooner/more sensitively.");
             }
 
             GUILayout.Space(12f);
@@ -134,19 +142,30 @@ namespace UpIzUpMini.Vehicles
             GUI.skin.toggle.fontSize = prevToggle;
         }
 
-        private void Slider(string label, float value, float min, float max, System.Action<float> apply)
+        private GUIStyle _hintStyle;
+
+        /// <summary>User: "next to the sliders if you make new ones based
+        /// on what i tell you, put like brief instructions for the
+        /// sliders." Optional one-line plain-language caption rendered
+        /// under the slider itself - not a hover tooltip (this is an
+        /// in-game OnGUI panel in a built player, nothing to hover), so it
+        /// has to just be on-screen text.</summary>
+        private void Slider(string label, float value, float min, float max, System.Action<float> apply, string hint = null)
         {
             GUILayout.Label($"{label}: {value:F2}");
             GUILayout.BeginHorizontal();
             float next = GUILayout.HorizontalSlider(value, min, max, GUILayout.Width(190));
-            if (!Mathf.Approximately(next, value))
-            {
-                apply(next);
-                GUILayout.EndHorizontal();
-                return;
-            }
-            ApplyNumericField(label, value, min, max, apply);
+            bool changed = !Mathf.Approximately(next, value);
+            if (changed) apply(next);
+            else ApplyNumericField(label, value, min, max, apply);
             GUILayout.EndHorizontal();
+
+            if (!string.IsNullOrEmpty(hint))
+            {
+                if (_hintStyle == null)
+                    _hintStyle = new GUIStyle(GUI.skin.label) { fontSize = 11, fontStyle = FontStyle.Italic, wordWrap = true };
+                GUILayout.Label(hint, _hintStyle);
+            }
         }
 
         private void ApplyNumericField(string fieldKey, float value, float min, float max, System.Action<float> apply)

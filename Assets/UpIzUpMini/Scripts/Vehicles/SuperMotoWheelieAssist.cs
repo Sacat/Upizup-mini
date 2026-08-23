@@ -65,14 +65,29 @@ namespace UpIzUpMini.Vehicles
     [RequireComponent(typeof(RB_Controller), typeof(Rigidbody))]
     public class SuperMotoWheelieAssist : MonoBehaviour
     {
-        [Tooltip("Degrees per second the wheelie ramp climbs/falls - THIS is the 'too fast' fix. Lower = more gradual lift and a slower recovery back down.")]
-        public float riseRateDegPerSecond = 45f;
+        // MINI-119 follow-up, user: "i want it to rise faster at a slow
+        // speed... the wheelie torque is wayyyy to high so lower it so
+        // that the bike moves up at a gradual pace and i just tap e or
+        // hold e in bursts to keep it up." Two separate dials doing two
+        // separate jobs: riseRateDegPerSecond is how fast the ramp
+        // reaches "fully authorised" (raised, so a tap registers quickly)
+        // while maxWheelieTorque is the actual force at full authorisation
+        // (lowered hard, so even a full-ramp tap is gentle) - together
+        // that's "quick to respond, weak per press", which is what makes
+        // repeated taps/bursts the way you build real height, rather than
+        // one press launching it.
+        [Tooltip("Degrees per second the wheelie ramp climbs/falls. HIGHER = a tap registers almost instantly. Pair with a LOW wheelie torque below so a quick tap is still gentle - tap repeatedly to build height.")]
+        public float riseRateDegPerSecond = 120f;
         [Tooltip("Ramp ceiling (deg, arbitrary units matching the ramp's own scale) - how far 'wheelieIn held' climbs before the torque below reaches full strength.")]
         public float rampCeilingDeg = 45f;
-        [Tooltip("RB_Controller.wheelieTorque value at full ramp - the vendor's own stock field, just modulated over time instead of applied instantly. Lowered from the vendor's own 750 default - MINI-119's own test showed 750 launches this bike fully airborne within about a second of a sustained hold.")]
-        public float maxWheelieTorque = 300f;
-        [Tooltip("Roll (deg) below which the roll-lock doesn't bother correcting - avoids fighting ordinary cornering lean the instant a wheelie ends. Above this, while ramp/front-wheel-off-ground says a wheelie is happening, roll is force-corrected to exactly 0 every step - see this class's own header.")]
+        [Tooltip("RB_Controller.wheelieTorque value at full ramp. LOWER = each tap/press lifts less, so you have to tap or hold in short bursts to build real height instead of one press launching it.")]
+        public float maxWheelieTorque = 90f;
+        [Tooltip("Roll (deg) below which the roll-lock doesn't bother correcting - avoids fighting ordinary cornering lean once you're back to normal riding. Above this, roll is force-corrected to exactly 0 every step while wheelieing.")]
         public float rollLockDeadzoneDeg = 3f;
+        [Tooltip("Seconds the roll-lock keeps correcting after a wheelie visibly ends (ramp back down, front wheel back on the ground) - a short grace period so a bike that's still settling from the landing doesn't get left leaned over the instant the wheelie officially ends.")]
+        public float rollLockGraceSeconds = 0.5f;
+
+        private float _rollLockGraceRemaining;
 
         private RB_Controller _rb;
         private Rigidbody _body;
@@ -164,7 +179,20 @@ namespace UpIzUpMini.Vehicles
             bool frontGrounded = _rb.wheelColliders != null && _rb.wheelColliders.Length > 1
                 && _rb.wheelColliders[1] != null && _rb.wheelColliders[1].isGrounded;
             bool wheelieInProgress = Mathf.Abs(_currentRampDeg) > 1f || !frontGrounded;
-            if (!wheelieInProgress) return;
+
+            // MINI-119 follow-up fix, user: "the bike now rides at an
+            // angle... the wheelie is still going on the side." A wheelie
+            // ending exactly when the ramp crosses 1deg or the front wheel
+            // FIRST touches down can leave the bike still settling (residual
+            // roll velocity, or the front wheel flickering grounded/
+            // ungrounded for a step or two right at touchdown) with no
+            // correction applied the instant "wheelieInProgress" flips
+            // false. This grace window keeps correcting for a short beat
+            // past that instant instead of stopping cold.
+            if (wheelieInProgress) _rollLockGraceRemaining = rollLockGraceSeconds;
+            else if (_rollLockGraceRemaining > 0f) _rollLockGraceRemaining -= Time.fixedDeltaTime;
+
+            if (!wheelieInProgress && _rollLockGraceRemaining <= 0f) return;
 
             float rollNow = Vector3.SignedAngle(Vector3.up, transform.up, transform.forward);
             if (Mathf.Abs(rollNow) < rollLockDeadzoneDeg) return;
