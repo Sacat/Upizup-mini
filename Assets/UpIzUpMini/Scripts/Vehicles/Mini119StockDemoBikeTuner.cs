@@ -47,7 +47,10 @@ namespace UpIzUpMini.Vehicles
                 return;
             }
 
-            const float panelX = 460f;
+            // User: "put the HUD to the left so it doesnt obstruct my
+            // view" - was centered-right (460), overlapping the riding
+            // view straight ahead. Moved to the left edge.
+            const float panelX = 10f;
             const float panelW = 400f;
             float panelH = Mathf.Min(Screen.height - 20f, 560f);
 
@@ -69,18 +72,22 @@ namespace UpIzUpMini.Vehicles
             // a lot more gradual... i want sliders for the wheelie
             // assist." See SuperMotoWheelieAssist's own header for why
             // this replaces RB_Controller's raw instant torque entirely.
+            // User: "set the sliders to 5X positive and negitives" - every
+            // range below widened to roughly 5x its previous span in both
+            // directions, same convention as the earlier custom-bike
+            // tuner's own "increase these sliders by 5" round.
             GUILayout.Label("-- WHEELIE ASSIST (gradual, adapted from your original) --");
             if (_wheelieAssist != null)
             {
                 Slider("Rise rate (deg/s)",
-                    _wheelieAssist.riseRateDegPerSecond, 5f, 200f, v => _wheelieAssist.riseRateDegPerSecond = v,
-                    "How fast a tap registers. Higher = a quick tap responds almost instantly.");
+                    _wheelieAssist.riseRateDegPerSecond, 1f, 1000f, v => _wheelieAssist.riseRateDegPerSecond = v,
+                    "THE gradual-vs-instant dial. Lower = takes longer to reach full lift, even while holding the key.");
                 Slider("Ramp ceiling (deg)",
-                    _wheelieAssist.rampCeilingDeg, 5f, 120f, v => _wheelieAssist.rampCeilingDeg = v,
+                    _wheelieAssist.rampCeilingDeg, 1f, 600f, v => _wheelieAssist.rampCeilingDeg = v,
                     "The angle a full, sustained hold ramps toward.");
                 Slider("Wheelie torque at full ramp",
-                    _wheelieAssist.maxWheelieTorque, 20f, 800f, v => _wheelieAssist.maxWheelieTorque = v,
-                    "How hard each press lifts. LOWER = gentler - tap/hold in bursts to build height instead of one press launching it.");
+                    _wheelieAssist.maxWheelieTorque, 4f, 4000f, v => _wheelieAssist.maxWheelieTorque = v,
+                    "How hard it lifts once the ramp is up. LOWER = gentler overall.");
             }
 
             GUILayout.Space(10f);
@@ -94,10 +101,10 @@ namespace UpIzUpMini.Vehicles
             if (_wheelieAssist != null)
             {
                 Slider("Deadzone (deg)",
-                    _wheelieAssist.rollLockDeadzoneDeg, 0f, 20f, v => _wheelieAssist.rollLockDeadzoneDeg = v,
+                    _wheelieAssist.rollLockDeadzoneDeg, 0f, 100f, v => _wheelieAssist.rollLockDeadzoneDeg = v,
                     "Small leans below this are left alone (normal cornering). Above it, roll snaps to 0 while wheelieing.");
                 Slider("Grace period (s)",
-                    _wheelieAssist.rollLockGraceSeconds, 0f, 2f, v => _wheelieAssist.rollLockGraceSeconds = v,
+                    _wheelieAssist.rollLockGraceSeconds, 0f, 10f, v => _wheelieAssist.rollLockGraceSeconds = v,
                     "How long the correction keeps working after the wheelie visibly ends, so landing doesn't leave it leaned over.");
             }
 
@@ -112,11 +119,38 @@ namespace UpIzUpMini.Vehicles
             if (_autoLevel != null)
             {
                 Slider("Auto-level force",
-                    _autoLevel.autoLevelForce, 0f, 20f, v => _autoLevel.autoLevelForce = v,
+                    _autoLevel.autoLevelForce, 0f, 100f, v => _autoLevel.autoLevelForce = v,
                     "General self-righting strength while riding normally (not the wheelie roll-lock above).");
                 Slider("Dot threshold",
                     _autoLevel.dotForAutoLevel, 0f, 1f, v => _autoLevel.dotForAutoLevel = v,
                     "How far it has to lean before self-righting kicks in. Lower = corrects sooner/more sensitively.");
+            }
+
+            GUILayout.Space(10f);
+            // User: "i need more hill assist because it use to climb the
+            // hill better than that."
+            GUILayout.Label("-- DRIVE / HILL CLIMB (RB_Controller engine power) --");
+            if (_wheelieAssist != null)
+            {
+                Slider("Low-gear torque",
+                    _wheelieAssist.firstGearTorque, 50f, 3000f, v => _wheelieAssist.firstGearTorque = v,
+                    "Starting/low-speed power. Raise if hills feel weak.");
+                Slider("Top-gear torque",
+                    _wheelieAssist.topGearTorque, 50f, 3000f, v => _wheelieAssist.topGearTorque = v,
+                    "High-speed power.");
+            }
+
+            GUILayout.Space(10f);
+            // User: "it crashes a bit too easy... not sure if you can
+            // setup the slider for that." Also fixed the ragdoll-collider
+            // timing issue at the source - see SuperMotoWheelieAssist.
+            // Awake's own comment.
+            GUILayout.Label("-- CRASH SENSITIVITY --");
+            if (_wheelieAssist != null)
+            {
+                Slider("Deceleration needed to count as a crash",
+                    _wheelieAssist.crashDecelerationThreshold, 1f, 200f, v => _wheelieAssist.crashDecelerationThreshold = v,
+                    "HIGHER = harder to trigger by accident (a bump, hard brake, landing).");
             }
 
             GUILayout.Space(12f);
@@ -128,7 +162,11 @@ namespace UpIzUpMini.Vehicles
                         $"  SuperMotoWheelieAssist.riseRateDegPerSecond = {_wheelieAssist.riseRateDegPerSecond:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.rampCeilingDeg = {_wheelieAssist.rampCeilingDeg:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.maxWheelieTorque = {_wheelieAssist.maxWheelieTorque:F2}f;\n" +
-                        $"  SuperMotoWheelieAssist.rollLockDeadzoneDeg = {_wheelieAssist.rollLockDeadzoneDeg:F2}f;\n" : "") +
+                        $"  SuperMotoWheelieAssist.rollLockDeadzoneDeg = {_wheelieAssist.rollLockDeadzoneDeg:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.rollLockGraceSeconds = {_wheelieAssist.rollLockGraceSeconds:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.firstGearTorque = {_wheelieAssist.firstGearTorque:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.topGearTorque = {_wheelieAssist.topGearTorque:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.crashDecelerationThreshold = {_wheelieAssist.crashDecelerationThreshold:F2}f;\n" : "") +
                     (_autoLevel != null ?
                         $"  AutoLeveling.autoLevelForce = {_autoLevel.autoLevelForce:F2}f;\n" +
                         $"  AutoLeveling.dotForAutoLevel = {_autoLevel.dotForAutoLevel:F3}f;\n" : ""));

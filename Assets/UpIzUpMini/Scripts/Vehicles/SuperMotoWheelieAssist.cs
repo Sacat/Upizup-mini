@@ -65,29 +65,57 @@ namespace UpIzUpMini.Vehicles
     [RequireComponent(typeof(RB_Controller), typeof(Rigidbody))]
     public class SuperMotoWheelieAssist : MonoBehaviour
     {
-        // MINI-119 follow-up, user: "i want it to rise faster at a slow
-        // speed... the wheelie torque is wayyyy to high so lower it so
-        // that the bike moves up at a gradual pace and i just tap e or
-        // hold e in bursts to keep it up." Two separate dials doing two
-        // separate jobs: riseRateDegPerSecond is how fast the ramp
-        // reaches "fully authorised" (raised, so a tap registers quickly)
-        // while maxWheelieTorque is the actual force at full authorisation
-        // (lowered hard, so even a full-ramp tap is gentle) - together
-        // that's "quick to respond, weak per press", which is what makes
-        // repeated taps/bursts the way you build real height, rather than
-        // one press launching it.
-        [Tooltip("Degrees per second the wheelie ramp climbs/falls. HIGHER = a tap registers almost instantly. Pair with a LOW wheelie torque below so a quick tap is still gentle - tap repeatedly to build height.")]
-        public float riseRateDegPerSecond = 120f;
-        [Tooltip("Ramp ceiling (deg, arbitrary units matching the ramp's own scale) - how far 'wheelieIn held' climbs before the torque below reaches full strength.")]
+        // MINI-119 follow-up fix, user: "still way to much torque even
+        // when i put it at 20 and its now rising from low speed... the
+        // wheelie is still happening like if i start to wheelie it just
+        // does all the way back too quickly... the wheelie is still not
+        // gradual as how i want it to be." Real bug in the PREVIOUS
+        // round's own reasoning, not a tuning miss: raising
+        // riseRateDegPerSecond to 120 made the RAMP itself reach full
+        // ceiling in under half a second (45deg / 120deg/s = 0.375s) on
+        // ANY input, and wheelieTorque tracks that ramp 1:1 - so no
+        // matter how low maxWheelieTorque was turned down, the bike was
+        // still getting its FULL chosen torque within a third of a
+        // second of touching the key. "Quick to respond" and "gradual"
+        // were in direct tension and the rise rate change favoured the
+        // wrong one. Lowered hard (120 -> 18) so a full ramp genuinely
+        // takes ~2.5s to reach at rampCeilingDeg's default - THIS is what
+        // makes the lift actually gradual, not the torque value alone.
+        [Tooltip("Degrees per second the wheelie ramp climbs/falls - THE key gradual-vs-instant dial. LOWER = takes longer to reach full lift even while holding the key. (A too-high value here was the real cause of 'still too much torque even turned down' - the ramp was reaching full in well under a second regardless of the torque value.)")]
+        public float riseRateDegPerSecond = 18f;
+        [Tooltip("Ramp ceiling (deg) - how far a full, sustained hold climbs toward before the torque below is at its max.")]
         public float rampCeilingDeg = 45f;
-        [Tooltip("RB_Controller.wheelieTorque value at full ramp. LOWER = each tap/press lifts less, so you have to tap or hold in short bursts to build real height instead of one press launching it.")]
+        [Tooltip("RB_Controller.wheelieTorque value at full ramp. LOWER = gentler overall - but the RISE RATE above is what actually controls how gradual it feels.")]
         public float maxWheelieTorque = 90f;
         [Tooltip("Roll (deg) below which the roll-lock doesn't bother correcting - avoids fighting ordinary cornering lean once you're back to normal riding. Above this, roll is force-corrected to exactly 0 every step while wheelieing.")]
         public float rollLockDeadzoneDeg = 3f;
         [Tooltip("Seconds the roll-lock keeps correcting after a wheelie visibly ends (ramp back down, front wheel back on the ground) - a short grace period so a bike that's still settling from the landing doesn't get left leaned over the instant the wheelie officially ends.")]
         public float rollLockGraceSeconds = 0.5f;
 
+        // MINI-119 follow-up, user: "i need more hill assist because it
+        // use to climb the hill better than that." Not wheelie-related at
+        // all - this is RB_Controller's own engine power, already a real
+        // stock field, just never exposed as a slider on this rig.
+        [Tooltip("RB_Controller.firstGearTorque (low-gear/starting power) - raise this if hills feel weak.")]
+        public float firstGearTorque = 500f;
+        [Tooltip("RB_Controller.topGearTorque (high-gear power).")]
+        public float topGearTorque = 350f;
+
+        // MINI-119 follow-up, user: "it crashes a bit too easy... not
+        // sure if the ragdoll has anything to do with this." Same real
+        // cause TmaxBikeController's own facade already diagnosed and
+        // fixed for the mapped bike (see that class's own comments) - the
+        // rider's ragdoll bone colliders are solid for at least one
+        // physics step before RagdollManager.Start() flips them to
+        // triggers, and CrashController's deceleration threshold is
+        // sensitive enough that an ordinary jolt trips it. This raw
+        // stock-demo bike never got either fix - it does now, in Awake()
+        // below.
+        [Tooltip("CrashController.decelerationSpeedForCrash - how hard a sudden slowdown has to be to count as a crash. HIGHER = harder to trigger accidentally.")]
+        public float crashDecelerationThreshold = 20f;
+
         private float _rollLockGraceRemaining;
+        private CrashController _crash;
 
         private RB_Controller _rb;
         private Rigidbody _body;
@@ -137,11 +165,31 @@ namespace UpIzUpMini.Vehicles
             // this is zeroed outright rather than tuned - restorable via
             // the inspector if a deliberate backflip trick is ever wanted.
             if (_rb != null) _rb.backFlipTorque = 0f;
+
+            _crash = GetComponent<CrashController>();
+            if (_crash != null) _crash.decelerationSpeedForCrash = crashDecelerationThreshold;
+
+            // MINI-119 follow-up fix, user: "it crashes a bit too easy...
+            // not sure if the ragdoll has anything to do with this." Forced
+            // to trigger here in Awake - guaranteed to run before
+            // RagdollManager's own Start() leaves that solid-collider
+            // window open. Same fix TmaxBikeController.Awake already
+            // proved for the mapped bike.
+            var ragdoll = GetComponentInChildren<RagdollManager>(true);
+            if (ragdoll != null)
+                foreach (var col in ragdoll.GetComponentsInChildren<Collider>(true))
+                    col.isTrigger = true;
         }
 
         private void FixedUpdate()
         {
             if (_rb == null || _input == null || _rb.isCrashed) return;
+
+            // Keep the drive/crash fields synced in case their sliders
+            // changed at runtime.
+            _rb.firstGearTorque = firstGearTorque;
+            _rb.topGearTorque = topGearTorque;
+            if (_crash != null) _crash.decelerationSpeedForCrash = crashDecelerationThreshold;
 
             float wheelieIn = Mathf.Clamp(_input.WheelieInput, -1f, 1f);
             float wantedRamp = wheelieIn * rampCeilingDeg;
