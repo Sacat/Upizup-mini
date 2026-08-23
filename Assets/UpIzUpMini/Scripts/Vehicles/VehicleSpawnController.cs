@@ -320,22 +320,14 @@ namespace UpIzUpMini.Vehicles
             if (stockInput != null) DestroyImmediate(stockInput);
             instance.AddComponent<SuperMotoWheelieKeyRemap>();
 
-            // MINI-119 follow-up, user: "did you use the invisible
-            // colliders idea.. try to use it so it keeps the bike
-            // straight when wheelieing." Re-added as a real, continuous
-            // PHYSICAL backup alongside SuperMotoWheelieAssist's own
-            // deterministic roll-lock below - no sliders exposed this
-            // time (the user's own words last round: "not even sure what
-            // string rate damping and debounce meant"), just sensible
-            // fixed defaults. The roll-lock does the primary correction
-            // (instant, exact); this adds real ground-contact force on
-            // top as a second line of defence for anything the roll-lock's
-            // gating window might miss.
-            instance.AddComponent<SuperMotoTrikeStabilizer>();
-
-            // MINI-119 follow-up, user: "the wheelie goes up too fast...
-            // it should be a lot more gradual... i want sliders for the
-            // wheelie assist." See SuperMotoWheelieAssist's own header.
+            // MINI-119 follow-up, user: "use the wheelie method of the
+            // original tmax and finish." SuperMotoWheelieAssist now
+            // directly ports the original's own kinematic wheelie (yaw *
+            // pitch, no roll term - mathematically incapable of leaning
+            // while active), so the trike stabilizer's real-force
+            // outriggers are no longer needed as backup and are dropped
+            // from the spawn - SuperMotoTrikeStabilizer.cs is left in the
+            // project, just no longer attached here.
             instance.AddComponent<SuperMotoWheelieAssist>();
 
             // MINI-119 follow-up fix, user: "E didnt work for wheelie. i
@@ -392,7 +384,7 @@ namespace UpIzUpMini.Vehicles
             // pre-crashed bike at spawn.
             anytimeReset.ResetUpright();
 
-            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, roll-lock active on wheelie, tuner panel (T) live. Controls: W/S throttle, A/D steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene. No mount/dismount key - you start already on it.");
+            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: W/S throttle, A/D steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene. No mount/dismount key - you start already on it.");
         }
 
         private static Vector3 GroundSnap(Vector3 pos)

@@ -76,39 +76,30 @@ namespace UpIzUpMini.Vehicles
             // range below widened to roughly 5x its previous span in both
             // directions, same convention as the earlier custom-bike
             // tuner's own "increase these sliders by 5" round.
-            GUILayout.Label("-- WHEELIE ASSIST (gradual, adapted from your original) --");
+            // User: "use the wheelie method of the original tmax." Same
+            // kinematic mechanism as your original bike now - a rate-
+            // limited target angle, direct-set each step with no roll
+            // term at all, so there's no separate "roll lock" section any
+            // more: the wheelie itself is mathematically incapable of
+            // leaning while active.
+            GUILayout.Label("-- WHEELIE (kinematic, same method as your original) --");
             if (_wheelieAssist != null)
             {
                 Slider("Rise rate (deg/s)",
-                    _wheelieAssist.riseRateDegPerSecond, 1f, 1000f, v => _wheelieAssist.riseRateDegPerSecond = v,
-                    "How fast a tap/hold registers.");
-                Slider("Ramp ceiling / hold angle (deg)",
-                    _wheelieAssist.rampCeilingDeg, 1f, 600f, v => _wheelieAssist.rampCeilingDeg = v,
-                    "A real angle CAP now - the bike climbs to this and holds here (won't go past it or fall over from excess torque). 90 = straight up.");
-                Slider("Wheelie torque at full ramp",
-                    _wheelieAssist.maxWheelieTorque, 4f, 4000f, v => _wheelieAssist.maxWheelieTorque = v,
-                    "How FAST it climbs toward the hold angle above. The cap decides the final height now, not this.");
-            }
-
-            GUILayout.Space(10f);
-            // User: "i want it to be like the original tmax controller
-            // when we forced the wheelie to stay straight... apply logic
-            // to it to transfer the idea to this system." Deterministic
-            // roll=0 correction while wheelieing, backed up by the real
-            // outrigger stabilizer (see VehicleSpawnController's own
-            // comment on why that's back).
-            GUILayout.Label("-- ROLL LOCK (forces the wheelie to stay straight) --");
-            if (_wheelieAssist != null)
-            {
-                Slider("Deadzone (deg)",
-                    _wheelieAssist.rollLockDeadzoneDeg, 0f, 100f, v => _wheelieAssist.rollLockDeadzoneDeg = v,
-                    "Small leans below this are left alone (normal cornering). Above it, roll snaps to 0 while wheelieing.");
-                Slider("Grace period (s)",
-                    _wheelieAssist.rollLockGraceSeconds, 0f, 10f, v => _wheelieAssist.rollLockGraceSeconds = v,
-                    "How long the correction keeps working after the wheelie visibly ends, so landing doesn't leave it leaned over.");
-                Slider("Emergency limit (deg)",
-                    _wheelieAssist.emergencyRollLimitDeg, 5f, 150f, v => _wheelieAssist.emergencyRollLimitDeg = v,
-                    "Past this roll angle, straightening kicks in ANY time (not just wheelies) - covers a ledge/bump lean. Keep above normal cornering lean.");
+                    _wheelieAssist.riseRateDegPerSecond, 5f, 400f, v => _wheelieAssist.riseRateDegPerSecond = v,
+                    "How fast the wheelie angle climbs while held, and falls back to 0 when released.");
+                Slider("Max angle (deg)",
+                    _wheelieAssist.rampCeilingDeg, 5f, 170f, v => _wheelieAssist.rampCeilingDeg = v,
+                    "The angle a full, sustained hold reaches. 90 = straight up.");
+                Slider("Min speed to start (km/h)",
+                    _wheelieAssist.wheelieMinSpeedKmh, 0f, 100f, v => _wheelieAssist.wheelieMinSpeedKmh = v,
+                    "Below this speed, starting a NEW wheelie is blocked (sustaining one already up isn't affected).");
+                Slider("Max speed to start (km/h)",
+                    _wheelieAssist.wheelieMaxSpeedKmh, 10f, 300f, v => _wheelieAssist.wheelieMaxSpeedKmh = v,
+                    "Above this speed, starting a NEW wheelie is blocked.");
+                Slider("Air steer (deg/s)",
+                    _wheelieAssist.wheelieAirSteerTorque, 0f, 100f, v => _wheelieAssist.wheelieAirSteerTorque = v,
+                    "How fast steering turns the bike while the front is up.");
             }
 
             GUILayout.Space(10f);
@@ -181,10 +172,9 @@ namespace UpIzUpMini.Vehicles
                     (_wheelieAssist != null ?
                         $"  SuperMotoWheelieAssist.riseRateDegPerSecond = {_wheelieAssist.riseRateDegPerSecond:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.rampCeilingDeg = {_wheelieAssist.rampCeilingDeg:F2}f;\n" +
-                        $"  SuperMotoWheelieAssist.maxWheelieTorque = {_wheelieAssist.maxWheelieTorque:F2}f;\n" +
-                        $"  SuperMotoWheelieAssist.rollLockDeadzoneDeg = {_wheelieAssist.rollLockDeadzoneDeg:F2}f;\n" +
-                        $"  SuperMotoWheelieAssist.rollLockGraceSeconds = {_wheelieAssist.rollLockGraceSeconds:F2}f;\n" +
-                        $"  SuperMotoWheelieAssist.emergencyRollLimitDeg = {_wheelieAssist.emergencyRollLimitDeg:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.wheelieMinSpeedKmh = {_wheelieAssist.wheelieMinSpeedKmh:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.wheelieMaxSpeedKmh = {_wheelieAssist.wheelieMaxSpeedKmh:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.wheelieAirSteerTorque = {_wheelieAssist.wheelieAirSteerTorque:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.autoRecoverRollLimitDeg = {_wheelieAssist.autoRecoverRollLimitDeg:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.autoRecoverSustainSeconds = {_wheelieAssist.autoRecoverSustainSeconds:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.firstGearTorque = {_wheelieAssist.firstGearTorque:F2}f;\n" +
