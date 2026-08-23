@@ -230,8 +230,41 @@ namespace UpIzUpMini.Vehicles
             if (pc != null) pc.IsControlled = false;
             player.SetActive(false);
 
-            var instance = (GameObject)Instantiate(stockDemoBikePrefab, spawnPos, Quaternion.LookRotation(forward, Vector3.up));
+            // MINI-119 follow-up fix, user: "i must press F to get stable
+            // in the beginning because the spawn lands with a crash." Real
+            // bug, confirmed independently by the user's own play AND by
+            // a direct test against this exact scene/spawn point
+            // (Mini119RealSceneWheelieTest showed a genuine -61.7deg pitch
+            // reading before the player had touched a single key): this
+            // spawn placed the prefab's ROOT TRANSFORM directly at the
+            // ground-raycast hit point, with no idea where the wheels
+            // actually sit relative to that root - almost certainly
+            // burying the wheels partway into the road mesh, so the very
+            // first physics step is a violent correction, not a clean
+            // landing. The SAME class of bug was already found and fixed
+            // for the OTHER (TMAX_560_SuperMoto.prefab) spawn path much
+            // earlier in MINI-119 - this stock-demo spawn just never got
+            // the same treatment when it was built. Measured here the
+            // same way: instantiate at the origin first, read the real
+            // wheel-bottom offset from the live WheelColliders, then place
+            // the root high enough that the wheels rest ON the ground
+            // instead of through it.
+            var instance = (GameObject)Instantiate(stockDemoBikePrefab, Vector3.zero, Quaternion.LookRotation(forward, Vector3.up));
             instance.name = "StockDemoSuperMoto";
+
+            float wheelBottomOffset = 0.4f; // sane fallback if wheelColliders aren't readable yet
+            var gaddForOffset = instance.GetComponent<Gadd420.RB_Controller>();
+            if (gaddForOffset != null && gaddForOffset.wheelColliders != null && gaddForOffset.wheelColliders.Length >= 2
+                && gaddForOffset.wheelColliders[0] != null && gaddForOffset.wheelColliders[1] != null)
+            {
+                float rearBottom = gaddForOffset.wheelColliders[0].transform.position.y - gaddForOffset.wheelColliders[0].radius;
+                float frontBottom = gaddForOffset.wheelColliders[1].transform.position.y - gaddForOffset.wheelColliders[1].radius;
+                wheelBottomOffset = -Mathf.Min(rearBottom, frontBottom);
+            }
+            instance.transform.SetPositionAndRotation(
+                spawnPos + Vector3.up * (wheelBottomOffset + 0.1f),
+                Quaternion.LookRotation(forward, Vector3.up));
+            Physics.SyncTransforms();
 
             // MINI-119 follow-up, user: "the camera is not smooth research
             // and get it to follow smooth." Real, well-documented Unity
@@ -259,7 +292,7 @@ namespace UpIzUpMini.Vehicles
             // see SuperMotoAnytimeReset's own header.
             var stockShortcuts = instance.GetComponent<Gadd420.KeyBoardShortCuts>();
             if (stockShortcuts != null) DestroyImmediate(stockShortcuts);
-            instance.AddComponent<SuperMotoAnytimeReset>();
+            var anytimeReset = instance.AddComponent<SuperMotoAnytimeReset>();
 
             // MINI-119 follow-up, user: "the E button to wheelie instead
             // of left control and the Q button will be used instead of
@@ -346,6 +379,18 @@ namespace UpIzUpMini.Vehicles
             // already there as live sliders. See Mini119StockDemoBikeTuner.
             if (instance.GetComponent<Mini119StockDemoBikeTuner>() == null)
                 instance.AddComponent<Mini119StockDemoBikeTuner>();
+
+            // MINI-119 follow-up, user: "i must press F to get stable in
+            // the beginning because the spawn lands with a crash" then
+            // "so why cant the spawn be [like] the F behaviour." Exactly
+            // right - on top of placing the bike correctly above (not
+            // instead of it, since a correct placement avoids the jolt in
+            // the first place rather than just cleaning up after it),
+            // this runs the SAME recovery F itself triggers, once, right
+            // now, as a guarantee: whatever tiny settling jolt the very
+            // first physics step produces, the player never sees a
+            // pre-crashed bike at spawn.
+            anytimeReset.ResetUpright();
 
             Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, roll-lock active on wheelie, tuner panel (T) live. Controls: W/S throttle, A/D steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene. No mount/dismount key - you start already on it.");
         }

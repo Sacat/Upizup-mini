@@ -45,7 +45,13 @@ namespace UpIzUpMini.Vehicles
                     UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
 
-        private void ResetUpright()
+        /// <summary>MINI-119 follow-up, user: "so why cant the spawn be
+        /// [like] the F behaviour." Exactly - made public so
+        /// VehicleSpawnController can call this once, immediately after
+        /// spawning, as a guaranteed clean start regardless of any
+        /// remaining spawn-placement edge case, on top of (not instead
+        /// of) placing it correctly in the first place.</summary>
+        public void ResetUpright()
         {
             if (_rb == null) return;
 
