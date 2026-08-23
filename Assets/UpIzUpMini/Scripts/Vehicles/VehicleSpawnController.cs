@@ -66,12 +66,48 @@ namespace UpIzUpMini.Vehicles
         // seeing. Flip back to false once the bike is confirmed stable
         // and the walk-up-and-mount flow itself needs testing again.
         private const bool DevAutoPossessSuperMotoOnSpawn = true;
+
+        // MINI-119 follow-up, user: "no your wrong stripping it to near
+        // nothing is going to get us back to square 1... let us test the
+        // demo controller and physics in my environment first... start
+        // from what works which is the demo. lets use the controls of the
+        // demo as well." Correct call - my own facade/adapter/upright-
+        // torque additions are exactly what broke (the bike spinning
+        // uncontrollably in the air), and I'd never actually proven the
+        // asset's OWN stock setup even worked in this map before piling
+        // changes on top of it. While this is true, EVERYTHING this
+        // controller normally spawns (tmaxPrefab, roverPrefab, our
+        // TMAX_560_SuperMoto.prefab, TmaxBikeController, GaddInputAdapter,
+        // SuperMotoInteractable) is skipped completely, the on-foot
+        // character is disabled, and the pack's own untouched
+        // SuperMotoWRagdoll.prefab is spawned instead with the asset's
+        // OWN stock Input_Manager, KeyBoardShortCuts (R = reload scene,
+        // F = flip upright when crashed - the "reset button... just in
+        // case something goes wrong" the user asked for, using the
+        // asset's existing mechanism rather than inventing a new one) and
+        // ThirdPersonCamera, so what gets tested is genuinely the pack's
+        // own behaviour, not our integration of it. Flip back to false
+        // once this baseline is confirmed solid in this map, then
+        // reintroduce our own facade/mapping one small change at a time.
+        private const bool StockDemoBikeTestMode = true;
+        [Tooltip("MINI-119: only used when StockDemoBikeTestMode is true - the Motorbike Physics Tool's own, completely unmodified Assets/MotorbikePhysicsTool/Prefabs/BikesWithRagdolls/SuperMotoWRagdoll.prefab. Wired by Mini119WireStockDemoBike.cs, not the normal scene builder.")]
+        [SerializeField] private GameObject stockDemoBikePrefab;
         private bool _devSpawnDone;
 
         private void Awake() => Instance = this;
 
         private void Update()
         {
+            if (StockDemoBikeTestMode)
+            {
+                if (_devSpawnDone) return;
+                var activeForStockTest = CharacterSwitchManager.Instance?.Active;
+                if (activeForStockTest?.root == null) return;
+                _devSpawnDone = true;
+                SpawnStockDemoBikeAndDisableOurCharacter(activeForStockTest.root);
+                return;
+            }
+
             if (!DevSpawnNearPlayerOnStart || _devSpawnDone) return;
 
             var active = CharacterSwitchManager.Instance?.Active;
@@ -140,6 +176,51 @@ namespace UpIzUpMini.Vehicles
                     Debug.Log("MINI-119 DEV SPAWN: SuperMoto test bike placed next to the player - press F to get on, E to wheelie, Space to brake, R to reset upright if it falls.");
                 }
             }
+        }
+
+        /// <summary>MINI-119 follow-up, user: "temporarily redirect or
+        /// disable my character and bike controller and physics first...
+        /// use the demo first and see how it works." Disables the on-foot
+        /// character entirely (not just SetActive-while-riding, like our
+        /// own Possess() does) and spawns the pack's own raw
+        /// SuperMotoWRagdoll.prefab with its own stock Input_Manager,
+        /// KeyBoardShortCuts and ThirdPersonCamera - none of our facade,
+        /// adapter or added torque involved at all.</summary>
+        private void SpawnStockDemoBikeAndDisableOurCharacter(GameObject player)
+        {
+            if (stockDemoBikePrefab == null)
+            {
+                Debug.LogError("MINI-119 STOCK DEMO TEST: stockDemoBikePrefab not wired - run Mini119WireStockDemoBike.");
+                return;
+            }
+
+            Vector3 forward = player.transform.forward;
+            Vector3 spawnPos = GroundSnap(player.transform.position + forward * 8f);
+
+            var pc = player.GetComponent<PlayerController>();
+            if (pc != null) pc.IsControlled = false;
+            player.SetActive(false);
+
+            var instance = (GameObject)Instantiate(stockDemoBikePrefab, spawnPos, Quaternion.LookRotation(forward, Vector3.up));
+            instance.name = "StockDemoSuperMoto";
+
+            var shortcuts = instance.GetComponent<Gadd420.KeyBoardShortCuts>();
+            if (shortcuts == null) shortcuts = instance.AddComponent<Gadd420.KeyBoardShortCuts>();
+            shortcuts.currentBike = instance.transform;
+
+            var cam = Camera.main;
+            if (cam != null)
+            {
+                var ourCam = cam.GetComponent<UpIzUpMini.Cameras.ThirdPersonFollowCamera>();
+                if (ourCam != null) ourCam.enabled = false;
+
+                var stockCam = cam.GetComponent<Gadd420.ThirdPersonCamera>();
+                if (stockCam == null) stockCam = cam.gameObject.AddComponent<Gadd420.ThirdPersonCamera>();
+                stockCam.enabled = true;
+                stockCam.lookAt = instance.transform;
+            }
+
+            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own unmodified SuperMotoWRagdoll spawned, on-foot character disabled. Controls (the asset's own, unchanged): W/S throttle, A/D steer, Mouse0/Mouse1 lean, LeftShift/LeftCtrl wheelie forward/back, Space brake, mouse to look around. R reloads the whole scene (hard reset), F flips the bike upright when it's flagged as crashed (soft reset). No mount/dismount key - you start already on it.");
         }
 
         private static Vector3 GroundSnap(Vector3 pos)
