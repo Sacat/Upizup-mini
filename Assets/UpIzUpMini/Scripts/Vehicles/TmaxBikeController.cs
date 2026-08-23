@@ -120,6 +120,20 @@ namespace UpIzUpMini.Vehicles
             _rb.AddTorque(flatForward * correction, ForceMode.Acceleration);
         }
 
+        // MINI-119 follow-up, user: "the new bike spawns in the same area
+        // [as the old one] so they clash and the new bike falls... if the
+        // bike falls I cannot keep testing something is wrong, maybe there
+        // should be a temp key to reset the bike so it can come upright."
+        // Temporary dev-only aid - press to snap the bike back onto its
+        // wheels wherever it currently is, without reloading the scene.
+        // Mirrors the asset's OWN "flip over" recovery (see the imported
+        // Gadd420.KeyBoardShortCuts.cs, F-when-crashed) rather than
+        // inventing a new convention: reposition upright a little above
+        // its current spot, zero both velocities, and tell the ragdoll to
+        // re-arm (RagdollManager.resetRider - its own Update() then clears
+        // isCrashed and puts the rider's bones back to kinematic/trigger).
+        [SerializeField] private KeyCode devResetUprightKey = KeyCode.R;
+
         private void Update()
         {
             // RB_Controller reads its Input_Manager's getters fresh every
@@ -127,6 +141,31 @@ namespace UpIzUpMini.Vehicles
             // every frame keeps it current regardless of Unity's exact
             // script execution order between this and RB_Controller.
             _input.SetRawInputs(_throttle, _steer, _brake, _wheelieHeld);
+
+            if (devResetUprightKey != KeyCode.None && Input.GetKeyDown(devResetUprightKey))
+                ResetUpright();
+        }
+
+        /// <summary>Snaps the bike back onto its wheels in place - see the
+        /// field comment above. Public so SuperMotoInteractable can also
+        /// call it automatically when mounting a bike that fell over.</summary>
+        public void ResetUpright()
+        {
+            if (_rb == null) return;
+
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+            transform.SetPositionAndRotation(
+                transform.position + Vector3.up * 1f,
+                Quaternion.Euler(0f, transform.eulerAngles.y, 0f));
+            Physics.SyncTransforms();
+
+            var ragdoll = GetComponentInChildren<RagdollManager>(true);
+            if (ragdoll != null) ragdoll.resetRider = true;
+            if (_gadd != null) _gadd.isCrashed = false;
+
+            var crashController = GetComponent<CrashController>();
+            if (crashController != null) { crashController.rbSpeed = 0f; crashController.lateRbSpeed = 0f; }
         }
 
         /// <summary>Called by BikeInteractable every frame while mounted -

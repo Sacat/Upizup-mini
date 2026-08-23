@@ -53,6 +53,19 @@ namespace UpIzUpMini.Vehicles
         // without re-running any scene builder and re-wiping the user's
         // own manual hedge/farm-plot/safehouse placement edits.
         private const bool DevSpawnNearPlayerOnStart = true;
+
+        // MINI-119 follow-up, user: "you may have to temporarily disable
+        // the main character and just use the ragdoll and the bike
+        // character until testing is successful." Same on/off-flag
+        // convention as DevSpawnNearPlayerOnStart - while this is true,
+        // the on-foot player character is put straight onto the SuperMoto
+        // (its own rigged rider) the instant it spawns, instead of
+        // waiting for a walk-up + F press. That means the on-foot
+        // character is never simultaneously active and physically near
+        // the bike/ragdoll, which is exactly the clash the user was
+        // seeing. Flip back to false once the bike is confirmed stable
+        // and the walk-up-and-mount flow itself needs testing again.
+        private const bool DevAutoPossessSuperMotoOnSpawn = true;
         private bool _devSpawnDone;
 
         private void Awake() => Instance = this;
@@ -103,12 +116,29 @@ namespace UpIzUpMini.Vehicles
 
             if (superMotoTestPrefab != null && !_superMotoSpawned)
             {
-                Vector3 pos = GroundSnap(player.position + forward * 6f);
+                // MINI-119 follow-up, user: "the new bike spawns in the
+                // same area [as the old one] so they clash and the new
+                // bike falls." tmaxPrefab spawns at forward*3-right*2.5,
+                // roverPrefab at forward*3+right*2.5 - both close enough
+                // that a bike settling/spawn jolt could reach them. Pushed
+                // well clear of both (forward*10+right*4) rather than
+                // guessing at a slightly bigger number.
+                Vector3 pos = GroundSnap(player.position + forward * 10f + right * 4f);
                 var moto = Instantiate(superMotoTestPrefab, pos, Quaternion.LookRotation(forward, Vector3.up));
                 moto.name = "TestSuperMoto";
                 _superMotoSpawned = true;
                 moto.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "SuperMoto (test)", VehicleMarkerColour);
-                Debug.Log("MINI-119 DEV SPAWN: SuperMoto test bike placed next to the player - press F to get on, E to wheelie, Space to brake.");
+
+                if (DevAutoPossessSuperMotoOnSpawn)
+                {
+                    var interactable = moto.GetComponent<SuperMotoInteractable>();
+                    if (interactable != null) interactable.DevForceMount(player.gameObject);
+                    Debug.Log("MINI-119 DEV SPAWN: SuperMoto test bike placed and auto-possessed - the on-foot character is disabled, you're straight on the bike's own rider. E to wheelie, Space to brake, R to reset upright if it falls, F to get off.");
+                }
+                else
+                {
+                    Debug.Log("MINI-119 DEV SPAWN: SuperMoto test bike placed next to the player - press F to get on, E to wheelie, Space to brake, R to reset upright if it falls.");
+                }
             }
         }
 

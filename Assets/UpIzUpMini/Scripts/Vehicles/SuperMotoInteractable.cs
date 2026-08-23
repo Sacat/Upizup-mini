@@ -72,6 +72,19 @@ namespace UpIzUpMini.Vehicles
             if (Input.GetKeyDown(dismountKey)) Dismount();
         }
 
+        /// <summary>MINI-119 follow-up, user: "you may have to temporarily
+        /// disable the main character and just use the ragdoll and the
+        /// bike character until testing is successful." Same Possess()
+        /// path a walk-up F-press uses, just callable directly so
+        /// VehicleSpawnController's dev spawn can put the player straight
+        /// onto the SuperMoto's own rider - no on-foot character ever
+        /// active near the bike/ragdoll to clash with it while testing.</summary>
+        public void DevForceMount(GameObject character)
+        {
+            if (HasRider || character == null) return;
+            Possess(character);
+        }
+
         private void TryMountByKey()
         {
             if (!Input.GetKeyDown(mountKey)) return;
@@ -90,6 +103,15 @@ namespace UpIzUpMini.Vehicles
         private void Possess(GameObject character)
         {
             _riderCharacter = character;
+
+            // MINI-119 follow-up, user: "if the bike falls, once it falls
+            // I can use my character to kind of get in, in the fall
+            // position with the ragdoll next to it." Mounting a bike that
+            // fell over used to leave the rider in that broken pose -
+            // reset it upright first so every mount starts from a clean
+            // state, on top of the manual devResetUprightKey for testing
+            // without mounting at all.
+            if (_bike.IsCrashed) _bike.ResetUpright();
 
             var pc = character.GetComponent<PlayerController>();
             if (pc != null) pc.IsControlled = false;
