@@ -1,3 +1,4 @@
+using System.Collections;
 using Gadd420;
 using UnityEngine;
 
@@ -35,11 +36,27 @@ namespace UpIzUpMini.Vehicles
         [Tooltip("Denominator BikeInteractable normalises the live WheelieAngle against for rider-pose blending (wheelie01 = WheelieAngle / MaxWheelieAngle). The underlying physics here has no artificial pitch ceiling of its own - this is purely a reference figure for that blend math, not a real limit.")]
         [SerializeField] private float maxWheelieAngle = 75f;
 
+        [Tooltip("MINI-119, user: \"the bike when down flat so i couldnt ride to test.\" Root cause, confirmed by a real read-only diagnostic (Mini119SuperMotoDiagnose), not guessed: the underlying CrashController flags a crash on ANY sudden deceleration (its own default threshold is small), and the instant it does, the bike's roll-lock constraint is removed entirely so the ragdoll can take over - a completely ordinary landing/settling jolt at spawn was enough to trip it before the player ever touched the controls. This briefly disables the crash detector right after spawn so a spawn-moment settle can never be misread as a crash.")]
+        [SerializeField] private float spawnCrashGraceSeconds = 1.5f;
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
             _gadd = GetComponent<RB_Controller>();
             _input = GetComponent<GaddInputAdapter>();
+
+            var crashController = GetComponent<CrashController>();
+            if (crashController != null && spawnCrashGraceSeconds > 0f)
+            {
+                crashController.enabled = false;
+                StartCoroutine(ReenableCrashDetectionAfterDelay(crashController, spawnCrashGraceSeconds));
+            }
+        }
+
+        private IEnumerator ReenableCrashDetectionAfterDelay(CrashController crashController, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (crashController != null) crashController.enabled = true;
         }
 
         private void Update()

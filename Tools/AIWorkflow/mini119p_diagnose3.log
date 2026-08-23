@@ -1,0 +1,850 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.10f1 (e35f0c77bd8e) revision 14901004'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) Professional' Language: 'en' Physical Memory: 15826 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-08-23T08:38:06Z
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-PCSS-PC" at "2026-08-23T08:38:06.539895Z"
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+E:/Unity/Up Iz Up Mini
+-logFile
+E:/Unity/Up Iz Up Mini/Tools/AIWorkflow/mini119p_diagnose3.log
+-executeMethod
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose.Diagnose
+Successfully changed project path to: E:/Unity/Up Iz Up Mini
+E:/Unity/Up Iz Up Mini
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [1032]  Target information:
+
+Player connection [1032]  * "[IP] 192.168.108.205 [Port] 55504 [Flags] 2 [Guid] 268489808 [EditorId] 268489808 [Version] 1048832 [Id] WindowsEditor(7,PC-22) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [1032]  * "[IP] 100.83.75.75 [Port] 55504 [Flags] 2 [Guid] 268489808 [EditorId] 268489808 [Version] 1048832 [Id] WindowsEditor(7,PC-22) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [1032]  * "[IP] 192.168.137.1 [Port] 55504 [Flags] 2 [Guid] 268489808 [EditorId] 268489808 [Version] 1048832 [Id] WindowsEditor(7,PC-22) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [1032] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [1032] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-41424" after 3.7 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              7d154c8d70574f3eab6a829c64d4fdfb
+  Correlation Id:          e00549e178f78246eeb9283def5eae31
+  External correlation Id: 6037653724081006601
+  Machine Id:              BSsZwx/0FUTXPDacKK/mAf12cyA=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-PCSS-PC" (connect: 0.00s, validation: 0.01s, handshake: 16.03s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-PCSS-PC-notifications" at "2026-08-23T08:38:22.577717Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.02
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Module] Licensing Background thread has ended after 16.11s
+[Licensing::Module] Licensing is initialized (took 11.48s).
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 0.06 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.10f1 (e35f0c77bd8e)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path E:/Unity/Up Iz Up Mini/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56424
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.003362 seconds.
+- Loaded All Assemblies, in  4.140 seconds
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  1.423 seconds
+Domain Reload Profiling: 5498ms
+	BeginReloadAssembly (1298ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (6ms)
+	RebuildCommonClasses (310ms)
+	RebuildNativeTypeToScriptingClass (136ms)
+	initialDomainReloadingComplete (413ms)
+	LoadAllAssembliesAndSetupDomain (1917ms)
+		LoadAssemblies (1296ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (1892ms)
+			TypeCache.Refresh (1889ms)
+				TypeCache.ScanAssembly (1846ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (1424ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1259ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (505ms)
+			SetLoadedEditorAssemblies (28ms)
+			BeforeProcessingInitializeOnLoad (172ms)
+			ProcessInitializeOnLoadAttributes (270ms)
+			ProcessInitializeOnLoadMethodAttributes (283ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Application.AssetDatabase Initial Refresh Start
+Package Manager log level set to [2]
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 51 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.ai.navigation@2.0.14 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.ai.navigation@134dd6a3b97b)
+    com.unity.cloud.gltfast@6.9.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.cloud.gltfast@1bfd82b6f675)
+    com.unity.animation.rigging@1.4.1 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.animation.rigging@ae5f251e1ed4)
+    com.unity.searcher@4.9.4 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.searcher@d45a78918735)
+    com.unity.burst@1.8.28 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.burst@07790c2d06d9)
+    com.unity.collections@2.6.2 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.collections@aea9d3bd5e19)
+    com.unity.mathematics@1.3.3 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.mathematics@19a9377c4ffa)
+    com.unity.nuget.mono-cecil@1.11.6 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.test-framework.performance@3.2.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.test-framework.performance@0840f58e4562)
+  Built-in packages:
+    com.unity.multiplayer.center@1.0.1 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.multiplayer.center@f01f4ba8d00a)
+    com.unity.shadergraph@17.3.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.shadergraph@c8830f61858d)
+    com.unity.ugui@2.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.ugui@bb329a87fcdc)
+    com.unity.modules.accessibility@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.render-pipelines.core@17.3.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3)
+    com.unity.test-framework@1.6.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d)
+    com.unity.ext.nunit@2.0.5 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.35 seconds
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+warn: Unity.AspNetCore.NamedPipeSupport.NamedPipeServer[0]
+      Exception occured while accepting client connection: System.IO.IOException: The pipe is being closed.
+         at System.IO.Pipes.NamedPipeServerStream.WaitForConnectionCoreAsync(CancellationToken cancellationToken)
+         at System.IO.Pipes.NamedPipeServerStream.WaitForConnectionAsync(CancellationToken cancellationToken)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer..ctor(String pipeName, NamedPipeListenerOptions options, ILogger`1 logger)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeListener..ctor(NamedPipeEndpoint endpoint, ILoggerFactory loggerFactory, NamedPipeListenerOptions namedPipeListenerOptions)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeListenerFactory.BindAsync(EndPoint _, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass30_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass30_0`1.<StartAsync>g__OnBind|0(ListenOptions options, CancellationToken onBindCancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.EndpointsStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.EndpointsStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(IEnumerable`1 listenOptions, AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(IEnumerable`1 listenOptions, AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Builder.WebApplication.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+         at Microsoft.AspNetCore.Builder.WebApplication.Run(String url)
+         at Program.<Main>$(String[] args)
+      --- End of stack trace from previous location ---
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:80
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: E:\Unity\Up Iz Up Mini\
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 1687.2957ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: E:/Unity/Up Iz Up Mini
+DisplayProgressbar: Compiling Scripts
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\NetStandard\Extensions\2.0.0\System.Runtime.InteropServices.WindowsRuntime.dll"
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.componentmodel.composition has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\System.ComponentModel.Composition.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.ComponentModel.Composition.dll"
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@07790c2d06d9\Unity.Burst.CodeGen\Unity.Burst.Cecil.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Mono.Cecil, Version=0.11.5.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc - - 200 - application/grpc 3368.4106ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 135 defines and 308 references
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with Library\Bee\artifacts\1900b0aE.dag\Unity.Collections.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\Managed\UnityEngine\UnityEditor.CoreModule.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll
+info: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil.Rocks, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@07790c2d06d9\Unity.Burst.CodeGen\Unity.Burst.Cecil.Rocks.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 18508.0400ms
+ExitCode: 0 Duration: 43s
+[516/647    4s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[BUSY      10s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[643/647   11s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+Assets\UpIzUpMini\Editor\Mini065TmaxPhysicsTest.cs(174,17): warning CS0162: Unreachable code detected
+
+Assets\UpIzUpMini\Editor\Mini011PhaseBSetup.cs(2203,17): warning CS0162: Unreachable code detected
+[BUSY       6s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+[BUSY      16s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+[644/647   19s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 135 defines and 308 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[645/647    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[646/647    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+*** Tundra build success (43.20 seconds), 5 items updated, 647 evaluated
+Assets\UpIzUpMini\Editor\Mini065TmaxPhysicsTest.cs(174,17): warning CS0162: Unreachable code detected
+Assets\UpIzUpMini\Editor\Mini011PhaseBSetup.cs(2203,17): warning CS0162: Unreachable code detected
+AssetDatabase: script compilation time: 55.151210s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in 10.428 seconds
+Refreshing native plugins compatible for Editor in 0.26 ms, found 0 plugins.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Up Iz Up Mini
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in 14.390 seconds
+Domain Reload Profiling: 24745ms
+	BeginReloadAssembly (1617ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (13ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (288ms)
+	RebuildCommonClasses (390ms)
+	RebuildNativeTypeToScriptingClass (102ms)
+	initialDomainReloadingComplete (504ms)
+	LoadAllAssembliesAndSetupDomain (7741ms)
+		LoadAssemblies (7632ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (1159ms)
+			TypeCache.Refresh (859ms)
+				TypeCache.ScanAssembly (821ms)
+			BuildScriptInfoCaches (232ms)
+			ResolveRequiredComponents (41ms)
+	FinalizeReload (14390ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (13439ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (361ms)
+			SetLoadedEditorAssemblies (35ms)
+			BeforeProcessingInitializeOnLoad (348ms)
+			ProcessInitializeOnLoadAttributes (12351ms)
+			ProcessInitializeOnLoadMethodAttributes (233ms)
+			AfterProcessingInitializeOnLoad (108ms)
+			EditorAssembliesLoaded (2ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (43ms)
+Refreshing native plugins compatible for Editor in 0.32 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=a73f395523bcbd3459a6eb891fe6cb89): Total: 83.246 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=16192 ms
+		Asset DB Callback time: managed=938 ms, native=368 ms
+		Scripting: domain reloads=1, domain reload time=10429 ms, compile time=55155 ms, other=162 ms
+		Project Asset Count: scripts=986, non-scripts=3633
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.002ms
+	InvokePackagesCallback: 371.528ms
+	ApplyChangesToAssetFolders: 1.834ms
+	Scan: 232.484ms
+	OnSourceAssetsModified: 6.945ms
+	CategorizeAssetsWithTransientArtifact: 175.889ms
+	ProcessAssetsWithTransientArtifactChanges: 448.563ms
+	CategorizeAssets: 182.353ms
+	ImportOutOfDateAssets: 14440.924ms (-40735.906ms without children)
+		CompileScripts: 55154.829ms
+		ReloadNativeAssets: 0.001ms
+		UnloadImportedAssets: 0.246ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.020ms
+		InitializingProgressBar: 0.001ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.002ms
+		OnDemandSchedulerStart: 20.732ms
+	PostProcessAllAssets: 934.120ms
+	Hotreload: 2.079ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.007ms
+	UnloadStreamsBegin: 1.804ms
+	PersistCurrentRevisions: 0.176ms
+	UnloadStreamsEnd: 0.002ms
+	GenerateScriptTypeHashes: 4.318ms
+	Untracked: 66446.960ms
+
+Application.AssetDatabase Initial Refresh End
+Scanning for USB devices : 7.670ms
+Initializing Unity extensions:
+Unloading 48 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 3334 unused Assets / (18.0 MB). Loaded Objects now: 3939.
+Memory consumption went from 190.5 MB to 172.5 MB.
+Total: 45.062100 ms (FindLiveObjects: 0.388000 ms CreateObjectMapping: 0.258200 ms MarkObjects: 11.285200 ms  DeleteObjects: 33.128700 ms)
+
+MINI-119 DIAGNOSE: Rigidbody present=True, mass=400, constraints=None
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:32)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 32)
+
+MINI-119 DIAGNOSE: RB_Controller present=True
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:33)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 33)
+
+MINI-119 DIAGNOSE: GaddInputAdapter present=True
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:34)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 34)
+
+MINI-119 DIAGNOSE: TmaxBikeController facade present=True
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:35)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 35)
+
+MINI-119 DIAGNOSE: cog assigned=True at local (0.00, -0.06, -0.23)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:39)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 39)
+
+MINI-119 DIAGNOSE: forkPivot assigned=True
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:40)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 40)
+
+MINI-119 DIAGNOSE: wheelColliders array length=2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:41)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 41)
+
+MINI-119 DIAGNOSE: wheelColliders[0] 'RearCollider' localPos=(0.00, -0.25, -0.77) radius=0.35 suspensionDistance=0.25
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:48)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 48)
+
+MINI-119 DIAGNOSE: wheelColliders[1] 'FrontCollider' localPos=(0.00, -0.74, 0.05) radius=0.35 suspensionDistance=0.2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:48)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 48)
+
+MINI-119 DIAGNOSE: wheels[] (visual mesh refs) length=2, any null=False
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:51)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 51)
+
+MINI-119 DIAGNOSE: total colliders=21 (wheelColliders=2, other triggers=1, other SOLID (non-trigger)=18)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:62)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 62)
+
+MINI-119 DIAGNOSE: SOLID collider 'body' type=CapsuleCollider bounds.center(world)=(0.00, 0.78, 0.02) bounds.size=(0.34, 0.66, 0.43)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'body (1)' type=CapsuleCollider bounds.center(world)=(0.00, 0.81, -0.27) bounds.size=(0.22, 0.57, 0.32)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'body (2)' type=CapsuleCollider bounds.center(world)=(0.00, 1.01, -0.62) bounds.size=(0.22, 0.27, 0.84)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'body (3)' type=CapsuleCollider bounds.center(world)=(0.00, 1.37, 0.19) bounds.size=(1.21, 0.10, 0.10)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'body (4)' type=CapsuleCollider bounds.center(world)=(0.00, 1.00, 0.56) bounds.size=(0.22, 0.25, 0.58)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'body (5)' type=CapsuleCollider bounds.center(world)=(0.00, 0.78, -0.10) bounds.size=(0.22, 0.57, 0.32)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'body (6)' type=CapsuleCollider bounds.center(world)=(0.00, 1.00, -0.51) bounds.size=(0.22, 0.27, 0.84)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'Hip' type=BoxCollider bounds.center(world)=(0.00, 1.29, -0.28) bounds.size=(0.26, 0.37, 0.20)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'chest' type=BoxCollider bounds.center(world)=(0.00, 1.55, -0.28) bounds.size=(0.35, 0.16, 0.20)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'leftArm' type=CapsuleCollider bounds.center(world)=(-0.23, 1.63, -0.13) bounds.size=(0.17, 0.11, 0.30)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'LeftForearm' type=CapsuleCollider bounds.center(world)=(-0.25, 1.62, 0.26) bounds.size=(0.14, 0.13, 0.49)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'head' type=SphereCollider bounds.center(world)=(0.00, 1.87, -0.27) bounds.size=(0.28, 0.28, 0.28)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'RightArm' type=CapsuleCollider bounds.center(world)=(0.21, 1.62, -0.13) bounds.size=(0.15, 0.11, 0.30)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'RightForearm' type=CapsuleCollider bounds.center(world)=(0.25, 1.62, 0.27) bounds.size=(0.11, 0.11, 0.49)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'LeftThigh' type=CapsuleCollider bounds.center(world)=(-0.10, 0.88, -0.28) bounds.size=(0.19, 0.47, 0.17)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'LeftShin' type=CapsuleCollider bounds.center(world)=(-0.14, 0.40, -0.30) bounds.size=(0.14, 0.50, 0.14)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'RightThigh' type=CapsuleCollider bounds.center(world)=(0.10, 0.88, -0.28) bounds.size=(0.19, 0.47, 0.17)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: SOLID collider 'RightShin' type=CapsuleCollider bounds.center(world)=(0.14, 0.40, -0.30) bounds.size=(0.14, 0.50, 0.14)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:70)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 70)
+
+MINI-119 DIAGNOSE: RagdollManager present=True, CrashController present=True, decelerationSpeedForCrash=5
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:75)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 75)
+
+MINI-119 DIAGNOSE COMPLETE.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoDiagnose:Diagnose () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs:78)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoDiagnose.cs Line: 78)
+
+Batchmode quit successfully invoked - shutting down!
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-PCSS-PC-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-PCSS-PC channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+abort_threads: Failed aborting id: 0000000000000A5C, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 00000000000098C8, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000000A5C, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 00000000000098C8, mono_thread_manage will ignore it
+
+debugger-agent: Unable to listen on 4008
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

@@ -78,6 +78,22 @@ namespace UpIzUpMini.EditorTools
                 rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             }
 
+            // MINI-119, user: "the bike when down flat so i couldnt ride
+            // to test" / earlier: "the crashing happens easily but that
+            // can be fixed." Confirmed by a real diagnostic
+            // (Mini119SuperMotoDiagnose): the crash detector's default
+            // threshold (5) is sensitive enough that an ordinary spawn-
+            // moment settling jolt trips it on its own, before the
+            // player ever touches the controls - and the instant it
+            // trips, the roll-lock constraint is removed, so the whole
+            // bike just topples. Raised well past any normal riding
+            // deceleration (braking hard, landing a jump) while still
+            // catching a genuine high-speed wall hit. TmaxBikeController's
+            // own spawnCrashGraceSeconds handles the spawn-moment case on
+            // top of this.
+            var crashController = instance.GetComponent<CrashController>();
+            if (crashController != null) crashController.decelerationSpeedForCrash = 14f;
+
             instance.name = "TMAX_560_SuperMoto";
 
             System.IO.Directory.CreateDirectory("Assets/UpIzUpMini/Vehicles");
