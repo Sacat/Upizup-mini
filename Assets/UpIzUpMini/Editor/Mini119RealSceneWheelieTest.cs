@@ -101,7 +101,7 @@ namespace UpIzUpMini.EditorTools
                     int cyclePos = (i - settleSteps - 75) % 25; // 0.5s cycle
                     wheelieHeld = cyclePos < 15; // 0.3s on, 0.2s off
                 }
-                wheelieField?.SetValue(remap, wheelieHeld ? 1f : 0f);
+                wheelieField?.SetValue(remap, wheelieHeld ? -1f : 0f); // -1 = E-equivalent per SuperMotoWheelieKeyRemap's latest mapping
                 vInputField?.SetValue(remap, holding ? 1f : 0f);
 
                 InvokeIfExists(gadd, "Update");

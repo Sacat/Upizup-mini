@@ -201,7 +201,19 @@ namespace UpIzUpMini.Vehicles
             bool canSustain = brakeIn < 0.1f;
             bool eligible = wheelieForcingPose ? canSustain : canStart;
 
-            bool wantsWheelie = eligible && wheelieIn > 0.01f;
+            // MINI-119 follow-up fix, user: "there is no wheelie taking
+            // place when i press E and i see you swaped the Q and E
+            // controls. Q leans back and E leans forward. i want E as the
+            // wheelie." Rather than re-guess which raw sign
+            // SuperMotoWheelieKeyRemap sends for E (this exact guess has
+            // flip-flopped multiple times already this task, based on
+            // ambiguous evidence each time), EITHER key now triggers the
+            // SAME lift (always toward the positive/nose-up
+            // rampCeilingDeg) - the sign is no longer meaningful, only
+            // whether a wheelie key is held at all. E is guaranteed to
+            // wheelie because both keys now do the one thing being asked
+            // for, not two different things.
+            bool wantsWheelie = eligible && Mathf.Abs(wheelieIn) > 0.01f;
             float targetPitch = wantsWheelie ? rampCeilingDeg : 0f;
 
             _currentWheelieTarget = Mathf.MoveTowards(

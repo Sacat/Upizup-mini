@@ -16,18 +16,20 @@ namespace UpIzUpMini.Vehicles
     /// Same left-to-right precedence as the base method (if both keys are
     /// held, the second if-check wins).
     ///
-    /// MINI-119 follow-up fix, user: "get the lean fully solved... try
-    /// with max effort." E and Q originally mapped to -1/+1 respectively,
-    /// guessed from reading RB_Controller.Stoppies() (gated on WheelieInput
-    /// == 1, which looked like it should be the OTHER, non-wheelie
-    /// direction). A direct empirical test proved that guess backwards:
-    /// wheelieInput = -1 consistently, cleanly pitched the nose DOWN over
-    /// a real 15-second sustained hold; wheelieInput = +1 pitched it UP
-    /// (until it overshot the OLD 90deg cap and hit a separate asin-
-    /// singularity bug, since fixed - see SuperMotoWheelieAssist.
-    /// rampCeilingDeg's own comment). Swapped to match reality: E (the
-    /// key the user actually wants to lift the nose) now sends +1, Q
-    /// sends -1.
+    /// MINI-119 follow-up fix, user: "Q leans back and E leans forward. i
+    /// want E as the wheelie." The BIKE's own real wheelie (this project's
+    /// SuperMotoWheelieAssist, since the kinematic-port rewrite) no longer
+    /// cares which sign either key sends - either one triggers the same
+    /// nose-up lift. But there's a SEPARATE, purely cosmetic script in the
+    /// pack itself (Gadd420.PlayerLeaning, on the rider) that shifts the
+    /// rider's own local position forward/back straight off
+    /// Input_Manager.WheelieInput's raw sign, with no gating at all:
+    /// positive leans the rider forward, negative leans them back. That's
+    /// exactly what the user was seeing and is what this remap's sign
+    /// actually controls now. Swapped so E sends the sign PlayerLeaning
+    /// reads as "back" (the correct wheelie-prep visual - a rider leans
+    /// their weight BACK as the front comes up, not forward) - the real
+    /// physics is unaffected either way since it no longer reads sign.
     /// </summary>
     public class SuperMotoWheelieKeyRemap : Input_Manager
     {
@@ -35,8 +37,8 @@ namespace UpIzUpMini.Vehicles
         {
             if (Input.GetKey(KeyCode.E) || Input.GetKey(KeyCode.Q))
             {
-                if (Input.GetKey(KeyCode.E)) wheelieInput = 1;
-                if (Input.GetKey(KeyCode.Q)) wheelieInput = -1;
+                if (Input.GetKey(KeyCode.E)) wheelieInput = -1;
+                if (Input.GetKey(KeyCode.Q)) wheelieInput = 1;
             }
             else
             {
