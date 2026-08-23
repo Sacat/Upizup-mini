@@ -93,6 +93,30 @@ namespace UpIzUpMini.Vehicles
         public float rollLockGraceSeconds = 0.5f;
         [Tooltip("MINI-119 follow-up, user: 'it still rides with a lean after i try to wheelie or turn by a ledge.' A ledge/bump can lean the bike even with no wheelie involved at all, which the wheelie-only gating above never catches. Above THIS roll angle, the same straightening correction applies any time, not just during a wheelie - normal cornering lean should stay well under this, so it shouldn't fight intentional turning.")]
         public float emergencyRollLimitDeg = 35f;
+        // MINI-119 follow-up fix, user (with screenshot of the bike lying
+        // fully on its side): "this lean stuck is still happening i need
+        // something that can put up the bike to straight equal on both
+        // side just like when i press F it respawns straight." Root
+        // cause: BOTH the roll-lock above and the trike stabilizer bail
+        // out immediately with `if (_rb.isCrashed) return;` - exactly the
+        // moment RB_Controller's own Update() sets `rb.constraints =
+        // RigidbodyConstraints.None` (removing every constraint so the
+        // ragdoll can react) is the SAME moment every correction this
+        // class has was silently switching itself off. A gentle angular-
+        // velocity correction also can't recover a bike already lying
+        // flat on its side - that needs a real, direct SET, same as
+        // pressing F (SuperMotoAnytimeReset.ResetUpright). This is that,
+        // automated: once roll has been past a hard limit for a short
+        // sustained beat (not a single glitchy frame), it recovers the
+        // bike itself - same steps the F key already uses, and it runs
+        // UNCONDITIONALLY, crashed or not, which is the actual fix.
+        [Tooltip("Roll (deg) past which the bike is considered properly fallen over (not just leaning) - if sustained, it self-rights automatically, the same way pressing F does.")]
+        public float autoRecoverRollLimitDeg = 60f;
+        [Tooltip("How long roll has to stay past the limit above before auto-recovery kicks in - avoids reacting to one glitchy frame mid-crash-animation.")]
+        public float autoRecoverSustainSeconds = 0.35f;
+
+        private float _autoRecoverTimer;
+        private RagdollManager _ragdollForRecover;
 
         // MINI-119 follow-up, user: "i need more hill assist because it
         // use to climb the hill better than that." Not wheelie-related at
@@ -134,26 +158,28 @@ namespace UpIzUpMini.Vehicles
             _input = GetComponent<Input_Manager>();
             _autoLevel = GetComponent<AutoLeveling>();
 
-            // MINI-119 follow-up fix: Mini119WheelieAssistTest traced the
-            // REAL instability to a completely different, untouched stock
-            // field - RB_Controller's own backFlipTorque. Once a wheelie
-            // lifts far enough that BOTH wheels leave the ground,
-            // RB_Controller's own !isGrounded branch switches to applying
-            // backFlipTorque continuously for as long as the key is held
-            // - unbounded, ungated, nothing to do with this class at all
-            // - which is what actually dragged roll out to 179deg over a
-            // sustained hold. The asset already ships its own fix for
-            // exactly this (AutoLeveling.safeWheelies - pulls the bike
-            // back down once past a max angle, BEFORE it can go fully
-            // airborne into that branch) - it just defaults off. Turning
-            // it on here, synced to this ramp's own ceiling, uses the
-            // vendor's own existing safety system instead of adding a
-            // second one of this class's own.
-            if (_autoLevel != null)
-            {
-                _autoLevel.safeWheelies = true;
-                _autoLevel.maxWheelieAngle = rampCeilingDeg;
-            }
+            // MINI-119 follow-up fix history (kept so the reasoning isn't
+            // lost): the REAL first instability traced to a completely
+            // different, untouched stock field - RB_Controller's own
+            // backFlipTorque, unbounded once fully airborne. AutoLeveling.
+            // safeWheelies was turned ON here as the vendor's own fix for
+            // THAT (pulls the bike down before it goes fully airborne).
+            //
+            // MINI-119 follow-up fix, user: "delve deeper if you need to."
+            // safeWheelies turned out to be its OWN separate problem: a
+            // second Mini119WheelieAssistTest run (two full wheelie
+            // cycles back to back) caught a real, reproducible roll
+            // divergence to -58deg during the SECOND release, and
+            // isolating each system one at a time (skipping AutoLeveling's
+            // own FixedUpdate entirely) proved it was safeWheelies doing
+            // this - not this class, not the trike stabilizer, not the
+            // yaw-decomposition fix tried first. With backFlipTorque
+            // already zeroed below, safeWheelies' original purpose is now
+            // redundant anyway (there's no unbounded airborne torque left
+            // for it to be guarding against), so it's turned OFF, not
+            // tuned - confirmed by re-running the same two-cycle test
+            // clean (roll=0.0deg after both releases).
+            if (_autoLevel != null) _autoLevel.safeWheelies = false;
 
             // MINI-119 follow-up fix, continued: safeWheelies above only
             // intervenes while the REAR wheel is still grounded (a
@@ -218,6 +244,7 @@ namespace UpIzUpMini.Vehicles
             // window open. Same fix TmaxBikeController.Awake already
             // proved for the mapped bike.
             var ragdoll = GetComponentInChildren<RagdollManager>(true);
+            _ragdollForRecover = ragdoll;
             if (ragdoll != null)
                 foreach (var col in ragdoll.GetComponentsInChildren<Collider>(true))
                     col.isTrigger = true;
@@ -225,7 +252,14 @@ namespace UpIzUpMini.Vehicles
 
         private void FixedUpdate()
         {
-            if (_rb == null || _input == null || _rb.isCrashed) return;
+            if (_rb == null || _input == null) return;
+
+            // MINI-119 follow-up fix: runs BEFORE the isCrashed bail below,
+            // and regardless of it - see this class's own comment on
+            // autoRecoverRollLimitDeg for why that gate was the actual bug.
+            ApplyAutoRecover();
+
+            if (_rb.isCrashed) return;
 
             // Keep the drive/crash fields synced in case their sliders
             // changed at runtime.
@@ -254,6 +288,34 @@ namespace UpIzUpMini.Vehicles
             _rb.wheelieTorque = rampFraction * maxWheelieTorque;
 
             ApplyRollLock();
+        }
+
+        /// <summary>See autoRecoverRollLimitDeg's own tooltip and the
+        /// header comment on this class for the full story - this is
+        /// "press F" (SuperMotoAnytimeReset.ResetUpright) automated, and
+        /// runs even while isCrashed (that's the whole point).</summary>
+        private void ApplyAutoRecover()
+        {
+            if (_body == null) return;
+
+            float rollNow = Vector3.SignedAngle(Vector3.up, transform.up, transform.forward);
+            bool fallenOver = Mathf.Abs(rollNow) > autoRecoverRollLimitDeg;
+
+            _autoRecoverTimer = fallenOver ? _autoRecoverTimer + Time.fixedDeltaTime : 0f;
+            if (_autoRecoverTimer < autoRecoverSustainSeconds) return;
+
+            _body.linearVelocity = Vector3.zero;
+            _body.angularVelocity = Vector3.zero;
+            transform.SetPositionAndRotation(
+                transform.position + Vector3.up * 1f,
+                Quaternion.Euler(0f, transform.eulerAngles.y, 0f));
+            Physics.SyncTransforms();
+
+            if (_ragdollForRecover != null) _ragdollForRecover.resetRider = true;
+            if (_rb != null) _rb.isCrashed = false;
+            if (_crash != null) { _crash.rbSpeed = 0f; _crash.lateRbSpeed = 0f; }
+
+            _autoRecoverTimer = 0f;
         }
 
         /// <summary>See this class's own header for the full reasoning.
@@ -295,7 +357,7 @@ namespace UpIzUpMini.Vehicles
             if (!wheelieInProgress && _rollLockGraceRemaining <= 0f && !emergencyLean) return;
             if (Mathf.Abs(rollNow) < rollLockDeadzoneDeg) return;
 
-            float yaw = transform.eulerAngles.y;
+            float yaw = StableYawDegrees();
             float measuredPitch = MeasurePitch();
             Quaternion noRollRot = Quaternion.Euler(0f, yaw, 0f) * Quaternion.Euler(-measuredPitch, 0f, 0f);
             _body.MoveRotation(noRollRot);
@@ -313,5 +375,30 @@ namespace UpIzUpMini.Vehicles
 
         private float MeasurePitch() =>
             transform == null ? 0f : Mathf.Asin(Mathf.Clamp(transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+
+        // MINI-119 follow-up fix, user: "delve deeper if you need to."
+        // Root cause of the real transient roll divergence
+        // Mini119WheelieAssistTest caught on a second wheelie's release
+        // (roll running away to -58deg before self-correcting): the
+        // roll-lock's own MoveRotation used raw transform.eulerAngles.y as
+        // "yaw" - the EXACT bug BikeCameraAnchor.cs already documents and
+        // fixes elsewhere in this project (see FlatYaw's own comment):
+        // "once the bike pitches past vertical in a wheelie its euler
+        // decomposition flips and the yaw reading jumps 180 degrees".
+        // A wrong yaw fed into rebuilding "yaw * pitch only, no roll"
+        // rotates the WHOLE frame around the wrong axis, which is exactly
+        // what would make measured pitch and roll jump together afterward
+        // - matching what the test showed almost exactly (pitch and roll
+        // reading near-equal magnitudes during the divergence). Same fix
+        // BikeCameraAnchor already proved: derive yaw from the flattened
+        // forward vector via LookRotation instead of raw eulerAngles.
+        private float StableYawDegrees()
+        {
+            Vector3 flat = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+            if (flat.sqrMagnitude < 0.0001f)
+                flat = Vector3.ProjectOnPlane(-transform.up, Vector3.up); // near-vertical: heading lives in -up, same fallback BikeCameraAnchor uses
+            if (flat.sqrMagnitude < 0.0001f) return transform.eulerAngles.y; // fully degenerate, nothing better available
+            return Quaternion.LookRotation(flat.normalized, Vector3.up).eulerAngles.y;
+        }
     }
 }

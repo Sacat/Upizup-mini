@@ -72,7 +72,14 @@ namespace UpIzUpMini.Vehicles
         private void FixedUpdate()
         {
             if (_rb == null || _body == null || _input == null) return;
-            if (_rb.isCrashed) return;
+            // MINI-119 follow-up fix, user (screenshot of the bike lying
+            // fully on its side): "implement the other colliders like a
+            // trike when the wheelie button is pressed... this worked
+            // before so it can work again." The `if (_rb.isCrashed)
+            // return;` that used to be here was switching this whole
+            // system off at exactly the moment it was needed most -
+            // removed, same reasoning as SuperMotoWheelieAssist's own
+            // auto-recover fix.
 
             bool frontGrounded = _rb.wheelColliders != null && _rb.wheelColliders.Length > 1
                 && _rb.wheelColliders[1] != null && _rb.wheelColliders[1].isGrounded;

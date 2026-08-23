@@ -112,6 +112,23 @@ namespace UpIzUpMini.Vehicles
             }
 
             GUILayout.Space(10f);
+            // User: "i need something that can put up the bike to
+            // straight equal on both side just like when i press F it
+            // respawns straight." Same recipe as F itself, automated -
+            // runs even if the bike is flagged crashed, unlike everything
+            // above.
+            GUILayout.Label("-- AUTO-RECOVER (like pressing F, automatic) --");
+            if (_wheelieAssist != null)
+            {
+                Slider("Fallen-over limit (deg)",
+                    _wheelieAssist.autoRecoverRollLimitDeg, 20f, 170f, v => _wheelieAssist.autoRecoverRollLimitDeg = v,
+                    "Roll past this counts as properly fallen over, not just leaning.");
+                Slider("Sustain time (s)",
+                    _wheelieAssist.autoRecoverSustainSeconds, 0f, 3f, v => _wheelieAssist.autoRecoverSustainSeconds = v,
+                    "How long it has to stay fallen over before auto-recovery snaps it upright.");
+            }
+
+            GUILayout.Space(10f);
             // User: "keeping the bike balanced and upright while riding" -
             // AutoLeveling, already built into the pack (autoLevelForce
             // etc.) - a real precedence bug in it (see AutoLeveling.cs's
@@ -168,6 +185,8 @@ namespace UpIzUpMini.Vehicles
                         $"  SuperMotoWheelieAssist.rollLockDeadzoneDeg = {_wheelieAssist.rollLockDeadzoneDeg:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.rollLockGraceSeconds = {_wheelieAssist.rollLockGraceSeconds:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.emergencyRollLimitDeg = {_wheelieAssist.emergencyRollLimitDeg:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.autoRecoverRollLimitDeg = {_wheelieAssist.autoRecoverRollLimitDeg:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.autoRecoverSustainSeconds = {_wheelieAssist.autoRecoverSustainSeconds:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.firstGearTorque = {_wheelieAssist.firstGearTorque:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.topGearTorque = {_wheelieAssist.topGearTorque:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.crashDecelerationThreshold = {_wheelieAssist.crashDecelerationThreshold:F2}f;\n" : "") +
