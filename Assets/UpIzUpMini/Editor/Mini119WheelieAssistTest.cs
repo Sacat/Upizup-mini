@@ -106,6 +106,13 @@ namespace UpIzUpMini.EditorTools
             // play and gives the roll-lock nothing real to correct.
             FieldInfo wheelieField = typeof(Input_Manager).GetField("wheelieInput", BindingFlags.NonPublic | BindingFlags.Instance);
             FieldInfo vInputField = typeof(Input_Manager).GetField("vInput", BindingFlags.NonPublic | BindingFlags.Instance);
+            // MINI-119 follow-up, user: "i bring down the wheelie torque
+            // to 4.00 and its still too high." Real second cause found by
+            // reading RB_Controller.Stoppies() directly: it overwrites
+            // wheelieTorque with stoppieTorque (1500) whenever BOTH the
+            // wheelie key and the brake are held. Held here too, so this
+            // test actually exercises that path instead of missing it.
+            FieldInfo brakeField = typeof(Input_Manager).GetField("frontBreakInput", BindingFlags.NonPublic | BindingFlags.Instance);
 
             // Nudge an initial roll in before the hold starts, so the
             // roll-lock has something real to correct rather than a
@@ -114,7 +121,7 @@ namespace UpIzUpMini.EditorTools
 
             const float dt = 0.02f;
             const int steps = 300; // 6 real seconds
-            float maxAbsRoll = 0f, maxAbsYawRate = 0f;
+            float maxAbsRoll = 0f, maxAbsYawRate = 0f, maxWheelieTorqueSeen = 0f;
             for (int i = 0; i < steps; i++)
             {
                 // Release at t=3s (step 150) - checks the grace-period fix
@@ -123,6 +130,7 @@ namespace UpIzUpMini.EditorTools
                 // testing a sustained hold.
                 wheelieField?.SetValue(remap, i < 150 ? 1f : 0f);
                 vInputField?.SetValue(remap, 1f); // W held throughout - real forward motion
+                brakeField?.SetValue(remap, i < 150 ? 1f : 0f); // brake+wheelie together - the Stoppies() scenario
 
                 InvokeIfExists(gadd, "Update");
                 InvokeIfExists(crashCtrl, "Update");
@@ -138,6 +146,7 @@ namespace UpIzUpMini.EditorTools
                 float roll = Vector3.SignedAngle(Vector3.up, instance.transform.up, instance.transform.forward);
                 maxAbsRoll = Mathf.Max(maxAbsRoll, Mathf.Abs(roll));
                 maxAbsYawRate = Mathf.Max(maxAbsYawRate, Mathf.Abs(rb.angularVelocity.y));
+                maxWheelieTorqueSeen = Mathf.Max(maxWheelieTorqueSeen, gadd.wheelieTorque);
 
                 if (i == 49 || i == 149 || i == 199 || i == 299)
                 {
@@ -146,7 +155,7 @@ namespace UpIzUpMini.EditorTools
                 }
             }
 
-            Debug.Log($"MINI-119 WHEELIE TEST RESULT: over 6.0s with wheelie held - max |roll| seen={maxAbsRoll:F1}deg (should stay near 0, 'keep it straight'), max |yaw rate|={maxAbsYawRate:F1}deg/s, isCrashed={gadd.isCrashed}.");
+            Debug.Log($"MINI-119 WHEELIE TEST RESULT: over 6.0s with wheelie+brake held together - max |roll| seen={maxAbsRoll:F1}deg (should stay near 0, 'keep it straight'), max |yaw rate|={maxAbsYawRate:F1}deg/s, max wheelieTorque seen={maxWheelieTorqueSeen:F1} (should never exceed maxWheelieTorque={assist.maxWheelieTorque:F1} - if it does, Stoppies() is still overriding it), isCrashed={gadd.isCrashed} (crashTag cleared, so this can now only come from decelerationSpeedForCrash).");
 
             Object.DestroyImmediate(instance);
             Object.DestroyImmediate(ground);

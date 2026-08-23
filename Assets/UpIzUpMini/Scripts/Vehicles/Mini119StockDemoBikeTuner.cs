@@ -106,6 +106,9 @@ namespace UpIzUpMini.Vehicles
                 Slider("Grace period (s)",
                     _wheelieAssist.rollLockGraceSeconds, 0f, 10f, v => _wheelieAssist.rollLockGraceSeconds = v,
                     "How long the correction keeps working after the wheelie visibly ends, so landing doesn't leave it leaned over.");
+                Slider("Emergency limit (deg)",
+                    _wheelieAssist.emergencyRollLimitDeg, 5f, 150f, v => _wheelieAssist.emergencyRollLimitDeg = v,
+                    "Past this roll angle, straightening kicks in ANY time (not just wheelies) - covers a ledge/bump lean. Keep above normal cornering lean.");
             }
 
             GUILayout.Space(10f);
@@ -164,6 +167,7 @@ namespace UpIzUpMini.Vehicles
                         $"  SuperMotoWheelieAssist.maxWheelieTorque = {_wheelieAssist.maxWheelieTorque:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.rollLockDeadzoneDeg = {_wheelieAssist.rollLockDeadzoneDeg:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.rollLockGraceSeconds = {_wheelieAssist.rollLockGraceSeconds:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.emergencyRollLimitDeg = {_wheelieAssist.emergencyRollLimitDeg:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.firstGearTorque = {_wheelieAssist.firstGearTorque:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.topGearTorque = {_wheelieAssist.topGearTorque:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.crashDecelerationThreshold = {_wheelieAssist.crashDecelerationThreshold:F2}f;\n" : "") +

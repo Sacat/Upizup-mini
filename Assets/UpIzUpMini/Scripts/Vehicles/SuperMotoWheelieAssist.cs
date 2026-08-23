@@ -91,6 +91,8 @@ namespace UpIzUpMini.Vehicles
         public float rollLockDeadzoneDeg = 3f;
         [Tooltip("Seconds the roll-lock keeps correcting after a wheelie visibly ends (ramp back down, front wheel back on the ground) - a short grace period so a bike that's still settling from the landing doesn't get left leaned over the instant the wheelie officially ends.")]
         public float rollLockGraceSeconds = 0.5f;
+        [Tooltip("MINI-119 follow-up, user: 'it still rides with a lean after i try to wheelie or turn by a ledge.' A ledge/bump can lean the bike even with no wheelie involved at all, which the wheelie-only gating above never catches. Above THIS roll angle, the same straightening correction applies any time, not just during a wheelie - normal cornering lean should stay well under this, so it shouldn't fight intentional turning.")]
+        public float emergencyRollLimitDeg = 35f;
 
         // MINI-119 follow-up, user: "i need more hill assist because it
         // use to climb the hill better than that." Not wheelie-related at
@@ -164,10 +166,50 @@ namespace UpIzUpMini.Vehicles
             // street wheelie has no use for an aerial-backflip force, so
             // this is zeroed outright rather than tuned - restorable via
             // the inspector if a deliberate backflip trick is ever wanted.
-            if (_rb != null) _rb.backFlipTorque = 0f;
+            // MINI-119 follow-up fix, user: "i bring down the wheelie
+            // torque to 4.00 and its still too high... the wheelie is
+            // still not gradual." Real second torque source found by
+            // reading RB_Controller.cs directly, not guessed: its own
+            // Update() runs Stoppies() every frame, which - whenever BOTH
+            // the wheelie key AND the brake are held (a completely normal
+            // real-motorcycle-wheelie technique) - directly OVERWRITES
+            // wheelieTorque with stoppieTorque (the vendor's own default:
+            // 1500, five times even the original unlowered 300 default)
+            // AFTER this class's own FixedUpdate has already set its
+            // carefully-ramped value. No amount of turning this class's
+            // own slider down could ever fix that - it was being
+            // clobbered by an entirely different vendor system holding
+            // the brake ever touched E/Q. Disabled outright; this rig's
+            // roll behaviour is fully covered by the roll-lock below
+            // instead of the vendor's own beta stoppie-constraint dance.
+            if (_rb != null)
+            {
+                _rb.enableStoppiesBETA = false;
+                _rb.backFlipTorque = 0f;
+            }
 
             _crash = GetComponent<CrashController>();
-            if (_crash != null) _crash.decelerationSpeedForCrash = crashDecelerationThreshold;
+            if (_crash != null)
+            {
+                _crash.decelerationSpeedForCrash = crashDecelerationThreshold;
+
+                // MINI-119 follow-up fix, user: "i put the crach
+                // sensitivity to 200 and it is still easy to crash... are
+                // sure its that because it doesnt make too much sense."
+                // Right to be sceptical - read CrashController.cs
+                // directly and found a SECOND, completely independent
+                // crash trigger that has nothing to do with deceleration
+                // at all: OnTriggerEnter flags a crash on contact with
+                // anything tagged "Ground" OR "Untagged" - and the prefab
+                // ships with crashTag = ["Ground","Untagged"]. "Untagged"
+                // is Unity's own default tag for any object nobody
+                // explicitly tagged, which describes most of this game's
+                // world - so that trigger could fire on brushing almost
+                // anything, entirely regardless of the deceleration
+                // slider. Cleared so decelerationSpeedForCrash above is
+                // actually the one and only thing deciding a crash now.
+                _crash.crashTag = new string[0];
+            }
 
             // MINI-119 follow-up fix, user: "it crashes a bit too easy...
             // not sure if the ragdoll has anything to do with this." Forced
@@ -240,9 +282,17 @@ namespace UpIzUpMini.Vehicles
             if (wheelieInProgress) _rollLockGraceRemaining = rollLockGraceSeconds;
             else if (_rollLockGraceRemaining > 0f) _rollLockGraceRemaining -= Time.fixedDeltaTime;
 
-            if (!wheelieInProgress && _rollLockGraceRemaining <= 0f) return;
-
             float rollNow = Vector3.SignedAngle(Vector3.up, transform.up, transform.forward);
+
+            // MINI-119 follow-up fix, user: "it still rides with a lean
+            // after i try to wheelie or turn by a ledge." A ledge hit
+            // isn't a wheelie at all, so it was never covered by the
+            // gating below - this emergency case bypasses that gating
+            // entirely once roll is genuinely large, regardless of what
+            // the wheelie ramp/front wheel are doing.
+            bool emergencyLean = Mathf.Abs(rollNow) > emergencyRollLimitDeg;
+
+            if (!wheelieInProgress && _rollLockGraceRemaining <= 0f && !emergencyLean) return;
             if (Mathf.Abs(rollNow) < rollLockDeadzoneDeg) return;
 
             float yaw = transform.eulerAngles.y;
