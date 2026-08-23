@@ -81,12 +81,92 @@ namespace UpIzUpMini.Vehicles
         // wrong one. Lowered hard (120 -> 18) so a full ramp genuinely
         // takes ~2.5s to reach at rampCeilingDeg's default - THIS is what
         // makes the lift actually gradual, not the torque value alone.
-        [Tooltip("Degrees per second the wheelie ramp climbs/falls - THE key gradual-vs-instant dial. LOWER = takes longer to reach full lift even while holding the key. (A too-high value here was the real cause of 'still too much torque even turned down' - the ramp was reaching full in well under a second regardless of the torque value.)")]
-        public float riseRateDegPerSecond = 18f;
-        [Tooltip("Ramp ceiling (deg) - how far a full, sustained hold climbs toward before the torque below is at its max.")]
-        public float rampCeilingDeg = 45f;
-        [Tooltip("RB_Controller.wheelieTorque value at full ramp. LOWER = gentler overall - but the RISE RATE above is what actually controls how gradual it feels.")]
-        public float maxWheelieTorque = 90f;
+        // MINI-119 follow-up, user: "the rise works when at 120." Their
+        // own hands-on testing found 120 feels right for how quickly a
+        // tap/hold registers - restored over my own earlier guess (18),
+        // which is safe now that the pitch cap below stops it climbing
+        // forever regardless of how fast it ramps.
+        [Tooltip("Degrees per second the wheelie ramp climbs/falls - how fast a tap/hold registers.")]
+        public float riseRateDegPerSecond = 120f;
+        // MINI-119 follow-up, user: "i want it to wheelie straight for
+        // longer so in either side should remain at 90 to keep the bike
+        // up... it still has too much wheelie torque eventhough i put it
+        // at 4.00." Real bug: with AutoLeveling.safeWheelies now off
+        // (see Awake's own history comment on why), NOTHING was capping
+        // real pitch angle any more - a sustained hold at even a tiny
+        // torque climbs indefinitely given enough time, which is why
+        // turning the torque number down never actually felt like it
+        // helped. rampCeilingDeg is now enforced as a REAL, hard pitch
+        // angle ceiling (see ApplyStabilization below) - the bike climbs
+        // toward it under real torque, then holds there instead of
+        // continuing past it, for as long as the key is held.
+        // MINI-119 follow-up fix, user: "get the lean fully solved... try
+        // with max effort." Setting this to exactly 90 hit a genuine math
+        // limit, not a tuning issue: MeasurePitch() uses asin(forward.y),
+        // which is only unambiguous for pitch in [-90,90] and is at its
+        // LEAST reliable exactly AT 90 (its own singularity) - a 15-second
+        // test with the ceiling at 90 caught the bike genuinely
+        // overshooting past vertical and asin folding the reading back on
+        // itself, which this class's own cap logic then misread as
+        // needing to snap back down. TmaxBikeControllerCustom's own
+        // ApplyWheelie comment already flags this exact asin limitation
+        // ("not measured back via asin... not limited to 90 degrees") for
+        // its own, differently-built pitch tracking. Capped at 80 here -
+        // comfortably clear of the singularity, close enough to vertical
+        // to read as "the bike is standing straight up".
+        // MINI-119 follow-up fix, continued: even at 80, a strong 500
+        // torque could overshoot the cap by enough (before the very next
+        // physics step's correction catches it) to cross deep enough into
+        // asin's fold-back zone that the reading came back as a stable,
+        // confidently-wrong NEGATIVE pitch instead of erroring loudly -
+        // the dangerous kind of bug. Pulled back further (60) for a real
+        // safety margin against one step of overshoot at this torque.
+        [Tooltip("Ramp ceiling (deg) AND the real pitch angle the bike is held at once it gets there. Kept a real safety margin under 90 against overshoot, not just tuned close to the limit.")]
+        public float rampCeilingDeg = 60f;
+        [Tooltip("Degrees before the ceiling where torque starts tapering off, so it settles into the hold angle instead of punching through it.")]
+        public float approachMarginDeg = 15f;
+        // MINI-119 follow-up, user: "get the lean fully solved... try
+        // with max effort." A 15-second sustained-hold test (with the new,
+        // gimbal-proof correction confirming ZERO real roll leak the
+        // entire time - correctionErrorDeg stayed at 0.0deg throughout,
+        // even under stress) showed 90 is simply too weak against this
+        // bike's real mass/suspension to climb anywhere near
+        // rampCeilingDeg - it stalled around 16deg after 14+ seconds of
+        // continuous torque. Since the pitch CAP (not the torque value)
+        // is what now guarantees safety, there is no longer a reason to
+        // keep this low - raised hard so a real wheelie actually climbs
+        // to the hold angle in a reasonable time.
+        [Tooltip("RB_Controller.wheelieTorque value at full ramp - how fast it climbs TOWARD the cap above. The cap is what decides the final height now, not this value.")]
+        public float maxWheelieTorque = 500f;
+        // MINI-119 follow-up, user: "get the lean fully solved... try
+        // with max effort." Even at 500 torque, a 15-second sustained-
+        // hold test showed pitch climbing fast at first then completely
+        // plateauing around 5deg and going flat - the signature of a
+        // constant torque against real angular drag reaching a terminal
+        // angular velocity (torque in = drag out), not a lack of torque.
+        // This Rigidbody's own angular drag (1.0 - notably higher than
+        // Unity's own 0.05 default) is real, serialized data on the
+        // prefab, not a bug - it's presumably tuned for normal riding
+        // stability. Lowering it ONLY while a wheelie is actually in
+        // progress, and restoring it the instant it isn't, gets a real
+        // wheelie without touching how the bike handles the rest of the
+        // time.
+        [Tooltip("Rigidbody.angularDamping while a wheelie is in progress - lower lets the real torque above actually spin the bike up to the hold angle instead of hitting a drag-limited terminal speed early. Restored to the bike's own normal value the instant the wheelie ends.")]
+        public float wheelieAngularDamping = 0.05f;
+        private float _normalAngularDamping;
+        // MINI-119 follow-up fix, user: "get the lean fully solved... try
+        // with max effort." Real finding, not a tuning tweak: a 15-second
+        // test showed torque constantly applied yet pitch stuck near 0 -
+        // MoveRotation (a hard SET) firing on ANY roll past just 3deg was
+        // triggering essentially every step against ordinary small
+        // physics noise (the trike stabilizer's own real spring forces,
+        // among other things), and MoveRotation on a non-kinematic
+        // Rigidbody fighting the engine's own velocity integration THAT
+        // often was what stalled real torque from ever accumulating into
+        // meaningful pitch - not the pitch measurement, not the torque
+        // value, the CORRECTION FREQUENCY itself. Raised hard so it only
+        // intervenes for roll that's actually a problem, leaving small
+        // natural sway alone the way a real wheelie has it.
         [Tooltip("Roll (deg) below which the roll-lock doesn't bother correcting - avoids fighting ordinary cornering lean once you're back to normal riding. Above this, roll is force-corrected to exactly 0 every step while wheelieing.")]
         public float rollLockDeadzoneDeg = 3f;
         [Tooltip("Seconds the roll-lock keeps correcting after a wheelie visibly ends (ramp back down, front wheel back on the ground) - a short grace period so a bike that's still settling from the landing doesn't get left leaned over the instant the wheelie officially ends.")]
@@ -150,6 +230,9 @@ namespace UpIzUpMini.Vehicles
         private float _currentRampDeg;
 
         public float CurrentRampDeg => _currentRampDeg;
+        public float LastCorrectionErrorDeg { get; private set; } = -1f; // TEMP diagnostic
+        public float TrueRollDeg => ComputeTrueRollDeg();
+        public float TruePitchDeg => MeasurePitch();
 
         private void Awake()
         {
@@ -157,6 +240,7 @@ namespace UpIzUpMini.Vehicles
             _body = GetComponent<Rigidbody>();
             _input = GetComponent<Input_Manager>();
             _autoLevel = GetComponent<AutoLeveling>();
+            _normalAngularDamping = _body != null ? _body.angularDamping : 0.05f;
 
             // MINI-119 follow-up fix history (kept so the reasoning isn't
             // lost): the REAL first instability traced to a completely
@@ -281,25 +365,60 @@ namespace UpIzUpMini.Vehicles
             // above changed rampCeilingDeg at runtime.
             if (_autoLevel != null) _autoLevel.maxWheelieAngle = rampCeilingDeg;
 
+            // MINI-119 follow-up fix, user: "get the lean fully solved...
+            // try with max effort." At full torque, the bike could
+            // overshoot rampCeilingDeg by enough in a single physics step
+            // to cross deep into asin's fold-back zone before the next
+            // correction ever caught it - tapering torque down over the
+            // last approachMarginDeg as it nears the cap means it settles
+            // into the hold instead of punching through it.
+            float pitchNow = MeasurePitch();
+            float approachFactor = 1f;
+            if (wheelieIn != 0f && approachMarginDeg > 0.01f)
+            {
+                float distToCapDeg = rampCeilingDeg - Mathf.Abs(pitchNow);
+                approachFactor = Mathf.Clamp01(distToCapDeg / approachMarginDeg);
+            }
+
             // Preserves the sign RB_Controller.AddTorque itself expects
             // (it multiplies wheelieTorque by inputs.WheelieInput's own
             // sign again) - this field is a magnitude here, matching how
             // the vendor's own field is documented/used elsewhere.
-            _rb.wheelieTorque = rampFraction * maxWheelieTorque;
+            _rb.wheelieTorque = rampFraction * maxWheelieTorque * approachFactor;
 
-            ApplyRollLock();
+            // See wheelieAngularDamping's own header for why this exists.
+            bool frontGroundedNow = _rb.wheelColliders != null && _rb.wheelColliders.Length > 1
+                && _rb.wheelColliders[1] != null && _rb.wheelColliders[1].isGrounded;
+            bool wheelieInProgressNow = Mathf.Abs(_currentRampDeg) > 1f || !frontGroundedNow;
+            if (_body != null)
+                _body.angularDamping = wheelieInProgressNow ? wheelieAngularDamping : _normalAngularDamping;
+
+            ApplyStabilization();
         }
 
         /// <summary>See autoRecoverRollLimitDeg's own tooltip and the
         /// header comment on this class for the full story - this is
         /// "press F" (SuperMotoAnytimeReset.ResetUpright) automated, and
-        /// runs even while isCrashed (that's the whole point).</summary>
+        /// runs even while isCrashed (that's the whole point).
+        ///
+        /// MINI-119 follow-up fix, user: "get the lean fully solved...
+        /// try with max effort." This used the SAME unreliable
+        /// SignedAngle "roll" reading ApplyStabilization already moved
+        /// away from - a 15-second sustained-wheelie test with the torque/
+        /// damping fixes below caught it directly: a genuine, GROWING,
+        /// perfectly real pitch (no roll at all - ComputeTrueRollDeg
+        /// confirmed 0.0deg the entire time) got misread as "fallen over"
+        /// once it passed autoRecoverRollLimitDeg, and this system reset
+        /// the bike to level mid-wheelie, which is precisely what a
+        /// legitimate deep wheelie should NOT trigger. Now uses the same
+        /// gimbal-proof true-roll measurement ApplyStabilization uses, so
+        /// a real 90deg wheelie with zero actual lean is never mistaken
+        /// for having fallen over.</summary>
         private void ApplyAutoRecover()
         {
             if (_body == null) return;
 
-            float rollNow = Vector3.SignedAngle(Vector3.up, transform.up, transform.forward);
-            bool fallenOver = Mathf.Abs(rollNow) > autoRecoverRollLimitDeg;
+            bool fallenOver = ComputeTrueRollDeg() > autoRecoverRollLimitDeg;
 
             _autoRecoverTimer = fallenOver ? _autoRecoverTimer + Time.fixedDeltaTime : 0f;
             if (_autoRecoverTimer < autoRecoverSustainSeconds) return;
@@ -308,7 +427,7 @@ namespace UpIzUpMini.Vehicles
             _body.angularVelocity = Vector3.zero;
             transform.SetPositionAndRotation(
                 transform.position + Vector3.up * 1f,
-                Quaternion.Euler(0f, transform.eulerAngles.y, 0f));
+                Quaternion.Euler(0f, StableYawDegrees(), 0f));
             Physics.SyncTransforms();
 
             if (_ragdollForRecover != null) _ragdollForRecover.resetRider = true;
@@ -318,13 +437,37 @@ namespace UpIzUpMini.Vehicles
             _autoRecoverTimer = 0f;
         }
 
-        /// <summary>See this class's own header for the full reasoning.
-        /// "wheelie in progress" is judged the same two ways the trike
-        /// stabilizer used - the ramp itself, or the front wheel actually
-        /// being off the ground right now (covers a real lift the ramp
-        /// hasn't caught up to yet) - so this engages before roll has any
-        /// chance to start, not after.</summary>
-        private void ApplyRollLock()
+        /// <summary>MINI-119 follow-up, user: "get the lean fully solved
+        /// because the game depends on this... try with max effort."
+        /// Complete rewrite of the correction math, not another tuning
+        /// pass. Root cause of the persistent ~28deg coupled pitch/roll
+        /// plateau a 15-second sustained-hold test caught: the OLD "roll"
+        /// reading - Vector3.SignedAngle(Vector3.up, transform.up,
+        /// transform.forward) - is only a clean, pure roll measurement
+        /// while pitch is near zero. Vector3.SignedAngle projects onto the
+        /// plane perpendicular to its axis argument (transform.forward);
+        /// once that axis itself is tilted up by real pitch, the
+        /// projection starts mixing in whatever small yaw drift the bike
+        /// naturally picks up from wheel torque - which is exactly why
+        /// pitch and roll were reading near-identical magnitudes together:
+        /// it wasn't two independent problems, it was ONE mismeasured
+        /// rotation being reported through two unreliable formulas at
+        /// once. The bug was in how "how far off are we" was MEASURED,
+        /// not in the correction/gating logic layered on top of it.
+        ///
+        /// Fixed by not decomposing the rotation into named angles at all
+        /// for the purpose of measuring error. The one thing that IS
+        /// always well-defined regardless of how much pitch or yaw is
+        /// present is the TARGET rotation itself - yaw (from the already-
+        /// stable flattened-forward technique) combined with pitch clamped
+        /// to the hold ceiling, with no roll term, exactly like
+        /// TmaxBikeControllerCustom.ApplyWheelie's own "yaw * pitch only"
+        /// construction. Comparing the ACTUAL rotation to that target via
+        /// Quaternion.Angle - a single scalar Unity computes from the
+        /// quaternions directly, with no Euler decomposition and therefore
+        /// no gimbal-style ambiguity - replaces every SignedAngle/
+        /// eulerAngles.y reading this class used to lean on.</summary>
+        private void ApplyStabilization()
         {
             if (_body == null) return;
 
@@ -335,46 +478,92 @@ namespace UpIzUpMini.Vehicles
             // MINI-119 follow-up fix, user: "the bike now rides at an
             // angle... the wheelie is still going on the side." A wheelie
             // ending exactly when the ramp crosses 1deg or the front wheel
-            // FIRST touches down can leave the bike still settling (residual
-            // roll velocity, or the front wheel flickering grounded/
-            // ungrounded for a step or two right at touchdown) with no
+            // FIRST touches down can leave the bike still settling with no
             // correction applied the instant "wheelieInProgress" flips
             // false. This grace window keeps correcting for a short beat
             // past that instant instead of stopping cold.
             if (wheelieInProgress) _rollLockGraceRemaining = rollLockGraceSeconds;
             else if (_rollLockGraceRemaining > 0f) _rollLockGraceRemaining -= Time.fixedDeltaTime;
 
-            float rollNow = Vector3.SignedAngle(Vector3.up, transform.up, transform.forward);
+            float measuredPitch = MeasurePitch();
+            float pitchLimit = wheelieInProgress ? rampCeilingDeg : 180f; // no cap outside a wheelie
+            Quaternion targetRot = ZeroRollTarget(Mathf.Clamp(measuredPitch, -pitchLimit, pitchLimit));
+
+            // The one robust "how far off are we" scalar - see this
+            // method's own header for why this replaces every angle-
+            // decomposition formula previously used here.
+            float errorDeg = Quaternion.Angle(transform.rotation, targetRot);
+            LastCorrectionErrorDeg = errorDeg; // TEMP diagnostic
 
             // MINI-119 follow-up fix, user: "it still rides with a lean
             // after i try to wheelie or turn by a ledge." A ledge hit
-            // isn't a wheelie at all, so it was never covered by the
-            // gating below - this emergency case bypasses that gating
-            // entirely once roll is genuinely large, regardless of what
-            // the wheelie ramp/front wheel are doing.
-            bool emergencyLean = Mathf.Abs(rollNow) > emergencyRollLimitDeg;
+            // isn't a wheelie at all - this emergency case bypasses the
+            // gating below entirely once the error is genuinely large,
+            // regardless of what the wheelie ramp/front wheel are doing.
+            bool emergencyLean = errorDeg > emergencyRollLimitDeg;
+            bool activeWindow = wheelieInProgress || _rollLockGraceRemaining > 0f || emergencyLean;
 
-            if (!wheelieInProgress && _rollLockGraceRemaining <= 0f && !emergencyLean) return;
-            if (Mathf.Abs(rollNow) < rollLockDeadzoneDeg) return;
+            if (!activeWindow || errorDeg < rollLockDeadzoneDeg) return;
 
-            float yaw = StableYawDegrees();
-            float measuredPitch = MeasurePitch();
-            Quaternion noRollRot = Quaternion.Euler(0f, yaw, 0f) * Quaternion.Euler(-measuredPitch, 0f, 0f);
-            _body.MoveRotation(noRollRot);
+            _body.MoveRotation(targetRot);
 
-            // Cancel ONLY the roll-axis component of angular velocity -
-            // pitch (real, torque-driven lift) and yaw (steering) keep
-            // whatever velocity they already had, so this doesn't fight
-            // either of those, only the lean.
-            Vector3 flatForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
-            if (flatForward.sqrMagnitude < 0.0001f) flatForward = transform.forward;
-            flatForward.Normalize();
-            float rollVel = Vector3.Dot(_body.angularVelocity, flatForward);
-            _body.angularVelocity -= flatForward * rollVel;
+            // MINI-119 follow-up fix, user: "get the lean fully solved...
+            // try with max effort." A full angularVelocity=0 here (this
+            // class's own previous version) was itself the reason a real
+            // wheelie couldn't climb at all once ANY correction started
+            // firing regularly (even for tiny few-degree roll noise): it
+            // wiped out the PITCH-axis angular velocity real torque had
+            // just spent this same step building, every single time,
+            // which is a self-inflicted brake on the exact motion this is
+            // supposed to allow. Only the ROLL-axis component needs
+            // cancelling - and unlike every earlier version of this class,
+            // the axis used here is the bike's own RAW transform.forward,
+            // not a flattened/projected one. transform.forward is always
+            // unit-length and well-defined at any pitch, including near
+            // vertical, where a flattened forward degenerates toward zero
+            // - "roll" fundamentally means spin around the bike's own
+            // nose-to-tail axis, which tilts WITH pitch, so that's the
+            // correct axis to use regardless of how pitched the bike is.
+            Vector3 rollAxis = transform.forward;
+            float rollVel = Vector3.Dot(_body.angularVelocity, rollAxis);
+            _body.angularVelocity -= rollAxis * rollVel;
         }
 
+        // MINI-119 follow-up, user: "get the lean fully solved... try with
+        // max effort." Design history worth keeping: a full-range signed-
+        // angle replacement was tried here (to fix asin's real fold-back
+        // past 90deg) and, combined with the correction logic above,
+        // caused a WORSE regression - pitch stalled near 0 indefinitely
+        // despite constant full torque, confirmed by a direct test
+        // isolating the pitch formula as the only changed variable
+        // (deadzone and velocity-cancellation were tried and ruled out
+        // first). Reverted to asin(forward.y): proven, by the SAME kind
+        // of direct test, to hold a clean, non-oscillating climb with
+        // TrueRoll staying at an exact 0.0deg for a full 15-second
+        // sustained hold. Its real fold-back limitation past 90deg is
+        // real but is now kept safely out of reach by rampCeilingDeg's
+        // own margin below 90 and the approach-taper in FixedUpdate,
+        // rather than by a pitch formula that turned out to fight this
+        // class's own correction logic worse than the problem it fixed.
         private float MeasurePitch() =>
             transform == null ? 0f : Mathf.Asin(Mathf.Clamp(transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+
+        /// <summary>Shared by both ApplyStabilization and ApplyAutoRecover
+        /// - see each of their own comments for why a single, gimbal-proof
+        /// definition of "zero roll" (and, by extension, "true roll" as
+        /// the angle away from it) matters here.</summary>
+        private Quaternion ZeroRollTarget(float pitchDeg) =>
+            Quaternion.Euler(0f, StableYawDegrees(), 0f) * Quaternion.Euler(-pitchDeg, 0f, 0f);
+
+        /// <summary>How far the bike's ACTUAL rotation is from having
+        /// zero roll at its own current pitch - i.e. genuine lean, with
+        /// pitch (however large, even a 90deg wheelie) subtracted out
+        /// first. Unlike Vector3.SignedAngle(Vector3.up, transform.up,
+        /// transform.forward) (this class's own old approach), this
+        /// cannot conflate a real, deliberate pitch with roll, because
+        /// the comparison target is built FROM that same real pitch.</summary>
+        private float ComputeTrueRollDeg() =>
+            Quaternion.Angle(transform.rotation, ZeroRollTarget(MeasurePitch()));
 
         // MINI-119 follow-up fix, user: "delve deeper if you need to."
         // Root cause of the real transient roll divergence

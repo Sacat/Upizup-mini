@@ -81,13 +81,13 @@ namespace UpIzUpMini.Vehicles
             {
                 Slider("Rise rate (deg/s)",
                     _wheelieAssist.riseRateDegPerSecond, 1f, 1000f, v => _wheelieAssist.riseRateDegPerSecond = v,
-                    "THE gradual-vs-instant dial. Lower = takes longer to reach full lift, even while holding the key.");
-                Slider("Ramp ceiling (deg)",
+                    "How fast a tap/hold registers.");
+                Slider("Ramp ceiling / hold angle (deg)",
                     _wheelieAssist.rampCeilingDeg, 1f, 600f, v => _wheelieAssist.rampCeilingDeg = v,
-                    "The angle a full, sustained hold ramps toward.");
+                    "A real angle CAP now - the bike climbs to this and holds here (won't go past it or fall over from excess torque). 90 = straight up.");
                 Slider("Wheelie torque at full ramp",
                     _wheelieAssist.maxWheelieTorque, 4f, 4000f, v => _wheelieAssist.maxWheelieTorque = v,
-                    "How hard it lifts once the ramp is up. LOWER = gentler overall.");
+                    "How FAST it climbs toward the hold angle above. The cap decides the final height now, not this.");
             }
 
             GUILayout.Space(10f);

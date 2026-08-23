@@ -14,10 +14,20 @@ namespace UpIzUpMini.Vehicles
     /// works... we tweak it."
     ///
     /// Same left-to-right precedence as the base method (if both keys are
-    /// held, the second if-check wins) - E stands in for LeftControl
-    /// (wheelieInput = -1), Q stands in for LeftShift (wheelieInput = 1).
-    /// If that direction feels backwards in play, swap which key sets
-    /// which sign here - it's a one-line change either way.
+    /// held, the second if-check wins).
+    ///
+    /// MINI-119 follow-up fix, user: "get the lean fully solved... try
+    /// with max effort." E and Q originally mapped to -1/+1 respectively,
+    /// guessed from reading RB_Controller.Stoppies() (gated on WheelieInput
+    /// == 1, which looked like it should be the OTHER, non-wheelie
+    /// direction). A direct empirical test proved that guess backwards:
+    /// wheelieInput = -1 consistently, cleanly pitched the nose DOWN over
+    /// a real 15-second sustained hold; wheelieInput = +1 pitched it UP
+    /// (until it overshot the OLD 90deg cap and hit a separate asin-
+    /// singularity bug, since fixed - see SuperMotoWheelieAssist.
+    /// rampCeilingDeg's own comment). Swapped to match reality: E (the
+    /// key the user actually wants to lift the nose) now sends +1, Q
+    /// sends -1.
     /// </summary>
     public class SuperMotoWheelieKeyRemap : Input_Manager
     {
@@ -25,8 +35,8 @@ namespace UpIzUpMini.Vehicles
         {
             if (Input.GetKey(KeyCode.E) || Input.GetKey(KeyCode.Q))
             {
-                if (Input.GetKey(KeyCode.E)) wheelieInput = -1;
-                if (Input.GetKey(KeyCode.Q)) wheelieInput = 1;
+                if (Input.GetKey(KeyCode.E)) wheelieInput = 1;
+                if (Input.GetKey(KeyCode.Q)) wheelieInput = -1;
             }
             else
             {
