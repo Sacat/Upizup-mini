@@ -1,4 +1,5 @@
 using UnityEngine;
+using UpIzUpMini.Cameras;
 using UpIzUpMini.Character;
 using UpIzUpMini.Missions;
 using UpIzUpMini.UI;
@@ -208,19 +209,35 @@ namespace UpIzUpMini.Vehicles
             if (shortcuts == null) shortcuts = instance.AddComponent<Gadd420.KeyBoardShortCuts>();
             shortcuts.currentBike = instance.transform;
 
-            var cam = Camera.main;
+            // MINI-119 follow-up, user: "use my camera follow system, from
+            // my bike system because for this one i must keep turning the
+            // mouse to it can keep track but with my old system it
+            // automatically tracks and follows the character properly."
+            // Same anchor + SetTarget/OrbitLocked pattern SuperMotoInteractable.
+            // Possess() already uses for the mapped bike - our OWN camera,
+            // no mouse-orbit required, reused as-is rather than reinvented.
+            var cam = FindFirstObjectByType<ThirdPersonFollowCamera>();
             if (cam != null)
             {
-                var ourCam = cam.GetComponent<UpIzUpMini.Cameras.ThirdPersonFollowCamera>();
-                if (ourCam != null) ourCam.enabled = false;
-
-                var stockCam = cam.GetComponent<Gadd420.ThirdPersonCamera>();
-                if (stockCam == null) stockCam = cam.gameObject.AddComponent<Gadd420.ThirdPersonCamera>();
-                stockCam.enabled = true;
-                stockCam.lookAt = instance.transform;
+                var anchorGo = new GameObject("StockDemoCameraAnchor");
+                var anchor = anchorGo.AddComponent<BikeCameraAnchor>();
+                anchor.Follow(instance.transform);
+                cam.SetTarget(anchor.transform);
+                cam.OrbitLocked = true;
             }
 
-            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own unmodified SuperMotoWRagdoll spawned, on-foot character disabled. Controls (the asset's own, unchanged): W/S throttle, A/D steer, Mouse0/Mouse1 lean, LeftShift/LeftCtrl wheelie forward/back, Space brake, mouse to look around. R reloads the whole scene (hard reset), F flips the bike upright when it's flagged as crashed (soft reset). No mount/dismount key - you start already on it.");
+            // MINI-119 follow-up, user: "it crashes too easy... it tends
+            // to lean on a side while riding sometimes... i like the
+            // wheelie but it needs upright assist as well." The asset
+            // already HAS real upright-assist (Gadd420.AutoLeveling -
+            // autoLevelForce/dotForAutoLevel/antiSpinTorque) and wheelie-
+            // specific assist (AutoLeveling.safeWheelies/antiLoopStrength/
+            // maxWheelieAngle) - nothing new to invent, just expose what's
+            // already there as live sliders. See Mini119StockDemoBikeTuner.
+            if (instance.GetComponent<Mini119StockDemoBikeTuner>() == null)
+                instance.AddComponent<Mini119StockDemoBikeTuner>();
+
+            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own unmodified SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, tuner panel (T) live. Controls (the asset's own, unchanged): W/S throttle, A/D steer, Mouse0/Mouse1 lean, LeftShift/LeftCtrl wheelie forward/back, Space brake. R reloads the whole scene (hard reset), F flips the bike upright when it's flagged as crashed (soft reset). No mount/dismount key - you start already on it.");
         }
 
         private static Vector3 GroundSnap(Vector3 pos)
