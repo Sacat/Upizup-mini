@@ -39,6 +39,22 @@ namespace UpIzUpMini.Vehicles
         [Tooltip("MINI-119, user: \"the bike when down flat so i couldnt ride to test.\" Root cause, confirmed by a real read-only diagnostic (Mini119SuperMotoDiagnose), not guessed: the underlying CrashController flags a crash on ANY sudden deceleration (its own default threshold is small), and the instant it does, the bike's roll-lock constraint is removed entirely so the ragdoll can take over - a completely ordinary landing/settling jolt at spawn was enough to trip it before the player ever touched the controls. This briefly disables the crash detector right after spawn so a spawn-moment settle can never be misread as a crash.")]
         [SerializeField] private float spawnCrashGraceSeconds = 1.5f;
 
+        // MINI-119 follow-up, user: "does the ragdoll have anything to
+        // the bike not staying up i see the ragdoll put down its foot
+        // before the bike moves." Confirmed real by Mini119SuperMotoDiagnose:
+        // the rider's own bone colliders (Hip/chest/arms/legs) measured as
+        // SOLID, non-trigger colliders the instant the prefab is
+        // instantiated - RagdollManager's own Start() is what normally
+        // flips them to harmless triggers, but Start() runs no earlier
+        // than the FIRST Update, which is at least one full physics step
+        // after Awake. If a solid foot/leg is touching the ground or
+        // overlapping the bike's OWN body collider during that window (a
+        // kinematic collider CAN still push a dynamic Rigidbody it
+        // overlaps), that is a real, physical shove at the worst possible
+        // moment. Forced to trigger here in OUR Awake - guaranteed to run
+        // before Start() ever gets a chance to leave that window open.
+        [SerializeField] private bool forceRagdollTriggersOnAwake = true;
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
@@ -51,12 +67,57 @@ namespace UpIzUpMini.Vehicles
                 crashController.enabled = false;
                 StartCoroutine(ReenableCrashDetectionAfterDelay(crashController, spawnCrashGraceSeconds));
             }
+
+            if (forceRagdollTriggersOnAwake)
+            {
+                var ragdoll = GetComponentInChildren<RagdollManager>(true);
+                if (ragdoll != null)
+                {
+                    foreach (var col in ragdoll.GetComponentsInChildren<Collider>(true))
+                        col.isTrigger = true;
+                }
+            }
         }
 
         private IEnumerator ReenableCrashDetectionAfterDelay(CrashController crashController, float delay)
         {
             yield return new WaitForSeconds(delay);
             if (crashController != null) crashController.enabled = true;
+        }
+
+        // MINI-119 follow-up, user: "i remember when you started working
+        // on my bike this use to happen and then you did something to
+        // help it stay up." Same real fix, ported over: our own bike
+        // needed an active upright-correction system (ApplyStability/
+        // ApplyUprightAssist) because nothing else reliably kept a two-
+        // wheeled Rigidbody standing on its own. This asset relies
+        // instead on Rigidbody.constraints = FreezeRotationZ - a WORLD-
+        // space axis lock, not the bike's own roll axis. That only
+        // actually prevents rolling over if the bike happens to be facing
+        // along world Z; a real settle test measured it still rolling 64
+        // degrees despite that constraint once spawned facing an
+        // arbitrary direction (a live player's own heading, never
+        // guaranteed to align with world Z). This adds the same kind of
+        // correction our own bike already proved works - measured against
+        // the bike's OWN flattened-forward axis, not a fixed world one -
+        // so it holds itself upright regardless of which way it's facing.
+        [Header("Upright Assist (works regardless of facing direction - see this field's own header comment)")]
+        [SerializeField] private float uprightAssistStrength = 8f;
+        [SerializeField] private float uprightAssistDamping = 2.5f;
+
+        private void FixedUpdate()
+        {
+            if (_rb == null || _gadd == null || _gadd.isCrashed) return; // let a real crash/ragdoll moment play out unopposed
+
+            Vector3 flatForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+            if (flatForward.sqrMagnitude < 0.0001f) flatForward = transform.forward;
+            flatForward.Normalize();
+
+            float rollError = Vector3.SignedAngle(transform.up, Vector3.up, flatForward);
+            float rollVelocity = Vector3.Dot(_rb.angularVelocity, flatForward);
+            float correction = (-rollError * uprightAssistStrength) - (rollVelocity * uprightAssistDamping);
+
+            _rb.AddTorque(flatForward * correction, ForceMode.Acceleration);
         }
 
         private void Update()

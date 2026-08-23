@@ -1,0 +1,662 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.10f1 (e35f0c77bd8e) revision 14901004'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-PCSS-PC" at "2026-08-23T12:40:01.6547119Z"
+OS: 'Windows 11  (10.0.26200) Professional' Language: 'en' Physical Memory: 15826 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-08-23T12:40:01Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+E:/Unity/Up Iz Up Mini
+-logFile
+E:/Unity/Up Iz Up Mini/Tools/AIWorkflow/mini119s_settle.log
+-executeMethod
+UpIzUpMini.EditorTools.Mini119SuperMotoSettleTest.Run
+Successfully changed project path to: E:/Unity/Up Iz Up Mini
+E:/Unity/Up Iz Up Mini
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [23960]  Target information:
+
+Player connection [23960]  * "[IP] 192.168.108.205 [Port] 55504 [Flags] 2 [Guid] 1469533740 [EditorId] 1469533740 [Version] 1048832 [Id] WindowsEditor(7,PC-22) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [23960]  * "[IP] 100.83.75.75 [Port] 55504 [Flags] 2 [Guid] 1469533740 [EditorId] 1469533740 [Version] 1048832 [Id] WindowsEditor(7,PC-22) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [23960]  * "[IP] 192.168.137.1 [Port] 55504 [Flags] 2 [Guid] 1469533740 [EditorId] 1469533740 [Version] 1048832 [Id] WindowsEditor(7,PC-22) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [23960] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [23960] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-40884" after 2.7 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              b08c9ec8ed8341dfbc85c28e22618f56
+  Correlation Id:          e00549e178f78246eeb9283def5eae31
+  External correlation Id: 2372031096250480461
+  Machine Id:              BSsZwx/0FUTXPDacKK/mAf12cyA=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-PCSS-PC" (connect: 0.00s, validation: 0.00s, handshake: 12.09s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-PCSS-PC-notifications" at "2026-08-23T12:40:13.7477149Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Module] Licensing Background thread has ended after 12.19s
+[Licensing::Module] Licensing is initialized (took 8.73s).
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Artifact Garbage Collection - Removed 2 unused hashed content files
+Refreshing native plugins compatible for Editor in 0.16 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.10f1 (e35f0c77bd8e)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path E:/Unity/Up Iz Up Mini/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56884
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.023594 seconds.
+- Loaded All Assemblies, in  2.927 seconds
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  1.091 seconds
+Domain Reload Profiling: 3960ms
+	BeginReloadAssembly (561ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (13ms)
+	RebuildCommonClasses (122ms)
+	RebuildNativeTypeToScriptingClass (55ms)
+	initialDomainReloadingComplete (358ms)
+	LoadAllAssembliesAndSetupDomain (1774ms)
+		LoadAssemblies (551ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (1748ms)
+			TypeCache.Refresh (1736ms)
+				TypeCache.ScanAssembly (1639ms)
+			BuildScriptInfoCaches (4ms)
+			ResolveRequiredComponents (4ms)
+	FinalizeReload (1091ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (925ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (323ms)
+			SetLoadedEditorAssemblies (16ms)
+			BeforeProcessingInitializeOnLoad (140ms)
+			ProcessInitializeOnLoadAttributes (227ms)
+			ProcessInitializeOnLoadMethodAttributes (219ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VZG9-MHCH-26WA-PBF7-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 1125343-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Application.AssetDatabase Initial Refresh Start
+Package Manager log level set to [2]
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 52 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.ai.navigation@2.0.14 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.ai.navigation@134dd6a3b97b)
+    com.unity.cloud.gltfast@6.9.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.cloud.gltfast@1bfd82b6f675)
+    com.unity.animation.rigging@1.4.1 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.animation.rigging@ae5f251e1ed4)
+    com.unity.burst@1.8.28 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.burst@07790c2d06d9)
+    com.unity.collections@2.6.2 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.collections@aea9d3bd5e19)
+    com.unity.mathematics@1.3.3 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.mathematics@19a9377c4ffa)
+    com.unity.searcher@4.9.4 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.searcher@d45a78918735)
+    com.unity.nuget.mono-cecil@1.11.6 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.test-framework.performance@3.2.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.test-framework.performance@0840f58e4562)
+  Built-in packages:
+    com.unity.multiplayer.center@1.0.1 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.multiplayer.center@f01f4ba8d00a)
+    com.unity.shadergraph@17.3.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.shadergraph@c8830f61858d)
+    com.unity.ugui@2.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.ugui@bb329a87fcdc)
+    com.unity.modules.accessibility@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.render-pipelines.core@17.3.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3)
+    com.unity.test-framework@1.6.0 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d)
+    com.unity.ext.nunit@2.0.5 (location: E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+  Embedded packages:
+    com.barmetler.roadsystem@file:E:\Unity\Up Iz Up Mini\Packages\com.barmetler.roadsystem (location: E:\Unity\Up Iz Up Mini\Packages\com.barmetler.roadsystem)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.24 seconds
+warn: Unity.AspNetCore.NamedPipeSupport.NamedPipeServer[0]
+      Exception occured while accepting client connection: System.IO.IOException: The pipe is being closed.
+         at System.IO.Pipes.NamedPipeServerStream.WaitForConnectionCoreAsync(CancellationToken cancellationToken)
+         at System.IO.Pipes.NamedPipeServerStream.WaitForConnectionAsync(CancellationToken cancellationToken)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer..ctor(String pipeName, NamedPipeListenerOptions options, ILogger`1 logger)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeListener..ctor(NamedPipeEndpoint endpoint, ILoggerFactory loggerFactory, NamedPipeListenerOptions namedPipeListenerOptions)
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeListenerFactory.BindAsync(EndPoint _, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass30_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass30_0`1.<StartAsync>g__OnBind|0(ListenOptions options, CancellationToken onBindCancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.EndpointsStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.EndpointsStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(IEnumerable`1 listenOptions, AddressBindContext context, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(IEnumerable`1 listenOptions, AddressBindContext context, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.AspNetCore.Builder.WebApplication.StartAsync(CancellationToken cancellationToken)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+         at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+         at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+         at Microsoft.AspNetCore.Builder.WebApplication.Run(String url)
+         at Program.<Main>$(String[] args)
+      --- End of stack trace from previous location ---
+         at Unity.AspNetCore.NamedPipeSupport.NamedPipeServer.AcceptLoop(Boolean useNamedPipeMessageSemantic)
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:80
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: E:\Unity\Up Iz Up Mini\
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 1033.2416ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: E:/Unity/Up Iz Up Mini
+DisplayProgressbar: Compiling Scripts
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\NetStandard\Extensions\2.0.0\System.Runtime.InteropServices.WindowsRuntime.dll"
+warn: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.componentmodel.composition has duplicate hint path. Ignoring "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\System.ComponentModel.Composition.dll" in favor of "C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.ComponentModel.Composition.dll"
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.burst@07790c2d06d9\Unity.Burst.CodeGen\Unity.Burst.Cecil.dll
+info: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Mono.Cecil, Version=0.11.5.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc - - 200 - application/grpc 1607.8537ms
+ExitCode: 0 Duration: 2s155ms
+[545/687    1s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+*** Tundra build success (2.01 seconds), 1 items updated, 687 evaluated
+AssetDatabase: script compilation time: 9.821573s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  3.226 seconds
+Refreshing native plugins compatible for Editor in 0.29 ms, found 0 plugins.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Up Iz Up Mini
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in 12.643 seconds
+Domain Reload Profiling: 15812ms
+	BeginReloadAssembly (818ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (12ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (1ms)
+		CreateAndSetChildDomain (173ms)
+	RebuildCommonClasses (333ms)
+	RebuildNativeTypeToScriptingClass (101ms)
+	initialDomainReloadingComplete (313ms)
+	LoadAllAssembliesAndSetupDomain (1604ms)
+		LoadAssemblies (1189ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (890ms)
+			TypeCache.Refresh (595ms)
+				TypeCache.ScanAssembly (569ms)
+			BuildScriptInfoCaches (248ms)
+			ResolveRequiredComponents (32ms)
+	FinalizeReload (12643ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (11922ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (262ms)
+			SetLoadedEditorAssemblies (22ms)
+			BeforeProcessingInitializeOnLoad (259ms)
+			ProcessInitializeOnLoadAttributes (11058ms)
+			ProcessInitializeOnLoadMethodAttributes (309ms)
+			AfterProcessingInitializeOnLoad (11ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (82ms)
+Asset Pipeline Refresh (id=348c264482321db429540dd7642f7666): Total: 27.181 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=13711 ms
+		Asset DB Callback time: managed=28 ms, native=243 ms
+		Scripting: domain reloads=1, domain reload time=3227 ms, compile time=9824 ms, other=145 ms
+		Project Asset Count: scripts=1005, non-scripts=3649
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.002ms
+	InvokePackagesCallback: 252.214ms
+	ApplyChangesToAssetFolders: 1.686ms
+	Scan: 236.229ms
+	OnSourceAssetsModified: 0.003ms
+	CategorizeAssetsWithTransientArtifact: 27.334ms
+	ProcessAssetsWithTransientArtifactChanges: 371.431ms
+	CategorizeAssets: 107.078ms
+	ImportOutOfDateAssets: 12649.606ms (2823.357ms without children)
+		CompileScripts: 9824.106ms
+		ReloadNativeAssets: 0.001ms
+		UnloadImportedAssets: 0.182ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.635ms
+		InitializingProgressBar: 0.001ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.001ms
+		OnDemandSchedulerStart: 1.323ms
+	PostProcessAllAssets: 28.788ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.005ms
+	UnloadStreamsBegin: 1.581ms
+	PersistCurrentRevisions: 0.198ms
+	UnloadStreamsEnd: 0.002ms
+	GenerateScriptTypeHashes: 5.822ms
+	Untracked: 13504.763ms
+
+Application.AssetDatabase Initial Refresh End
+Scanning for USB devices : 4.512ms
+Initializing Unity extensions:
+Unloading 48 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 3376 unused Assets / (17.8 MB). Loaded Objects now: 3980.
+Memory consumption went from 176.5 MB to 158.7 MB.
+Total: 32.972500 ms (FindLiveObjects: 0.386000 ms CreateObjectMapping: 0.278000 ms MarkObjects: 9.619700 ms  DeleteObjects: 22.686700 ms)
+
+Opening scene 'Assets/UpIzUpMini/Scenes/GrandBayProof.unity'
+Unloading 55 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/UpIzUpMini/Scenes/GrandBayProof.unity'
+	Deserialize:            170.235 ms
+	Integration:            831.425 ms
+	Integration of assets:  26.625 ms
+	Thread Wait Time:       -4.250 ms
+	Total Operation Time:   1024.034 ms
+Unloading 1 unused Assets / (1.1 KB). Loaded Objects now: 15692.
+Memory consumption went from 192.1 MB to 192.1 MB.
+Total: 10.629400 ms (FindLiveObjects: 1.345900 ms CreateObjectMapping: 0.363300 ms MarkObjects: 8.871300 ms  DeleteObjects: 0.046400 ms)
+
+MINI-119 SETTLE TEST: measured wheelBottomOffset=0.636m (rearBottomY=-0.598, frontBottomY=-0.636, both relative to root at world origin).
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoSettleTest:Run () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoSettleTest.cs:64)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoSettleTest.cs Line: 64)
+
+MINI-119 SETTLE TEST: after 5.0s - roll=64.2deg, pitch=0.3deg, upright dot=0.44 (1=perfectly upright, <0.5 means fallen over), position=(47.53, 7.65, -153.28)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UpIzUpMini.EditorTools.Mini119SuperMotoSettleTest:Run () (at Assets/UpIzUpMini/Editor/Mini119SuperMotoSettleTest.cs:86)
+
+(Filename: Assets/UpIzUpMini/Editor/Mini119SuperMotoSettleTest.cs Line: 86)
+
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.06 seconds
+
+=================================================================
+	Native Crash Reporting
+=================================================================
+Got a UNKNOWN while executing native code. This usually indicates
+a fatal error in the mono runtime or one of the native libraries 
+used by your application.
+=================================================================
+
+=================================================================
+	Managed Stacktrace:
+=================================================================
+	  at <unknown> <0xffffffff>
+	  at UnityEngine.Camera:Render_Injected <0x00069>
+	  at UnityEngine.Camera:Render <0x0009a>
+	  at UpIzUpMini.EditorTools.Mini119SuperMotoSettleTest:Run <0x02172>
+	  at System.Object:runtime_invoke_void <0x00084>
+=================================================================
+Crash!!!
+SymInit: Symbol-SearchPath: 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/Mono;.;E:\Unity\Up Iz Up Mini;E:\Unity\Up Iz Up Mini\Library\BurstCache\JIT;C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor;C:\windows;C:\windows\system32;', symOptions: 534, UserName: 'PCSS-PC'
+OS-Version: 10.0.0
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Unity.exe:Unity.exe (00007FF700F40000), size: 290816 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 6000.3.10.24332
+C:\windows\SYSTEM32\ntdll.dll:ntdll.dll (00007FFEB3F60000), size: 2514944 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\System32\KERNEL32.DLL:KERNEL32.DLL (00007FFEB2830000), size: 823296 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\System32\KERNELBASE.dll:KERNELBASE.dll (00007FFEB15C0000), size: 4190208 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\System32\USER32.dll:USER32.dll (00007FFEB3B20000), size: 1859584 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\System32\win32u.dll:win32u.dll (00007FFEB1440000), size: 159744 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\System32\GDI32.dll:GDI32.dll (00007FFEB2910000), size: 176128 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8328
+C:\windows\System32\gdi32full.dll:gdi32full.dll (00007FFEB1B60000), size: 1216512 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\System32\msvcp_win.dll:msvcp_win.dll (00007FFEB1170000), size: 667648 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8875
+C:\windows\System32\ucrtbase.dll:ucrtbase.dll (00007FFEB1220000), size: 1359872 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8875
+C:\windows\System32\IMM32.DLL:IMM32.DLL (00007FFEB3CF0000), size: 204800 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8521
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Unity.dll:Unity.dll (00007FFD66200000), size: 91828224 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 6000.3.10.24332
+C:\windows\System32\CRYPT32.dll:CRYPT32.dll (00007FFEB19D0000), size: 1564672 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\System32\ADVAPI32.dll:ADVAPI32.dll (00007FFEB2A50000), size: 770048 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\System32\msvcrt.dll:msvcrt.dll (00007FFEB3A70000), size: 692224 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 7.0.26100.8875
+C:\windows\System32\sechost.dll:sechost.dll (00007FFEB3860000), size: 696320 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\System32\RPCRT4.dll:RPCRT4.dll (00007FFEB2DB0000), size: 1146880 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\System32\ole32.dll:ole32.dll (00007FFEB1C90000), size: 1675264 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\s3tcompress.dll:s3tcompress.dll (00007FFE80C90000), size: 180224 (result: 0), SymType: '-deferred-', PDB: ''
+C:\windows\System32\combase.dll:combase.dll (00007FFEB24A0000), size: 3690496 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\etccompress.dll:etccompress.dll (00007FFD90DF0000), size: 5070848 (result: 0), SymType: '-deferred-', PDB: ''
+C:\windows\System32\SETUPAPI.dll:SETUPAPI.dll (00007FFEB1FF0000), size: 4747264 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\System32\SHELL32.dll:SHELL32.dll (00007FFEB2ED0000), size: 7897088 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\ispc_texcomp.dll:ispc_texcomp.dll (00007FFDA9E40000), size: 1826816 (result: 0), SymType: '-deferred-', PDB: ''
+C:\windows\System32\SHLWAPI.dll:SHLWAPI.dll (00007FFEB29E0000), size: 417792 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\compress_bc7e.dll:compress_bc7e.dll (00007FFE38400000), size: 1433600 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\libfbxsdk.dll:libfbxsdk.dll (00007FFD8F3A0000), size: 8019968 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2020.3.7.0
+C:\windows\System32\WS2_32.dll:WS2_32.dll (00007FFEB2950000), size: 532480 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\FreeImage.dll:FreeImage.dll (0000000180000000), size: 5332992 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 3.18.0.0
+C:\windows\System32\OLEAUT32.dll:OLEAUT32.dll (00007FFEB2BB0000), size: 888832 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\WinPixEventRuntime.dll:WinPixEventRuntime.dll (00007FFEA4F50000), size: 57344 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 1.0.2403.8001
+C:\windows\System32\WINTRUST.dll:WINTRUST.dll (00007FFEB1470000), size: 536576 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\umbraoptimizer64.dll:umbraoptimizer64.dll (00007FFDAA150000), size: 1187840 (result: 0), SymType: '-deferred-', PDB: ''
+C:\windows\SYSTEM32\bcrypt.dll:bcrypt.dll (00007FFEB1060000), size: 172032 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.8972_none_3e0da176e32f9d4b\COMCTL32.dll:COMCTL32.dll (00007FFE8E4E0000), size: 2691072 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 6.10.26100.8972
+C:\windows\SYSTEM32\dwmapi.dll:dwmapi.dll (00007FFEAE4C0000), size: 192512 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\d3d12.dll:d3d12.dll (00007FFE74560000), size: 143360 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\HID.DLL:HID.DLL (00007FFEAF480000), size: 61440 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.1150
+C:\windows\SYSTEM32\IPHLPAPI.DLL:IPHLPAPI.DLL (00007FFEAF820000), size: 208896 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\d3d11.dll:d3d11.dll (00007FFEACD40000), size: 2490368 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\OPENGL32.dll:OPENGL32.dll (00007FFE3E560000), size: 1097728 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\dxgi.dll:dxgi.dll (00007FFEAE360000), size: 1286144 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\SYSTEM32\WINMM.dll:WINMM.dll (00007FFEA6270000), size: 221184 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\GLU32.dll:GLU32.dll (00007FFEA4520000), size: 184320 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.1150
+C:\windows\SYSTEM32\MSVCP140.dll:MSVCP140.dll (00007FFEA49F0000), size: 557056 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 14.50.35719.0
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\SketchUpAPI.dll:SketchUpAPI.dll (00007FFD889C0000), size: 8990720 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 23.0.0.0
+C:\windows\SYSTEM32\VCRUNTIME140_1.dll:VCRUNTIME140_1.dll (00007FFEA4D50000), size: 45056 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 14.50.35719.0
+C:\windows\SYSTEM32\VERSION.dll:VERSION.dll (00007FFEA9130000), size: 45056 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.1150
+C:\windows\SYSTEM32\VCRUNTIME140.dll:VCRUNTIME140.dll (00007FFEA49D0000), size: 122880 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 14.50.35719.0
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\NativeProxyHelper.dll:NativeProxyHelper.dll (00007FFD996A0000), size: 1789952 (result: 0), SymType: '-deferred-', PDB: ''
+C:\windows\SYSTEM32\WINHTTP.dll:WINHTTP.dll (00007FFEAA3A0000), size: 1212416 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\SYSTEM32\WSOCK32.dll:WSOCK32.dll (00007FFEA59F0000), size: 40960 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.1
+C:\windows\SYSTEM32\powrprof.dll:powrprof.dll (00007FFEB0F20000), size: 385024 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.3912
+C:\windows\SYSTEM32\Secur32.dll:Secur32.dll (00007FFEAE130000), size: 53248 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.7705
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\SketchUpCommonPreferences.dll:SketchUpCommonPreferences.dll (00007FFE0B8F0000), size: 499712 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 23.0.0.0
+C:\windows\SYSTEM32\dxcore.dll:dxcore.dll (00007FFEAE310000), size: 282624 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\SSPICLI.DLL:SSPICLI.DLL (00007FFEB00D0000), size: 299008 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\OpenRL.dll:OpenRL.dll (0000019582F70000), size: 12779520 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 1.5.0.2907
+C:\windows\SYSTEM32\MSVCR100.dll:MSVCR100.dll (0000000073BA0000), size: 860160 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.40219.325
+C:\windows\SYSTEM32\MSVCP100.dll:MSVCP100.dll (0000000073B00000), size: 622592 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.40219.325
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\embree.dll:embree.dll (00007FFD65210000), size: 16711680 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2.14.0.0
+C:\windows\SYSTEM32\cfgmgr32.DLL:cfgmgr32.DLL (00007FFEB0D40000), size: 335872 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\MSWSOCK.DLL:MSWSOCK.DLL (00007FFEB03B0000), size: 442368 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\tbb.dll:tbb.dll (00007FFE6E9F0000), size: 303104 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2020.3.2022.1111
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\OpenRL_pthread.dll:OpenRL_pthread.dll (0000019583BC0000), size: 61440 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2.9.0.0
+C:\windows\SYSTEM32\UMPDC.dll:UMPDC.dll (00007FFEB0DF0000), size: 86016 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\MSASN1.dll:MSASN1.dll (00007FFEB0840000), size: 77824 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8875
+C:\windows\System32\bcryptprimitives.dll:bcryptprimitives.dll (00007FFEB1500000), size: 704512 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\SYSTEM32\kernel.appcore.dll:kernel.appcore.dll (00007FFEAFE20000), size: 110592 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8737
+C:\windows\system32\uxtheme.dll:uxtheme.dll (00007FFEAC4C0000), size: 688128 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\windows.storage.dll:windows.storage.dll (00007FFEAEBE0000), size: 9023488 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\System32\SHCORE.dll:SHCORE.dll (00007FFEB3970000), size: 1019904 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\SYSTEM32\profapi.dll:profapi.dll (00007FFEB1090000), size: 167936 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\system32\IconCodecService.dll:IconCodecService.dll (00007FFE73CC0000), size: 45056 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.1
+C:\windows\SYSTEM32\WindowsCodecs.dll:WindowsCodecs.dll (00007FFEAC7B0000), size: 2281472 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\SYSTEM32\CRYPTSP.dll:CRYPTSP.dll (00007FFEB07D0000), size: 110592 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8875
+C:\windows\System32\clbcatq.dll:clbcatq.dll (00007FFEB1F30000), size: 712704 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 2001.12.10941.16384
+C:\windows\system32\rsaenh.dll:rsaenh.dll (00007FFEAFD80000), size: 233472 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.7705
+C:\windows\SYSTEM32\CRYPTBASE.dll:CRYPTBASE.dll (00007FFEB0610000), size: 49152 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8875
+C:\windows\System32\imagehlp.dll:imagehlp.dll (00007FFEB3D30000), size: 131072 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.4202
+C:\windows\System32\netprofm.dll:netprofm.dll (00007FFEABDE0000), size: 446464 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\system32\wbem\wbemprox.dll:wbemprox.dll (00007FFE80940000), size: 73728 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\wbemcomn.dll:wbemcomn.dll (00007FFE81660000), size: 499712 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.7920
+C:\windows\System32\npmproxy.dll:npmproxy.dll (00007FFEA6360000), size: 102400 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8328
+C:\windows\system32\wbem\wbemsvc.dll:wbemsvc.dll (00007FFE7F660000), size: 86016 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\system32\wbem\fastprox.dll:fastprox.dll (00007FFE7ED20000), size: 999424 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\amsi.dll:amsi.dll (00007FFE7E320000), size: 118784 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.7309
+C:\windows\SYSTEM32\USERENV.dll:USERENV.dll (00007FFEB0460000), size: 204800 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\ProgramData\Microsoft\Windows Defender\Platform\4.18.26070.9-0\MpOav.dll:MpOav.dll (00007FFE7E270000), size: 667648 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 4.18.26070.9
+C:\windows\SYSTEM32\gpapi.dll:gpapi.dll (00007FFEB0430000), size: 151552 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Windows\System32\cryptnet.dll:cryptnet.dll (00007FFE7FE10000), size: 241664 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\WINNSI.DLL:WINNSI.DLL (00007FFEAE2F0000), size: 57344 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8875
+C:\windows\System32\NSI.dll:NSI.dll (00007FFEB2940000), size: 40960 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8875
+C:\windows\SYSTEM32\dhcpcsvc6.DLL:dhcpcsvc6.DLL (00007FFEAA500000), size: 118784 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\SYSTEM32\dhcpcsvc.DLL:dhcpcsvc.DLL (00007FFEAA4D0000), size: 151552 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\SYSTEM32\DNSAPI.dll:DNSAPI.dll (00007FFEAF8C0000), size: 1409024 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\SYSTEM32\DSPARSE.dll:DSPARSE.dll (00007FFEB01B0000), size: 53248 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.1
+C:\windows\system32\napinsp.dll:napinsp.dll (00007FFEA5A10000), size: 98304 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.1150
+C:\windows\System32\winrnr.dll:winrnr.dll (00007FFEA5400000), size: 77824 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8737
+C:\windows\system32\nlansp_c.dll:nlansp_c.dll (00007FFEA53D0000), size: 139264 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\system32\wshbth.dll:wshbth.dll (00007FFEA65A0000), size: 90112 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8875
+C:\windows\System32\fwpuclnt.dll:fwpuclnt.dll (00007FFEAA900000), size: 548864 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Windows\System32\rasadhlp.dll:rasadhlp.dll (00007FFEA9120000), size: 45056 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.7920
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\AMDUnityPlugin.DLL:AMDUnityPlugin.DLL (00007FFD88150000), size: 8843264 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\NVUnityPlugin.DLL:NVUnityPlugin.DLL (00007FFD993D0000), size: 1638400 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\Tools\astcenc-avx2.dll:astcenc-avx2.dll (00007FFE63F80000), size: 352256 (result: 0), SymType: '-deferred-', PDB: ''
+C:\windows\SYSTEM32\mfplat.dll:mfplat.dll (00007FFEA65D0000), size: 2244608 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\RTWorkQ.DLL:RTWorkQ.DLL (00007FFEA6560000), size: 241664 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\mfreadwrite.dll:mfreadwrite.dll (00007FFDF2730000), size: 864256 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\Mf.dll:Mf.dll (00007FFEA8C20000), size: 622592 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\MFCORE.DLL:MFCORE.DLL (00007FFEA6A50000), size: 4296704 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\windows\SYSTEM32\CompPkgSup.DLL:CompPkgSup.DLL (00007FFEA2170000), size: 204800 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8521
+C:\Windows\System32\Windows.Media.dll:Windows.Media.dll (00007FFE90B00000), size: 6926336 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Windows\System32\Windows.ApplicationModel.dll:Windows.ApplicationModel.dll (00007FFE92090000), size: 884736 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\wintypes.dll:wintypes.dll (00007FFEAAE00000), size: 1482752 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.9168
+C:\Windows\System32\AppXDeploymentClient.dll:AppXDeploymentClient.dll (00007FFEA68D0000), size: 1511424 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\Windows\System32\Windows.StateRepositoryPS.dll:Windows.StateRepositoryPS.dll (00007FFE78FC0000), size: 802816 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\windows.staterepositoryclient.dll:windows.staterepositoryclient.dll (00007FFE7E390000), size: 278528 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\windows.staterepositorycore.dll:windows.staterepositorycore.dll (00007FFE7E3E0000), size: 126976 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\System32\MMDevApi.dll:MMDevApi.dll (00007FFEA96F0000), size: 679936 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\System32\DEVOBJ.dll:DEVOBJ.dll (00007FFEB0D00000), size: 192512 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\AUDIOSES.DLL:AUDIOSES.DLL (00007FFEA1F80000), size: 1798144 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8972
+C:\windows\SYSTEM32\resourcepolicyclient.dll:resourcepolicyclient.dll (00007FFEAE860000), size: 81920 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8115
+C:\windows\SYSTEM32\opencl.dll:opencl.dll (00007FFE80CD0000), size: 118784 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 3.0.8.0
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\radeonrays.dll:radeonrays.dll (00007FFE63EF0000), size: 344064 (result: 0), SymType: '-deferred-', PDB: ''
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\MonoBleedingEdge\EmbedRuntime\mono-2.0-bdwgc.dll:mono-2.0-bdwgc.dll (00007FFD5FE10000), size: 10756096 (result: 0), SymType: '-deferred-', PDB: ''
+E:\Unity\Up Iz Up Mini\Library\PackageCache\com.unity.burst@07790c2d06d9\.Runtime\MonoDebuggerHandling.dll:MonoDebuggerHandling.dll (00007FFD96FE0000), size: 368640 (result: 0), SymType: '-deferred-', PDB: ''
+C:\windows\SYSTEM32\dbghelp.dll:dbghelp.dll (00007FFEA5FF0000), size: 2367488 (result: 0), SymType: '-deferred-', PDB: '', fileVersion: 10.0.26100.8328
+
+========== OUTPUTTING STACK TRACE ==================
+
+0x00007FFD66CD1F0F (Unity) GfxDevice::DrawSharedGeometryJobs
+0x00007FFD66D5EA01 (Unity) GfxDeviceClient::DrawSharedGeometryJobs
+0x00007FFD66D1650C (Unity) RenderDynamicBatch
+0x00007FFD66D1708D (Unity) RenderMultipleMeshes
+0x00007FFD66C75EE9 (Unity) BatchRenderer::RenderBatch
+0x00007FFD66C71A43 (Unity) BatchRenderer::Flush
+0x00007FFD66C6C499 (Unity) BatchRenderer::Add
+0x00007FFD66B8C3F9 (Unity) RenderCasters
+0x00007FFD66B90CAE (Unity) ShadowMapJob
+0x00007FFD66CD2B53 (Unity) GfxDevice::ExecuteAsync
+0x00007FFD66D604D9 (Unity) GfxDeviceClient::ExecuteAsync
+0x00007FFD66B8E3B2 (Unity) RenderShadowMaps
+0x00007FFD66C76AF9 (Unity) ForwardShaderRenderLoop::RenderLightShadowMaps
+0x00007FFD66C749C4 (Unity) ForwardShaderRenderLoop::PerformRendering
+0x00007FFD66C70B18 (Unity) DoForwardShaderRenderLoop
+0x00007FFD66C606AE (Unity) DoRenderLoop
+0x00007FFD66BB276C (Unity) Camera::DoRender
+0x00007FFD66BB1F22 (Unity) Camera::CustomRender
+0x00007FFD66BBFD6D (Unity) Camera::StandaloneCustomRender
+0x00007FFD66BBFF08 (Unity) Camera::StandaloneRender
+0x00007FFD66BB990F (Unity) CameraScripting::Render
+0x00007FFD667CA149 (Unity) Camera_CUSTOM_Render
+0x000001984AAA887A (Mono JIT Code) (wrapper managed-to-native) UnityEngine.Camera:Render_Injected (intptr)
+0x000001984AAA87BB (Mono JIT Code) UnityEngine.Camera:Render ()
+0x0000019808232173 (Mono JIT Code) [E:\Unity\Up Iz Up Mini\Assets\UpIzUpMini\Editor\Mini119SuperMotoSettleTest.cs:102] UpIzUpMini.EditorTools.Mini119SuperMotoSettleTest:Run () 
+0x0000019792044DD5 (Mono JIT Code) (wrapper runtime-invoke) object:runtime_invoke_void (object,intptr,intptr,intptr)
+0x00007FFD60096C0E (mono-2.0-bdwgc) [C:\build\output\Unity-Technologies\mono\mono\mini\mini-runtime.c:3445] mono_jit_runtime_invoke 
+0x00007FFD5FFD8984 (mono-2.0-bdwgc) [C:\build\output\Unity-Technologies\mono\mono\metadata\object.c:3068] do_runtime_invoke 
+0x00007FFD5FFD8A70 (mono-2.0-bdwgc) [C:\build\output\Unity-Technologies\mono\mono\metadata\object.c:3115] mono_runtime_invoke 
+0x00007FFD671E9E34 (Unity) scripting_method_invoke
+0x00007FFD671F0CF3 (Unity) ScriptingInvocation::Invoke
+0x00007FFD67A1BE8A (Unity) Application::ParseARGVCommands
+0x00007FFD67A11E79 (Unity) Application::FinishLoadingProject
+0x00007FFD6780CE1C (Unity) UnityMain
+0x00007FF700F42F2A (Unity) __scrt_common_main_seh
+0x00007FFEB285CCB7 (KERNEL32) BaseThreadInitThunk
+0x00007FFEB400AD6C (ntdll) RtlUserThreadStart
+
+========== END OF STACKTRACE ===========
+
+A crash has been intercepted by the crash handler. For call stack and other details, see the latest crash report generated in:
+ * C:/Users/PCSS-PC/AppData/Local/Temp/Unity/Editor/Crashes
