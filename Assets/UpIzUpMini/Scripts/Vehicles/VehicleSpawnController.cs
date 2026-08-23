@@ -233,9 +233,13 @@ namespace UpIzUpMini.Vehicles
             var instance = (GameObject)Instantiate(stockDemoBikePrefab, spawnPos, Quaternion.LookRotation(forward, Vector3.up));
             instance.name = "StockDemoSuperMoto";
 
-            var shortcuts = instance.GetComponent<Gadd420.KeyBoardShortCuts>();
-            if (shortcuts == null) shortcuts = instance.AddComponent<Gadd420.KeyBoardShortCuts>();
-            shortcuts.currentBike = instance.transform;
+            // MINI-119 follow-up, user: "f respawns the bike only on
+            // crash but i want it to respawn anytime." Replaces the
+            // stock KeyBoardShortCuts (F gated on isCrashed) entirely -
+            // see SuperMotoAnytimeReset's own header.
+            var stockShortcuts = instance.GetComponent<Gadd420.KeyBoardShortCuts>();
+            if (stockShortcuts != null) DestroyImmediate(stockShortcuts);
+            instance.AddComponent<SuperMotoAnytimeReset>();
 
             // MINI-119 follow-up, user: "the E button to wheelie instead
             // of left control and the Q button will be used instead of
@@ -263,10 +267,15 @@ namespace UpIzUpMini.Vehicles
             if (stockInput != null) DestroyImmediate(stockInput);
             instance.AddComponent<SuperMotoWheelieKeyRemap>();
 
-            // MINI-119 follow-up, user: "i prefer my wheelie system with
-            // the collider system activated on wheelie." Ported outrigger
-            // stabilizer - see SuperMotoTrikeStabilizer's own header.
-            instance.AddComponent<SuperMotoTrikeStabilizer>();
+            // MINI-119 follow-up, user: "i tried the trike stabilizer but
+            // nothing works, no eve sure what string rate damping and
+            // debounce meant." Dropped - superseded by SuperMotoWheelieAssist's
+            // own roll-lock below, which is a direct, deterministic
+            // correction (roll forced to exactly 0 every step while
+            // wheelieing) rather than a tunable spring competing against
+            // gravity, so there's nothing left to configure or that can
+            // "not work". SuperMotoTrikeStabilizer.cs is left in the
+            // project, just no longer attached here.
 
             // MINI-119 follow-up, user: "the wheelie goes up too fast...
             // it should be a lot more gradual... i want sliders for the
@@ -315,7 +324,7 @@ namespace UpIzUpMini.Vehicles
             if (instance.GetComponent<Mini119StockDemoBikeTuner>() == null)
                 instance.AddComponent<Mini119StockDemoBikeTuner>();
 
-            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, trike stabilizer active on wheelie, tuner panel (T) live. Controls: W/S throttle, A/D steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake. R reloads the whole scene (hard reset), F flips the bike upright when it's flagged as crashed (soft reset). No mount/dismount key - you start already on it.");
+            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, roll-lock active on wheelie, tuner panel (T) live. Controls: W/S throttle, A/D steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene. No mount/dismount key - you start already on it.");
         }
 
         private static Vector3 GroundSnap(Vector3 pos)

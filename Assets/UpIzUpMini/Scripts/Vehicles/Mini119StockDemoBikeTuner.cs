@@ -26,13 +26,11 @@ namespace UpIzUpMini.Vehicles
         private readonly Dictionary<string, string> _editBuffers = new Dictionary<string, string>();
 
         private AutoLeveling _autoLevel;
-        private SuperMotoTrikeStabilizer _trikeStab;
         private SuperMotoWheelieAssist _wheelieAssist;
 
         private void Awake()
         {
             _autoLevel = GetComponent<AutoLeveling>();
-            _trikeStab = GetComponent<SuperMotoTrikeStabilizer>();
             _wheelieAssist = GetComponent<SuperMotoWheelieAssist>();
         }
 
@@ -83,6 +81,21 @@ namespace UpIzUpMini.Vehicles
             }
 
             GUILayout.Space(10f);
+            // User: "i want it to be like the original tmax controller
+            // when we forced the wheelie to stay straight... apply logic
+            // to it to transfer the idea to this system." Deterministic
+            // roll=0 correction while wheelieing - see
+            // SuperMotoWheelieAssist's own header for why this replaced
+            // the trike stabilizer (which the user found confusing and
+            // ineffective).
+            GUILayout.Label("-- ROLL LOCK (forces the wheelie to stay straight) --");
+            if (_wheelieAssist != null)
+            {
+                Slider("Deadzone (deg) - roll below this is left alone",
+                    _wheelieAssist.rollLockDeadzoneDeg, 0f, 20f, v => _wheelieAssist.rollLockDeadzoneDeg = v);
+            }
+
+            GUILayout.Space(10f);
             // User: "keeping the bike balanced and upright while riding" -
             // AutoLeveling, already built into the pack (autoLevelForce
             // etc.) - a real precedence bug in it (see AutoLeveling.cs's
@@ -98,24 +111,6 @@ namespace UpIzUpMini.Vehicles
                     _autoLevel.dotForAutoLevel, 0f, 1f, v => _autoLevel.dotForAutoLevel = v);
             }
 
-            GUILayout.Space(10f);
-            // User: "there should be an assist like two invisible
-            // colliders like for the side like in my original to keep it
-            // up" - ported outrigger stabilizer, see
-            // SuperMotoTrikeStabilizer's own header.
-            GUILayout.Label("-- TRIKE STABILIZER (outriggers active on wheelie) --");
-            if (_trikeStab != null)
-            {
-                Slider("Outrigger side offset (m)",
-                    _trikeStab.outriggerSideOffset, 0.1f, 1f, v => _trikeStab.outriggerSideOffset = v);
-                Slider("Debounce before non-wheelie air counts as 'up' (s)",
-                    _trikeStab.debounceSeconds, 0.02f, 1f, v => _trikeStab.debounceSeconds = v);
-                Slider("Spring rate",
-                    _trikeStab.springRate, 500f, 15000f, v => _trikeStab.springRate = v);
-                Slider("Damping",
-                    _trikeStab.damping, 0f, 1500f, v => _trikeStab.damping = v);
-            }
-
             GUILayout.Space(12f);
             if (GUILayout.Button("PRINT ALL VALUES to Console (survives Stop)"))
             {
@@ -124,15 +119,11 @@ namespace UpIzUpMini.Vehicles
                     (_wheelieAssist != null ?
                         $"  SuperMotoWheelieAssist.riseRateDegPerSecond = {_wheelieAssist.riseRateDegPerSecond:F2}f;\n" +
                         $"  SuperMotoWheelieAssist.rampCeilingDeg = {_wheelieAssist.rampCeilingDeg:F2}f;\n" +
-                        $"  SuperMotoWheelieAssist.maxWheelieTorque = {_wheelieAssist.maxWheelieTorque:F2}f;\n" : "") +
+                        $"  SuperMotoWheelieAssist.maxWheelieTorque = {_wheelieAssist.maxWheelieTorque:F2}f;\n" +
+                        $"  SuperMotoWheelieAssist.rollLockDeadzoneDeg = {_wheelieAssist.rollLockDeadzoneDeg:F2}f;\n" : "") +
                     (_autoLevel != null ?
                         $"  AutoLeveling.autoLevelForce = {_autoLevel.autoLevelForce:F2}f;\n" +
-                        $"  AutoLeveling.dotForAutoLevel = {_autoLevel.dotForAutoLevel:F3}f;\n" : "") +
-                    (_trikeStab != null ?
-                        $"  SuperMotoTrikeStabilizer.outriggerSideOffset = {_trikeStab.outriggerSideOffset:F3}f;\n" +
-                        $"  SuperMotoTrikeStabilizer.debounceSeconds = {_trikeStab.debounceSeconds:F3}f;\n" +
-                        $"  SuperMotoTrikeStabilizer.springRate = {_trikeStab.springRate:F2}f;\n" +
-                        $"  SuperMotoTrikeStabilizer.damping = {_trikeStab.damping:F2}f;\n" : ""));
+                        $"  AutoLeveling.dotForAutoLevel = {_autoLevel.dotForAutoLevel:F3}f;\n" : ""));
             }
 
             GUILayout.EndScrollView();

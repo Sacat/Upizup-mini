@@ -64,7 +64,6 @@ namespace UpIzUpMini.EditorTools
             if (stockInput != null) Object.DestroyImmediate(stockInput);
             var remap = instance.AddComponent<SuperMotoWheelieKeyRemap>();
             var assist = instance.AddComponent<SuperMotoWheelieAssist>();
-            var trike = instance.AddComponent<SuperMotoTrikeStabilizer>();
 
             // Same safety net VehicleSpawnController now applies for real
             // spawns - see SuperMotoWheelieAssist's own fix comment for
@@ -87,13 +86,29 @@ namespace UpIzUpMini.EditorTools
             InvokeIfExists(autoLevel, "Start");
             InvokeIfExists(groundAngle, "Start");
             InvokeIfExists(assist, "Awake");
-            InvokeIfExists(trike, "Awake");
+
+            // MINI-119 follow-up, user: "when i bring down the auto-level
+            // force it wheelies but it doesnt stay upright." Matches the
+            // exact scenario reported - AutoLeveling's own correction
+            // deliberately weakened so the new roll-lock (not AutoLeveling)
+            // is what's actually being tested here.
+            if (autoLevel != null) autoLevel.autoLevelForce = 0.3f;
 
             // Force the wheelie key "held" for the whole run via
             // reflection on the base Input_Manager's protected field -
             // same technique as driving any other real input in these
-            // batch-mode tests, no keyboard available.
+            // batch-mode tests, no keyboard available. Throttle also
+            // forced on - a stationary bike with no forward motion barely
+            // moves under wheelieTorque at all (confirmed by an earlier
+            // run of this exact test), which isn't representative of real
+            // play and gives the roll-lock nothing real to correct.
             FieldInfo wheelieField = typeof(Input_Manager).GetField("wheelieInput", BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo vInputField = typeof(Input_Manager).GetField("vInput", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            // Nudge an initial roll in before the hold starts, so the
+            // roll-lock has something real to correct rather than a
+            // perfectly symmetric setup that would never naturally lean.
+            instance.transform.rotation = Quaternion.Euler(0f, 0f, 15f) * instance.transform.rotation;
 
             const float dt = 0.02f;
             const int steps = 300; // 6 real seconds
@@ -101,6 +116,7 @@ namespace UpIzUpMini.EditorTools
             for (int i = 0; i < steps; i++)
             {
                 wheelieField?.SetValue(remap, 1f); // Q-equivalent held throughout
+                vInputField?.SetValue(remap, 1f); // W held throughout - real forward motion
 
                 InvokeIfExists(gadd, "Update");
                 InvokeIfExists(crashCtrl, "Update");
@@ -110,7 +126,6 @@ namespace UpIzUpMini.EditorTools
                 InvokeIfExists(gadd, "FixedUpdate");
                 InvokeIfExists(autoLevel, "FixedUpdate");
                 InvokeIfExists(assist, "FixedUpdate");
-                InvokeIfExists(trike, "FixedUpdate");
                 Physics.Simulate(dt);
 
                 float roll = Vector3.SignedAngle(Vector3.up, instance.transform.up, instance.transform.forward);
