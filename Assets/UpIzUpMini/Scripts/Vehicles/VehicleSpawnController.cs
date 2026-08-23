@@ -195,8 +195,24 @@ namespace UpIzUpMini.Vehicles
                 return;
             }
 
+            // MINI-119 follow-up, user: "can you spawn on the lalay
+            // road." The "Sign_LALAY" street sign (Mini011PhaseBSetup.
+            // BuildSign) is built 4.6m sideways (world +X) from the actual
+            // Lalay road centerline point it marks - subtracting that same
+            // offset back out lands right on the road itself, not beside
+            // it. Falls back to the old near-player spawn if the sign
+            // can't be found (e.g. a scene without Mini011's world build).
             Vector3 forward = player.transform.forward;
-            Vector3 spawnPos = GroundSnap(player.transform.position + forward * 8f);
+            Vector3 spawnPos;
+            var lalaySign = GameObject.Find("Sign_LALAY");
+            if (lalaySign != null)
+            {
+                spawnPos = GroundSnap(lalaySign.transform.position - new Vector3(4.6f, 0f, 0f));
+            }
+            else
+            {
+                spawnPos = GroundSnap(player.transform.position + forward * 8f);
+            }
 
             var pc = player.GetComponent<PlayerController>();
             if (pc != null) pc.IsControlled = false;
@@ -218,8 +234,21 @@ namespace UpIzUpMini.Vehicles
             // during Instantiate itself) - same safe ordering the earlier
             // GaddInputAdapter swap used at prefab-build time, just done
             // here at runtime instead since this is the raw stock prefab.
+            // MINI-119 follow-up fix, user: "the bike doesnt move now."
+            // Destroy() is deferred to end-of-frame, so for one whole
+            // frame the GameObject genuinely had TWO Input_Manager-typed
+            // components (the pending-destroy stock one plus our new
+            // subclass) - RB_Controller.Start() (same frame or the next)
+            // called GetComponent<Input_Manager>() and could just as
+            // easily grab the dead-man-walking stock one instead of the
+            // live remap, permanently wiring the bike's input to a
+            // component that was about to vanish and never actually get
+            // driven. DestroyImmediate removes it synchronously, before
+            // AddComponent runs, so there's only ever ONE Input_Manager
+            // on this object at any point in time - no ambiguity for
+            // GetComponent to resolve.
             var stockInput = instance.GetComponent<Gadd420.Input_Manager>();
-            if (stockInput != null) Destroy(stockInput);
+            if (stockInput != null) DestroyImmediate(stockInput);
             instance.AddComponent<SuperMotoWheelieKeyRemap>();
 
             // MINI-119 follow-up, user: "i prefer my wheelie system with
