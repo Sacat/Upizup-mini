@@ -159,8 +159,22 @@ namespace UpIzUpMini.Vehicles
         /// left in a broken state if switched away from.</summary>
         public void Dismount(Vector3 exitPosition)
         {
-            if (!_built) return;
-
+            // MINI-119 follow-up fix, user: "the character cant mount on
+            // the bike and the scale of the character is increasing...
+            // doesnt get into the pose." Real cause: this used to
+            // early-return here if the IK rig hadn't finished building
+            // yet (BuildRig waits a few frames for animator.avatar) -
+            // meaning a dismount pressed in that window left the player
+            // still parented under the bike's seat with its
+            // already-divided scale, while the OUTER
+            // SuperMotoStockInteractable.Dismount() went ahead anyway and
+            // handed control back. Every next F-press then called Mount()
+            // again, re-dividing the ALREADY-divided scale by the bike's
+            // scale a second time - compounding on every retry, hence
+            // the character growing huge. The transform/scale/control
+            // restore below must always run regardless of whether the
+            // rig itself finished building - only the rig cleanup is
+            // conditional.
             if (_rigBuilder != null) Object.DestroyImmediate(_rigBuilder);
             var rig = _player.transform.Find("SuperMotoIKRig");
             if (rig != null) Object.DestroyImmediate(rig.gameObject);

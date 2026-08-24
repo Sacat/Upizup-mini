@@ -36,6 +36,7 @@ namespace UpIzUpMini.Vehicles
 
         private GameObject _mountedPlayer;
         private SuperMotoKinematicRider _rider;
+        private GameObject _seatGo;
         private int _lockedSlotIndex = -1;
 
         public bool HasRider => _mountedPlayer != null;
@@ -90,6 +91,7 @@ namespace UpIzUpMini.Vehicles
             if (HasRider || player == null) return;
 
             var seatGo = new GameObject("PlayerSeat");
+            _seatGo = seatGo;
             seatGo.transform.SetParent(transform, false);
             seatGo.transform.localPosition = _seatLocalPos;
             seatGo.transform.localRotation = Quaternion.identity;
@@ -147,6 +149,9 @@ namespace UpIzUpMini.Vehicles
 
             if (_rider != null) _rider.Dismount(exitPosition);
             VehicleSpawnController.SetBikeInputEnabled(gameObject, false);
+
+            if (_seatGo != null) Destroy(_seatGo);
+            _seatGo = null;
 
             var switcher = CharacterSwitchManager.Instance;
             if (_lockedSlotIndex >= 0 && switcher != null) switcher.SetLocked(_lockedSlotIndex, false);
