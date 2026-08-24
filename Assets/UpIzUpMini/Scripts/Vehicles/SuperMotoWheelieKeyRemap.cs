@@ -66,15 +66,48 @@ namespace UpIzUpMini.Vehicles
 
         protected override void GetLeanBackValue()
         {
-            if (Input.GetKey(KeyCode.E) || Input.GetKey(KeyCode.Q))
+            // MINI-119 follow-up, user: "put some quick controls on the
+            // screen i want to test it using my phone." SuperMotoTouchInputState
+            // ORed in throughout this file so on-screen buttons and the
+            // keyboard both drive the exact same fields.
+            bool e = Input.GetKey(KeyCode.E) || SuperMotoTouchInputState.WheelieE;
+            bool q = Input.GetKey(KeyCode.Q) || SuperMotoTouchInputState.WheelieQ;
+            if (e || q)
             {
-                if (Input.GetKey(KeyCode.E)) wheelieInput = -1;
-                if (Input.GetKey(KeyCode.Q)) wheelieInput = 1;
+                if (e) wheelieInput = -1;
+                if (q) wheelieInput = 1;
             }
             else
             {
                 wheelieInput = 0;
             }
+        }
+
+        protected override void GetLeanValue()
+        {
+            if (!combineLeanAndSteering)
+            {
+                bool m0 = Input.GetKey(KeyCode.Mouse0) || SuperMotoTouchInputState.LeanLeft;
+                bool m1 = Input.GetKey(KeyCode.Mouse1) || SuperMotoTouchInputState.LeanRight;
+                if (m0 || m1)
+                {
+                    if (m0) leanInput = -1;
+                    if (m1) leanInput = 1;
+                }
+                else
+                {
+                    leanInput = 0;
+                }
+            }
+            else
+            {
+                leanInput = hzInput;
+            }
+        }
+
+        protected override void FrontBreak()
+        {
+            frontBreakInput = (Input.GetKey(KeyCode.Space) || SuperMotoTouchInputState.FrontBrake) ? 1 : 0;
         }
 
         // MINI-119 follow-up, user: "i want the arrow keys to be apart of
@@ -94,8 +127,8 @@ namespace UpIzUpMini.Vehicles
         {
             _vInputTime = Mathf.Clamp(_vInputTime, 0, inputSmoothingTime);
 
-            bool up = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow);
-            bool down = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
+            bool up = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) || SuperMotoTouchInputState.Throttle;
+            bool down = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) || SuperMotoTouchInputState.ReverseBrake;
 
             if (up || down)
             {
@@ -146,8 +179,8 @@ namespace UpIzUpMini.Vehicles
         {
             _hzInputTime = Mathf.Clamp(_hzInputTime, 0, inputSmoothingTime);
 
-            bool right = Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow);
-            bool left = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow);
+            bool right = Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow) || SuperMotoTouchInputState.SteerRight;
+            bool left = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow) || SuperMotoTouchInputState.SteerLeft;
 
             if (right || left)
             {

@@ -68,12 +68,20 @@ namespace UpIzUpMini.Vehicles
                 return;
             }
 
-            if (Input.GetKeyDown(dismountKey)) Dismount();
+            // MINI-119 follow-up, user: "put some quick controls on the
+            // screen i want to test it using my phone." SuperMotoTouchInputState's
+            // mount button is edge-triggered the same way Input.GetKeyDown
+            // is - ConsumeMountPressed() must be called even if the key
+            // check already short-circuits, or a tap while mounted would
+            // sit "pressed" and fire the moment you dismount.
+            bool touchPressed = SuperMotoTouchInputState.ConsumeMountPressed();
+            if (Input.GetKeyDown(dismountKey) || touchPressed) Dismount();
         }
 
         private void TryMountByKey()
         {
-            if (!Input.GetKeyDown(mountKey)) return;
+            bool touchPressed = SuperMotoTouchInputState.ConsumeMountPressed();
+            if (!Input.GetKeyDown(mountKey) && !touchPressed) return;
 
             var active = CharacterSwitchManager.Instance?.Active;
             if (active?.root == null) return;
