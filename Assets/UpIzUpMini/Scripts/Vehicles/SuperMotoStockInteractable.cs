@@ -108,6 +108,29 @@ namespace UpIzUpMini.Vehicles
             var playerController = player.GetComponent<Character.PlayerController>();
             if (playerController != null) playerController.IsControlled = false;
 
+            // MINI-119 follow-up fix, user: "just the walking animation
+            // is going on." Real cause: PlayerController.Update() returns
+            // immediately whenever IsControlled is false (see its own
+            // header comment - "only processes input while IsControlled
+            // is true") - it never touches the Animator's own Speed/
+            // MotionSpeed parameters again once that happens, so whatever
+            // value they held the instant before mounting (nonzero, since
+            // you were walking TO the bike) stays stuck forever, looping
+            // the walk cycle the whole ride. Frozen to a calm standing
+            // idle here, once, right as control is taken away - the IK
+            // constraints (SuperMotoKinematicRider, already running every
+            // frame once built) then bend arms/legs from that idle base
+            // pose onto the bike's own hand/foot anchors.
+            var animator = player.GetComponent<Animator>();
+            if (animator != null)
+            {
+                animator.SetFloat("Speed", 0f);
+                animator.SetFloat("MotionSpeed", 0f);
+                animator.SetBool("Grounded", true);
+                animator.SetBool("Jump", false);
+                animator.SetBool("FreeFall", false);
+            }
+
             var seatGo = new GameObject("PlayerSeat");
             _seatGo = seatGo;
             seatGo.transform.SetParent(transform, false);
