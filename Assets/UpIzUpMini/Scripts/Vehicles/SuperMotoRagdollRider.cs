@@ -47,6 +47,8 @@ namespace UpIzUpMini.Vehicles
         private int _framesWaited;
         private bool _built;
 
+        public bool IsMounted => _built;
+
         public void Configure(GameObject player, Transform seatAnchor,
             Transform rightHandTarget, Transform leftHandTarget, Transform rightFootTarget, Transform leftFootTarget)
         {
@@ -57,6 +59,63 @@ namespace UpIzUpMini.Vehicles
             _leftHandTarget = leftHandTarget;
             _rightFootTarget = rightFootTarget;
             _leftFootTarget = leftFootTarget;
+        }
+
+        /// <summary>MINI-119 follow-up, user: "i want to be able to walk
+        /// to the bike and press f to get on the bike... it showed the
+        /// character falling under the map [after switching character]."
+        /// Real cause of the fall-through: mounting disables the
+        /// CharacterController and Animator and leaves real dynamic
+        /// Rigidbodies on every bone - nothing in CharacterSwitchManager
+        /// knew to restore any of that when switching away, so an
+        /// inactive mounted character was left with no ground collision
+        /// and no control at all. This fully reverses BuildAndPin: joints
+        /// and the ragdoll's own Rigidbodies/Colliders are removed
+        /// outright (not just made kinematic - they were only ever meant
+        /// to exist for the duration of the ride), the Animator and
+        /// CharacterController come back on, and the player is placed at
+        /// exitPosition.</summary>
+        public void Dismount(Vector3 exitPosition)
+        {
+            if (!_built) return;
+
+            Transform hips = _animator.GetBoneTransform(HumanBodyBones.Hips);
+            Transform rightHand = _animator.GetBoneTransform(HumanBodyBones.RightHand);
+            Transform leftHand = _animator.GetBoneTransform(HumanBodyBones.LeftHand);
+            Transform rightFoot = _animator.GetBoneTransform(HumanBodyBones.RightFoot);
+            Transform leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+            RemoveRagdollFrom(hips);
+            RemoveRagdollFrom(rightHand);
+            RemoveRagdollFrom(leftHand);
+            RemoveRagdollFrom(rightFoot);
+            RemoveRagdollFrom(leftFoot);
+            // Every other bone SacatRagdollBuilder touched (spine, head,
+            // elbows/knees) also needs cleaning up, not just the five
+            // pinned ones.
+            foreach (var rb in _player.GetComponentsInChildren<Rigidbody>(true)) Object.DestroyImmediate(rb);
+            foreach (var col in _player.GetComponentsInChildren<CapsuleCollider>(true)) Object.DestroyImmediate(col);
+            foreach (var col in _player.GetComponentsInChildren<SphereCollider>(true)) Object.DestroyImmediate(col);
+            foreach (var cj in _player.GetComponentsInChildren<CharacterJoint>(true)) Object.DestroyImmediate(cj);
+            foreach (var cj in _player.GetComponentsInChildren<ConfigurableJoint>(true)) Object.DestroyImmediate(cj);
+
+            _player.transform.SetParent(null, true);
+            _player.transform.position = exitPosition;
+            _player.transform.rotation = Quaternion.identity;
+            _player.transform.localScale = Vector3.one;
+
+            _animator.enabled = true;
+            var characterController = _player.GetComponent<CharacterController>();
+            if (characterController != null) characterController.enabled = true;
+
+            _built = false;
+            _framesWaited = 0;
+        }
+
+        private void RemoveRagdollFrom(Transform bone)
+        {
+            if (bone == null) return;
+            var joint = bone.GetComponent<ConfigurableJoint>();
+            if (joint != null) Object.DestroyImmediate(joint);
         }
 
         private float _logTimer;

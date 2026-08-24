@@ -229,18 +229,13 @@ namespace UpIzUpMini.Vehicles
                     : GroundSnap(player.transform.position + forward * 8f);
             }
 
-            // MINI-119 follow-up, user: "i want to ragdoll my main
-            // characters and put them on the bike. so remove their
-            // ragdoll character and put mine." Player stays ACTIVE now
-            // (was SetActive(false), fully hidden) - VehicleRider.Mount
-            // (below, once the bike exists) reparents them onto the
-            // bike's own seat and disables their CharacterController
-            // itself, same as it already does for the TMAX. Just
-            // IsControlled=false here so their own walk/run input can't
-            // fight the bike's control scheme in the one frame before
-            // mounting happens.
-            var pc = player.GetComponent<PlayerController>();
-            if (pc != null) pc.IsControlled = false;
+            // MINI-119 follow-up, user: "i want to be able to walk to the
+            // bike and press f to get on the bike." Player keeps walking
+            // normally now - nothing about their control is touched at
+            // spawn time at all. SuperMotoStockInteractable.Interact
+            // (only fires on an actual F press while in range) is what
+            // disables control/CharacterController, exactly like
+            // BikeInteractable already does for the TMAX.
 
             // MINI-119 follow-up fix, user: "i must press F to get stable
             // in the beginning because the spawn lands with a crash." Real
@@ -413,22 +408,16 @@ namespace UpIzUpMini.Vehicles
                 if (!(mgr is SuperMotoWheelieKeyRemap)) DestroyImmediate(mgr);
             }
 
-            // MINI-119 follow-up, user: "use my camera follow system, from
-            // my bike system because for this one i must keep turning the
-            // mouse to it can keep track but with my old system it
-            // automatically tracks and follows the character properly."
-            // Same anchor + SetTarget/OrbitLocked pattern SuperMotoInteractable.
-            // Possess() already uses for the mapped bike - our OWN camera,
-            // no mouse-orbit required, reused as-is rather than reinvented.
-            var cam = FindFirstObjectByType<ThirdPersonFollowCamera>();
-            if (cam != null)
-            {
-                var anchorGo = new GameObject("StockDemoCameraAnchor");
-                var anchor = anchorGo.AddComponent<BikeCameraAnchor>();
-                anchor.Follow(instance.transform);
-                cam.SetTarget(anchor.transform);
-                cam.OrbitLocked = true;
-            }
+            // MINI-119 follow-up, user: "use my camera follow system...
+            // it automatically tracks and follows the character properly."
+            // Anchor created here (harmless, just sits idle until
+            // mounted) - SuperMotoStockInteractable owns actually
+            // pointing the camera at it on mount/dismount, since doing
+            // that at SPAWN time would lock the camera onto the parked
+            // bike before the player ever interacts with it.
+            var camAnchorGo = new GameObject("StockDemoCameraAnchor");
+            var camAnchor = camAnchorGo.AddComponent<BikeCameraAnchor>();
+            camAnchor.Follow(instance.transform);
 
             // MINI-119 follow-up, user: "it crashes too easy... it tends
             // to lean on a side while riding sometimes... i like the
@@ -453,35 +442,14 @@ namespace UpIzUpMini.Vehicles
             // pre-crashed bike at spawn.
             anytimeReset.ResetUpright();
 
-            // MINI-119 follow-up, user: "i want to ragdoll my main
-            // characters and put them on the bike. so remove their
-            // ragdoll character and put mine." Confirmed plan: reuse
-            // VehicleSeat/VehicleRider (already proven on the TMAX) rather
-            // than the vendor's own hand-rolled IK.cs, since Unity's
-            // native OnAnimatorIK humanoid goal IK is already the
-            // documented-better choice (see VehicleRider's own header -
-            // a runtime rig-constraint build was tried first and was
-            // fragile). The vendor's own hand/foot IK anchor points
-            // (RightHandPos/LeftHandPos under the fork pivot, so they
-            // move with steering; RightFootPos/LeftFootPos under the
-            // frame) are already bike-relative and rider-agnostic -
-            // confirmed via Mini119RiderRigInspect before writing any of
-            // this - so they're reused as-is, unmodified, as this seat's
-            // own IK targets.
-            MountPlayerOnStockDemoBike(instance, player);
-
-            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, our own character mounted on it (hands/feet IK-pinned to the bike's own handlebar/peg anchors), our own camera follow attached, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: W/S/arrows throttle, A/D/arrows steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene, P captures the rider's current position relative to the seat (drag him into place in the Scene view first) to the log. No mount/dismount key - you start already on it.");
-        }
-
-        /// <summary>MINI-119 follow-up: puts the player's own character on
-        /// the stock demo SuperMoto in place of the vendor's own ragdoll
-        /// rider - see the call site's own comment for the reasoning.
-        /// Vendor rider is hidden (not destroyed) so its RagdollManager/
-        /// crash-reaction machinery stays intact for a later phase, per
-        /// the user's own "sacat first... franki after when sacat
-        /// works" sequencing - this pass is riding/IK only.</summary>
-        private void MountPlayerOnStockDemoBike(GameObject instance, GameObject player)
-        {
+            // MINI-119 follow-up, user: "i want the bike spawned in the
+            // same way, i want to be able to walk to the bike and press
+            // f to get on the bike." No more auto-mount - the bike sits
+            // parked here, and SuperMotoStockInteractable handles F to
+            // mount/dismount, same as the real dealer-purchase flow
+            // already does for the TMAX (BikeInteractable). Anchors are
+            // found ONCE here (bike geometry doesn't depend on who
+            // mounts) and handed to the interactable.
             var vendorRider = FindDeepByName(instance.transform, "Rider 1");
             Vector3 seatLocalPos = new Vector3(0f, 0.62f, -0.05f); // sane fallback if the vendor rider isn't found
             if (vendorRider != null)
@@ -494,57 +462,22 @@ namespace UpIzUpMini.Vehicles
                 foreach (var r in vendorRider.GetComponentsInChildren<Renderer>(true)) r.enabled = false;
             }
 
-            var handlebarHandPos = FindDeepByName(instance.transform, "HandPos");
             Transform rightHandTarget = FindDeepByName(instance.transform, "RightHandPos");
             Transform leftHandTarget = FindDeepByName(instance.transform, "LeftHandPos");
-            var feetPos = FindDeepByName(instance.transform, "FeetPos");
             Transform rightFootTarget = FindDeepByName(instance.transform, "RightFootPos");
             Transform leftFootTarget = FindDeepByName(instance.transform, "LeftFootPos");
 
             if (rightHandTarget == null || leftHandTarget == null || rightFootTarget == null || leftFootTarget == null)
             {
-                Debug.LogError("MINI-119 STOCK DEMO TEST: couldn't find the bike's own hand/foot IK anchors (RightHandPos/LeftHandPos/RightFootPos/LeftFootPos) - character not mounted, falling back to the old hide-the-player behaviour.");
-                player.SetActive(false);
-                return;
+                Debug.LogError("MINI-119 STOCK DEMO TEST: couldn't find the bike's own hand/foot IK anchors (RightHandPos/LeftHandPos/RightFootPos/LeftFootPos) - no interactable added, bike will spawn but can't be mounted.");
+            }
+            else
+            {
+                var interactable = instance.AddComponent<SuperMotoStockInteractable>();
+                interactable.Configure(seatLocalPos, rightHandTarget, leftHandTarget, rightFootTarget, leftFootTarget, camAnchor.transform);
             }
 
-            var seatGo = new GameObject("PlayerSeat");
-            seatGo.transform.SetParent(instance.transform, false);
-            seatGo.transform.localPosition = seatLocalPos;
-            seatGo.transform.localRotation = Quaternion.identity;
-
-            // MINI-119 follow-up, user: "well forget about sacat
-            // animation, use a ragdoll system for the bike... yow
-            // ragdoll ragdoll ragdoll dont change this be stricton
-            // implementing this on the bike." No Animator, no Mecanim
-            // IK, no VehicleRider - Sacat's Animator gets disabled
-            // outright and his real physics ragdoll (hips/hands/feet
-            // physically joined to the bike's own existing anchor
-            // points) IS the riding mechanism now. See
-            // SuperMotoRagdollRider's own header for the full story,
-            // including why a Rigidbody has to be added to each anchor
-            // (they're plain kinematically-rotated Transforms on the
-            // vendor's own rig, with nothing of their own for a Joint to
-            // connect to).
-            //
-            // One-time placement first (reusing the user's own manually-
-            // placed numbers - Position 0.022,-0.925,0.154, Rotation X
-            // -7.529 - captured earlier this session) so the ragdoll
-            // starts close to correct instead of snapping hard into
-            // place once the joints engage.
-            player.transform.SetParent(seatGo.transform, false);
-            player.transform.localPosition = new Vector3(0.022f, -0.925f, 0.154f);
-            player.transform.localRotation = Quaternion.Euler(-7.529f, 0f, 0f);
-            Vector3 parentScale = seatGo.transform.lossyScale;
-            player.transform.localScale = new Vector3(
-                player.transform.localScale.x / Mathf.Max(0.0001f, parentScale.x),
-                player.transform.localScale.y / Mathf.Max(0.0001f, parentScale.y),
-                player.transform.localScale.z / Mathf.Max(0.0001f, parentScale.z));
-
-            var ragdollRider = player.AddComponent<SuperMotoRagdollRider>();
-            ragdollRider.Configure(player, seatGo.transform, rightHandTarget, leftHandTarget, rightFootTarget, leftFootTarget);
-
-            _ = handlebarHandPos; _ = feetPos; // kept for future pole-vector work, not used yet
+            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned and parked, our own camera follow attached once mounted, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: walk up and press F to get on/off, W/S/arrows throttle, A/D/arrows steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F (while riding) resets upright ANY TIME (not just after a crash), R reloads the whole scene.");
         }
 
         private static Transform FindDeepByName(Transform root, string name)
