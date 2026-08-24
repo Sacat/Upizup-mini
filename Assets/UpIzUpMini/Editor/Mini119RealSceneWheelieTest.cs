@@ -155,6 +155,11 @@ namespace UpIzUpMini.EditorTools
         private static void InvokeIfExists(Object target, string methodName)
         {
             if (target == null) return;
+            // MINI-119 follow-up fix: Unity's real message dispatch skips
+            // a disabled Behaviour's Update/FixedUpdate entirely - a
+            // reflection-driven MethodInfo.Invoke() does not, silently
+            // defeating any fix that works by setting .enabled = false.
+            if (target is Behaviour b && !b.enabled) return;
             var method = target.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             method?.Invoke(target, null);
         }

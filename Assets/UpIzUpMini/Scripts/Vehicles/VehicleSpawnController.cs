@@ -358,6 +358,15 @@ namespace UpIzUpMini.Vehicles
 
             instance.AddComponent<SuperMotoWheelieAssist>();
 
+            // MINI-119 follow-up, user: "its a left to right that needs
+            // to return to equal angle on both left and right so the
+            // bike would be back up right no matter what... a counter
+            // force seperate for the superassist to bring it bck to 0
+            // degrees lean that it constantly checks for." Continuous
+            // roll-correcting spring-damper - see SuperMotoUprightAssist's
+            // own header.
+            instance.AddComponent<SuperMotoUprightAssist>();
+
             // MINI-119 follow-up, user: "i didnt see the screen read out if
             // E was held or not." The earlier readout lived inside
             // Mini119StockDemoBikeTuner's toggleable/scrollable panel and
