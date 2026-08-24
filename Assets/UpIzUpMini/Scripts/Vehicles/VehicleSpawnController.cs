@@ -49,7 +49,11 @@ namespace UpIzUpMini.Vehicles
         // scene file at all (pure runtime code), so it is safe to ship
         // without re-running any scene builder and re-wiping the user's
         // own manual hedge/farm-plot/safehouse placement edits.
-        private const bool DevSpawnNearPlayerOnStart = true;
+        // MINI-119 follow-up, user: "just remove the bike and range rova
+        // from the start of the game. it was just for testing." Testing
+        // aid turned off - vehicles go back to the normal dealer-purchase
+        // flow only.
+        private const bool DevSpawnNearPlayerOnStart = false;
         private bool _devSpawnDone;
 
         private void Awake() => Instance = this;
