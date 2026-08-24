@@ -445,7 +445,24 @@ namespace Gadd420
             }
 
             //If your not leaning past the max lean angles
-            if (rb.transform.eulerAngles.z < maxLeanLeft || rb.transform.eulerAngles.z > maxLeanRight && isGrounded)
+            // MINI-119 follow-up fix, user: "went a steep ledge and the
+            // bike seems to stick at that angle when riding with a lean."
+            // Same operator-precedence bug already found and fixed in
+            // AutoLeveling.AutoLevel (&& binds tighter than || in C#): as
+            // shipped this parsed as "(z < maxLeanLeft) || (z >
+            // maxLeanRight && isGrounded)". maxLeanLeft/Right default to
+            // 45/315 (maxLeanAngle=45), so the evident intent - "apply
+            // steering-lean input whenever roll is within 45deg of
+            // upright on EITHER side, and grounded" - only ever actually
+            // gated the right-hand half on isGrounded. Once roll passed
+            // 45deg on the left side, this whole block went false and
+            // player steering input stopped doing anything to correct
+            // the lean, grounded or not, until roll happened to drift
+            // back under 45deg on its own - a steep ledge hit landing
+            // roll past 45deg (but under the emergency 60deg auto-
+            // recover threshold elsewhere) had nothing left to pull it
+            // back. Parenthesised to the intended grouping.
+            if ((rb.transform.eulerAngles.z < maxLeanLeft || rb.transform.eulerAngles.z > maxLeanRight) && isGrounded)
             {
                 if (inputs.LeanInput != -inputs.HzInput)
                 {
