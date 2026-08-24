@@ -192,6 +192,36 @@ namespace UpIzUpMini.Vehicles
         /// adapter or added torque involved at all.</summary>
         private void SpawnStockDemoBikeAndDisableOurCharacter(GameObject player)
         {
+            // MINI-119 follow-up, user: "i want the same bike that is
+            // spawning i can mount on." Rather than always instantiating
+            // a fresh copy at runtime, this looks for one already placed
+            // in the scene BY HAND first (drag SuperMotoWRagdoll.prefab
+            // into the Hierarchy, name it "StockDemoSuperMoto") - that
+            // becomes the SAME object that's mountable in Play Mode, not
+            // a separate runtime copy, so any Animation Rigging setup the
+            // user builds on it in Edit Mode (where it actually saves)
+            // is exactly what's there when they hit Play. Falls back to
+            // the old instantiate-fresh-every-time behaviour if nothing
+            // has been placed, so this stays safe with no manual setup
+            // too.
+            var preplaced = GameObject.Find("StockDemoSuperMoto");
+            GameObject instance;
+            bool wasPreplaced = preplaced != null;
+            Vector3 forward = player.transform.forward;
+            Vector3 spawnPos;
+
+            if (wasPreplaced)
+            {
+                instance = preplaced;
+                spawnPos = instance.transform.position;
+                // Manual placement is authoritative (same convention
+                // this whole task has followed for the seat pose, bike
+                // scale, etc.) - position/rotation/scale are exactly
+                // whatever the user set in the Editor, never
+                // reinterpreted here.
+            }
+            else
+            {
             if (stockDemoBikePrefab == null)
             {
                 Debug.LogError("MINI-119 STOCK DEMO TEST: stockDemoBikePrefab not wired - run Mini119WireStockDemoBike.");
@@ -205,8 +235,6 @@ namespace UpIzUpMini.Vehicles
             // index, one either side - their midpoint IS the road between
             // them. Falls back to the Sign_LALAY position, then the old
             // near-player spawn, if the market stalls aren't found.
-            Vector3 forward = player.transform.forward;
-            Vector3 spawnPos;
             var farmShopStall = GameObject.Find("Stall_FARM SHOP");
             var produceBuyerStall = GameObject.Find("Stall_PRODUCE BUYER");
             if (farmShopStall != null && produceBuyerStall != null)
@@ -256,7 +284,7 @@ namespace UpIzUpMini.Vehicles
             // wheel-bottom offset from the live WheelColliders, then place
             // the root high enough that the wheels rest ON the ground
             // instead of through it.
-            var instance = (GameObject)Instantiate(stockDemoBikePrefab, Vector3.zero, Quaternion.LookRotation(forward, Vector3.up));
+            instance = (GameObject)Instantiate(stockDemoBikePrefab, Vector3.zero, Quaternion.LookRotation(forward, Vector3.up));
             instance.name = "StockDemoSuperMoto";
 
             // MINI-119 follow-up, user: "he smaller than the actual bike...
@@ -285,6 +313,7 @@ namespace UpIzUpMini.Vehicles
                 spawnPos + Vector3.up * (wheelBottomOffset + 0.1f),
                 Quaternion.LookRotation(forward, Vector3.up));
             Physics.SyncTransforms();
+            } // end of the "not preplaced" branch - everything below runs either way
 
             // MINI-119 follow-up, user: "the camera is not smooth research
             // and get it to follow smooth." Real, well-documented Unity
