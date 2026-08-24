@@ -38,7 +38,8 @@ namespace UpIzUpMini.Vehicles
         [Tooltip("Position spring strength pulling hands/feet/hips toward their anchor - not a hard lock, so the ragdoll still reads as physically simulated rather than teleported.")]
         public float jointSpring = 8000f;
         public float jointDamper = 400f;
-        public float jointMaxForce = 100000f;
+        [Tooltip("Hard cap on the correction force regardless of spring/distance - a defensive limit against exactly the kind of one-step velocity spike that threw the character off the map before the pose-first fix. Deliberately far below the spring's own theoretical max output.")]
+        public float jointMaxForce = 6000f;
 
         private GameObject _player;
         private Animator _animator;
@@ -58,23 +59,41 @@ namespace UpIzUpMini.Vehicles
             _leftFootTarget = leftFootTarget;
         }
 
+        private float _logTimer;
+
         private void Update()
         {
-            if (_built || _animator == null) return;
-
-            _framesWaited++;
-            if (_animator.avatar == null)
+            if (!_built)
             {
-                if (_framesWaited > 300)
+                if (_animator == null) return;
+
+                _framesWaited++;
+                if (_animator.avatar == null)
                 {
-                    Debug.LogError("MINI-119 RAGDOLL RIDER: animator.avatar never became non-null after 300 frames - giving up.");
-                    _built = true; // stop retrying
+                    if (_framesWaited > 300)
+                    {
+                        Debug.LogError("MINI-119 RAGDOLL RIDER: animator.avatar never became non-null after 300 frames - giving up.");
+                        _built = true; // stop retrying
+                    }
+                    return;
                 }
+
+                BuildAndPin();
+                _built = true;
                 return;
             }
 
-            BuildAndPin();
-            _built = true;
+            // MINI-119 follow-up, user: "mission failed fell off playable
+            // area do some research first." A running position log makes
+            // an explosion visible (or ruled out) in the real Player.log
+            // from a headless build run, sidestepping the Editor-only
+            // Animator/Avatar-binding gap entirely.
+            _logTimer += Time.deltaTime;
+            if (_logTimer >= 1f)
+            {
+                _logTimer = 0f;
+                Debug.Log($"MINI-119 RAGDOLL RIDER: t={Time.time:F1}s playerPos={_player.transform.position}");
+            }
         }
 
         private void BuildAndPin()
@@ -83,6 +102,43 @@ namespace UpIzUpMini.Vehicles
             var playerController = _player.GetComponent<Character.PlayerController>();
             if (playerController != null) playerController.IsControlled = false;
             if (characterController != null) characterController.enabled = false;
+
+            Transform hips = _animator.GetBoneTransform(HumanBodyBones.Hips);
+            Transform rightHand = _animator.GetBoneTransform(HumanBodyBones.RightHand);
+            Transform leftHand = _animator.GetBoneTransform(HumanBodyBones.LeftHand);
+            Transform rightFoot = _animator.GetBoneTransform(HumanBodyBones.RightFoot);
+            Transform leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+
+            // MINI-119 follow-up fix, user report: "mission failed fell
+            // off playable area." Real, worked-out cause: building the
+            // ragdoll from whatever raw pose the bones happened to be in
+            // (the Animator was already off, so likely a bind/T-pose)
+            // then joining hand/foot bones straight to the bike anchors
+            // with a stiff spring meant closing a potentially large gap
+            // (tens of centimetres) in a single physics step - spring
+            // force scales with distance, so a 8000 spring across even a
+            // 0.3m gap on a ~2kg bone works out to roughly 20-30 m/s of
+            // velocity change in ONE step. That is an explosion, not a
+            // guess anymore.
+            //
+            // Fix: pose the limbs onto the real targets FIRST, using the
+            // vendor's own kinematic IK.cs as a one-time posing tool (not
+            // an ongoing system) - run its solve several times so it
+            // converges, then remove it - THEN build the ragdoll from
+            // that already-correct pose and pin it. The joint gap at the
+            // moment physics takes over is now ~0, so the same spring
+            // only ever has to resist small ongoing disturbances
+            // (steering, bumps), never a full-distance snap.
+            PoseOntoTargets(rightHand, _rightHandTarget);
+            PoseOntoTargets(leftHand, _leftHandTarget);
+            PoseOntoTargets(rightFoot, _rightFootTarget);
+            PoseOntoTargets(leftFoot, _leftFootTarget);
+            if (hips != null && _seatAnchor != null)
+            {
+                hips.position = _seatAnchor.position;
+                hips.rotation = _seatAnchor.rotation;
+            }
+
             _animator.enabled = false; // physics drives the bones now, not the Animator
 
             var bones = SacatRagdollBuilder.Build(_animator);
@@ -92,12 +148,6 @@ namespace UpIzUpMini.Vehicles
                 if (b.collider != null) b.collider.isTrigger = false;
             }
 
-            Transform hips = _animator.GetBoneTransform(HumanBodyBones.Hips);
-            Transform rightHand = _animator.GetBoneTransform(HumanBodyBones.RightHand);
-            Transform leftHand = _animator.GetBoneTransform(HumanBodyBones.LeftHand);
-            Transform rightFoot = _animator.GetBoneTransform(HumanBodyBones.RightFoot);
-            Transform leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
-
             PinToAnchor(hips, _seatAnchor);
             PinToAnchor(rightHand, _rightHandTarget);
             PinToAnchor(leftHand, _leftHandTarget);
@@ -105,6 +155,26 @@ namespace UpIzUpMini.Vehicles
             PinToAnchor(leftFoot, _leftFootTarget);
 
             Debug.Log($"MINI-119 RAGDOLL RIDER: built and pinned after waiting {_framesWaited} frame(s) for animator.avatar.");
+        }
+
+        /// <summary>Temporarily attaches the vendor's own Gadd420.IK
+        /// solver to reach from the current bone toward the target,
+        /// runs its solve a few times so it actually converges, then
+        /// removes it - a one-shot posing tool, not left running.</summary>
+        private void PoseOntoTargets(Transform bone, Transform target)
+        {
+            if (bone == null || target == null) return;
+
+            var ik = bone.gameObject.AddComponent<Gadd420.IK>();
+            ik.chainLength = 2;
+            ik.target = target;
+            ik.iterations = 10;
+
+            var lateUpdate = typeof(Gadd420.IK).GetMethod("LateUpdate",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            for (int i = 0; i < 5; i++) lateUpdate?.Invoke(ik, null);
+
+            Object.DestroyImmediate(ik);
         }
 
         /// <summary>Ensures the anchor has a (kinematic) Rigidbody - it's
