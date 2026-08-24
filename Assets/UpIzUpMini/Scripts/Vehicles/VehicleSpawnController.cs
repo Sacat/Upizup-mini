@@ -488,7 +488,35 @@ namespace UpIzUpMini.Vehicles
             // likely means "don't know where to look", not "didn't spawn".
             instance.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "SuperMoto (demo)", VehicleMarkerColour);
 
+            // Parked: the bike shouldn't drive itself off the player's
+            // own WASD before anyone's actually pressed F to mount.
+            SetBikeInputEnabled(instance, false);
+
             Debug.Log($"MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned and parked at {spawnPos} (Lalay road, between the farm shop and produce buyer stalls), marked on the minimap, our own camera follow attached once mounted, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: walk up and press F to get on/off, W/S/arrows throttle, A/D/arrows steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F (while riding) resets upright ANY TIME (not just after a crash), R reloads the whole scene.");
+        }
+
+        /// <summary>MINI-119 follow-up, user: "my character moves wit
+        /// the bike controls same time so when i start the game the bike
+        /// automatically starts moving." RB_Controller (and the scripts
+        /// that relay input into it) read the keyboard every frame no
+        /// matter who's mounted - confirmed directly in RB_Controller.cs's
+        /// own Update()/FixedUpdate(), unconditional on any "am I
+        /// mounted" state. Switched off here right after spawn (parked)
+        /// and only switched on for the duration of an actual ride, by
+        /// SuperMotoStockInteractable's own Mount/Dismount. Left alone:
+        /// SuperMotoTrikeStabilizer/SuperMotoUprightAssist (passive lean
+        /// correction, harmless and actually helpful while parked) and
+        /// SuperMotoWheelieHud (a read-only overlay).</summary>
+        public static void SetBikeInputEnabled(GameObject bikeInstance, bool enabled)
+        {
+            var rb = bikeInstance.GetComponent<Gadd420.RB_Controller>();
+            if (rb != null) rb.enabled = enabled;
+            var anytimeReset = bikeInstance.GetComponent<SuperMotoAnytimeReset>();
+            if (anytimeReset != null) anytimeReset.enabled = enabled;
+            var wheelieRemap = bikeInstance.GetComponent<SuperMotoWheelieKeyRemap>();
+            if (wheelieRemap != null) wheelieRemap.enabled = enabled;
+            var wheelieAssist = bikeInstance.GetComponent<SuperMotoWheelieAssist>();
+            if (wheelieAssist != null) wheelieAssist.enabled = enabled;
         }
 
         private static Transform FindDeepByName(Transform root, string name)

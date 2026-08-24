@@ -35,7 +35,7 @@ namespace UpIzUpMini.Vehicles
         private Transform _camAnchor;
 
         private GameObject _mountedPlayer;
-        private SuperMotoRagdollRider _rider;
+        private SuperMotoKinematicRider _rider;
         private int _lockedSlotIndex = -1;
 
         public bool HasRider => _mountedPlayer != null;
@@ -106,9 +106,19 @@ namespace UpIzUpMini.Vehicles
                 player.transform.localScale.y / Mathf.Max(0.0001f, parentScale.y),
                 player.transform.localScale.z / Mathf.Max(0.0001f, parentScale.z));
 
-            _rider = player.GetComponent<SuperMotoRagdollRider>();
-            if (_rider == null) _rider = player.AddComponent<SuperMotoRagdollRider>();
+            _rider = player.GetComponent<SuperMotoKinematicRider>();
+            if (_rider == null) _rider = player.AddComponent<SuperMotoKinematicRider>();
             _rider.Configure(player, seatGo.transform, _rightHandTarget, _leftHandTarget, _rightFootTarget, _leftFootTarget);
+
+            // MINI-119 follow-up, user: "my character moves wit the bike
+            // controls same time so when i start the game the bike
+            // automatically starts moving." Real bug, confirmed in
+            // RB_Controller.cs: it reads player keyboard input every
+            // single frame regardless of whether anyone's mounted, so a
+            // parked bike drove itself the instant the player pressed the
+            // same WASD keys to walk. These only get switched on for the
+            // duration of the ride now.
+            VehicleSpawnController.SetBikeInputEnabled(gameObject, true);
 
             _mountedPlayer = player;
 
@@ -136,6 +146,7 @@ namespace UpIzUpMini.Vehicles
                 exitPosition = hit.point;
 
             if (_rider != null) _rider.Dismount(exitPosition);
+            VehicleSpawnController.SetBikeInputEnabled(gameObject, false);
 
             var switcher = CharacterSwitchManager.Instance;
             if (_lockedSlotIndex >= 0 && switcher != null) switcher.SetLocked(_lockedSlotIndex, false);
