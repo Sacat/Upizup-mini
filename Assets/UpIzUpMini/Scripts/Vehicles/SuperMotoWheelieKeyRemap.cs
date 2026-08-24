@@ -76,5 +76,122 @@ namespace UpIzUpMini.Vehicles
                 wheelieInput = 0;
             }
         }
+
+        // MINI-119 follow-up, user: "i want the arrow keys to be apart of
+        // the controls as well for the [ride] and wheelie. just map
+        // them." Up/Down/Left/Right now work as full alternates for W/S/
+        // A/D - either set works, and both can be held together. Since
+        // holding throttle + E is what starts a wheelie, Up+E works
+        // exactly like W+E already did, with no separate wheelie-specific
+        // arrow binding needed. The base class's own timer fields
+        // (vInputTime/hzInputTime) are private, not protected, so this
+        // duplicates the exact same smoothing curve with its own timers
+        // rather than reusing them - same feel, arrow keys included.
+        private float _vInputTime;
+        private float _hzInputTime;
+
+        protected override void VerticalInput()
+        {
+            _vInputTime = Mathf.Clamp(_vInputTime, 0, inputSmoothingTime);
+
+            bool up = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow);
+            bool down = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
+
+            if (up || down)
+            {
+                if (up)
+                {
+                    if (vInput < 0)
+                    {
+                        _vInputTime -= 2 * Time.deltaTime;
+                        vInput = -Mathf.InverseLerp(0, inputSmoothingTime, _vInputTime);
+                    }
+                    else
+                    {
+                        _vInputTime += 1 * Time.deltaTime;
+                        vInput = Mathf.InverseLerp(0, inputSmoothingTime, _vInputTime);
+                    }
+                }
+                if (down)
+                {
+                    if (vInput > 0.01f)
+                    {
+                        _vInputTime -= 2 * Time.deltaTime;
+                        vInput = Mathf.InverseLerp(0, inputSmoothingTime, _vInputTime);
+                    }
+                    else
+                    {
+                        _vInputTime += 1 * Time.deltaTime;
+                        vInput = -Mathf.InverseLerp(0, inputSmoothingTime, _vInputTime);
+                    }
+                }
+            }
+            else
+            {
+                if (_vInputTime > 0.01f)
+                {
+                    _vInputTime -= 1 * Time.deltaTime;
+                    if (vInput < 0) vInput = -Mathf.InverseLerp(0, inputSmoothingTime, _vInputTime);
+                    if (vInput > 0) vInput = Mathf.InverseLerp(0, inputSmoothingTime, _vInputTime);
+                }
+                else
+                {
+                    _vInputTime = 0;
+                    vInput = 0;
+                }
+            }
+        }
+
+        protected override void HZInput()
+        {
+            _hzInputTime = Mathf.Clamp(_hzInputTime, 0, inputSmoothingTime);
+
+            bool right = Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow);
+            bool left = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow);
+
+            if (right || left)
+            {
+                if (right)
+                {
+                    if (hzInput < 0)
+                    {
+                        _hzInputTime -= 2 * Time.deltaTime;
+                        hzInput = -Mathf.InverseLerp(0, inputSmoothingTime, _hzInputTime);
+                    }
+                    else
+                    {
+                        _hzInputTime += 1 * Time.deltaTime;
+                        hzInput = Mathf.InverseLerp(0, inputSmoothingTime, _hzInputTime);
+                    }
+                }
+                if (left)
+                {
+                    if (hzInput > 0.01f)
+                    {
+                        _hzInputTime -= 2 * Time.deltaTime;
+                        hzInput = Mathf.InverseLerp(0, inputSmoothingTime, _hzInputTime);
+                    }
+                    else
+                    {
+                        _hzInputTime += 1 * Time.deltaTime;
+                        hzInput = -Mathf.InverseLerp(0, inputSmoothingTime, _hzInputTime);
+                    }
+                }
+            }
+            else
+            {
+                if (_hzInputTime > 0.01f)
+                {
+                    _hzInputTime -= 1 * Time.deltaTime;
+                    if (hzInput < 0) hzInput = -Mathf.InverseLerp(0, inputSmoothingTime, _hzInputTime);
+                    if (hzInput > 0) hzInput = Mathf.InverseLerp(0, inputSmoothingTime, _hzInputTime);
+                }
+                else
+                {
+                    _hzInputTime = 0;
+                    hzInput = 0;
+                }
+            }
+        }
     }
 }
