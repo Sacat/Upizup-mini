@@ -22,6 +22,39 @@ Acceptance criteria:
 
 ## In progress
 
+### MINI-119 follow-up — Motorbike Physics Tool: reverted, then re-integrated with a proven fix set + a new continuous roll-corrector
+
+Goal: SuperMoto's own riding physics for normal control, TMAX's own proven
+kinematic wheelie/trike ported over just for the wheelie, and a separate
+continuous counter-force that constantly returns roll to 0 degrees during
+normal riding (a hit or a steep ledge should self-correct, not stay leaned).
+
+Status: **Built and verified by Claude on 2026-08-24; awaiting user
+playtest of this exact build.** Mid-session the user ordered a full revert
+of the entire Motorbike Physics Tool integration after repeated real-play
+failures despite passing batch tests ("put my game back how it was before
+the motor bike asset") - done via `git reset --hard` to the pre-asset
+commit, old work preserved under tag `mini119-motorbike-asset-attempt`.
+Re-integrated on request with a narrower scope: SuperMoto's vendor riding
+untouched; TMAX's own `ApplyWheelie`/`ApplyTrikeStabilizers` ported
+directly (already proven, not reinvented); the real E-key bug found from
+the user's own `Player.log` (a `RequireComponent`-blocked `Input_Manager`
+destroy that silently failed) reapplied since it never got committed
+before the revert; the same operator-precedence lean-torque bug already
+fixed once in `AutoLeveling` found again, unfixed, in `RB_Controller`
+itself, and fixed. New `SuperMotoUprightAssist` (the counter-force the
+user asked for) went through two rejected torque-based attempts (one
+violently unstable, one too weak) before landing on a kinematic
+`MoveRotation`-based corrector - same principle as the wheelie, no torque
+to resonate. A further real bug (a self-reinforcing stuck-pitch loop
+caused by an `asin`-fold-back pitch measurement being baked directly into
+the bike's rotation every frame) was found and fixed the same session.
+See the MINI-119 follow-up entry in `PROJECT-HANDOFF.md` for full detail,
+verification commands/results, and honest limitations (all verification
+is batch-mode; the user has hands-on confirmed the wheelie and the
+pitch-lock fix, but not yet a full end-to-end sign-off on this exact
+build).
+
 ### MINI-119 follow-up — Bike anti-spin final tuning, permanent manual-edit preservation, road/terrain smoothing
 
 Goal: after the user's own hands-on testing found the initial anti-spin fix
