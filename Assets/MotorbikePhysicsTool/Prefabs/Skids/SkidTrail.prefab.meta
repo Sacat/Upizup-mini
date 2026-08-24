@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 1053bc0a8cf4deb49a49f13f622b4777
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/Skids/SkidTrail.prefab
+  uploadId: 454429

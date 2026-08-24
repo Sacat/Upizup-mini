@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f99b5c23f8aaa7647aa27c20e091c859
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Scripts/Speedo/NitrousUI.cs
+  uploadId: 454429

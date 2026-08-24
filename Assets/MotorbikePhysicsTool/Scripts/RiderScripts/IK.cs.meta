@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: b63d38a98e314a8458bf426f87eaf241
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Scripts/RiderScripts/IK.cs
+  uploadId: 454429

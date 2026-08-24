@@ -5,34 +5,34 @@ namespace UpIzUpMini.Vehicles
     /// <summary>
     /// MINI-065: a standalone keyboard adapter for the isolated
     /// TMAX_Physics_Test scene only - reads raw Input axes/keys and feeds
-    /// them into TmaxBikeController.SetInput(throttle, steer, brake),
+    /// them into TmaxBikeControllerCustom.SetInput(throttle, steer, brake),
     /// exactly the decoupled boundary the controller was built for.
     ///
     /// Deliberately separate from the game's real input wiring (which
     /// doesn't exist yet for vehicles - PlayerController drives on-foot
     /// movement only) so this test rig can be deleted or replaced without
-    /// touching TmaxBikeController itself. Also handles the "simple test
+    /// touching TmaxBikeControllerCustom itself. Also handles the "simple test
     /// recovery" requirement: R force-recovers regardless of tip state,
     /// and an on-screen readout shows speed/wheelie/tipped state so the
     /// bike can be evaluated without the Scene view's gizmos.
     ///
     /// Controls: W/S or Up/Down = throttle/reverse, A/D or Left/Right =
     /// steer, Space = brake, E = wheelie - HOLD it to lift the front,
-    /// release to let it settle (see TmaxBikeController.SetWheelieHeld),
+    /// release to let it settle (see TmaxBikeControllerCustom.SetWheelieHeld),
     /// R = recover.
     /// </summary>
-    [RequireComponent(typeof(TmaxBikeController))]
+    [RequireComponent(typeof(TmaxBikeControllerCustom))]
     public class TmaxTestInput : MonoBehaviour
     {
         [SerializeField] private KeyCode recoverKey = KeyCode.R;
         [Tooltip("Redesigned per user feedback: \"when you hold down e it should go up more and then the taping would help balancing it in the air\" - E is now read continuously (GetKey), not just on the down-edge.")]
         [SerializeField] private KeyCode wheelieKey = KeyCode.E;
-        private TmaxBikeController _bike;
+        private TmaxBikeControllerCustom _bike;
         private BikeInteractable _ridden;
 
         private void Awake()
         {
-            _bike = GetComponent<TmaxBikeController>();
+            _bike = GetComponent<TmaxBikeControllerCustom>();
             _ridden = GetComponent<BikeInteractable>();
         }
 
@@ -55,7 +55,7 @@ namespace UpIzUpMini.Vehicles
             // GetKey (held state), not GetKeyDown - holding the key lifts
             // the front continuously; releasing (even briefly, "tapping")
             // lets it settle back down before the next hold, which is the
-            // actual balancing mechanic (see TmaxBikeController.ApplyWheelie).
+            // actual balancing mechanic (see TmaxBikeControllerCustom.ApplyWheelie).
             _bike.SetWheelieHeld(Input.GetKey(wheelieKey));
 
             if (Input.GetKeyDown(recoverKey) || (_bike.IsTipped() && Input.GetKeyDown(KeyCode.Return)))

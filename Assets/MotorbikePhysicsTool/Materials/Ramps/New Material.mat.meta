@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 11143b8a0cb9be64184da9ef3fa97396
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Materials/Ramps/New Material.mat
+  uploadId: 454429

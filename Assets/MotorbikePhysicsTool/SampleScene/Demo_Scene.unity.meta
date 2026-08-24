@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 34f57fd40e231aa4e861789084dafe35
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/SampleScene/Demo_Scene.unity
+  uploadId: 454429

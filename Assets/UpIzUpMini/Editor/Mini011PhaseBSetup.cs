@@ -2219,9 +2219,20 @@ namespace UpIzUpMini.EditorTools
                 }
             }
 
+            // MINI-119, user: "i want to test this in my actual game scene
+            // to get the full gist." Purely a dev test-spawn reference -
+            // never touches tmaxPrefab/roverPrefab above, and the Range
+            // Rover pipeline is completely unaffected, per the user's own
+            // "the range rova system should be separate as its a car."
+            var superMotoTestPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/UpIzUpMini/Vehicles/TMAX_560_SuperMoto.prefab");
+            if (superMotoTestPrefab == null)
+                Debug.LogWarning("MINI-119: TMAX_560_SuperMoto.prefab not found - run 'Up Iz Up Mini/MINI-119/Build SuperMoto Bike Prefab' first if you want it to test-spawn.");
+
             var so = new SerializedObject(spawner);
             so.FindProperty("tmaxPrefab").objectReferenceValue = tmaxPrefab;
             so.FindProperty("roverPrefab").objectReferenceValue = roverPrefab;
+            so.FindProperty("superMotoTestPrefab").objectReferenceValue = superMotoTestPrefab;
             so.FindProperty("bikeHome").objectReferenceValue = home.transform;
             so.ApplyModifiedPropertiesWithoutUndo();
         }

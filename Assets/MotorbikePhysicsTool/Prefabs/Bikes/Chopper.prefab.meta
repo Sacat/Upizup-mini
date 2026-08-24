@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0c3ef702d8d91104687b291450e34b0b
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/Bikes/Chopper.prefab
+  uploadId: 454429

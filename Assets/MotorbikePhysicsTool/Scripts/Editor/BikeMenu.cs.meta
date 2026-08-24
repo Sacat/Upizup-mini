@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 67a62685873bbcf4bb4c56132e9cb426
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Scripts/Editor/BikeMenu.cs
+  uploadId: 454429

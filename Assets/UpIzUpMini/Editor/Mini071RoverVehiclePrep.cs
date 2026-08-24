@@ -67,6 +67,12 @@ namespace UpIzUpMini.EditorTools
             rb.mass = MassKg;
             rb.interpolation = RigidbodyInterpolation.Interpolate;
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            // MINI-119 follow-up: same fix as the bike - Unity's own docs
+            // document the default solver iteration count (6) as a common
+            // cause of WheelCollider suspension jitter, recommending a
+            // targeted per-Rigidbody override. Never set before this.
+            rb.solverIterations = 16;
+            rb.solverVelocityIterations = 12;
 
             // Body collision sits ABOVE the wheels. A box spanning the whole
             // height would rest on the ground and the WheelColliders would never

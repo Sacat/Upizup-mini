@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 9eaa949e5db14c34e9f206f228c98e55
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/WheelColliders/PushBikes/FrontCollider.prefab
+  uploadId: 454429

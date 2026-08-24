@@ -7,7 +7,7 @@ using UpIzUpMini.Vehicles;
 namespace UpIzUpMini.EditorTools
 {
     /// <summary>
-    /// MINI-065: (1) wires TmaxBikeController + TmaxWheelVisuals onto the
+    /// MINI-065: (1) wires TmaxBikeControllerCustom + TmaxWheelVisuals onto the
     /// MINI-064 prefab, and (2) builds an isolated TMAX_Physics_Test scene
     /// (flat road, one turn, one slope, a few boxes/walls) to prototype
     /// and tune the bike in - per the brief's "don't debug this throughout
@@ -60,8 +60,8 @@ namespace UpIzUpMini.EditorTools
                 return;
             }
 
-            var bike = prefabRoot.GetComponent<TmaxBikeController>();
-            if (bike == null) bike = prefabRoot.AddComponent<TmaxBikeController>();
+            var bike = prefabRoot.GetComponent<TmaxBikeControllerCustom>();
+            if (bike == null) bike = prefabRoot.AddComponent<TmaxBikeControllerCustom>();
             var bikeSo = new SerializedObject(bike);
             bikeSo.FindProperty("frontWheel").objectReferenceValue = frontWc;
             bikeSo.FindProperty("rearWheel").objectReferenceValue = rearWc;
@@ -70,7 +70,7 @@ namespace UpIzUpMini.EditorTools
             bikeSo.FindProperty("centerOfMass").objectReferenceValue = com;
             bikeSo.FindProperty("visualLeanRoot").objectReferenceValue = visualLean;
             // MINI-077: written explicitly, or a prefab whose
-            // TmaxBikeController already existed from an earlier build keeps
+            // TmaxBikeControllerCustom already existed from an earlier build keeps
             // its OLD serialized value forever - a C# field default only
             // applies the first time a component is added, never retroactively
             // (the same trap already hit this project's wheelie key and the
@@ -79,12 +79,12 @@ namespace UpIzUpMini.EditorTools
             // MINI-118: same trap - motorTorque/brakeTorque/
             // wheelieRearTorqueBoost were scaled up in the C# defaults to
             // match the heavier bike, but an already-existing
-            // TmaxBikeController on the prefab would otherwise keep its
+            // TmaxBikeControllerCustom on the prefab would otherwise keep its
             // old, now-undersized values forever.
             // MINI-119: raised again, past the MINI-118 mass-parity value,
             // per the user's "should have enough power to climb hill and
             // ledges" - same trap, written explicitly so an existing
-            // prefab's TmaxBikeController actually picks up the new value.
+            // prefab's TmaxBikeControllerCustom actually picks up the new value.
             bikeSo.FindProperty("motorTorque").floatValue = 950f;
             bikeSo.FindProperty("brakeTorque").floatValue = 1200f;
             bikeSo.FindProperty("wheelieRearTorqueBoost").floatValue = 1960f;
@@ -197,7 +197,7 @@ namespace UpIzUpMini.EditorTools
             PrefabUtility.UnloadPrefabContents(prefabRoot);
 
             Debug.Log(success
-                ? "MINI-065/066 WIRE OK: TmaxBikeController + TmaxWheelVisuals + Driver/Pillion VehicleSeat wired onto TMAX_560.prefab."
+                ? "MINI-065/066 WIRE OK: TmaxBikeControllerCustom + TmaxWheelVisuals + Driver/Pillion VehicleSeat wired onto TMAX_560.prefab."
                 : "MINI-065 WIRE FAIL: SaveAsPrefabAsset reported failure.");
         }
 

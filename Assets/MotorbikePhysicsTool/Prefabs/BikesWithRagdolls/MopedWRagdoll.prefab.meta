@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ebbcb8f7456a70f419b49c6baf7a9b86
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/BikesWithRagdolls/MopedWRagdoll.prefab
+  uploadId: 454429

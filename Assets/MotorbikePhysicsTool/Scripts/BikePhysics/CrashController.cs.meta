@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 594b90f4639b9ea429ed2753bf2d8225
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Scripts/BikePhysics/CrashController.cs
+  uploadId: 454429

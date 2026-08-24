@@ -74,7 +74,7 @@ namespace UpIzUpMini.EditorTools
         // into the chassis. That extra ~60kg was real, unaccounted weight
         // working directly against every wheelie attempt (a heavier bike
         // needs more torque to lift, per the real wheelie physics - see
-        // wheelieRearTorqueBoost's own comment in TmaxBikeController). When
+        // wheelieRearTorqueBoost's own comment in TmaxBikeControllerCustom). When
         // MINI-066 adds a rider, their mass should be ADDED at mount time
         // (rb.mass += riderMassKg or similar), not folded back into this
         // constant.
@@ -100,7 +100,7 @@ namespace UpIzUpMini.EditorTools
         // begin with (0.25 -> 0.18 -> 0.14), and more damping past critical
         // bleeds off whatever energy IS stored rather than returning it as a
         // launch (1.3 -> 2.2 -> 3.2). See also ApplyTrikeStabilizers' own
-        // debounce fix in TmaxBikeController - a SECOND spring was stacking
+        // debounce fix in TmaxBikeControllerCustom - a SECOND spring was stacking
         // on top of this one during exactly this scenario (front wheel
         // briefly airborne off a bump), which is at least as much of the
         // "way too high" complaint as this suspension tuning is.
@@ -213,6 +213,18 @@ namespace UpIzUpMini.EditorTools
             rb.mass = BikeMassKg; // real TMAX wet weight ~219-221kg + headroom for a future rider, per the brief.
             rb.linearDamping = 0.05f;
             rb.angularDamping = 2.5f;
+            // MINI-119 follow-up, user: "get the best motocross code
+            // from online." Declined per policy (no using another
+            // game's/asset's code), but researched what actually
+            // differs under the hood for a stable off-road-feeling
+            // WheelCollider rig - Unity's own docs/community call out
+            // the DEFAULT solver iteration count (6) as a documented,
+            // common cause of exactly this class of jitter on complex
+            // suspension setups, and recommend a targeted per-Rigidbody
+            // override rather than a global project-wide change. Never
+            // set before this.
+            rb.solverIterations = 16;
+            rb.solverVelocityIterations = 12;
             // Smoothness fix (user: "the bike riding in the game now looks
             // like its glitching... not smooth"). Physics runs at a fixed
             // 50Hz while rendering runs at whatever the display does, so
@@ -311,7 +323,7 @@ namespace UpIzUpMini.EditorTools
             //
             // Fixed by not using real Colliders for this at all: these are
             // plain, physics-inert Transform markers (no Collider
-            // component whatsoever) - TmaxBikeController.ApplyTrikeStabilizers
+            // component whatsoever) - TmaxBikeControllerCustom.ApplyTrikeStabilizers
             // raycasts down from each one only while a wheelie is happening
             // and applies a real spring force (Rigidbody.AddForceAtPosition)
             // if the raycast finds ground close enough, the same "real
@@ -748,10 +760,27 @@ namespace UpIzUpMini.EditorTools
             // wheel's rest position is the commonly-documented starting
             // point for a normal vehicle's mass distribution.
             wc.forceAppPointDistance = 0.3f;
+            // MINI-119 follow-up: only stiffness was ever set here - the
+            // actual curve SHAPE (extremumSlip/Value, asymptoteSlip/Value)
+            // was left at Unity's generic car defaults, tuned for a
+            // 4-wheeled car's much wider, lower-slip-sensitivity contact
+            // patch, not a motorcycle's narrow one hitting rough terrain.
+            // Widened both curves so grip degrades more gradually past
+            // the peak instead of dropping off sharply - a bump momentarily
+            // spiking slip now loses grip progressively rather than
+            // snapping loose all at once.
             var fwdFriction = wc.forwardFriction;
+            fwdFriction.extremumSlip = 0.35f;
+            fwdFriction.extremumValue = 1f;
+            fwdFriction.asymptoteSlip = 1.0f;
+            fwdFriction.asymptoteValue = 0.6f;
             fwdFriction.stiffness = 1.6f;
             wc.forwardFriction = fwdFriction;
             var sideFriction = wc.sidewaysFriction;
+            sideFriction.extremumSlip = 0.3f;
+            sideFriction.extremumValue = 1f;
+            sideFriction.asymptoteSlip = 0.65f;
+            sideFriction.asymptoteValue = 0.65f;
             sideFriction.stiffness = 2.2f;
             wc.sidewaysFriction = sideFriction;
             return wc;

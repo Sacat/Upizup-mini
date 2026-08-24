@@ -1,4 +1,5 @@
 using UnityEngine;
+using UpIzUpMini.Cameras;
 using UpIzUpMini.Character;
 using UpIzUpMini.Missions;
 using UpIzUpMini.UI;
@@ -26,6 +27,8 @@ namespace UpIzUpMini.Vehicles
         [SerializeField] private GameObject tmaxPrefab;
         [Tooltip("MINI-071: the driveable Range Rover. Same one-time spawn treatment as the bike.")]
         [SerializeField] private GameObject roverPrefab;
+        [Tooltip("MINI-119, user: \"i want to test this in my actual game scene to get the full gist.\" The new Motorbike Physics Tool-based bike (TMAX_560_SuperMoto.prefab) - purely a dev test spawn alongside the real tmaxPrefab/roverPrefab, never through the real purchase flow, and never touching either of those fields. The Range Rover stays completely untouched by any of this, per the user's own explicit \"the range rova system should be separate as its a car.\"")]
+        [SerializeField] private GameObject superMotoTestPrefab;
         [Tooltip("How far from the dealer, along the dealer's own facing direction (which points at the road - see Mini011PhaseBSetup.BuildNpc), the bike appears.")]
         [SerializeField] private float spawnForwardOffset = 5f;
         [SerializeField] private float spawnSideOffset = 1.5f;
@@ -36,6 +39,7 @@ namespace UpIzUpMini.Vehicles
 
         private bool _tmaxSpawned;
         private bool _roverSpawned;
+        private bool _superMotoSpawned;
         // MINI-113: distinct from every other GtaMiniMapMarker colour
         // already in use (shop/mission/police/gang/community/property).
         private static readonly Color VehicleMarkerColour = new Color(0.95f, 0.55f, 0.10f);
@@ -49,17 +53,65 @@ namespace UpIzUpMini.Vehicles
         // scene file at all (pure runtime code), so it is safe to ship
         // without re-running any scene builder and re-wiping the user's
         // own manual hedge/farm-plot/safehouse placement edits.
-        // MINI-119 follow-up, user: "just remove the bike and range rova
-        // from the start of the game. it was just for testing." Testing
-        // aid turned off - vehicles go back to the normal dealer-purchase
-        // flow only.
+        // MINI-119 follow-up, user: "remove the bike and range rova from
+        // the start of the game. it was just for testing." Off - vehicles
+        // only ever appear via the normal dealer purchase flow now.
         private const bool DevSpawnNearPlayerOnStart = false;
+
+        // MINI-119 follow-up, user: "you may have to temporarily disable
+        // the main character and just use the ragdoll and the bike
+        // character until testing is successful." Same on/off-flag
+        // convention as DevSpawnNearPlayerOnStart - while this is true,
+        // the on-foot player character is put straight onto the SuperMoto
+        // (its own rigged rider) the instant it spawns, instead of
+        // waiting for a walk-up + F press. That means the on-foot
+        // character is never simultaneously active and physically near
+        // the bike/ragdoll, which is exactly the clash the user was
+        // seeing. Flip back to false once the bike is confirmed stable
+        // and the walk-up-and-mount flow itself needs testing again.
+        private const bool DevAutoPossessSuperMotoOnSpawn = true;
+
+        // MINI-119 follow-up, user: "no your wrong stripping it to near
+        // nothing is going to get us back to square 1... let us test the
+        // demo controller and physics in my environment first... start
+        // from what works which is the demo. lets use the controls of the
+        // demo as well." Correct call - my own facade/adapter/upright-
+        // torque additions are exactly what broke (the bike spinning
+        // uncontrollably in the air), and I'd never actually proven the
+        // asset's OWN stock setup even worked in this map before piling
+        // changes on top of it. While this is true, EVERYTHING this
+        // controller normally spawns (tmaxPrefab, roverPrefab, our
+        // TMAX_560_SuperMoto.prefab, TmaxBikeController, GaddInputAdapter,
+        // SuperMotoInteractable) is skipped completely, the on-foot
+        // character is disabled, and the pack's own untouched
+        // SuperMotoWRagdoll.prefab is spawned instead with the asset's
+        // OWN stock Input_Manager, KeyBoardShortCuts (R = reload scene,
+        // F = flip upright when crashed - the "reset button... just in
+        // case something goes wrong" the user asked for, using the
+        // asset's existing mechanism rather than inventing a new one) and
+        // ThirdPersonCamera, so what gets tested is genuinely the pack's
+        // own behaviour, not our integration of it. Flip back to false
+        // once this baseline is confirmed solid in this map, then
+        // reintroduce our own facade/mapping one small change at a time.
+        private const bool StockDemoBikeTestMode = true;
+        [Tooltip("MINI-119: only used when StockDemoBikeTestMode is true - the Motorbike Physics Tool's own, completely unmodified Assets/MotorbikePhysicsTool/Prefabs/BikesWithRagdolls/SuperMotoWRagdoll.prefab. Wired by Mini119WireStockDemoBike.cs, not the normal scene builder.")]
+        [SerializeField] private GameObject stockDemoBikePrefab;
         private bool _devSpawnDone;
 
         private void Awake() => Instance = this;
 
         private void Update()
         {
+            if (StockDemoBikeTestMode)
+            {
+                if (_devSpawnDone) return;
+                var activeForStockTest = CharacterSwitchManager.Instance?.Active;
+                if (activeForStockTest?.root == null) return;
+                _devSpawnDone = true;
+                SpawnStockDemoBikeAndDisableOurCharacter(activeForStockTest.root);
+                return;
+            }
+
             if (!DevSpawnNearPlayerOnStart || _devSpawnDone) return;
 
             var active = CharacterSwitchManager.Instance?.Active;
@@ -101,6 +153,276 @@ namespace UpIzUpMini.Vehicles
                 rover.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "Range Rover", VehicleMarkerColour);
                 Debug.Log("MINI-119 DEV SPAWN: Range Rover placed next to the player for testing (DevSpawnNearPlayerOnStart).");
             }
+
+            if (superMotoTestPrefab != null && !_superMotoSpawned)
+            {
+                // MINI-119 follow-up, user: "the new bike spawns in the
+                // same area [as the old one] so they clash and the new
+                // bike falls." tmaxPrefab spawns at forward*3-right*2.5,
+                // roverPrefab at forward*3+right*2.5 - both close enough
+                // that a bike settling/spawn jolt could reach them. Pushed
+                // well clear of both (forward*10+right*4) rather than
+                // guessing at a slightly bigger number.
+                Vector3 pos = GroundSnap(player.position + forward * 10f + right * 4f);
+                var moto = Instantiate(superMotoTestPrefab, pos, Quaternion.LookRotation(forward, Vector3.up));
+                moto.name = "TestSuperMoto";
+                _superMotoSpawned = true;
+                moto.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "SuperMoto (test)", VehicleMarkerColour);
+
+                if (DevAutoPossessSuperMotoOnSpawn)
+                {
+                    var interactable = moto.GetComponent<SuperMotoInteractable>();
+                    if (interactable != null) interactable.DevForceMount(player.gameObject);
+                    Debug.Log("MINI-119 DEV SPAWN: SuperMoto test bike placed and auto-possessed - the on-foot character is disabled, you're straight on the bike's own rider. E to wheelie, Space to brake, R to reset upright if it falls, F to get off.");
+                }
+                else
+                {
+                    Debug.Log("MINI-119 DEV SPAWN: SuperMoto test bike placed next to the player - press F to get on, E to wheelie, Space to brake, R to reset upright if it falls.");
+                }
+            }
+        }
+
+        /// <summary>MINI-119 follow-up, user: "temporarily redirect or
+        /// disable my character and bike controller and physics first...
+        /// use the demo first and see how it works." Disables the on-foot
+        /// character entirely (not just SetActive-while-riding, like our
+        /// own Possess() does) and spawns the pack's own raw
+        /// SuperMotoWRagdoll.prefab with its own stock Input_Manager,
+        /// KeyBoardShortCuts and ThirdPersonCamera - none of our facade,
+        /// adapter or added torque involved at all.</summary>
+        private void SpawnStockDemoBikeAndDisableOurCharacter(GameObject player)
+        {
+            if (stockDemoBikePrefab == null)
+            {
+                Debug.LogError("MINI-119 STOCK DEMO TEST: stockDemoBikePrefab not wired - run Mini119WireStockDemoBike.");
+                return;
+            }
+
+            // MINI-119 follow-up, user (with screenshot): "i want the bike
+            // to spawn... this the lalay road inbetween the two shops."
+            // Mini011PhaseBSetup.BuildMarketArea places "Stall_FARM SHOP"
+            // and "Stall_PRODUCE BUYER" flanking the road at the same road
+            // index, one either side - their midpoint IS the road between
+            // them. Falls back to the Sign_LALAY position, then the old
+            // near-player spawn, if the market stalls aren't found.
+            Vector3 forward = player.transform.forward;
+            Vector3 spawnPos;
+            var farmShopStall = GameObject.Find("Stall_FARM SHOP");
+            var produceBuyerStall = GameObject.Find("Stall_PRODUCE BUYER");
+            if (farmShopStall != null && produceBuyerStall != null)
+            {
+                Vector3 mid = (farmShopStall.transform.position + produceBuyerStall.transform.position) * 0.5f;
+                spawnPos = GroundSnap(mid);
+                // Face along the road, not across it - the road runs
+                // perpendicular to the line between the two stalls (they
+                // flank opposite sides of it).
+                Vector3 acrossRoad = produceBuyerStall.transform.position - farmShopStall.transform.position;
+                acrossRoad.y = 0f;
+                if (acrossRoad.sqrMagnitude > 0.01f)
+                    forward = Vector3.Cross(Vector3.up, acrossRoad.normalized);
+            }
+            else
+            {
+                var lalaySign = GameObject.Find("Sign_LALAY");
+                spawnPos = lalaySign != null
+                    ? GroundSnap(lalaySign.transform.position - new Vector3(4.6f, 0f, 0f))
+                    : GroundSnap(player.transform.position + forward * 8f);
+            }
+
+            var pc = player.GetComponent<PlayerController>();
+            if (pc != null) pc.IsControlled = false;
+            player.SetActive(false);
+
+            // MINI-119 follow-up fix, user: "i must press F to get stable
+            // in the beginning because the spawn lands with a crash." Real
+            // bug, confirmed independently by the user's own play AND by
+            // a direct test against this exact scene/spawn point
+            // (Mini119RealSceneWheelieTest showed a genuine -61.7deg pitch
+            // reading before the player had touched a single key): this
+            // spawn placed the prefab's ROOT TRANSFORM directly at the
+            // ground-raycast hit point, with no idea where the wheels
+            // actually sit relative to that root - almost certainly
+            // burying the wheels partway into the road mesh, so the very
+            // first physics step is a violent correction, not a clean
+            // landing. The SAME class of bug was already found and fixed
+            // for the OTHER (TMAX_560_SuperMoto.prefab) spawn path much
+            // earlier in MINI-119 - this stock-demo spawn just never got
+            // the same treatment when it was built. Measured here the
+            // same way: instantiate at the origin first, read the real
+            // wheel-bottom offset from the live WheelColliders, then place
+            // the root high enough that the wheels rest ON the ground
+            // instead of through it.
+            var instance = (GameObject)Instantiate(stockDemoBikePrefab, Vector3.zero, Quaternion.LookRotation(forward, Vector3.up));
+            instance.name = "StockDemoSuperMoto";
+
+            float wheelBottomOffset = 0.4f; // sane fallback if wheelColliders aren't readable yet
+            var gaddForOffset = instance.GetComponent<Gadd420.RB_Controller>();
+            if (gaddForOffset != null && gaddForOffset.wheelColliders != null && gaddForOffset.wheelColliders.Length >= 2
+                && gaddForOffset.wheelColliders[0] != null && gaddForOffset.wheelColliders[1] != null)
+            {
+                float rearBottom = gaddForOffset.wheelColliders[0].transform.position.y - gaddForOffset.wheelColliders[0].radius;
+                float frontBottom = gaddForOffset.wheelColliders[1].transform.position.y - gaddForOffset.wheelColliders[1].radius;
+                wheelBottomOffset = -Mathf.Min(rearBottom, frontBottom);
+            }
+            instance.transform.SetPositionAndRotation(
+                spawnPos + Vector3.up * (wheelBottomOffset + 0.1f),
+                Quaternion.LookRotation(forward, Vector3.up));
+            Physics.SyncTransforms();
+
+            // MINI-119 follow-up, user: "the camera is not smooth research
+            // and get it to follow smooth." Real, well-documented Unity
+            // cause, not a camera-side tuning problem: the raw
+            // SuperMotoWRagdoll prefab ships its Rigidbody with
+            // Interpolate = None (confirmed in the prefab's own serialized
+            // data), so its visual transform only updates once per physics
+            // step (~50Hz) instead of being smoothed to the render
+            // framerate - the textbook cause of a jittery follow camera on
+            // a Rigidbody target, no amount of camera-side smoothing fully
+            // hides a source that's itself moving in discrete jumps. Our
+            // OWN TMAX_560_SuperMoto.prefab (Mini119SuperMotoBikeSetup)
+            // already sets this correctly - the raw stock-demo spawn here
+            // just never got the same treatment.
+            var stockDemoRb = instance.GetComponent<Rigidbody>();
+            if (stockDemoRb != null)
+            {
+                stockDemoRb.interpolation = RigidbodyInterpolation.Interpolate;
+                stockDemoRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            }
+
+            // MINI-119 follow-up, user: "f respawns the bike only on
+            // crash but i want it to respawn anytime." Replaces the
+            // stock KeyBoardShortCuts (F gated on isCrashed) entirely -
+            // see SuperMotoAnytimeReset's own header.
+            var stockShortcuts = instance.GetComponent<Gadd420.KeyBoardShortCuts>();
+            if (stockShortcuts != null) DestroyImmediate(stockShortcuts);
+            var anytimeReset = instance.AddComponent<SuperMotoAnytimeReset>();
+
+            // MINI-119 follow-up, user: "the E button to wheelie instead
+            // of left control and the Q button will be used instead of
+            // the left shift." Swapped BEFORE anything else runs a
+            // Start() that fetches Input_Manager (RB_Controller's own
+            // Start() is the only one that does, and Start() always runs
+            // strictly after this synchronous spawn method finishes, not
+            // during Instantiate itself) - same safe ordering the earlier
+            // GaddInputAdapter swap used at prefab-build time, just done
+            // here at runtime instead since this is the raw stock prefab.
+            // MINI-119 follow-up fix, user: "the bike doesnt move now."
+            // Destroy() is deferred to end-of-frame, so for one whole
+            // frame the GameObject genuinely had TWO Input_Manager-typed
+            // components (the pending-destroy stock one plus our new
+            // subclass) - RB_Controller.Start() (same frame or the next)
+            // called GetComponent<Input_Manager>() and could just as
+            // easily grab the dead-man-walking stock one instead of the
+            // live remap, permanently wiring the bike's input to a
+            // component that was about to vanish and never actually get
+            // driven. DestroyImmediate removes it synchronously, before
+            // AddComponent runs, so there's only ever ONE Input_Manager
+            // on this object at any point in time - no ambiguity for
+            // GetComponent to resolve.
+            // MINI-119 follow-up fix, user: "it never worked... wheelie
+            // assist not installed." Real, confirmed root cause, found in
+            // the user's own Player.log (not a batch test): "Can't remove
+            // Input_Manager (Script) because RB_Controller (Script)
+            // depends on it". RB_Controller has [RequireComponent(typeof
+            // (Input_Manager))] - at the moment DestroyImmediate used to
+            // run here, the stock Input_Manager was the ONLY one on the
+            // object, so removing it would leave RB_Controller's
+            // requirement unsatisfied and Unity silently BLOCKS the
+            // destroy (logs that error, does not throw - the old code
+            // never noticed and carried on as if it had worked). The
+            // stock Input_Manager therefore never actually left, stayed
+            // FIRST in GetComponent's resolution order, and every
+            // GetComponent<Input_Manager>() call in this project kept
+            // silently resolving to it instead of the remap - wiring the
+            // whole wheelie system to LeftCtrl/LeftShift, which nothing
+            // ever pressed, while E/Q sat on an orphaned, never-read
+            // component. Fix: add the remap FIRST so there are
+            // momentarily TWO Input_Managers, THEN destroy the captured
+            // stock reference - now the remap alone satisfies
+            // RB_Controller's requirement and the destroy actually
+            // succeeds.
+            var stockInput = instance.GetComponent<Gadd420.Input_Manager>();
+            instance.AddComponent<SuperMotoWheelieKeyRemap>();
+            if (stockInput != null) DestroyImmediate(stockInput);
+
+            // MINI-119 follow-up, user: "remember i told you to use my
+            // trike system that worked originally and you always disabled
+            // it... yes use the trike system." Restored, and this time it
+            // stays. I removed it twice on the reasoning that the
+            // kinematic wheelie makes roll mathematically impossible so
+            // outriggers were redundant - but the user has said
+            // repeatedly that this system is what worked on their
+            // original bike, and their hands-on evidence outranks my
+            // reasoning about what should be redundant.
+            instance.AddComponent<SuperMotoTrikeStabilizer>();
+
+            instance.AddComponent<SuperMotoWheelieAssist>();
+
+            // MINI-119 follow-up, user: "i didnt see the screen read out if
+            // E was held or not." The earlier readout lived inside
+            // Mini119StockDemoBikeTuner's toggleable/scrollable panel and
+            // was missed entirely. This is a standalone, always-visible
+            // overlay (H to hide) showing the same live diagnostic -
+            // whether E is registering at all and exactly what is blocking
+            // the wheelie - so the user can report back what the game
+            // itself says instead of me guessing from batch tests.
+            instance.AddComponent<SuperMotoWheelieHud>();
+
+            // MINI-119 follow-up fix, user: "E didnt work for wheelie. i
+            // still had to press crtl." A RequireComponent on one of the
+            // components just added silently reintroduced a second, stock
+            // Input_Manager alongside the remap (see SuperMotoWheelieAssist's
+            // own fix comment for the full story) - asserted here as a
+            // permanent safety net so the same failure mode can't recur
+            // silently if any future component's RequireComponent does
+            // the same thing: only the remap may survive.
+            var survivingInputMgrs = instance.GetComponents<Gadd420.Input_Manager>();
+            foreach (var mgr in survivingInputMgrs)
+            {
+                if (!(mgr is SuperMotoWheelieKeyRemap)) DestroyImmediate(mgr);
+            }
+
+            // MINI-119 follow-up, user: "use my camera follow system, from
+            // my bike system because for this one i must keep turning the
+            // mouse to it can keep track but with my old system it
+            // automatically tracks and follows the character properly."
+            // Same anchor + SetTarget/OrbitLocked pattern SuperMotoInteractable.
+            // Possess() already uses for the mapped bike - our OWN camera,
+            // no mouse-orbit required, reused as-is rather than reinvented.
+            var cam = FindFirstObjectByType<ThirdPersonFollowCamera>();
+            if (cam != null)
+            {
+                var anchorGo = new GameObject("StockDemoCameraAnchor");
+                var anchor = anchorGo.AddComponent<BikeCameraAnchor>();
+                anchor.Follow(instance.transform);
+                cam.SetTarget(anchor.transform);
+                cam.OrbitLocked = true;
+            }
+
+            // MINI-119 follow-up, user: "it crashes too easy... it tends
+            // to lean on a side while riding sometimes... i like the
+            // wheelie but it needs upright assist as well." The asset
+            // already HAS real upright-assist (Gadd420.AutoLeveling -
+            // autoLevelForce/dotForAutoLevel/antiSpinTorque) and wheelie-
+            // specific assist (AutoLeveling.safeWheelies/antiLoopStrength/
+            // maxWheelieAngle) - nothing new to invent, just expose what's
+            // already there as live sliders. See Mini119StockDemoBikeTuner.
+            if (instance.GetComponent<Mini119StockDemoBikeTuner>() == null)
+                instance.AddComponent<Mini119StockDemoBikeTuner>();
+
+            // MINI-119 follow-up, user: "i must press F to get stable in
+            // the beginning because the spawn lands with a crash" then
+            // "so why cant the spawn be [like] the F behaviour." Exactly
+            // right - on top of placing the bike correctly above (not
+            // instead of it, since a correct placement avoids the jolt in
+            // the first place rather than just cleaning up after it),
+            // this runs the SAME recovery F itself triggers, once, right
+            // now, as a guarantee: whatever tiny settling jolt the very
+            // first physics step produces, the player never sees a
+            // pre-crashed bike at spawn.
+            anytimeReset.ResetUpright();
+
+            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: W/S throttle, A/D steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene. No mount/dismount key - you start already on it.");
         }
 
         private static Vector3 GroundSnap(Vector3 pos)

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3e645786580bd4847b39b7508d9e914b
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/NitrousEffects/BlueFlames.prefab
+  uploadId: 454429

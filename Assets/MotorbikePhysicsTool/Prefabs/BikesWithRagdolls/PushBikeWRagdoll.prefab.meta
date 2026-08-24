@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d7481a348f3cc5e4fb679b3487c01693
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Prefabs/BikesWithRagdolls/PushBikeWRagdoll.prefab
+  uploadId: 454429

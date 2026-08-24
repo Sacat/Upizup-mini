@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: de13c5b22767ae74384ef621571a8cdc
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Materials/Players/ManMat_0.mat
+  uploadId: 454429
