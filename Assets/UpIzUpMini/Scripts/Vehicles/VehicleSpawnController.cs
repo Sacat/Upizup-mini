@@ -540,6 +540,27 @@ namespace UpIzUpMini.Vehicles
             rider.SeatedForward = 0.154f;
             rider.SeatedPitch = -7.529f;
 
+            // MINI-119 follow-up, user: "the ragdoll hands moves with the
+            // handle bar, the body turns a little with the handle bar,
+            // the hands stay on the handle. while my character hands
+            // comes off the handle bar and comes off the seat as well."
+            // The hand IK target (RightHandPos/LeftHandPos) is a child of
+            // the FORK PIVOT - it physically swings with steering. If
+            // Sacat's shoulder-to-grip distance is already near his max
+            // arm reach at centre, any steering swing can push the
+            // target past what a 2-bone IK chain can actually close,
+            // which reads exactly as "the hand comes off". VehicleRider
+            // already has a body-follow feature for this
+            // (LockBodyToHandlebars) - it existed but was left at 0
+            // after an earlier full-strength (1.0) attempt on the TMAX
+            // dragged the whole torso off the seat. A modest, partial
+            // value here should keep the shoulders within comfortable
+            // reach of the swinging grips without recreating that
+            // problem - this is what actually produces the "body turns a
+            // little with the bars" feel too, not a separate system.
+            rider.BodyLockWeight = 0.35f;
+            rider.MaxBodyLockShift = 0.15f;
+
             // MINI-119 follow-up, user: "can i place sacat on the bike
             // manually so you can have an idea from the game project
             // scene." Press P (in the running build) after dragging Sacat
@@ -559,6 +580,25 @@ namespace UpIzUpMini.Vehicles
             {
                 var link = instance.AddComponent<SuperMotoRiderWheelieLink>();
                 link.Configure(wheelieAssist, rider);
+            }
+
+            // MINI-119 follow-up, user: "i want to mimic the original
+            // ragdoll to my character. also how the ragdoll parts was
+            // mapped to the bike." Real Unity ragdoll built directly on
+            // Sacat's own Humanoid rig (SacatRagdollBuilder), managed
+            // with the exact same crash/reset toggle logic the vendor's
+            // own RagdollManager uses (SacatRagdollManager) - see both
+            // files' own headers.
+            var playerAnimator = player.GetComponent<Animator>();
+            if (playerAnimator != null && playerAnimator.isHuman)
+            {
+                var ragdollBones = SacatRagdollBuilder.Build(playerAnimator);
+                var ragdollMgr = player.AddComponent<SacatRagdollManager>();
+                var gaddForRagdoll = instance.GetComponent<Gadd420.RB_Controller>();
+                ragdollMgr.Configure(ragdollBones, rider, gaddForRagdoll, instance.GetComponent<Rigidbody>());
+                if (wheelieAssist != null) wheelieAssist.SetSacatRagdoll(ragdollMgr);
+                var anytimeResetForRagdoll = instance.GetComponent<SuperMotoAnytimeReset>();
+                if (anytimeResetForRagdoll != null) anytimeResetForRagdoll.SetSacatRagdoll(ragdollMgr);
             }
 
             _ = handlebarHandPos; _ = feetPos; // kept for future pole-vector work, not used yet

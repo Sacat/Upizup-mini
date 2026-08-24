@@ -74,6 +74,13 @@ namespace UpIzUpMini.Vehicles
 
         private float _autoRecoverTimer;
         private RagdollManager _ragdollForRecover;
+        private SacatRagdollManager _sacatRagdoll;
+
+        /// <summary>MINI-119 follow-up: wired once from VehicleSpawnController
+        /// right after Sacat's own ragdoll is built, so ApplyAutoRecover's
+        /// existing reset call reaches it too, not just the vendor's own
+        /// (now-hidden) rider ragdoll.</summary>
+        public void SetSacatRagdoll(SacatRagdollManager ragdoll) => _sacatRagdoll = ragdoll;
 
         // MINI-119 follow-up, user: "i need more hill assist because it
         // use to climb the hill better than that." Not wheelie-related at
@@ -387,6 +394,7 @@ namespace UpIzUpMini.Vehicles
             Physics.SyncTransforms();
 
             if (_ragdollForRecover != null) _ragdollForRecover.resetRider = true;
+            if (_sacatRagdoll != null) _sacatRagdoll.resetRider = true;
             if (_rb != null) _rb.isCrashed = false;
             if (_crash != null) { _crash.rbSpeed = 0f; _crash.lateRbSpeed = 0f; }
 

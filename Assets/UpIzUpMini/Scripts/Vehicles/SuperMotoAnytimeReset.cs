@@ -28,6 +28,7 @@ namespace UpIzUpMini.Vehicles
         private RB_Controller _gadd;
         private RagdollManager _ragdoll;
         private CrashController _crash;
+        private SacatRagdollManager _sacatRagdoll;
 
         private void Awake()
         {
@@ -36,6 +37,12 @@ namespace UpIzUpMini.Vehicles
             _ragdoll = GetComponentInChildren<RagdollManager>(true);
             _crash = GetComponent<CrashController>();
         }
+
+        /// <summary>MINI-119 follow-up: wired once from VehicleSpawnController
+        /// right after Sacat's own ragdoll is built, so F (and the guaranteed
+        /// post-spawn ResetUpright() call) resets it too, not just the
+        /// vendor's own (now-hidden) rider ragdoll.</summary>
+        public void SetSacatRagdoll(SacatRagdollManager ragdoll) => _sacatRagdoll = ragdoll;
 
         private void Update()
         {
@@ -63,6 +70,7 @@ namespace UpIzUpMini.Vehicles
             Physics.SyncTransforms();
 
             if (_ragdoll != null) _ragdoll.resetRider = true;
+            if (_sacatRagdoll != null) _sacatRagdoll.resetRider = true;
             if (_gadd != null) _gadd.isCrashed = false;
             if (_crash != null) { _crash.rbSpeed = 0f; _crash.lateRbSpeed = 0f; }
         }
