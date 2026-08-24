@@ -264,6 +264,19 @@ namespace UpIzUpMini.Vehicles
             var instance = (GameObject)Instantiate(stockDemoBikePrefab, Vector3.zero, Quaternion.LookRotation(forward, Vector3.up));
             instance.name = "StockDemoSuperMoto";
 
+            // MINI-119 follow-up, user: "he smaller than the actual bike...
+            // i want the bike scaled because the world would look
+            // awkward." Measured, not guessed (Mini119BikeScaleMeasure):
+            // the vendor's own rider is 1.924m tall vs Sacat's own
+            // established 1.850m (MINI-083) - a 1.040 ratio, so scaling
+            // the WHOLE bike down by 1/1.040 makes Sacat sit on it at
+            // exactly the same relative proportion the vendor's own rider
+            // already did. Applied here at spawn time, not baked into the
+            // vendor prefab itself, so it's scoped to this one spawn and
+            // easy to retune.
+            const float bikeScale = 0.961f;
+            instance.transform.localScale = Vector3.one * bikeScale;
+
             float wheelBottomOffset = 0.4f; // sane fallback if wheelColliders aren't readable yet
             var gaddForOffset = instance.GetComponent<Gadd420.RB_Controller>();
             if (gaddForOffset != null && gaddForOffset.wheelColliders != null && gaddForOffset.wheelColliders.Length >= 2
@@ -457,7 +470,7 @@ namespace UpIzUpMini.Vehicles
             // own IK targets.
             MountPlayerOnStockDemoBike(instance, player);
 
-            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, our own character mounted on it (hands/feet IK-pinned to the bike's own handlebar/peg anchors), our own camera follow attached, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: W/S/arrows throttle, A/D/arrows steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene. No mount/dismount key - you start already on it.");
+            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, our own character mounted on it (hands/feet IK-pinned to the bike's own handlebar/peg anchors), our own camera follow attached, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: W/S/arrows throttle, A/D/arrows steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene, P captures the rider's current position relative to the seat (drag him into place in the Scene view first) to the log. No mount/dismount key - you start already on it.");
         }
 
         /// <summary>MINI-119 follow-up: puts the player's own character on
@@ -510,7 +523,17 @@ namespace UpIzUpMini.Vehicles
             {
                 Debug.LogError("MINI-119 STOCK DEMO TEST: VehicleRider.Mount failed - character not mounted, falling back to the old hide-the-player behaviour.");
                 player.SetActive(false);
+                return;
             }
+
+            // MINI-119 follow-up, user: "can i place sacat on the bike
+            // manually so you can have an idea from the game project
+            // scene." Press P (in the running build) after dragging Sacat
+            // into position by eye in the Scene view - the resulting
+            // exact local offset from the seat anchor gets written to the
+            // log.
+            var capture = instance.AddComponent<SuperMotoRiderPlacementCapture>();
+            capture.Configure(seat.SeatAnchor, player.transform);
 
             _ = handlebarHandPos; _ = feetPos; // kept for future pole-vector work, not used yet
         }
