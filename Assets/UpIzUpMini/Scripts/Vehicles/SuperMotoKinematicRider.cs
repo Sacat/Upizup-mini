@@ -140,6 +140,22 @@ namespace UpIzUpMini.Vehicles
             targetGo.transform.SetParent(rigParent, false);
             targetGo.transform.SetPositionAndRotation(tipT.position, tipT.rotation);
 
+            // MINI-119 follow-up fix, user: "the fucking sitting pose...
+            // straightting to do what you want." Real, known Animation
+            // Rigging gotcha - a TwoBoneIKConstraint with no hint (pole
+            // target) has no bend-direction bias at all, so it can snap
+            // the limb straight instead of bending at the elbow/knee.
+            // BuildRig runs AFTER Mount() has already frozen the Animator
+            // on a natural idle pose (Speed=0, speed=0 - see
+            // SuperMotoStockInteractable.Mount), so midT's current world
+            // position right now already IS a natural elbow/knee bend -
+            // captured once, here, as a static hint that biases the
+            // solve to keep bending the same way while it reaches for
+            // the bike's target.
+            var hintGo = new GameObject($"IKHint_{label}");
+            hintGo.transform.SetParent(rigParent, false);
+            hintGo.transform.position = midT.position;
+
             var constraintGo = new GameObject($"IK_{label}");
             constraintGo.transform.SetParent(rigParent, false);
             var constraint = constraintGo.AddComponent<TwoBoneIKConstraint>();
@@ -149,7 +165,8 @@ namespace UpIzUpMini.Vehicles
             constraint.data.target = targetGo.transform;
             constraint.data.targetPositionWeight = 1f;
             constraint.data.targetRotationWeight = 1f;
-            constraint.data.hintWeight = 0f; // no elbow/knee pole target yet - plain two-bone solve
+            constraint.data.hint = hintGo.transform;
+            constraint.data.hintWeight = 1f;
 
             return targetGo.transform;
         }

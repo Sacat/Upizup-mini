@@ -129,6 +129,18 @@ namespace UpIzUpMini.Vehicles
                 animator.SetBool("Grounded", true);
                 animator.SetBool("Jump", false);
                 animator.SetBool("FreeFall", false);
+                // MINI-119 follow-up, user: "the sitting pose is already
+                // a freeze animation." Zeroing the blend parameters alone
+                // still lets the idle clip's own internal loop (weight
+                // shift/breathing) play out frame to frame - genuinely
+                // freezing playback (not just blending toward idle) is
+                // what stops that outright. Animator.speed only halts the
+                // state's own internal clock; the blend tree's weighting
+                // among sub-motions is still driven by the Speed/
+                // MotionSpeed parameters above regardless of speed=0, so
+                // this lands on - and holds - the idle pose, not a
+                // mid-walk-cycle frame. Restored to 1 in Dismount().
+                animator.speed = 0f;
             }
 
             var seatGo = new GameObject("PlayerSeat");
@@ -190,6 +202,9 @@ namespace UpIzUpMini.Vehicles
 
             if (_rider != null) _rider.Dismount(exitPosition);
             VehicleSpawnController.SetBikeInputEnabled(gameObject, false);
+
+            var dismountAnimator = _mountedPlayer.GetComponent<Animator>();
+            if (dismountAnimator != null) dismountAnimator.speed = 1f; // undo the mount-time freeze
 
             if (_seatGo != null) Destroy(_seatGo);
             _seatGo = null;
