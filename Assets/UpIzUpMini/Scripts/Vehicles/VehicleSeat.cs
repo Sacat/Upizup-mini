@@ -82,5 +82,22 @@ namespace UpIzUpMini.Vehicles
         public GameObject Occupant { get; set; }
 
         public bool IsOccupied => Occupant != null;
+
+        /// <summary>MINI-119 follow-up: SuperMoto's own seat isn't baked
+        /// onto a prefab the way TMAX's is (Mini064TmaxAssetPrep authors
+        /// it at edit time) - it's spawned fresh from the raw vendor
+        /// prefab at runtime, so its anchors have to be wired the same
+        /// way, in code, after spawn.</summary>
+        public void Configure(Transform seat, Transform leftHand, Transform rightHand,
+            Transform leftFoot, Transform rightFoot, string mountAction, string ridePoseAction)
+        {
+            seatAnchor = seat;
+            leftHandTarget = leftHand;
+            rightHandTarget = rightHand;
+            leftFootTarget = leftFoot;
+            rightFootTarget = rightFoot;
+            mountActionId = mountAction;
+            ridePoseActionId = ridePoseAction;
+        }
     }
 }

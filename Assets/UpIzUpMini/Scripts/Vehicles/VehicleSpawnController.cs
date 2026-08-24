@@ -229,9 +229,18 @@ namespace UpIzUpMini.Vehicles
                     : GroundSnap(player.transform.position + forward * 8f);
             }
 
+            // MINI-119 follow-up, user: "i want to ragdoll my main
+            // characters and put them on the bike. so remove their
+            // ragdoll character and put mine." Player stays ACTIVE now
+            // (was SetActive(false), fully hidden) - VehicleRider.Mount
+            // (below, once the bike exists) reparents them onto the
+            // bike's own seat and disables their CharacterController
+            // itself, same as it already does for the TMAX. Just
+            // IsControlled=false here so their own walk/run input can't
+            // fight the bike's control scheme in the one frame before
+            // mounting happens.
             var pc = player.GetComponent<PlayerController>();
             if (pc != null) pc.IsControlled = false;
-            player.SetActive(false);
 
             // MINI-119 follow-up fix, user: "i must press F to get stable
             // in the beginning because the spawn lands with a crash." Real
@@ -431,7 +440,90 @@ namespace UpIzUpMini.Vehicles
             // pre-crashed bike at spawn.
             anytimeReset.ResetUpright();
 
-            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, on-foot character disabled, our own camera follow attached, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: W/S throttle, A/D steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene. No mount/dismount key - you start already on it.");
+            // MINI-119 follow-up, user: "i want to ragdoll my main
+            // characters and put them on the bike. so remove their
+            // ragdoll character and put mine." Confirmed plan: reuse
+            // VehicleSeat/VehicleRider (already proven on the TMAX) rather
+            // than the vendor's own hand-rolled IK.cs, since Unity's
+            // native OnAnimatorIK humanoid goal IK is already the
+            // documented-better choice (see VehicleRider's own header -
+            // a runtime rig-constraint build was tried first and was
+            // fragile). The vendor's own hand/foot IK anchor points
+            // (RightHandPos/LeftHandPos under the fork pivot, so they
+            // move with steering; RightFootPos/LeftFootPos under the
+            // frame) are already bike-relative and rider-agnostic -
+            // confirmed via Mini119RiderRigInspect before writing any of
+            // this - so they're reused as-is, unmodified, as this seat's
+            // own IK targets.
+            MountPlayerOnStockDemoBike(instance, player);
+
+            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned, our own character mounted on it (hands/feet IK-pinned to the bike's own handlebar/peg anchors), our own camera follow attached, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: W/S/arrows throttle, A/D/arrows steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F resets upright ANY TIME (not just after a crash), R reloads the whole scene. No mount/dismount key - you start already on it.");
+        }
+
+        /// <summary>MINI-119 follow-up: puts the player's own character on
+        /// the stock demo SuperMoto in place of the vendor's own ragdoll
+        /// rider - see the call site's own comment for the reasoning.
+        /// Vendor rider is hidden (not destroyed) so its RagdollManager/
+        /// crash-reaction machinery stays intact for a later phase, per
+        /// the user's own "sacat first... franki after when sacat
+        /// works" sequencing - this pass is riding/IK only.</summary>
+        private void MountPlayerOnStockDemoBike(GameObject instance, GameObject player)
+        {
+            var vendorRider = FindDeepByName(instance.transform, "Rider 1");
+            Vector3 seatLocalPos = new Vector3(0f, 0.62f, -0.05f); // sane fallback if the vendor rider isn't found
+            if (vendorRider != null)
+            {
+                // The vendor rider's own root sits at (roughly) the seat -
+                // captured BEFORE hiding it, in the bike's local space, so
+                // Sacat lands where the original rider actually sat rather
+                // than a guessed offset.
+                seatLocalPos = instance.transform.InverseTransformPoint(vendorRider.position);
+                foreach (var r in vendorRider.GetComponentsInChildren<Renderer>(true)) r.enabled = false;
+            }
+
+            var handlebarHandPos = FindDeepByName(instance.transform, "HandPos");
+            Transform rightHandTarget = FindDeepByName(instance.transform, "RightHandPos");
+            Transform leftHandTarget = FindDeepByName(instance.transform, "LeftHandPos");
+            var feetPos = FindDeepByName(instance.transform, "FeetPos");
+            Transform rightFootTarget = FindDeepByName(instance.transform, "RightFootPos");
+            Transform leftFootTarget = FindDeepByName(instance.transform, "LeftFootPos");
+
+            if (rightHandTarget == null || leftHandTarget == null || rightFootTarget == null || leftFootTarget == null)
+            {
+                Debug.LogError("MINI-119 STOCK DEMO TEST: couldn't find the bike's own hand/foot IK anchors (RightHandPos/LeftHandPos/RightFootPos/LeftFootPos) - character not mounted, falling back to the old hide-the-player behaviour.");
+                player.SetActive(false);
+                return;
+            }
+
+            var seatGo = new GameObject("PlayerSeat");
+            seatGo.transform.SetParent(instance.transform, false);
+            seatGo.transform.localPosition = seatLocalPos;
+            seatGo.transform.localRotation = Quaternion.identity;
+            var seat = seatGo.AddComponent<VehicleSeat>();
+            seat.Configure(seatGo.transform, leftHandTarget, rightHandTarget, leftFootTarget, rightFootTarget,
+                mountAction: "MountBike", ridePoseAction: "RideBike");
+
+            var rider = player.GetComponent<VehicleRider>();
+            if (rider == null) rider = player.AddComponent<VehicleRider>();
+
+            if (!rider.Mount(seat))
+            {
+                Debug.LogError("MINI-119 STOCK DEMO TEST: VehicleRider.Mount failed - character not mounted, falling back to the old hide-the-player behaviour.");
+                player.SetActive(false);
+            }
+
+            _ = handlebarHandPos; _ = feetPos; // kept for future pole-vector work, not used yet
+        }
+
+        private static Transform FindDeepByName(Transform root, string name)
+        {
+            if (root.name == name) return root;
+            foreach (Transform child in root)
+            {
+                var found = FindDeepByName(child, name);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         private static Vector3 GroundSnap(Vector3 pos)
