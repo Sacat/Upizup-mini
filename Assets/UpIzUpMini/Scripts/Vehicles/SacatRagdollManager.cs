@@ -13,39 +13,55 @@ namespace UpIzUpMini.Vehicles
     /// own IK.cs (disabling the whole component has the same effect as
     /// the vendor setting ikScript.hasCrashed = true - it stops
     /// OnAnimatorIK from correcting hands/feet, freeing the limbs).
+    ///
+    /// MINI-119 follow-up fix, user (with the body-lock change in the
+    /// same build): "the hands come off the handlebar, the character
+    /// looks stiff... torso doesnt turn with the handle bar. no ragdoll
+    /// stuff happening here." Real regression, not a fluke: the FIRST
+    /// version built the whole ragdoll (Rigidbody + Collider +
+    /// CharacterJoint on every humanoid bone) immediately at mount time,
+    /// while riding normally. Adding physics components directly onto
+    /// bones the Animator is actively driving is a known Unity trap -
+    /// even kinematic ones can make Unity treat that hierarchy as
+    /// physically simulated and stop writing normal animation/IK poses
+    /// to it, which matches "stiff" and "torso doesn't turn" exactly.
+    /// Fixed by building the ragdoll LAZILY, only at the actual instant
+    /// of a real crash - Sacat's bones carry zero extra physics
+    /// components at all while riding normally, so there is nothing to
+    /// interfere with the Animator/IK the rest of the time.
     /// </summary>
     public class SacatRagdollManager : MonoBehaviour
     {
         [HideInInspector] public bool resetRider;
 
-        private SacatRagdollBuilder.RagdollBone[] _bones;
+        private Animator _animator;
+        private SacatRagdollBuilder.RagdollBone[] _bones; // null until the first real crash
         private VehicleRider _rider;
         private RB_Controller _rbScript;
         private Rigidbody _bikeRb;
         private bool _velocitySet;
 
-        public void Configure(SacatRagdollBuilder.RagdollBone[] bones, VehicleRider rider, RB_Controller rbScript, Rigidbody bikeRb)
+        public void Configure(Animator animator, VehicleRider rider, RB_Controller rbScript, Rigidbody bikeRb)
         {
-            _bones = bones;
+            _animator = animator;
             _rider = rider;
             _rbScript = rbScript;
             _bikeRb = bikeRb;
-
-            // Match the vendor's own Start(): inert (kinematic + trigger)
-            // until a real crash.
-            foreach (var b in _bones)
-            {
-                if (b.rigidbody != null) b.rigidbody.isKinematic = true;
-                if (b.collider != null) b.collider.isTrigger = true;
-            }
         }
 
         private void Update()
         {
-            if (_bones == null || _rbScript == null) return;
+            if (_rbScript == null) return;
 
             if (_rbScript.isCrashed)
             {
+                if (_bones == null)
+                {
+                    // Build now, once, only because a real crash is
+                    // actually happening - never while riding normally.
+                    _bones = SacatRagdollBuilder.Build(_animator);
+                }
+
                 // Stop the native IK from fighting the ragdoll - same role
                 // as the vendor's own ikScript.hasCrashed = true.
                 if (_rider != null) _rider.enabled = false;
@@ -69,13 +85,16 @@ namespace UpIzUpMini.Vehicles
                 _velocitySet = false;
                 if (_rider != null) _rider.enabled = true;
 
-                foreach (var b in _bones)
+                if (_bones != null)
                 {
-                    if (b.collider != null) b.collider.isTrigger = true;
-                }
-                foreach (var b in _bones)
-                {
-                    if (b.rigidbody != null) b.rigidbody.isKinematic = true;
+                    foreach (var b in _bones)
+                    {
+                        if (b.collider != null) b.collider.isTrigger = true;
+                    }
+                    foreach (var b in _bones)
+                    {
+                        if (b.rigidbody != null) b.rigidbody.isKinematic = true;
+                    }
                 }
                 resetRider = false;
             }

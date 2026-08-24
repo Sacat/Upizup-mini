@@ -131,6 +131,8 @@ namespace UpIzUpMini.Vehicles
         public float WheelieUp { get => wheelieOffset.y; set => wheelieOffset.y = value; }
         public float WheelieSide { get => wheelieOffset.x; set => wheelieOffset.x = value; }
         public float BodyLockWeight { get => bodyLockWeight; set => bodyLockWeight = Mathf.Clamp01(value); }
+        public float HandIkWeight { get => handIkWeight; set => handIkWeight = Mathf.Clamp01(value); }
+        public float FootIkWeight { get => footIkWeight; set => footIkWeight = Mathf.Clamp01(value); }
         public float MaxBodyLockShift { get => maxBodyLockShift; set => maxBodyLockShift = value; }
         public float WheeliePitch { get => wheeliePitch; set => wheeliePitch = value; }
         /// <summary>Current 0-1 blend between the two keyframes - shown in the

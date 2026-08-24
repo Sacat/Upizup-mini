@@ -561,6 +561,35 @@ namespace UpIzUpMini.Vehicles
             rider.BodyLockWeight = 0.35f;
             rider.MaxBodyLockShift = 0.15f;
 
+            // MINI-119 follow-up fix, user: "inspect the ragdoll on the
+            // supermoto bike how this was done on a deep level to get my
+            // character to do the same... there are points that are
+            // pinned on the bike and once you cannt get my character
+            // hands to and feet to be pinned this will never work."
+            // Read the vendor's own IK.cs in full: it is a completely
+            // standalone positional CCD solver that directly overwrites
+            // the bone Transform every LateUpdate, with NO dependency on
+            // any Animator state - it GUARANTEES the hand reaches the
+            // target (even stretching the limb if genuinely out of
+            // reach) rather than silently under-applying. Unity's native
+            // Humanoid IK (Mecanim, what VehicleRider used for hands/
+            // feet until now) depends on the whole AnimatorController
+            // pipeline being exactly right, and quietly fails to fully
+            // reach if anything in that chain is off - which is exactly
+            // the flaky "hands come off" symptom reported. Fix: stop
+            // asking Mecanim to pin hands/feet at all (weight 0 below)
+            // and attach the vendor's own IK.cs directly onto Sacat's
+            // own hand/foot bones instead - same technique, same
+            // targets, same pole vectors already on this bike, just
+            // pointed at his skeleton instead of the vendor rider's.
+            rider.HandIkWeight = 0f;
+            rider.FootIkWeight = 0f;
+            var animatorForVendorIK = player.GetComponent<Animator>();
+            AttachVendorIK(animatorForVendorIK, HumanBodyBones.RightHand, rightHandTarget, FindDeepByName(instance.transform, "RightHandPole"));
+            AttachVendorIK(animatorForVendorIK, HumanBodyBones.LeftHand, leftHandTarget, FindDeepByName(instance.transform, "LeftHandPole"));
+            AttachVendorIK(animatorForVendorIK, HumanBodyBones.RightFoot, rightFootTarget, FindDeepByName(instance.transform, "RightFootPole"));
+            AttachVendorIK(animatorForVendorIK, HumanBodyBones.LeftFoot, leftFootTarget, FindDeepByName(instance.transform, "LeftFootPole"));
+
             // MINI-119 follow-up, user: "can i place sacat on the bike
             // manually so you can have an idea from the game project
             // scene." Press P (in the running build) after dragging Sacat
@@ -589,13 +618,22 @@ namespace UpIzUpMini.Vehicles
             // with the exact same crash/reset toggle logic the vendor's
             // own RagdollManager uses (SacatRagdollManager) - see both
             // files' own headers.
+            //
+            // MINI-119 follow-up fix, user: "the hands come off the
+            // handlebar, the character looks stiff... no ragdoll stuff
+            // happening here." Building the ragdoll's Rigidbody/Collider/
+            // CharacterJoint components UP FRONT (while riding normally)
+            // broke the Animator's own bone updates - see
+            // SacatRagdollManager's own header for the full story. Now
+            // built lazily, only at the instant of a real crash - just
+            // the Animator reference is handed over here, nothing is
+            // attached to any bone while riding normally.
             var playerAnimator = player.GetComponent<Animator>();
             if (playerAnimator != null && playerAnimator.isHuman)
             {
-                var ragdollBones = SacatRagdollBuilder.Build(playerAnimator);
                 var ragdollMgr = player.AddComponent<SacatRagdollManager>();
                 var gaddForRagdoll = instance.GetComponent<Gadd420.RB_Controller>();
-                ragdollMgr.Configure(ragdollBones, rider, gaddForRagdoll, instance.GetComponent<Rigidbody>());
+                ragdollMgr.Configure(playerAnimator, rider, gaddForRagdoll, instance.GetComponent<Rigidbody>());
                 if (wheelieAssist != null) wheelieAssist.SetSacatRagdoll(ragdollMgr);
                 var anytimeResetForRagdoll = instance.GetComponent<SuperMotoAnytimeReset>();
                 if (anytimeResetForRagdoll != null) anytimeResetForRagdoll.SetSacatRagdoll(ragdollMgr);
@@ -613,6 +651,42 @@ namespace UpIzUpMini.Vehicles
                 if (found != null) return found;
             }
             return null;
+        }
+
+        /// <summary>MINI-119 follow-up: attaches the vendor's own,
+        /// unmodified Gadd420.IK component directly onto one of Sacat's
+        /// hand/foot bones - chainLength 2 walks hand->lowerArm->upperArm
+        /// (or foot->lowerLeg->upperLeg), matching the vendor's own
+        /// per-limb setup on their rider exactly. See the call site's own
+        /// comment for why this replaces Mecanim IK for hands/feet.</summary>
+        private static void AttachVendorIK(Animator animator, HumanBodyBones bone, Transform target, Transform pole)
+        {
+            // MINI-119 follow-up fix: animator.isHuman read false here, and
+            // animator.avatar read null outright, even though Sacat's rig
+            // is genuinely Humanoid (confirmed independently via the
+            // FBX's own import settings, animationType: 3) and his
+            // on-foot animation already proves the Avatar binds correctly
+            // in real gameplay. This is the SAME class of Edit-Mode-only
+            // gap already found twice before for this exact Animator
+            // (RuntimeAnimatorController unbound, isHuman false) - Unity's
+            // native Animator subsystem binding happens as part of real
+            // Play Mode object activation, which reflection-driven
+            // MonoBehaviour ticking in Edit Mode cannot replicate.
+            // GetBoneTransform THROWS rather than returning null when the
+            // Avatar is unset, so avatar!=null is checked explicitly
+            // first to fail safely either way.
+            if (animator == null) { Debug.LogWarning($"MINI-119 ATTACH VENDOR IK: animator is null for {bone}"); return; }
+            if (animator.avatar == null) { Debug.LogWarning($"MINI-119 ATTACH VENDOR IK: animator.avatar is null for {bone} (expected in this Edit-Mode spawn context - see this method's own comment)"); return; }
+            if (target == null) { Debug.LogWarning($"MINI-119 ATTACH VENDOR IK: target is null for {bone}"); return; }
+            Transform boneTransform = animator.GetBoneTransform(bone);
+            if (boneTransform == null) { Debug.LogWarning($"MINI-119 ATTACH VENDOR IK: GetBoneTransform({bone}) returned null"); return; }
+
+            var ik = boneTransform.gameObject.AddComponent<Gadd420.IK>();
+            ik.chainLength = 2;
+            ik.target = target;
+            ik.pole = pole;
+            ik.iterations = 10;
+            Debug.Log($"MINI-119 ATTACH VENDOR IK: attached to {boneTransform.name} for {bone}, target={target.name}, pole={(pole != null ? pole.name : "null")}");
         }
 
         private static Vector3 GroundSnap(Vector3 pos)
