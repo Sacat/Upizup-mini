@@ -477,7 +477,18 @@ namespace UpIzUpMini.Vehicles
                 interactable.Configure(seatLocalPos, rightHandTarget, leftHandTarget, rightFootTarget, leftFootTarget, camAnchor.transform);
             }
 
-            Debug.Log("MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned and parked, our own camera follow attached once mounted, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: walk up and press F to get on/off, W/S/arrows throttle, A/D/arrows steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F (while riding) resets upright ANY TIME (not just after a crash), R reloads the whole scene.");
+            // MINI-119 follow-up, user: "where is the bike i am not
+            // seeing the super moto." The bike itself was spawning fine
+            // (confirmed - "i like how the bike spawns" was said about
+            // this exact spot) but it's the only dev-spawned vehicle in
+            // this controller that never got a minimap marker (unlike
+            // DevSpawnNearPlayer's tmax/rover/test-moto, all of which add
+            // one) - with no marker and no way to know it landed on the
+            // Lalay road rather than near the player, "not seeing it" most
+            // likely means "don't know where to look", not "didn't spawn".
+            instance.AddComponent<GtaMiniMapMarker>().Configure(MiniMapMarkerKind.Vehicle, "SuperMoto (demo)", VehicleMarkerColour);
+
+            Debug.Log($"MINI-119 STOCK DEMO TEST: pack's own SuperMotoWRagdoll spawned and parked at {spawnPos} (Lalay road, between the farm shop and produce buyer stalls), marked on the minimap, our own camera follow attached once mounted, kinematic wheelie (same method as the original bike) active, tuner panel (T) live. Controls: walk up and press F to get on/off, W/S/arrows throttle, A/D/arrows steer, Mouse0/Mouse1 lean, E/Q wheelie (remapped from LeftCtrl/LeftShift), Space brake, F (while riding) resets upright ANY TIME (not just after a crash), R reloads the whole scene.");
         }
 
         private static Transform FindDeepByName(Transform root, string name)
