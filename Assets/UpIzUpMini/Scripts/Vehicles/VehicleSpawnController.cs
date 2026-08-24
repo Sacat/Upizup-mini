@@ -512,132 +512,37 @@ namespace UpIzUpMini.Vehicles
             seatGo.transform.SetParent(instance.transform, false);
             seatGo.transform.localPosition = seatLocalPos;
             seatGo.transform.localRotation = Quaternion.identity;
-            var seat = seatGo.AddComponent<VehicleSeat>();
-            seat.Configure(seatGo.transform, leftHandTarget, rightHandTarget, leftFootTarget, rightFootTarget,
-                mountAction: "MountBike", ridePoseAction: "RideBike");
 
-            var rider = player.GetComponent<VehicleRider>();
-            if (rider == null) rider = player.AddComponent<VehicleRider>();
-
-            if (!rider.Mount(seat))
-            {
-                Debug.LogError("MINI-119 STOCK DEMO TEST: VehicleRider.Mount failed - character not mounted, falling back to the old hide-the-player behaviour.");
-                player.SetActive(false);
-                return;
-            }
-
-            // MINI-119 follow-up, user: manually dragged Sacat into
-            // position in the Scene view during Play Mode (paused) and
-            // read the result straight off the Inspector - Position
-            // (0.022, -0.925, 0.154), Rotation X -7.529 - rather than
-            // pressing the capture key. Baked in directly as the new
-            // seated pose (VehicleRider's own defaults were TMAX's,
-            // never tuned for this bike). ApplyKeyframedPose runs every
-            // FixedUpdate, so setting these once here is enough - it
-            // isn't a one-shot placement that could drift.
-            rider.SeatedSide = 0.022f;
-            rider.SeatedUp = -0.925f;
-            rider.SeatedForward = 0.154f;
-            rider.SeatedPitch = -7.529f;
-
-            // MINI-119 follow-up, user: "the ragdoll hands moves with the
-            // handle bar, the body turns a little with the handle bar,
-            // the hands stay on the handle. while my character hands
-            // comes off the handle bar and comes off the seat as well."
-            // The hand IK target (RightHandPos/LeftHandPos) is a child of
-            // the FORK PIVOT - it physically swings with steering. If
-            // Sacat's shoulder-to-grip distance is already near his max
-            // arm reach at centre, any steering swing can push the
-            // target past what a 2-bone IK chain can actually close,
-            // which reads exactly as "the hand comes off". VehicleRider
-            // already has a body-follow feature for this
-            // (LockBodyToHandlebars) - it existed but was left at 0
-            // after an earlier full-strength (1.0) attempt on the TMAX
-            // dragged the whole torso off the seat. A modest, partial
-            // value here should keep the shoulders within comfortable
-            // reach of the swinging grips without recreating that
-            // problem - this is what actually produces the "body turns a
-            // little with the bars" feel too, not a separate system.
-            rider.BodyLockWeight = 0.35f;
-            rider.MaxBodyLockShift = 0.15f;
-
-            // MINI-119 follow-up fix, user: "inspect the ragdoll on the
-            // supermoto bike how this was done on a deep level to get my
-            // character to do the same... there are points that are
-            // pinned on the bike and once you cannt get my character
-            // hands to and feet to be pinned this will never work."
-            // Read the vendor's own IK.cs in full: it is a completely
-            // standalone positional CCD solver that directly overwrites
-            // the bone Transform every LateUpdate, with NO dependency on
-            // any Animator state - it GUARANTEES the hand reaches the
-            // target (even stretching the limb if genuinely out of
-            // reach) rather than silently under-applying. Unity's native
-            // Humanoid IK (Mecanim, what VehicleRider used for hands/
-            // feet until now) depends on the whole AnimatorController
-            // pipeline being exactly right, and quietly fails to fully
-            // reach if anything in that chain is off - which is exactly
-            // the flaky "hands come off" symptom reported. Fix: stop
-            // asking Mecanim to pin hands/feet at all (weight 0 below)
-            // and attach the vendor's own IK.cs directly onto Sacat's
-            // own hand/foot bones instead - same technique, same
-            // targets, same pole vectors already on this bike, just
-            // pointed at his skeleton instead of the vendor rider's.
-            rider.HandIkWeight = 0f;
-            rider.FootIkWeight = 0f;
-            var animatorForVendorIK = player.GetComponent<Animator>();
-            AttachVendorIK(animatorForVendorIK, HumanBodyBones.RightHand, rightHandTarget, FindDeepByName(instance.transform, "RightHandPole"));
-            AttachVendorIK(animatorForVendorIK, HumanBodyBones.LeftHand, leftHandTarget, FindDeepByName(instance.transform, "LeftHandPole"));
-            AttachVendorIK(animatorForVendorIK, HumanBodyBones.RightFoot, rightFootTarget, FindDeepByName(instance.transform, "RightFootPole"));
-            AttachVendorIK(animatorForVendorIK, HumanBodyBones.LeftFoot, leftFootTarget, FindDeepByName(instance.transform, "LeftFootPole"));
-
-            // MINI-119 follow-up, user: "can i place sacat on the bike
-            // manually so you can have an idea from the game project
-            // scene." Press P (in the running build) after dragging Sacat
-            // into position by eye in the Scene view - the resulting
-            // exact local offset from the seat anchor gets written to the
-            // log.
-            var capture = instance.AddComponent<SuperMotoRiderPlacementCapture>();
-            capture.Configure(seat.SeatAnchor, player.transform);
-
-            // MINI-119 follow-up, user: "can you put the lean back
-            // animation with the wheelie to make it more real from the
-            // ragdoll." VehicleRider already has a proven keyframed
-            // wheelie lean (built for the TMAX) - just needs driving from
-            // THIS bike's own live wheelie angle every step.
-            var wheelieAssist = instance.GetComponent<SuperMotoWheelieAssist>();
-            if (wheelieAssist != null)
-            {
-                var link = instance.AddComponent<SuperMotoRiderWheelieLink>();
-                link.Configure(wheelieAssist, rider);
-            }
-
-            // MINI-119 follow-up, user: "i want to mimic the original
-            // ragdoll to my character. also how the ragdoll parts was
-            // mapped to the bike." Real Unity ragdoll built directly on
-            // Sacat's own Humanoid rig (SacatRagdollBuilder), managed
-            // with the exact same crash/reset toggle logic the vendor's
-            // own RagdollManager uses (SacatRagdollManager) - see both
-            // files' own headers.
+            // MINI-119 follow-up, user: "well forget about sacat
+            // animation, use a ragdoll system for the bike... yow
+            // ragdoll ragdoll ragdoll dont change this be stricton
+            // implementing this on the bike." No Animator, no Mecanim
+            // IK, no VehicleRider - Sacat's Animator gets disabled
+            // outright and his real physics ragdoll (hips/hands/feet
+            // physically joined to the bike's own existing anchor
+            // points) IS the riding mechanism now. See
+            // SuperMotoRagdollRider's own header for the full story,
+            // including why a Rigidbody has to be added to each anchor
+            // (they're plain kinematically-rotated Transforms on the
+            // vendor's own rig, with nothing of their own for a Joint to
+            // connect to).
             //
-            // MINI-119 follow-up fix, user: "the hands come off the
-            // handlebar, the character looks stiff... no ragdoll stuff
-            // happening here." Building the ragdoll's Rigidbody/Collider/
-            // CharacterJoint components UP FRONT (while riding normally)
-            // broke the Animator's own bone updates - see
-            // SacatRagdollManager's own header for the full story. Now
-            // built lazily, only at the instant of a real crash - just
-            // the Animator reference is handed over here, nothing is
-            // attached to any bone while riding normally.
-            var playerAnimator = player.GetComponent<Animator>();
-            if (playerAnimator != null && playerAnimator.isHuman)
-            {
-                var ragdollMgr = player.AddComponent<SacatRagdollManager>();
-                var gaddForRagdoll = instance.GetComponent<Gadd420.RB_Controller>();
-                ragdollMgr.Configure(playerAnimator, rider, gaddForRagdoll, instance.GetComponent<Rigidbody>());
-                if (wheelieAssist != null) wheelieAssist.SetSacatRagdoll(ragdollMgr);
-                var anytimeResetForRagdoll = instance.GetComponent<SuperMotoAnytimeReset>();
-                if (anytimeResetForRagdoll != null) anytimeResetForRagdoll.SetSacatRagdoll(ragdollMgr);
-            }
+            // One-time placement first (reusing the user's own manually-
+            // placed numbers - Position 0.022,-0.925,0.154, Rotation X
+            // -7.529 - captured earlier this session) so the ragdoll
+            // starts close to correct instead of snapping hard into
+            // place once the joints engage.
+            player.transform.SetParent(seatGo.transform, false);
+            player.transform.localPosition = new Vector3(0.022f, -0.925f, 0.154f);
+            player.transform.localRotation = Quaternion.Euler(-7.529f, 0f, 0f);
+            Vector3 parentScale = seatGo.transform.lossyScale;
+            player.transform.localScale = new Vector3(
+                player.transform.localScale.x / Mathf.Max(0.0001f, parentScale.x),
+                player.transform.localScale.y / Mathf.Max(0.0001f, parentScale.y),
+                player.transform.localScale.z / Mathf.Max(0.0001f, parentScale.z));
+
+            var ragdollRider = player.AddComponent<SuperMotoRagdollRider>();
+            ragdollRider.Configure(player, seatGo.transform, rightHandTarget, leftHandTarget, rightFootTarget, leftFootTarget);
 
             _ = handlebarHandPos; _ = feetPos; // kept for future pole-vector work, not used yet
         }
@@ -653,41 +558,11 @@ namespace UpIzUpMini.Vehicles
             return null;
         }
 
-        /// <summary>MINI-119 follow-up: attaches the vendor's own,
-        /// unmodified Gadd420.IK component directly onto one of Sacat's
-        /// hand/foot bones - chainLength 2 walks hand->lowerArm->upperArm
-        /// (or foot->lowerLeg->upperLeg), matching the vendor's own
-        /// per-limb setup on their rider exactly. See the call site's own
-        /// comment for why this replaces Mecanim IK for hands/feet.</summary>
-        private static void AttachVendorIK(Animator animator, HumanBodyBones bone, Transform target, Transform pole)
-        {
-            // MINI-119 follow-up fix: animator.isHuman read false here, and
-            // animator.avatar read null outright, even though Sacat's rig
-            // is genuinely Humanoid (confirmed independently via the
-            // FBX's own import settings, animationType: 3) and his
-            // on-foot animation already proves the Avatar binds correctly
-            // in real gameplay. This is the SAME class of Edit-Mode-only
-            // gap already found twice before for this exact Animator
-            // (RuntimeAnimatorController unbound, isHuman false) - Unity's
-            // native Animator subsystem binding happens as part of real
-            // Play Mode object activation, which reflection-driven
-            // MonoBehaviour ticking in Edit Mode cannot replicate.
-            // GetBoneTransform THROWS rather than returning null when the
-            // Avatar is unset, so avatar!=null is checked explicitly
-            // first to fail safely either way.
-            if (animator == null) { Debug.LogWarning($"MINI-119 ATTACH VENDOR IK: animator is null for {bone}"); return; }
-            if (animator.avatar == null) { Debug.LogWarning($"MINI-119 ATTACH VENDOR IK: animator.avatar is null for {bone} (expected in this Edit-Mode spawn context - see this method's own comment)"); return; }
-            if (target == null) { Debug.LogWarning($"MINI-119 ATTACH VENDOR IK: target is null for {bone}"); return; }
-            Transform boneTransform = animator.GetBoneTransform(bone);
-            if (boneTransform == null) { Debug.LogWarning($"MINI-119 ATTACH VENDOR IK: GetBoneTransform({bone}) returned null"); return; }
-
-            var ik = boneTransform.gameObject.AddComponent<Gadd420.IK>();
-            ik.chainLength = 2;
-            ik.target = target;
-            ik.pole = pole;
-            ik.iterations = 10;
-            Debug.Log($"MINI-119 ATTACH VENDOR IK: attached to {boneTransform.name} for {bone}, target={target.name}, pole={(pole != null ? pole.name : "null")}");
-        }
+        // MINI-119 follow-up: the synchronous version of this used to live
+        // here (AttachVendorIK) but hit animator.avatar == null when
+        // called in the same frame as spawning - replaced by
+        // SacatBikeIKAttacher, which retries every frame until the avatar
+        // is genuinely ready before attaching. See that file's own header.
 
         private static Vector3 GroundSnap(Vector3 pos)
         {
