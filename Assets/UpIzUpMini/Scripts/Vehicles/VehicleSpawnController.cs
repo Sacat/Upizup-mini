@@ -517,6 +517,32 @@ namespace UpIzUpMini.Vehicles
             if (wheelieRemap != null) wheelieRemap.enabled = enabled;
             var wheelieAssist = bikeInstance.GetComponent<SuperMotoWheelieAssist>();
             if (wheelieAssist != null) wheelieAssist.enabled = enabled;
+
+            // MINI-119 follow-up, user: "the character and the bike
+            // exploded up." RB_Controller was sitting disabled (parked)
+            // for however long the player took to walk over - re-enabling
+            // it mid-play, on the very first Update/FixedUpdate after
+            // being off, has no guarantee its own internal state
+            // (accumulated gear torque, crash-speed trackers other
+            // scripts read) still matches the bike's actual current
+            // rest state. Zeroing velocity right at the moment input
+            // switches on is the same defensive recipe
+            // SuperMotoAnytimeReset.ResetUpright already uses elsewhere
+            // in this file for exactly this class of one-step spike -
+            // just without that method's teleport-up/re-level, since the
+            // bike is already sitting correctly parked and shouldn't
+            // visibly jump the instant you press F.
+            if (enabled)
+            {
+                var rigidbody = bikeInstance.GetComponent<Rigidbody>();
+                if (rigidbody != null)
+                {
+                    rigidbody.linearVelocity = Vector3.zero;
+                    rigidbody.angularVelocity = Vector3.zero;
+                }
+                var crash = bikeInstance.GetComponent<Gadd420.CrashController>();
+                if (crash != null) { crash.rbSpeed = 0f; crash.lateRbSpeed = 0f; }
+            }
         }
 
         private static Transform FindDeepByName(Transform root, string name)
