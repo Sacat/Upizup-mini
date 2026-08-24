@@ -526,6 +526,20 @@ namespace UpIzUpMini.Vehicles
                 return;
             }
 
+            // MINI-119 follow-up, user: manually dragged Sacat into
+            // position in the Scene view during Play Mode (paused) and
+            // read the result straight off the Inspector - Position
+            // (0.022, -0.925, 0.154), Rotation X -7.529 - rather than
+            // pressing the capture key. Baked in directly as the new
+            // seated pose (VehicleRider's own defaults were TMAX's,
+            // never tuned for this bike). ApplyKeyframedPose runs every
+            // FixedUpdate, so setting these once here is enough - it
+            // isn't a one-shot placement that could drift.
+            rider.SeatedSide = 0.022f;
+            rider.SeatedUp = -0.925f;
+            rider.SeatedForward = 0.154f;
+            rider.SeatedPitch = -7.529f;
+
             // MINI-119 follow-up, user: "can i place sacat on the bike
             // manually so you can have an idea from the game project
             // scene." Press P (in the running build) after dragging Sacat
@@ -534,6 +548,18 @@ namespace UpIzUpMini.Vehicles
             // log.
             var capture = instance.AddComponent<SuperMotoRiderPlacementCapture>();
             capture.Configure(seat.SeatAnchor, player.transform);
+
+            // MINI-119 follow-up, user: "can you put the lean back
+            // animation with the wheelie to make it more real from the
+            // ragdoll." VehicleRider already has a proven keyframed
+            // wheelie lean (built for the TMAX) - just needs driving from
+            // THIS bike's own live wheelie angle every step.
+            var wheelieAssist = instance.GetComponent<SuperMotoWheelieAssist>();
+            if (wheelieAssist != null)
+            {
+                var link = instance.AddComponent<SuperMotoRiderWheelieLink>();
+                link.Configure(wheelieAssist, rider);
+            }
 
             _ = handlebarHandPos; _ = feetPos; // kept for future pole-vector work, not used yet
         }
