@@ -90,6 +90,24 @@ namespace UpIzUpMini.Vehicles
         {
             if (HasRider || player == null) return;
 
+            // MINI-119 follow-up fix, user: "the bike just flips up high
+            // into the air when trying to mount." Real cause: the
+            // CharacterController (a live physics capsule) used to only
+            // get disabled deep inside SuperMotoKinematicRider.BuildRig,
+            // which waits several frames for animator.avatar to be ready
+            // before running. In that gap the player was ALREADY parented
+            // and teleported directly onto/inside the bike's seat
+            // geometry below with a still-active collider - a sudden deep
+            // overlap the physics solver resolves by shoving the much
+            // lighter bike Rigidbody violently away on its next
+            // FixedUpdate. Disabled here, synchronously, before any
+            // parenting/teleporting happens - no gap for the collider to
+            // be live while overlapping.
+            var characterController = player.GetComponent<CharacterController>();
+            if (characterController != null) characterController.enabled = false;
+            var playerController = player.GetComponent<Character.PlayerController>();
+            if (playerController != null) playerController.IsControlled = false;
+
             var seatGo = new GameObject("PlayerSeat");
             _seatGo = seatGo;
             seatGo.transform.SetParent(transform, false);
