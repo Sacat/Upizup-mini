@@ -110,7 +110,7 @@ namespace UpIzUpMini.EditorTools
                 if (i % 25 == 0) // every 0.5s
                 {
                     float trueRoll = assist != null ? assist.TrueRollDeg : -999f;
-                    float pitch = Mathf.Asin(Mathf.Clamp(instance.transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+                    float pitch = TruePitchDeg(instance.transform);
                     Debug.Log($"MINI-119 LEDGE/HILL TEST t={(i - settleSteps) * dt:F1}s: pos={instance.transform.position} pitch={pitch:F1}deg roll={trueRoll:F1}deg speed={rb.linearVelocity.magnitude * 3.6f:F0}km/h isCrashed={gadd.isCrashed}");
                 }
             }
@@ -122,6 +122,19 @@ namespace UpIzUpMini.EditorTools
             Object.DestroyImmediate(rampGo);
             Object.DestroyImmediate(instance);
             Physics.simulationMode = previousSimMode;
+        }
+
+        /// <summary>Same fold-back fix as Mini119RampClimbLeanTest's own
+        /// TruePitchDeg - signed angle around the flattened-forward-
+        /// derived right axis, reads the full range without ambiguity.</summary>
+        private static float TruePitchDeg(Transform t)
+        {
+            Vector3 flatForward = Vector3.ProjectOnPlane(t.forward, Vector3.up);
+            if (flatForward.sqrMagnitude < 0.0001f) flatForward = Vector3.ProjectOnPlane(-t.up, Vector3.up);
+            if (flatForward.sqrMagnitude < 0.0001f) return 0f;
+            flatForward.Normalize();
+            Vector3 right = Vector3.Cross(Vector3.up, flatForward);
+            return Vector3.SignedAngle(flatForward, t.forward, right);
         }
 
         private static void InvokeIfExists(Object target, string methodName)

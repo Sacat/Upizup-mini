@@ -60,7 +60,7 @@ namespace UpIzUpMini.Vehicles
             if (_rb == null || _body == null || _rb.isCrashed) return; // let a real crash/ragdoll moment play out unopposed
             if (_wheelieAssist != null && _wheelieAssist.CurrentRampDeg > 0.01f) return;
 
-            float pitchDeg = Mathf.Asin(Mathf.Clamp(transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+            float pitchDeg = TruePitchDeg();
             Quaternion zeroRollTarget = Quaternion.Euler(0f, StableYawDegrees(), 0f) * Quaternion.Euler(-pitchDeg, 0f, 0f);
 
             Quaternion newRot = Quaternion.RotateTowards(
@@ -79,6 +79,29 @@ namespace UpIzUpMini.Vehicles
                 flat = Vector3.ProjectOnPlane(-transform.up, Vector3.up);
             if (flat.sqrMagnitude < 0.0001f) return transform.eulerAngles.y;
             return Quaternion.LookRotation(flat.normalized, Vector3.up).eulerAngles.y;
+        }
+
+        /// <summary>MINI-119 follow-up fix, user: "the pitch value staying
+        /// constant at 73deg for the second half seems suspicious." Real
+        /// bug, not a fluke: this used to measure pitch with
+        /// Mathf.Asin(forward.y), which folds back past 90deg and can
+        /// misread during a hard sustained turn (yaw and pitch coupling
+        /// in a single vector component). Because this component then
+        /// MoveRotation's the bike to a target BUILT from that same
+        /// measured pitch every single frame, a bad reading didn't just
+        /// display wrong - it got physically baked into the bike's real
+        /// rotation and re-asserted every frame after, turning a
+        /// measurement glitch into a genuine, self-reinforcing stuck
+        /// pitch. Signed angle around the flattened-forward-derived right
+        /// axis reads the full range correctly instead.</summary>
+        private float TruePitchDeg()
+        {
+            Vector3 flatForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+            if (flatForward.sqrMagnitude < 0.0001f) flatForward = Vector3.ProjectOnPlane(-transform.up, Vector3.up);
+            if (flatForward.sqrMagnitude < 0.0001f) return 0f;
+            flatForward.Normalize();
+            Vector3 right = Vector3.Cross(Vector3.up, flatForward);
+            return Vector3.SignedAngle(flatForward, transform.forward, right);
         }
     }
 }

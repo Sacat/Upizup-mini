@@ -110,7 +110,7 @@ namespace UpIzUpMini.EditorTools
 
                 if (i % 25 == 0)
                 {
-                    float pitch = Mathf.Asin(Mathf.Clamp(instance.transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+                    float pitch = TruePitchDeg(instance.transform);
                     Debug.Log($"MINI-119 RAMP TEST t={(i - settleSteps) * dt:F1}s: pos={instance.transform.position} pitch={pitch:F1}deg roll={trueRoll:F1}deg speed={rb.linearVelocity.magnitude * 3.6f:F0}km/h isCrashed={gadd.isCrashed}");
                 }
             }
@@ -121,6 +121,24 @@ namespace UpIzUpMini.EditorTools
             Object.DestroyImmediate(rampGo);
             Object.DestroyImmediate(instance);
             Physics.simulationMode = previousSimMode;
+        }
+
+        /// <summary>MINI-119, user: "the pitch value staying constant at
+        /// 73deg for the second half seems suspicious. maybe the asin."
+        /// Right - Mathf.Asin(forward.y) folds back past 90deg (it can't
+        /// tell 73deg from 107deg, both give the same forward.y), and
+        /// while turning hard the bike's true pitch can genuinely cross
+        /// that. Same fix already used for roll: a SIGNED ANGLE around
+        /// the bike's own flattened-forward-derived right axis, which
+        /// reads the FULL range correctly instead of folding.</summary>
+        private static float TruePitchDeg(Transform t)
+        {
+            Vector3 flatForward = Vector3.ProjectOnPlane(t.forward, Vector3.up);
+            if (flatForward.sqrMagnitude < 0.0001f) flatForward = Vector3.ProjectOnPlane(-t.up, Vector3.up);
+            if (flatForward.sqrMagnitude < 0.0001f) return 0f;
+            flatForward.Normalize();
+            Vector3 right = Vector3.Cross(Vector3.up, flatForward);
+            return Vector3.SignedAngle(flatForward, t.forward, right);
         }
 
         private static void InvokeIfExists(Object target, string methodName)
