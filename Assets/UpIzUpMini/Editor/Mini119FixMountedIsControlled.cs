@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UpIzUpMini.Character;
+using UpIzUpMini.Vehicles;
 
 namespace UpIzUpMini.EditorTools
 {
@@ -34,9 +35,19 @@ namespace UpIzUpMini.EditorTools
             var characterController = player.GetComponent<CharacterController>();
             if (characterController != null) characterController.enabled = false;
 
+            // MINI-119 follow-up, user: "there is some type of bycicle
+            // animation going on... looks like he is ridding a bycicle."
+            // Same class of problem as IsControlled - the Animator's own
+            // runtime parameter state can't be saved either. Persists a
+            // real component instead (MountedAnimatorFreeze), whose
+            // Awake() re-applies the freeze automatically every Play
+            // session from here on.
+            if (player.GetComponent<MountedAnimatorFreeze>() == null)
+                player.AddComponent<MountedAnimatorFreeze>();
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
-            Debug.Log($"MINI-119 FIX ISCONTROLLED OK: IsControlled=false saved for real this time (field is now serialized). Sacat left exactly where he was - parented={player.transform.parent?.name ?? "none"}, worldPos={player.transform.position}.");
+            Debug.Log($"MINI-119 FIX ISCONTROLLED OK: IsControlled=false and MountedAnimatorFreeze saved. Sacat left exactly where he was - parented={player.transform.parent?.name ?? "none"}, worldPos={player.transform.position}.");
         }
     }
 }
