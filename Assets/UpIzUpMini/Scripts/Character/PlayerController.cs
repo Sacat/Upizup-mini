@@ -52,7 +52,19 @@ namespace UpIzUpMini.Character
         private int _animIDFreeFall;
         private int _animIDMotionSpeed;
 
-        public bool IsControlled { get; set; } = true;
+        // MINI-119 follow-up fix, user: "when i press play the walking
+        // animation is happening" - traced to this being a plain C#
+        // auto-property, not a Unity-serialized field. Setting it false
+        // from an Editor script (e.g. to save a "mounted" state into the
+        // scene) never actually persisted - it silently reset to this
+        // property's own default (true) the next time Play rebuilt the
+        // scene, so PlayerController resumed driving the Animator
+        // normally while the character was still parented/posed
+        // elsewhere, producing exactly the kind of stuck-animation
+        // conflict reported. [field: SerializeField] makes Unity
+        // actually serialize the backing field, same public API either
+        // way (still just IsControlled { get; set; }).
+        [field: SerializeField] public bool IsControlled { get; set; } = true;
         public bool IsRunning { get; private set; }
         public float CurrentSpeed { get; private set; }
 
