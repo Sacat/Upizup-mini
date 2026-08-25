@@ -1,3 +1,4 @@
+using System.Reflection;
 using UnityEngine;
 using UpIzUpMini.Cameras;
 using UpIzUpMini.Character;
@@ -388,8 +389,48 @@ namespace UpIzUpMini.Vehicles
             // RB_Controller's requirement and the destroy actually
             // succeeds.
             var stockInput = instance.GetComponent<Gadd420.Input_Manager>();
-            instance.AddComponent<SuperMotoWheelieKeyRemap>();
+            var newInput = instance.AddComponent<SuperMotoWheelieKeyRemap>();
             if (stockInput != null) DestroyImmediate(stockInput);
+
+            // MINI-119 follow-up fix, user: "the bike isnt riding when i
+            // mount." Real cause, confirmed directly in RB_Controller.cs:
+            // it caches its Input_Manager reference EXACTLY ONCE, in its
+            // own Start() (`inputs = GetComponent<Input_Manager>();`).
+            // For a bike instantiated fresh this same frame, Start()
+            // hasn't run yet (Unity defers Start to before the next
+            // Update, well after this whole synchronous spawn method
+            // finishes), so it picks up the remap above just fine - the
+            // ordering trick the comment above already relies on. But for
+            // a PREPLACED bike sitting in the scene since load, Start()
+            // already ran, days (in frame terms) before this code ever
+            // runs, and cached the STOCK Input_Manager - which the line
+            // above just destroyed. Every inputs.HzInput/VInput/etc read
+            // in RB_Controller from then on reads a dangling reference to
+            // a destroyed object - no throttle, no steering, nothing,
+            // silently. RB_Controller's `inputs` field has no modifier
+            // (private by default) and no public setter, so this
+            // re-points it directly via reflection - fixes both the
+            // preplaced case AND is a harmless no-op for the fresh-spawn
+            // case (Start() just does the identical GetComponent call a
+            // moment later and gets the same answer).
+            var rbForInputFix = instance.GetComponent<Gadd420.RB_Controller>();
+            if (rbForInputFix != null)
+            {
+                var inputsField = typeof(Gadd420.RB_Controller).GetField("inputs", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (inputsField != null) inputsField.SetValue(rbForInputFix, newInput);
+                else Debug.LogError("MINI-119 STOCK DEMO TEST: RB_Controller.inputs field not found via reflection - vendor script changed? Riding will silently not respond to input.");
+            }
+            // Same exact caching pattern (and same field name) in
+            // AutoLeveling - the asset's own upright/wheelie-safety
+            // assist - would leave IT reading a dangling reference too on
+            // a preplaced bike, silently breaking auto-leveling instead
+            // of throttle. Same fix.
+            var autoLevelForInputFix = instance.GetComponent<Gadd420.AutoLeveling>();
+            if (autoLevelForInputFix != null)
+            {
+                var inputsField2 = typeof(Gadd420.AutoLeveling).GetField("inputs", BindingFlags.NonPublic | BindingFlags.Instance);
+                inputsField2?.SetValue(autoLevelForInputFix, newInput);
+            }
 
             // MINI-119 follow-up, user: "remember i told you to use my
             // trike system that worked originally and you always disabled

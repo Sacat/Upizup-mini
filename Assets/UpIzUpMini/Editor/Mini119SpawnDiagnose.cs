@@ -47,6 +47,14 @@ namespace UpIzUpMini.EditorTools
                     var afterCall = GameObject.Find("StockDemoSuperMoto");
                     var interactable = afterCall?.GetComponent<SuperMotoStockInteractable>();
                     Debug.Log($"MINI-119 SPAWN DIAGNOSE: direct spawn-method call OK, bike present after={afterCall != null}, interactable attached={interactable != null}");
+
+                    var rbController = afterCall?.GetComponent<Gadd420.RB_Controller>();
+                    if (rbController != null)
+                    {
+                        var inputsField = typeof(Gadd420.RB_Controller).GetField("inputs", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var cached = inputsField?.GetValue(rbController) as UnityEngine.Object;
+                        Debug.Log($"MINI-119 SPAWN DIAGNOSE: RB_Controller.inputs after spawn = {(cached != null ? cached.GetType().Name : "NULL")} (should be SuperMotoWheelieKeyRemap, NOT null/destroyed)");
+                    }
                 }
                 catch (TargetInvocationException ex)
                 {
