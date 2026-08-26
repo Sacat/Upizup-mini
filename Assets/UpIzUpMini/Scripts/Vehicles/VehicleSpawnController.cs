@@ -558,6 +558,16 @@ namespace UpIzUpMini.Vehicles
                 var seat = instance.AddComponent<VehicleSeat>();
                 seat.Configure(seatGo.transform, leftHandTarget, rightHandTarget, leftFootTarget, rightFootTarget, "MountBike", "RideBike");
 
+                // MINI-119 follow-up, user found this by hand, live,
+                // while mounted: Sacat's local Position/Rotation
+                // relative to the seat (0.03, -0.84, 0.04 / 0,0,0 - the
+                // TMAX's own default pitch of 0 already matched, so only
+                // the offset needed baking in). This is what "fits
+                // properly" on THIS bike specifically - see VehicleSeat's
+                // own header for why it lives here and not on
+                // VehicleRider directly.
+                seat.ConfigureSeatedPose(new Vector3(0.03f, -0.84f, 0.04f), 0f);
+
                 var wheelieAssistForSeat = instance.GetComponent<SuperMotoWheelieAssist>();
                 var interactable = instance.AddComponent<SuperMotoVehicleInteractable>();
                 interactable.Configure(seat, wheelieAssistForSeat, camAnchor.transform);

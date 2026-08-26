@@ -195,6 +195,19 @@ namespace UpIzUpMini.Vehicles
             _seat = seat;
             seat.Occupant = gameObject;
 
+            // MINI-119 follow-up, user found this bike's own correct
+            // seated position by hand and asked to bake it in without
+            // disturbing the TMAX's own tuning - these fields are
+            // shared across every bike this component mounts, so they
+            // get re-baselined from the SEAT's own per-vehicle values
+            // every time a mount happens, before anything (including
+            // TmaxWheelieTuner) reads or live-tunes them further this
+            // ride.
+            seatedOffset = seat.SeatedOffset;
+            seatedPitch = seat.SeatedPitch;
+            wheelieOffset = seat.WheelieOffset;
+            wheeliePitch = seat.WheeliePitch;
+
             // The CharacterController must go off before reparenting: it
             // fights any externally-imposed transform, which would make the
             // rider drift off the seat while the bike moves.

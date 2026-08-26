@@ -57,6 +57,44 @@ namespace UpIzUpMini.Vehicles
         [SerializeField] private Transform leftFootTarget;
         [SerializeField] private Transform rightFootTarget;
 
+        // MINI-119 follow-up, user found these exact numbers by hand,
+        // live, on the SuperMoto: "so can you fix how the rider fits on
+        // the bike... tell me how you did this." VehicleRider is SHARED
+        // across every bike (TMAX and SuperMoto both add it to whoever
+        // mounts), so its own seatedOffset/wheelieOffset fields can't be
+        // repointed per-bike without breaking the TMAX's own already-
+        // tuned seating - moved the DATA here instead, onto the
+        // per-vehicle VehicleSeat, defaulting to VehicleRider's own
+        // previous hardcoded values so the TMAX's behaviour is
+        // completely unchanged unless a seat explicitly overrides it
+        // (see ConfigureSeatedPose/ConfigureWheeliePose). VehicleRider.
+        // Mount() now copies these onto itself at the moment of
+        // mounting - one rider script, per-bike keyframes.
+        [Header("Keyframed seating - SEATED (see VehicleRider for what these mean)")]
+        [SerializeField] private Vector3 seatedOffset = new Vector3(0.11f, -0.01f, 0.32f);
+        [SerializeField] private float seatedPitch = 0f;
+
+        [Header("Keyframed seating - WHEELIE")]
+        [SerializeField] private Vector3 wheelieOffset = new Vector3(0f, -0.40f, 0.28f);
+        [SerializeField] private float wheeliePitch = 22f;
+
+        public Vector3 SeatedOffset => seatedOffset;
+        public float SeatedPitch => seatedPitch;
+        public Vector3 WheelieOffset => wheelieOffset;
+        public float WheeliePitch => wheeliePitch;
+
+        public void ConfigureSeatedPose(Vector3 offset, float pitch)
+        {
+            seatedOffset = offset;
+            seatedPitch = pitch;
+        }
+
+        public void ConfigureWheeliePose(Vector3 offset, float pitch)
+        {
+            wheelieOffset = offset;
+            wheeliePitch = pitch;
+        }
+
         [Header("Animation")]
         [Tooltip("HumanoidAnimationManager action id held for the whole time this seat is occupied (a sustained full-body pose, not a one-shot).")]
         [SerializeField] private string ridePoseActionId = "RideBike";
