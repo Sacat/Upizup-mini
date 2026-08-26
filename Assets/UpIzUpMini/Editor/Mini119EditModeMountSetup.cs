@@ -56,10 +56,13 @@ namespace UpIzUpMini.EditorTools
                 return;
             }
 
-            var interactable = bike.GetComponent<SuperMotoStockInteractable>();
-            if (interactable == null) { Debug.LogError("MINI-119 EDIT-MODE MOUNT FAIL: SuperMotoStockInteractable still missing after wiring - hand/foot anchors not found on the bike?"); return; }
+            // MINI-119 follow-up: updated for the VehicleRider/VehicleSeat
+            // switch - SuperMotoStockInteractable no longer exists on the
+            // spawned bike, SuperMotoVehicleInteractable does.
+            var interactable = bike.GetComponent<SuperMotoVehicleInteractable>();
+            if (interactable == null) { Debug.LogError("MINI-119 EDIT-MODE MOUNT FAIL: SuperMotoVehicleInteractable still missing after wiring - hand/foot anchors not found on the bike?"); return; }
 
-            var mountMethod = typeof(SuperMotoStockInteractable).GetMethod("Mount", BindingFlags.NonPublic | BindingFlags.Instance);
+            var mountMethod = typeof(SuperMotoVehicleInteractable).GetMethod("Mount", BindingFlags.NonPublic | BindingFlags.Instance);
             try
             {
                 mountMethod.Invoke(interactable, new object[] { player });
