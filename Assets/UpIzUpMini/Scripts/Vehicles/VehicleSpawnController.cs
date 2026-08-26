@@ -220,6 +220,28 @@ namespace UpIzUpMini.Vehicles
                 // scale, etc.) - position/rotation/scale are exactly
                 // whatever the user set in the Editor, never
                 // reinterpreted here.
+
+                // MINI-119 follow-up fix, user: "ok revert before that"
+                // appeared to do nothing, and wheelie was awkward once
+                // before this too - both traced to the SAME real bug:
+                // this whole method has no guard against running its
+                // wiring a SECOND time against an already-wired preplaced
+                // bike (e.g. an Editor tool calling it again via
+                // reflection, or any future double-invocation). None of
+                // the AddComponent calls below check for an existing
+                // component first, so a second run silently doubles up
+                // SuperMotoVehicleInteractable/VehicleSeat/
+                // TrikeStabilizer/WheelieAssist/etc - two of each
+                // independently applying their own torque/logic, and a
+                // stale first instance left holding whatever an Editor
+                // tool interacted with while a second, freshly-wired one
+                // sits unused. Wiring is idempotent from here on: skip
+                // the ENTIRE rest of this method if it already has.
+                if (instance.GetComponent<SuperMotoVehicleInteractable>() != null)
+                {
+                    Debug.Log("MINI-119 STOCK DEMO TEST: preplaced bike is already fully wired - skipping re-wiring entirely (prevents duplicate components).");
+                    return;
+                }
             }
             else
             {
