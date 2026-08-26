@@ -30,15 +30,15 @@ namespace UpIzUpMini.EditorTools
             if (player == null) { Debug.LogError("MINI-119 EDIT-MODE DISMOUNT FAIL: Sacat not found."); return; }
 
             var bike = GameObject.Find("StockDemoSuperMoto");
-            var interactable = bike != null ? bike.GetComponent<SuperMotoStockInteractable>() : null;
+            var interactable = bike != null ? bike.GetComponent<SuperMotoVehicleInteractable>() : null;
             if (interactable == null)
             {
-                Debug.LogWarning("MINI-119 EDIT-MODE DISMOUNT: no SuperMotoStockInteractable found (already dismounted / not wired?) - falling back to a direct manual reset.");
+                Debug.LogWarning("MINI-119 EDIT-MODE DISMOUNT: no SuperMotoVehicleInteractable found (already dismounted / not wired?) - falling back to a direct manual reset.");
                 ManualReset(player);
             }
             else
             {
-                var dismountField = typeof(SuperMotoStockInteractable).GetField("_mountedPlayer", BindingFlags.NonPublic | BindingFlags.Instance);
+                var dismountField = typeof(SuperMotoVehicleInteractable).GetField("_mountedPlayer", BindingFlags.NonPublic | BindingFlags.Instance);
                 var mountedPlayer = dismountField?.GetValue(interactable) as GameObject;
                 if (mountedPlayer == null)
                 {
@@ -47,7 +47,7 @@ namespace UpIzUpMini.EditorTools
                 }
                 else
                 {
-                    var dismountMethod = typeof(SuperMotoStockInteractable).GetMethod("Dismount", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var dismountMethod = typeof(SuperMotoVehicleInteractable).GetMethod("Dismount", BindingFlags.NonPublic | BindingFlags.Instance);
                     try { dismountMethod.Invoke(interactable, null); }
                     catch (TargetInvocationException ex)
                     {
