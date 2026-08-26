@@ -57,6 +57,17 @@ namespace UpIzUpMini.EditorTools
                 }
             }
 
+            // MINI-119 follow-up, user: "lets revert to when i could
+            // walk and mount on the bike." MountedAnimatorFreeze forces
+            // Speed/Grounded/etc EVERY frame unconditionally - exactly
+            // what's needed while permanently parked mounted, but it
+            // would just as aggressively break NORMAL walking animation
+            // if left on him now that he's back to free-roam (it doesn't
+            // know or care whether he's actually mounted). Must come off
+            // here, not just the parenting/control state.
+            var freeze = player.GetComponent<MountedAnimatorFreeze>();
+            if (freeze != null) Object.DestroyImmediate(freeze);
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             Debug.Log($"MINI-119 EDIT-MODE DISMOUNT OK: Sacat back to free-roam and saved. worldPos={player.transform.position}, parent={(player.transform.parent != null ? player.transform.parent.name : "none")}. Your manually-built Rig 1/constraints on Visual are untouched.");
