@@ -27,17 +27,32 @@ namespace UpIzUpMini.Vehicles
     [DefaultExecutionOrder(-100)]
     public class MountedAnimatorFreeze : MonoBehaviour
     {
-        private void Awake()
-        {
-            var animator = GetComponent<Animator>();
-            if (animator == null) return;
+        private Animator _animator;
 
-            animator.SetFloat("Speed", 0f);
-            animator.SetFloat("MotionSpeed", 0f);
-            animator.SetBool("Grounded", true);
-            animator.SetBool("Jump", false);
-            animator.SetBool("FreeFall", false);
-            animator.speed = 0f;
+        private void Awake() => _animator = GetComponent<Animator>();
+
+        // MINI-119 follow-up fix, user: "there is a weird animation as i
+        // am mounted... looks like a falling or cycling animation."
+        // Setting animator.speed=0 in Awake() (the very first frame,
+        // before the state machine has had any chance to settle into an
+        // actual idle state) could freeze him mid-transition, stuck
+        // showing whatever the controller's default/entry state happens
+        // to be (a jump/fall pose, in this case) forever. Fixed by never
+        // touching animator.speed at all - the state machine transitions
+        // normally at its own pace, and this just keeps re-pinning the
+        // parameters that determine WHICH state it settles into every
+        // frame (Speed/MotionSpeed=0, Grounded=true, Jump/FreeFall=false),
+        // so it always lands on and stays in Idle, no freeze/stuck-frame
+        // risk at all.
+        private void Update()
+        {
+            if (_animator == null) return;
+
+            _animator.SetFloat("Speed", 0f);
+            _animator.SetFloat("MotionSpeed", 0f);
+            _animator.SetBool("Grounded", true);
+            _animator.SetBool("Jump", false);
+            _animator.SetBool("FreeFall", false);
         }
     }
 }

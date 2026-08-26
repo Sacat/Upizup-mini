@@ -543,8 +543,24 @@ namespace UpIzUpMini.Vehicles
             }
             else
             {
-                var interactable = instance.AddComponent<SuperMotoStockInteractable>();
-                interactable.Configure(seatLocalPos, rightHandTarget, leftHandTarget, rightFootTarget, leftFootTarget, camAnchor.transform);
+                // MINI-119 follow-up, user: "use the old mounting system
+                // you had for the TMAX." VehicleSeat + VehicleRider (the
+                // same proven MINI-066 system BikeInteractable already
+                // uses) instead of the Animation-Rigging-based
+                // SuperMotoKinematicRider/SuperMotoStockInteractable -
+                // reuses "MountBike"/"RideBike", already baked into
+                // Sacat's shared controller for the TMAX.
+                var seatGo = new GameObject("Seat");
+                seatGo.transform.SetParent(instance.transform, false);
+                seatGo.transform.localPosition = seatLocalPos;
+                seatGo.transform.localRotation = Quaternion.identity;
+
+                var seat = instance.AddComponent<VehicleSeat>();
+                seat.Configure(seatGo.transform, leftHandTarget, rightHandTarget, leftFootTarget, rightFootTarget, "MountBike", "RideBike");
+
+                var wheelieAssistForSeat = instance.GetComponent<SuperMotoWheelieAssist>();
+                var interactable = instance.AddComponent<SuperMotoVehicleInteractable>();
+                interactable.Configure(seat, wheelieAssistForSeat, camAnchor.transform);
             }
 
             // MINI-119 follow-up, user: "where is the bike i am not

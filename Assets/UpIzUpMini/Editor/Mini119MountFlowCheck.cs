@@ -28,13 +28,13 @@ namespace UpIzUpMini.EditorTools
             var instance = GameObject.Find("StockDemoSuperMoto");
             if (instance == null) { Debug.LogError("MINI-119 MOUNT FLOW CHECK FAIL: bike not spawned."); return; }
 
-            var interactable = instance.GetComponent<SuperMotoStockInteractable>();
-            if (interactable == null) { Debug.LogError("MINI-119 MOUNT FLOW CHECK FAIL: no SuperMotoStockInteractable on the spawned bike."); return; }
+            var interactable = instance.GetComponent<SuperMotoVehicleInteractable>();
+            if (interactable == null) { Debug.LogError("MINI-119 MOUNT FLOW CHECK FAIL: no SuperMotoVehicleInteractable on the spawned bike."); return; }
 
             var pc = player.GetComponent<PlayerController>();
             Debug.Log($"MINI-119 MOUNT FLOW CHECK: before mount - player.transform.parent={player.transform.parent?.name ?? "none"}, IsControlled={(pc != null ? pc.IsControlled.ToString() : "n/a")}, HasRider={interactable.HasRider}");
 
-            var mountMethod = typeof(SuperMotoStockInteractable).GetMethod("Mount", BindingFlags.NonPublic | BindingFlags.Instance);
+            var mountMethod = typeof(SuperMotoVehicleInteractable).GetMethod("Mount", BindingFlags.NonPublic | BindingFlags.Instance);
             try { mountMethod.Invoke(interactable, new object[] { player }); }
             catch (TargetInvocationException ex) { Debug.LogError($"MINI-119 MOUNT FLOW CHECK: Mount() threw: {ex.InnerException}"); Physics.simulationMode = previousSimMode; return; }
 
@@ -50,7 +50,7 @@ namespace UpIzUpMini.EditorTools
                 }
             }
 
-            var dismountMethod = typeof(SuperMotoStockInteractable).GetMethod("Dismount", BindingFlags.NonPublic | BindingFlags.Instance);
+            var dismountMethod = typeof(SuperMotoVehicleInteractable).GetMethod("Dismount", BindingFlags.NonPublic | BindingFlags.Instance);
             try { dismountMethod.Invoke(interactable, null); }
             catch (TargetInvocationException ex) { Debug.LogError($"MINI-119 MOUNT FLOW CHECK: Dismount() threw: {ex.InnerException}"); Physics.simulationMode = previousSimMode; return; }
 
