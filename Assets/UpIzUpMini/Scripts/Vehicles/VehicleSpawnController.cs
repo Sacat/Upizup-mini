@@ -97,6 +97,17 @@ namespace UpIzUpMini.Vehicles
         private const bool StockDemoBikeTestMode = true;
         [Tooltip("MINI-119: only used when StockDemoBikeTestMode is true - the Motorbike Physics Tool's own, completely unmodified Assets/MotorbikePhysicsTool/Prefabs/BikesWithRagdolls/SuperMotoWRagdoll.prefab. Wired by Mini119WireStockDemoBike.cs, not the normal scene builder.")]
         [SerializeField] private GameObject stockDemoBikePrefab;
+
+        // MINI-119 follow-up, user: "can you do it when i start or press
+        // play, sacat is mounted on the bike... i dont want to press f
+        // to mount." Same on/off-flag convention as
+        // DevSpawnNearPlayerOnStart/DevAutoPossessSuperMotoOnSpawn -
+        // while true, the instant the bike finishes spawning/wiring,
+        // Sacat is mounted onto it for real (the same live Mount() flow
+        // an actual F press triggers), no key press needed. Flip back to
+        // false to return to the normal walk-up-and-press-F flow.
+        private const bool AutoMountSuperMotoOnSpawn = true;
+
         private bool _devSpawnDone;
 
         private void Awake() => Instance = this;
@@ -593,6 +604,24 @@ namespace UpIzUpMini.Vehicles
                 var wheelieAssistForSeat = instance.GetComponent<SuperMotoWheelieAssist>();
                 var interactable = instance.AddComponent<SuperMotoVehicleInteractable>();
                 interactable.Configure(seat, wheelieAssistForSeat, camAnchor.transform);
+
+                // MINI-119 follow-up, user: "can you do it when i start
+                // or press play, sacat is mounted on the bike... i dont
+                // want to press F to mount." Triggers the SAME real,
+                // live Mount() flow pressing F does - not an Edit-mode
+                // save trick - so the actual "RideBike" animation state
+                // and every other runtime-only effect apply correctly,
+                // none of the save/reload gaps documented all task apply
+                // here at all since this runs mid-Play, in the same
+                // continuous session, same as a real F press would.
+                // Deliberately NOT TryMountFor - that enforces a range
+                // check (built for "another character hops on if
+                // nearby"), unsuitable here since the player could be
+                // anywhere in Grand Bay when this bike spawns. DevForceMount
+                // mirrors the same naming convention already used
+                // elsewhere in this project for exactly this "just put
+                // them on it, unconditionally" dev/testing case.
+                if (AutoMountSuperMotoOnSpawn) interactable.DevForceMount(player);
             }
 
             // MINI-119 follow-up, user: "where is the bike i am not

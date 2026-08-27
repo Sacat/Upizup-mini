@@ -45,8 +45,8 @@ namespace UpIzUpMini.EditorTools
                 {
                     method.Invoke(spawner, new object[] { player });
                     var afterCall = GameObject.Find("StockDemoSuperMoto");
-                    var interactable = afterCall?.GetComponent<SuperMotoStockInteractable>();
-                    Debug.Log($"MINI-119 SPAWN DIAGNOSE: direct spawn-method call OK, bike present after={afterCall != null}, interactable attached={interactable != null}");
+                    var interactable = afterCall?.GetComponent<SuperMotoVehicleInteractable>();
+                    Debug.Log($"MINI-119 SPAWN DIAGNOSE: direct spawn-method call OK, bike present after={afterCall != null}, interactable attached={interactable != null}, HasRider={interactable?.HasRider}, player parent after spawn={player.transform.parent?.name ?? "none"}");
 
                     var rbController = afterCall?.GetComponent<Gadd420.RB_Controller>();
                     if (rbController != null)

@@ -61,6 +61,16 @@ namespace UpIzUpMini.Vehicles
 
         public override void Interact(GameObject interactor) => Mount(interactor);
 
+        /// <summary>MINI-119 follow-up, user: "i dont want to press F to
+        /// mount... sacat is mounted on the bike [at Play start]."
+        /// Deliberately NOT the same as walking up and pressing F -
+        /// skips the range/IsControlled checks TryMountByKey enforces,
+        /// since the player could be anywhere when the bike spawns.
+        /// Same naming convention as the project's existing
+        /// DevAutoPossessSuperMotoOnSpawn/DevForceMount pattern for this
+        /// exact "just put them on it, unconditionally" case.</summary>
+        public void DevForceMount(GameObject player) => Mount(player);
+
         private void Update()
         {
             if (!HasRider)
