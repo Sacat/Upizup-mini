@@ -43,6 +43,7 @@ namespace UpIzUpMini.Vehicles
 
         private VehicleRider _rider;
         private BikeRiderAnimation _riderAnim;
+        private SuperMotoHandFootLock _handFootLock;
         private GameObject _mountedPlayer;
         private int _lockedSlotIndex = -1;
 
@@ -138,6 +139,18 @@ namespace UpIzUpMini.Vehicles
             _rider = rider;
             _riderAnim = player.GetComponent<BikeRiderAnimation>();
             if (_riderAnim == null) _riderAnim = player.AddComponent<BikeRiderAnimation>();
+
+            // MINI-119 follow-up, user: hands/feet still weren't
+            // tracking through a wheelie via VehicleRider's own
+            // OnAnimatorIK - see SuperMotoHandFootLock's own header for
+            // the full reasoning. Layered on top, not replacing
+            // VehicleRider - it still owns seating/mounting/the ride
+            // animation.
+            _handFootLock = player.GetComponent<SuperMotoHandFootLock>();
+            if (_handFootLock == null) _handFootLock = player.AddComponent<SuperMotoHandFootLock>();
+            _handFootLock.Attach(player.GetComponentInChildren<Animator>(),
+                _seat.RightHandTarget, _seat.LeftHandTarget, _seat.RightFootTarget, _seat.LeftFootTarget);
+
             _mountedPlayer = player;
 
             var switcher = CharacterSwitchManager.Instance;
@@ -163,6 +176,7 @@ namespace UpIzUpMini.Vehicles
 
             _rider?.Dismount(exitPosition);
             _riderAnim?.ClearPose();
+            _handFootLock?.Detach();
             VehicleSpawnController.SetBikeInputEnabled(gameObject, false);
 
             var switcher = CharacterSwitchManager.Instance;
@@ -174,6 +188,7 @@ namespace UpIzUpMini.Vehicles
             _mountedPlayer = null;
             _rider = null;
             _riderAnim = null;
+            _handFootLock = null;
         }
 
         private void RetargetGameCamera(bool toBike)
