@@ -216,7 +216,16 @@ namespace UpIzUpMini.Vehicles
         /// tuner slider retunes it live, mid-wheelie, without restarting the
         /// clip.
         /// </summary>
-        private void UpdateWheelieOverlay(bool wheelieing)
+        // MINI-119 follow-up, user: "the character stays in the same
+        // position so the hands on the handlebar looks out of position
+        // since the character doesnt move." Made public so
+        // SuperMotoVehicleInteractable can drive the SAME authored
+        // wheelie-pose overlay TMAX riders already get, without needing
+        // the whole TMAX-specific UpdatePose (lean/rest/pull-away state
+        // machine, which needs a concrete TmaxBikeController this bike
+        // doesn't have) - just the one piece that actually reshapes the
+        // arms/torso for a wheelie instead of only translating the body.
+        public void UpdateWheelieOverlay(bool wheelieing)
         {
             float target = wheelieing && useWheelieClip ? wheelieClipWeight : 0f;
 

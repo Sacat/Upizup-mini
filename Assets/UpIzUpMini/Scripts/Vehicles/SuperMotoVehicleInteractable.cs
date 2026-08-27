@@ -42,6 +42,7 @@ namespace UpIzUpMini.Vehicles
         private Transform _camAnchor;
 
         private VehicleRider _rider;
+        private BikeRiderAnimation _riderAnim;
         private GameObject _mountedPlayer;
         private int _lockedSlotIndex = -1;
 
@@ -90,6 +91,21 @@ namespace UpIzUpMini.Vehicles
                     ? Mathf.Clamp01(_wheelieAssist.CurrentRampDeg / _wheelieAssist.rampCeilingDeg)
                     : 0f;
                 _rider.SetWheelieBlend(wheelie01);
+
+                // MINI-119 follow-up, user: "the hands on the handlebar
+                // looks out of position since the character doesnt
+                // move." VehicleRider's own blend above only translates/
+                // pitches the WHOLE body - it never reshapes the arms.
+                // This is the piece that actually does: the same
+                // authored "BikeWheelie" pose overlay TMAX riders get,
+                // blended in on top of the seated pose via
+                // HumanoidAnimationManager's dedicated FullBodyBlend
+                // layer - genuinely bending the arms/torso for a
+                // wheelie, which gives the hand IK a much closer
+                // starting point to reach the real handlebar anchors
+                // from instead of stretching from an unchanged seated
+                // pose.
+                if (_riderAnim != null) _riderAnim.UpdateWheelieOverlay(wheelie01 > 0.05f);
             }
 
             if (Input.GetKeyDown(dismountKey)) Dismount();
@@ -120,6 +136,8 @@ namespace UpIzUpMini.Vehicles
             if (!rider.Mount(_seat)) return;
 
             _rider = rider;
+            _riderAnim = player.GetComponent<BikeRiderAnimation>();
+            if (_riderAnim == null) _riderAnim = player.AddComponent<BikeRiderAnimation>();
             _mountedPlayer = player;
 
             var switcher = CharacterSwitchManager.Instance;
@@ -144,6 +162,7 @@ namespace UpIzUpMini.Vehicles
                 exitPosition = hit.point;
 
             _rider?.Dismount(exitPosition);
+            _riderAnim?.ClearPose();
             VehicleSpawnController.SetBikeInputEnabled(gameObject, false);
 
             var switcher = CharacterSwitchManager.Instance;
@@ -154,6 +173,7 @@ namespace UpIzUpMini.Vehicles
 
             _mountedPlayer = null;
             _rider = null;
+            _riderAnim = null;
         }
 
         private void RetargetGameCamera(bool toBike)
