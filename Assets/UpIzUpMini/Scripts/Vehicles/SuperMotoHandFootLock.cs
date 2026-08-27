@@ -34,18 +34,66 @@ namespace UpIzUpMini.Vehicles
     {
         private Gadd420.IK _rightHand, _leftHand, _rightFoot, _leftFoot;
 
+        private Animator _pendingAnimator;
+        private Transform _pendingRightHand, _pendingLeftHand, _pendingRightFoot, _pendingLeftFoot;
+        private bool _attached;
+        private int _framesWaited;
+
         public void Attach(Animator animator, Transform rightHandTarget, Transform leftHandTarget, Transform rightFootTarget, Transform leftFootTarget)
         {
+            _attached = false;
+            _framesWaited = 0;
+            _pendingAnimator = animator;
+            _pendingRightHand = rightHandTarget;
+            _pendingLeftHand = leftHandTarget;
+            _pendingRightFoot = rightFootTarget;
+            _pendingLeftFoot = leftFootTarget;
+            TryAttachNow();
+        }
+
+        // MINI-119 follow-up fix, user: "the hand is floating in its
+        // original position" - never moved AT ALL, not moved-to-the-
+        // wrong-spot. Traced to AutoMountSuperMotoOnSpawn firing the
+        // mount SYNCHRONOUSLY at the very first possible moment the
+        // character exists - animator.isHuman/avatar isn't guaranteed
+        // bound yet at that exact instant (the same avatar-binding
+        // timing gap already proven real and necessary to retry around
+        // elsewhere in this task), so the one-shot Attach() call above
+        // silently skipped everything via its own isHuman guard. A real
+        // F-press mount (character's been alive for a while already)
+        // wouldn't hit this, which is why this bug was invisible until
+        // the auto-mount feature existed. Retries every Update() instead
+        // of assuming synchronous availability, same pattern already
+        // proven necessary multiple times this task.
+        private void Update()
+        {
+            if (_attached || _pendingAnimator == null) return;
+
+            _framesWaited++;
+            if (_framesWaited > 300)
+            {
+                Debug.LogError("MINI-119 HAND/FOOT LOCK: animator.isHuman never became true after 300 frames - giving up.");
+                _pendingAnimator = null;
+                return;
+            }
+
+            TryAttachNow();
+        }
+
+        private void TryAttachNow()
+        {
+            var animator = _pendingAnimator;
             // Animator.GetBoneTransform THROWS (InvalidOperationException:
             // "Avatar is null"), it doesn't just return null, when the
             // avatar isn't a bound Humanoid yet - guard rather than let a
             // caller's whole Mount() unwind from this.
             if (animator == null || !animator.isHuman) return;
 
-            _rightHand = AddIK(animator.GetBoneTransform(HumanBodyBones.RightHand), rightHandTarget);
-            _leftHand = AddIK(animator.GetBoneTransform(HumanBodyBones.LeftHand), leftHandTarget);
-            _rightFoot = AddIK(animator.GetBoneTransform(HumanBodyBones.RightFoot), rightFootTarget);
-            _leftFoot = AddIK(animator.GetBoneTransform(HumanBodyBones.LeftFoot), leftFootTarget);
+            _rightHand = AddIK(animator.GetBoneTransform(HumanBodyBones.RightHand), _pendingRightHand);
+            _leftHand = AddIK(animator.GetBoneTransform(HumanBodyBones.LeftHand), _pendingLeftHand);
+            _rightFoot = AddIK(animator.GetBoneTransform(HumanBodyBones.RightFoot), _pendingRightFoot);
+            _leftFoot = AddIK(animator.GetBoneTransform(HumanBodyBones.LeftFoot), _pendingLeftFoot);
+            _attached = true;
         }
 
         private static Gadd420.IK AddIK(Transform bone, Transform target)
@@ -68,6 +116,9 @@ namespace UpIzUpMini.Vehicles
             DestroyIfExists(ref _leftHand);
             DestroyIfExists(ref _rightFoot);
             DestroyIfExists(ref _leftFoot);
+            _attached = false;
+            _pendingAnimator = null;
+            _framesWaited = 0;
         }
 
         private void DestroyIfExists(ref Gadd420.IK ik)

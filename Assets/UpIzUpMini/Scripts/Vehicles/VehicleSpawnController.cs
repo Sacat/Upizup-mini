@@ -601,6 +601,29 @@ namespace UpIzUpMini.Vehicles
                 // VehicleRider directly.
                 seat.ConfigureSeatedPose(new Vector3(0.03f, -0.84f, 0.04f), 0f);
 
+                // MINI-119 follow-up fix, user: "the character moves too
+                // too high" during a wheelie. Real cause: this seat was
+                // still blending toward VehicleSeat's own DEFAULT wheelie
+                // offset (0, -0.40, 0.28) - TMAX's own absolute tuned
+                // number, calibrated against TMAX's seated offset
+                // (0.11, -0.01, 0.32). Applying that SAME absolute number
+                // on top of the SuperMoto's very different seated offset
+                // (above) produces a huge, wrong vertical jump - the
+                // wheelie target was never actually relative to THIS
+                // bike's seat at all. Applies TMAX's own relative SHIFT
+                // (wheelieOffset - seatedOffset) onto the SuperMoto's own
+                // seated baseline instead of the absolute number - a
+                // principled starting point, not a guess, but still just
+                // a starting point: the user should fine-tune this live
+                // via TmaxWheelieTuner (works for whichever VehicleRider
+                // is currently mounted, not TMAX-specific despite the
+                // name) the same way the seated pose was tuned, and give
+                // the resulting numbers back to bake in permanently.
+                Vector3 tmaxSeated = new Vector3(0.11f, -0.01f, 0.32f);
+                Vector3 tmaxWheelie = new Vector3(0f, -0.40f, 0.28f);
+                Vector3 relativeWheelieShift = tmaxWheelie - tmaxSeated;
+                seat.ConfigureWheeliePose(new Vector3(0.03f, -0.84f, 0.04f) + relativeWheelieShift, 22f);
+
                 var wheelieAssistForSeat = instance.GetComponent<SuperMotoWheelieAssist>();
                 var interactable = instance.AddComponent<SuperMotoVehicleInteractable>();
                 interactable.Configure(seat, wheelieAssistForSeat, camAnchor.transform);
