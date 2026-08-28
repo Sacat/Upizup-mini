@@ -5645,15 +5645,25 @@ namespace UpIzUpMini.EditorTools
             var zonesProp = aso.FindProperty("zones");
             zonesProp.arraySize = 2;
 
+            // MINI-119 follow-up, user: "i want highland to start from
+            // after the bridge. lalay would be the entire road." The
+            // bridge is Bridge_03_user_highland_lalay_inroad (~80.93,
+            // -146.67 in the live scene - literally named for this
+            // transition and the closest bridge to the farm, confirmed
+            // via Mini119BridgeLocateCheck). AreaNameDisplay only
+            // supports circular zones, so "entire road, split at the
+            // bridge" is approximated as two circles: Lalay spans the
+            // whole road from the far west up to the bridge, Highland
+            // spans from the bridge to the farm/safehouse cluster.
             var lalay = zonesProp.GetArrayElementAtIndex(0);
             lalay.FindPropertyRelative("areaName").stringValue = "Lalay";
-            lalay.FindPropertyRelative("center").vector3Value = roadPoints[roadPoints.Count / 3];
-            lalay.FindPropertyRelative("radius").floatValue = 70f;
+            lalay.FindPropertyRelative("center").vector3Value = new Vector3(8f, 0f, -148f);
+            lalay.FindPropertyRelative("radius").floatValue = 85f;
 
             var highland = zonesProp.GetArrayElementAtIndex(1);
             highland.FindPropertyRelative("areaName").stringValue = "Highland";
-            highland.FindPropertyRelative("center").vector3Value = farmCenter;
-            highland.FindPropertyRelative("radius").floatValue = 55f;
+            highland.FindPropertyRelative("center").vector3Value = new Vector3(104f, 0f, -128f);
+            highland.FindPropertyRelative("radius").floatValue = 40f;
 
             aso.ApplyModifiedPropertiesWithoutUndo();
         }
