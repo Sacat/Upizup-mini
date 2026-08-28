@@ -46,6 +46,21 @@ namespace UpIzUpMini.Vehicles
 
         private VehicleRider _rider;
         private BikeRiderAnimation _riderAnim;
+        // MINI-119 follow-up, user: "when riding the only thing i
+        // notice what the back goes through the handlebar so the back
+        // should stay outward while wheelieing." Measured via
+        // Mini119WheelieBackClipCheck that VehicleRider's own position/
+        // pitch math is NOT the cause (the chest moves AWAY from the
+        // handlebar during a wheelie by that math) - the clipping comes
+        // from BikeRiderAnimation's authored "cheer01" wheelie overlay
+        // pose itself, tuned against the TMAX's handlebar geometry, not
+        // this bike's. BikeRiderAnimation lives on the PLAYER (shared
+        // with the TMAX if the same character later rides that too), so
+        // its wheelieClipWeight can't just be permanently lowered here -
+        // it's dialed down only while mounted on THIS bike and restored
+        // on dismount.
+        private float _savedWheelieClipWeight = -1f;
+        private const float SuperMotoWheelieClipWeight = 0.22f;
         private SuperMotoHandFootLock _handFootLock;
         private VehicleRider _pillion;
         private SuperMotoHandFootLock _pillionHandFootLock;
@@ -159,6 +174,8 @@ namespace UpIzUpMini.Vehicles
             _rider = rider;
             _riderAnim = player.GetComponent<BikeRiderAnimation>();
             if (_riderAnim == null) _riderAnim = player.AddComponent<BikeRiderAnimation>();
+            _savedWheelieClipWeight = _riderAnim.WheelieClipWeight;
+            _riderAnim.WheelieClipWeight = SuperMotoWheelieClipWeight;
 
             // MINI-119 follow-up, user: hands/feet still weren't
             // tracking through a wheelie via VehicleRider's own
@@ -251,6 +268,11 @@ namespace UpIzUpMini.Vehicles
 
             _rider?.Dismount(exitPosition);
             _riderAnim?.ClearPose();
+            if (_riderAnim != null && _savedWheelieClipWeight >= 0f)
+            {
+                _riderAnim.WheelieClipWeight = _savedWheelieClipWeight;
+                _savedWheelieClipWeight = -1f;
+            }
             _handFootLock?.Detach();
             DismountPillion();
             VehicleSpawnController.SetBikeInputEnabled(gameObject, false);
