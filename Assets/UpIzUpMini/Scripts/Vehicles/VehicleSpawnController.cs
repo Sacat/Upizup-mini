@@ -624,9 +624,35 @@ namespace UpIzUpMini.Vehicles
                 Vector3 relativeWheelieShift = tmaxWheelie - tmaxSeated;
                 seat.ConfigureWheeliePose(new Vector3(0.03f, -0.84f, 0.04f) + relativeWheelieShift, 22f);
 
+                // MINI-119 follow-up, user: "i want pillion rider to hop
+                // at the back and attach the hands... to there sides. if
+                // the pillion rider is following." Same proven pillion
+                // system BikeInteractable already uses for the TMAX -
+                // the OTHER main character hops onto a passenger
+                // VehicleSeat automatically when the driver mounts, IF
+                // they're nearby and not off doing something else. No
+                // vendor-provided rear-seat marker on this prefab (only
+                // "Rider 1" exists) - placed behind the driver's own seat
+                // instead, a starting point to refine live the same way
+                // the driver's seat was. No hand/foot targets on
+                // purpose - a passenger has nothing to grip, so leaving
+                // them unset means VehicleRider's own OnAnimatorIK
+                // skips those goals entirely and the authored
+                // "RidePillion" clip's own natural hands-at-the-sides
+                // pose shows through untouched, matching exactly what
+                // was asked for.
+                var pillionSeatGo = new GameObject("PillionSeat");
+                pillionSeatGo.transform.SetParent(instance.transform, false);
+                pillionSeatGo.transform.localPosition = seatLocalPos + new Vector3(0f, 0.05f, -0.35f);
+                pillionSeatGo.transform.localRotation = Quaternion.identity;
+
+                var pillionSeat = instance.AddComponent<VehicleSeat>();
+                pillionSeat.Configure(pillionSeatGo.transform, null, null, null, null, "MountBike", "RidePillion");
+                pillionSeat.SetRole(VehicleSeat.SeatRole.Passenger);
+
                 var wheelieAssistForSeat = instance.GetComponent<SuperMotoWheelieAssist>();
                 var interactable = instance.AddComponent<SuperMotoVehicleInteractable>();
-                interactable.Configure(seat, wheelieAssistForSeat, camAnchor.transform);
+                interactable.Configure(seat, pillionSeat, wheelieAssistForSeat, camAnchor.transform);
 
                 // MINI-119 follow-up, user: "can you do it when i start
                 // or press play, sacat is mounted on the bike... i dont

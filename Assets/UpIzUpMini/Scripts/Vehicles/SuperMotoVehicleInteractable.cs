@@ -36,22 +36,27 @@ namespace UpIzUpMini.Vehicles
         [SerializeField] private KeyCode dismountKey = KeyCode.F;
         [SerializeField] private float mountRange = 3.5f;
         [SerializeField] private float dismountSideOffset = 1.3f;
+        [Tooltip("MINI-119 follow-up: how close the OTHER main character must be, when the driver mounts, to hop on the pillion seat automatically - same convention as BikeInteractable's own pillionBoardRadius.")]
+        [SerializeField] private float pillionBoardRadius = 8f;
 
         private VehicleSeat _seat;
+        private VehicleSeat _pillionSeat;
         private SuperMotoWheelieAssist _wheelieAssist;
         private Transform _camAnchor;
 
         private VehicleRider _rider;
         private BikeRiderAnimation _riderAnim;
         private SuperMotoHandFootLock _handFootLock;
+        private VehicleRider _pillion;
         private GameObject _mountedPlayer;
         private int _lockedSlotIndex = -1;
 
         public bool HasRider => _mountedPlayer != null;
 
-        public void Configure(VehicleSeat seat, SuperMotoWheelieAssist wheelieAssist, Transform camAnchor)
+        public void Configure(VehicleSeat seat, VehicleSeat pillionSeat, SuperMotoWheelieAssist wheelieAssist, Transform camAnchor)
         {
             _seat = seat;
+            _pillionSeat = pillionSeat;
             _wheelieAssist = wheelieAssist;
             _camAnchor = camAnchor;
         }
@@ -108,6 +113,20 @@ namespace UpIzUpMini.Vehicles
                 // pose.
                 if (_riderAnim != null) _riderAnim.UpdateWheelieOverlay(wheelie01 > 0.05f);
             }
+
+            // MINI-119 follow-up fix, user: "if the pillion rider is
+            // following." A one-shot check at the exact moment of
+            // mounting (what BikeInteractable itself does for the TMAX)
+            // only works there because the player always walks up and
+            // presses F, by which point the other character is already
+            // nearby from normal following. AutoMountSuperMotoOnSpawn
+            // mounts the driver essentially instantly, with no such
+            // walk-up window, so the passenger is very likely still out
+            // of range at that exact instant no matter how close they
+            // eventually get. Checked every frame instead, while
+            // mounted and the seat is still empty, so boarding happens
+            // the moment the passenger actually arrives.
+            if (_pillion == null) BoardPillion();
 
             if (Input.GetKeyDown(dismountKey)) Dismount();
         }
@@ -166,6 +185,46 @@ namespace UpIzUpMini.Vehicles
             RetargetGameCamera(toBike: true);
         }
 
+        /// <summary>MINI-119 follow-up, user: "i want pillion rider to
+        /// hop at the back... if the pillion rider is following."
+        /// Verbatim the same logic as BikeInteractable.BoardPillion -
+        /// the OTHER main character hops onto the pillion seat
+        /// automatically when the driver mounts, if they're nearby and
+        /// not off doing something else (locked away, e.g. a Guadeloupe
+        /// run) or already mounted on something.</summary>
+        private void BoardPillion()
+        {
+            if (_pillionSeat == null || _pillionSeat.IsOccupied) return;
+
+            var switcher = CharacterSwitchManager.Instance;
+            if (switcher?.Slots == null || switcher.Slots.Length < 2) return;
+
+            int otherIndex = 1 - switcher.ActiveIndex;
+            if (otherIndex < 0 || otherIndex >= switcher.Slots.Length) return;
+            if (switcher.IsLocked(otherIndex)) return;
+
+            var otherSlot = switcher.Slots[otherIndex];
+            if (otherSlot?.root == null) return;
+
+            if (Vector3.Distance(otherSlot.root.transform.position, transform.position) > pillionBoardRadius) return;
+
+            var passenger = otherSlot.root.GetComponent<VehicleRider>();
+            if (passenger == null) passenger = otherSlot.root.AddComponent<VehicleRider>();
+            if (passenger.IsMounted) return;
+
+            if (!passenger.Mount(_pillionSeat)) return;
+            _pillion = passenger;
+        }
+
+        private void DismountPillion()
+        {
+            if (_pillion == null) return;
+
+            Vector3 exit = transform.position - transform.right * dismountSideOffset + Vector3.up * 0.1f;
+            _pillion.Dismount(exit);
+            _pillion = null;
+        }
+
         private void Dismount()
         {
             if (!HasRider) return;
@@ -177,6 +236,7 @@ namespace UpIzUpMini.Vehicles
             _rider?.Dismount(exitPosition);
             _riderAnim?.ClearPose();
             _handFootLock?.Detach();
+            DismountPillion();
             VehicleSpawnController.SetBikeInputEnabled(gameObject, false);
 
             var switcher = CharacterSwitchManager.Instance;

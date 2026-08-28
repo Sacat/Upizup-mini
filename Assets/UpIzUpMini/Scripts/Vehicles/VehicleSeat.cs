@@ -137,5 +137,11 @@ namespace UpIzUpMini.Vehicles
             mountActionId = mountAction;
             ridePoseActionId = ridePoseAction;
         }
+
+        /// <summary>MINI-119 follow-up: same runtime-configuration need
+        /// as Configure() above - a spawned-fresh seat (no prefab to set
+        /// this in the Editor) needs a way to mark itself Passenger
+        /// rather than the Driver default.</summary>
+        public void SetRole(SeatRole newRole) => role = newRole;
     }
 }
