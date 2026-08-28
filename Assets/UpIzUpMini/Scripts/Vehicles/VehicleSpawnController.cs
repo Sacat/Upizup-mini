@@ -114,7 +114,16 @@ namespace UpIzUpMini.Vehicles
         // Sacat is mounted onto it for real (the same live Mount() flow
         // an actual F press triggers), no key press needed. Flip back to
         // false to return to the normal walk-up-and-press-F flow.
-        private const bool AutoMountSuperMotoOnSpawn = true;
+        //
+        // MINI-119 follow-up, user: "dont automount the character on the
+        // bike because we are dont with this but you can leave the bike
+        // spawning for future testing." The dev bike spawn itself stays
+        // (see SpawnStockDemoBikeAndDisableOurCharacter/
+        // StockDemoBikeTestMode below) - only the auto-mount-at-spawn
+        // convenience is off, so a fresh Play session starts with Sacat
+        // on foot and the bike parked nearby, walk up + press F like the
+        // shipped Car Dealer purchase flow.
+        private const bool AutoMountSuperMotoOnSpawn = false;
 
         private bool _devSpawnDone;
 
