@@ -4460,6 +4460,14 @@ namespace UpIzUpMini.EditorTools
         // table) once a scrambler/van/boat model actually exists.
         private static readonly (string id, string name, ShopCategory cat, int price, string seedCrop, int qty)[] DealerSpecs =
         {
+            // MINI-119 follow-up, user: "make it so you can buy it from
+            // the car dealer, it will be the cheapest bike, it will be
+            // called a Koss." Spawns the same SuperMotoWRagdoll bike
+            // this session already got working end-to-end (mount, ride,
+            // wheelie hand/foot tracking, pillion), via
+            // VehicleSpawnController.SpawnPurchasedVehicle's "koss"
+            // branch - see WireSuperMotoInstance for the shared wiring.
+            ("koss", "Koss", ShopCategory.Vehicle, 2500, null, 0),
             // MINI-071: display name only. The ITEM ID stays tmax_560 - renaming it
             // would strip the bike off any existing save, the same reason
             // chain_gold kept its id when it became "Gucci Law".

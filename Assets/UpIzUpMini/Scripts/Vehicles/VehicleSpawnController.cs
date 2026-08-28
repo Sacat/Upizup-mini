@@ -41,6 +41,14 @@ namespace UpIzUpMini.Vehicles
         private bool _tmaxSpawned;
         private bool _roverSpawned;
         private bool _superMotoSpawned;
+        // MINI-119 follow-up, user: "make it so you can buy it from the
+        // car dealer, it will be the cheapest bike, it will be called a
+        // Koss." Reuses the exact same proven stockDemoBikePrefab wiring
+        // (VehicleSeat/VehicleRider/pillion/hand-foot-lock/wheelie assist,
+        // all confirmed working end-to-end this session) via
+        // WireSuperMotoInstance, just triggered from a real purchase
+        // instead of the dev-only spawn-at-start path.
+        private bool _kossSpawned;
         // MINI-113: distinct from every other GtaMiniMapMarker colour
         // already in use (shop/mission/police/gang/community/property).
         private static readonly Color VehicleMarkerColour = new Color(0.95f, 0.55f, 0.10f);
@@ -349,6 +357,21 @@ namespace UpIzUpMini.Vehicles
             Physics.SyncTransforms();
             } // end of the "not preplaced" branch - everything below runs either way
 
+            WireSuperMotoInstance(instance, player, spawnPos, AutoMountSuperMotoOnSpawn);
+        }
+
+        /// <summary>MINI-119 follow-up: the shared wiring applied to any
+        /// raw SuperMotoWRagdoll instance, extracted verbatim out of
+        /// SpawnStockDemoBikeAndDisableOurCharacter so a real Car Dealer
+        /// purchase (SpawnPurchasedVehicle's "koss" branch, user: "make
+        /// it so you can buy it from the car dealer, it will be the
+        /// cheapest bike... it will be called a Koss") gets the exact
+        /// same hard-won fixes documented inline below (input-manager
+        /// double-destroy ordering, RB_Controller's cached inputs
+        /// reference, wheelie pose baking, pillion seat, etc.) instead of
+        /// a second, drifting copy of this logic.</summary>
+        private void WireSuperMotoInstance(GameObject instance, GameObject player, Vector3 spawnPos, bool autoMount)
+        {
             // MINI-119 follow-up, user: "the camera is not smooth research
             // and get it to follow smooth." Real, well-documented Unity
             // cause, not a camera-side tuning problem: the raw
@@ -693,7 +716,7 @@ namespace UpIzUpMini.Vehicles
                 // mirrors the same naming convention already used
                 // elsewhere in this project for exactly this "just put
                 // them on it, unconditionally" dev/testing case.
-                if (AutoMountSuperMotoOnSpawn) interactable.DevForceMount(player);
+                if (autoMount) interactable.DevForceMount(player);
             }
 
             // MINI-119 follow-up, user: "where is the bike i am not
@@ -837,6 +860,53 @@ namespace UpIzUpMini.Vehicles
         /// </summary>
         public string SpawnPurchasedVehicle(string itemId)
         {
+            // MINI-119 follow-up, user: "make it so you can buy it from
+            // the car dealer, it will be the cheapest bike, it will be
+            // called a Koss." Reuses the exact SuperMotoWRagdoll wiring
+            // (VehicleSeat/VehicleRider/pillion/hand-foot-lock/wheelie
+            // assist) already proven end-to-end this session via the
+            // dev-spawn path, through the shared WireSuperMotoInstance
+            // helper - not a separate/duplicated setup. autoMount is
+            // false here (unlike the dev spawn) so it behaves like every
+            // other dealer purchase: parked, walk up, press F.
+            if (itemId == "koss")
+            {
+                if (stockDemoBikePrefab == null) return null;
+                if (_kossSpawned) return "Allu already have the Koss - check where you parked it.";
+
+                GetDealerSpawn(out Vector3 kossPos, out Quaternion kossRot);
+
+                var koss = (GameObject)Instantiate(stockDemoBikePrefab, Vector3.zero, kossRot);
+                koss.name = "PlayerKoss";
+
+                // Same measured scale/wheel-bottom placement as the dev
+                // spawn (see WireSuperMotoInstance's own header for why
+                // this can't just drop the raw prefab at the raycast hit
+                // point without burying the wheels).
+                const float bikeScale = 0.961f;
+                koss.transform.localScale = Vector3.one * bikeScale;
+
+                float wheelBottomOffset = 0.4f;
+                var gaddForOffset = koss.GetComponent<Gadd420.RB_Controller>();
+                if (gaddForOffset != null && gaddForOffset.wheelColliders != null && gaddForOffset.wheelColliders.Length >= 2
+                    && gaddForOffset.wheelColliders[0] != null && gaddForOffset.wheelColliders[1] != null)
+                {
+                    float rearBottom = gaddForOffset.wheelColliders[0].transform.position.y - gaddForOffset.wheelColliders[0].radius;
+                    float frontBottom = gaddForOffset.wheelColliders[1].transform.position.y - gaddForOffset.wheelColliders[1].radius;
+                    wheelBottomOffset = -Mathf.Min(rearBottom, frontBottom);
+                }
+                koss.transform.SetPositionAndRotation(kossPos + Vector3.up * (wheelBottomOffset + 0.1f), kossRot);
+                Physics.SyncTransforms();
+
+                var kossPlayer = CharacterSwitchManager.Instance?.Active?.root;
+                WireSuperMotoInstance(koss, kossPlayer, kossPos, autoMount: false);
+                _kossSpawned = true;
+
+                string kossFeedback = "Parked on the road, keys in it.";
+                MissionSystem.Instance?.Alert("KOSS DELIVERED\n" + kossFeedback);
+                return kossFeedback;
+            }
+
             // MINI-071: the Range Rover buys and spawns the same way the bike
             // does. Kept as two explicit branches rather than a generic vehicle
             // table - with exactly two vehicles a table would be indirection for
