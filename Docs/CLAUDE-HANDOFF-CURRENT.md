@@ -1,6 +1,14 @@
 # Up Iz Up Mini — current Claude development handoff
 
-Updated 2026-08-21 after the user's MINI-108 playtest. This is the compact operational truth Claude should read first. `PROJECT-HANDOFF.md` remains searchable audit history; it is not a substitute for this current brief.
+Updated 2026-08-28, superseding the 2026-08-21 version below wherever they conflict. **Everything in sections 5 and 6 about MINI-109 through MINI-116 is DONE** — that entire sequence shipped between the previous update and now (see `Docs/CURRENT.md`'s top entries and `PROJECT-HANDOFF.md`'s matching MINI-119 follow-up entries for the full record, or `git log --grep=MINI-119` for every individual commit). The current real state and the actual next task are in the new section 0 immediately below. The rest of this file (sections 1-4, 7-9) is still accurate as general project truth and workflow; only the "what's done / what's next" narrative in 5-6 and the stop condition in 10 are stale. This is the compact operational truth Claude should read first. `PROJECT-HANDOFF.md` remains searchable audit history; it is not a substitute for this current brief.
+
+## 0. Actual current state and next task (2026-08-28 - read this before sections 5/6/10)
+
+SuperMoto riding (mount/ride/wheelie with real hand-foot IK/pillion) is fully shipped and user-confirmed via real exe play. On top of that, in the same continuation, this session shipped: NPC ragdoll-on-hit (Police/Villager/Gang - fatal fades after 3s lying down, non-fatal recovers after 2s and walks); a Koss bike purchasable at the Car Dealer for $2,500 (reuses the proven SuperMoto wiring via a new shared `WireSuperMotoInstance` helper); 7 more Villager NPCs and a corrected Lalay/Highland `AreaNameDisplay` zone boundary (final: Lalay = Dog Life block to Car Dealer, Highland = bridge to farm/safehouse cluster, both verified via direct `ResolveArea` calls against real landmarks); a farm-hedge containment fix (a villager was standing inside the hedge, confirmed via a new geometry check, moved outside); a wheelie back-clip damping fix (measured the position/pitch math was NOT the cause - it's the authored wheelie-overlay clip - dialed its weight down while mounted on the SuperMoto specifically); and `AutoMountSuperMotoOnSpawn` turned back off per the user's own request now that the feature is proven (dev bike spawn itself stays on).
+
+**Next task, NOT yet started**: combat mechanics. User: "Can we start working on the combat mechanics maybe fighting first and then shooting after?" Follow-up narrowed the very first target to **fixing the existing bugs** (warped punch pose, over-generous hit detection - both previously reported, never triaged into a task) rather than new combos, per the user's own explicit choice. The user is also deciding whether to buy a paid fighting/boxing animation pack; recommended a small real-mocap unarmed/boxing pack over a free one (free packs are the most common source of exactly the warped-pose symptom already on record) - no purchase made, needs the user's approval and their own pick of a specific asset before any credits/money are spent.
+
+**Immediate blocker**: none of this session's MINI-119 follow-up work has been hands-on playtested by the user yet (only their own live direction mid-session, e.g. the three zone-boundary corrections). Do not start the combat task until that playtest happens and comes back clean, per this project's own standing "one compound change, then playtest" discipline - the same discipline that governed MINI-109 through MINI-116 below.
 
 ## 1. Project identity and hard boundaries
 
@@ -295,13 +303,10 @@ Useful existing editor entry points:
 
 Never report a visual/motion system as accepted merely because it compiles.
 
-## 10. Stop condition for the next Claude session
+## 10. Stop condition for the next Claude session (superseded 2026-08-28 - see section 0)
 
-Implement only MINI-109. Stop after its evidence and build are ready. Ask the user to test:
+This section's original MINI-109 stop condition is done; kept below only as a historical example of the pattern to follow, not a live instruction.
 
-1. Clean Face through one Normy payment;
-2. Black Sugar delivery to Boss J;
-3. the Rasta mission marker and interaction;
-4. whether previously owned/completed requirements advance fairly.
+The current stop condition: do not start the combat bug-fix pass until the user has hands-on playtested this session's full MINI-119 follow-up chain (ragdoll, Koss, villagers, zone boundary, wheelie damping, auto-mount off) and reported back. When that task does start, reproduce the warped-punch-pose and over-generous-hit-detection bugs first, exactly as this project's own history shows every real fix in this task started from reproduction, not a guess - see any `Mini119*.cs` diagnostic tool from this session for the pattern (measure/reproduce via Unity batch mode against the real scene, THEN fix, THEN re-verify the same way).
 
-Do not start the Boat Man, Rasta ladder, Dog Life, road, priest, phone or TMAX packets until that feedback returns.
+Original MINI-109 condition, for reference: implement only MINI-109, stop after its evidence and build are ready, ask the user to test Clean Face through one Normy payment, Black Sugar delivery to Boss J, the Rasta mission marker, and whether previously owned/completed requirements advance fairly. Do not start the Boat Man, Rasta ladder, Dog Life, road, priest, phone or TMAX packets until that feedback returns. (All of this has since happened - see section 0.)

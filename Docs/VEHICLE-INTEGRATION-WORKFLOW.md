@@ -27,6 +27,15 @@ Fix and prevention:
 
 This exact bug was previously misdiagnosed as "the Editor's batch-mode testing can't bind an Avatar" — a conclusion reached and accepted four separate times before being properly root-caused. It never was a testing limitation; the real Animator binds and reports `isHuman = true` correctly even from an Editor script, the same way it does in real Play Mode.
 
+## Pillion (second rider)
+
+Reuse `BikeInteractable.BoardPillion`'s own pattern almost verbatim — the other main character (whichever one isn't currently driving) hops onto a second `VehicleSeat` automatically if nearby and not locked away doing something else. Two things worth doing differently from that original TMAX implementation, learned building the SuperMoto's version:
+
+- **Give the pillion seat its own baked `ConfigureSeatedPose` too**, not just the driver's. It defaults to the same shared TMAX-calibrated value as the driver seat does — skipping this makes the passenger appear floating in the wrong spot relative to his own seat anchor, not just offset from the driver.
+- **Check for the passenger every frame while mounted, not once at the moment the driver mounts.** A one-shot check (what the original TMAX pattern does) only works if the player always walks up and presses F — by then the other character is already nearby from normal following. A vehicle that can be mounted programmatically or instantly (e.g. an auto-mount-on-spawn dev flag) breaks that assumption completely, since the passenger has no time to catch up before the one-shot check already ran and failed.
+- If the passenger doesn't need to grip anything (no handlebar within reach), leave the pillion seat's hand/foot targets unset OR reuse the driver's own animation pose (not a separate "cheer"/passenger-specific clip if the vendor's own one looks wrong on this rig) and pin the hands to simple side-resting target Transforms with the same `SuperMotoHandFootLock` technique, instead of fighting the authored clip's own hand placement.
+- The whole system is already symmetric — nothing needs to be hardcoded per-character. Verify this directly (switch active to the other main character, mount, confirm the first one auto-boards as pillion) rather than assuming it, since it's easy to accidentally test only one direction.
+
 ## Reference implementation
 
 - `Assets/UpIzUpMini/Scripts/Vehicles/VehicleRider.cs` / `VehicleSeat.cs` — the shared rider/seat system.

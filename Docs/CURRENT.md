@@ -1,5 +1,19 @@
 # Up Iz Up Mini — Current State
 
+## MINI-119 follow-up chain: NPC ragdoll, Koss purchase, world population, zone/tuning fixes (2026-08-28)
+
+Long single-session continuation directly after the SuperMoto-mounting entry below. Full detail and every commit's exact reasoning: `git log --grep=MINI-119`; a compact index is in `PROJECT-HANDOFF.md`'s matching entry. Summary of what shipped:
+
+- **NPC ragdoll-on-hit**: Police/Villager/Gang NPCs now ragdoll on every landed hit — fatal hits lie 3s then scale-fade and deactivate, non-fatal hits lie 2s then recover and resume walking. Shopkeepers/dealers/mission NPCs unchanged (no ragdoll ever attached).
+- **Koss bike purchase**: the SuperMoto is now buyable at the Car Dealer for $2,500 (cheapest vehicle) via the exact same wiring the dev spawn already uses (extracted into a shared `WireSuperMotoInstance` helper, not duplicated) — parked, walk up, press F.
+- **World population + zone boundary**: 7 new Villager NPCs added along Lalay/Highland. The Lalay/Highland `AreaNameDisplay` zone boundary went through three user-directed corrections before landing on its final form: Lalay spans the Dog Life block to the Car Dealer; Highland is a tight circle on the farm/safehouse cluster starting at the bridge. Verified point-by-point against real landmark coordinates via `AreaNameDisplay.ResolveArea`, not hand math.
+- **Farm hedge containment fix**: a newly-added villager was confirmed (via a new geometric containment check) standing inside the Highland farm's hedge enclosure — moved outside to the entrance gap.
+- **Wheelie back-clip damping**: measured (not guessed) that the wheelie pose's position/pitch math isn't the cause of the reported back-through-handlebar clipping — it's the authored wheelie-overlay animation clip. Dialed its blend weight down from 0.45 to 0.22 while mounted on the SuperMoto specifically (restored on dismount, since the component is shared with the TMAX). Still needs the user's visual confirmation on the exact number.
+- **Auto-mount disabled**: `AutoMountSuperMotoOnSpawn` is off again per the user's request now that mounting/riding is proven — the dev bike spawn itself stays on for future testing.
+- **Not yet started**: combat mechanics. User wants "fighting first, then shooting after"; narrowed to fixing the existing warped-punch-pose/over-generous-hit-detection bugs first (not new combos). Recommended a paid, real-mocap unarmed/boxing animation pack over a free one (see PROJECT-HANDOFF.md entry for the specific recommendation) — no purchase made yet, needs the user's approval.
+
+Every item above was verified via a dedicated Unity batch-mode check against the real `GrandBayProof.unity` scene before committing, and a fresh Windows build was produced after each meaningfully-testable change. **Not yet hands-on played** by the user except via their own live direction mid-session (the zone corrections, the wheelie-damping approach) — this is the next thing needed before anything else starts.
+
 ## MINI-119 follow-up: SuperMoto rider mounting confirmed working end-to-end, user hands-on verified (2026-08-28)
 
 Sacat now mounts, rides, and wheelies the SuperMoto with hands/feet genuinely tracking the handlebar/pegs through the whole motion — user-confirmed "works perfect" after real Play Mode testing. Got there via `VehicleRider`/`VehicleSeat`, the same proven system the TMAX (MINI-066) already used, after two other approaches (a runtime-built ragdoll, then a runtime-built Animation Rigging graph) each hit recurring, hard-to-reproduce failures. The real, final blocker for hand/foot tracking specifically was a single root cause misdiagnosed as an "Editor batch-mode Avatar-binding limitation" **four separate times earlier in this same task**: `VehicleRider` had `[RequireComponent(typeof(Animator))]` plus a same-object-only `GetComponent<Animator>()`, but Sacat's real Animator lives on a child (`Visual`), not the root — so Unity silently auto-created a second, permanently blank Animator (no avatar, no controller) on the root the instant the component was added, and every hand-IK system since (Mecanim `OnAnimatorIK`, then a direct bone-override) was talking to that dead ghost. Found by the user's own live Inspector check (not batch tooling), fixed by removing the `RequireComponent` and switching to `GetComponentInChildren<Animator>()`; the already-baked ghost component was cleaned out of the saved scene. Full process (seat/pose baking, wheelie-blend wiring, the hand/foot lock technique, and this exact Animator gotcha) is written up in `Docs/VEHICLE-INTEGRATION-WORKFLOW.md` for reuse on the next vehicle. Windows build succeeded; user tested the real exe, not just Editor Play Mode.
@@ -63,8 +77,8 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 - Path: `E:\Unity\Up Iz Up Mini`
 - Unity: `6000.3.10f1`
 - Full-size reference project: `E:\Unity\Up iz up` (read-only)
-- Current production state: systems 1–3 are integrated. `MINI-108` adds universal distant objective guidance, readable dynamic dialogue, the revised Boss J branch, safehouse/clean-police/Normy missions, Paro gating/appearance, curved bananas with a brown stalk, bridge clearance and the Boss C-side collider repair. Static/map/focused gates pass; hands-on acceptance remains.
-- Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md`.
+- Current production state: systems 1–3 are integrated, MINI-108 through the full MINI-119 chain (SuperMoto riding/wheelie/pillion, NPC ragdoll-on-hit, Koss bike purchase, expanded Lalay/Highland population and zone boundary, wheelie-clip damping) are built and batch-verified. Hands-on acceptance of this session's MINI-119 follow-up work is the immediate remaining gap - see the top entry in this file.
+- Current task/owner: authoritative only in the `### Current claim` block of `PROJECT-HANDOFF.md` (currently `None` - MINI-119's follow-up chain was released after this session).
 - Last known good gameplay checkpoint: `3adb5c0` (`MINI-093` police melee retaliation; focused validation passed, no new Windows build).
 
 ## What exists
@@ -109,14 +123,13 @@ Read this at the start of every task. `PROJECT-HANDOFF.md` remains the full audi
 
 ## Recommended next sequence
 
-1. Claude implements only MINI-109, captures Normy/Boss J/Rasta evidence, builds once and returns for the user's mission playtest.
-2. After acceptance, MINI-110 adds Normy's item favour and the Boat Man/Gardey narrative bridge using the existing character-away and timer foundation.
-3. MINI-111 builds Rasta's data-driven strain/hybrid ladder; MINI-112 then escalates Dog Life and crew conflict.
-4. MINI-113 repairs road-intersection bumps, farm-hedge clearance, vehicle minimap blips and road-safe vehicle spawns through the map workflow.
-5. MINI-114 adds Brakes community/blessing missions; MINI-115 adds the phone unlock/tutorial over the existing Q-call system.
-6. MINI-116 diagnoses the see-through TMAX and compresses its oversized build payload before more vehicle art is added.
-7. Resume MINI-107 only when the user requests character production again; repair animated LOD deformation before any playable swap.
-8. Preserve later combat, Android and render/input migrations as separate approval packets.
+MINI-109 through the full MINI-119 SuperMoto/follow-up chain documented above are done and batch-verified. The user needs to hands-on playtest this session's build first (ragdoll fade/recover, Koss purchase and ride, new villagers, zone labels, wheelie feel, auto-mount off) before anything else starts.
+
+1. User playtests the current build and reports back.
+2. Combat bug-fix pass (unclaimed, no MINI number assigned yet): fix the existing warped punch pose and over-generous hit detection - reproduce both first, per standing convention, rather than guessing. The user is deciding whether to buy a paid fighting/boxing animation pack (recommended over free, per this file's top entry) before this starts.
+3. Only after that: combos/new attack moves, then shooting mechanics - explicitly sequenced by the user as "fighting first, then shooting after". Do not start shooting before the fighting pass is accepted.
+4. Resume MINI-107 only when the user requests character production again; repair animated LOD deformation before any playable swap.
+5. Preserve Android and render/input migrations as separate approval packets.
 
 ## Update rule
 
