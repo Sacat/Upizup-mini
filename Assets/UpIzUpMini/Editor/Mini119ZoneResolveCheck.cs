@@ -26,7 +26,7 @@ namespace UpIzUpMini.EditorTools
 
             (string label, Vector3 pos)[] points =
             {
-                ("Dog Life block (expect Lalay)", new Vector3(-38.59f, 0f, -152.24f)),
+                ("Dog Life block (expect NO zone - west of the farm shop, per the final \"lalay is from the farm shop to the car dealer\" redefinition)", new Vector3(-38.59f, 0f, -152.24f)),
                 ("Market/Stall_FARM SHOP (expect Lalay)", new Vector3(-6.75f, 0f, -142.97f)),
                 ("LalayHouse (expect Lalay)", new Vector3(49.98f, 0f, -144.95f)),
                 ("Bridge (expect Lalay, right at the crossing)", new Vector3(80.93f, 0f, -146.67f)),
