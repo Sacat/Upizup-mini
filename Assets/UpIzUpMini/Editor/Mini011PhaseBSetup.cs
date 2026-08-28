@@ -5648,20 +5648,21 @@ namespace UpIzUpMini.EditorTools
             // the farm shop to the car dealer and highland is from the
             // farm to the secondary village" - confirmed "secondary
             // village" means the farm's own safehouse/upper-plot
-            // cluster (no further place beyond it yet). Lalay is ONE
-            // circle spanning Stall_FARM SHOP (-6.75,-142.97) to
-            // NPC_CarDealer (149.30,-180.35), centred on their midpoint
-            // - everything west of the farm shop (Dog Life block, etc.)
-            // deliberately shows no area name any more, per this
-            // explicit redefinition. Highland stays a tight circle on
-            // the farm/safehouse cluster only, starting at the bridge
+            // cluster (no further place beyond it yet). Then corrected
+            // once more: "dog life block should be where the lalay road
+            // starts" - Lalay's west end moves from the farm shop to
+            // the Dog Life block (-38.59,-152.24), still reaching
+            // NPC_CarDealer (149.30,-180.35) at the east end. Single
+            // circle centred on their midpoint (55,-166), radius 105.
+            // Highland stays a tight circle on the farm/safehouse
+            // cluster only, starting at the bridge
             // (Bridge_03_user_highland_lalay_inroad, ~80.93,-146.67),
             // never reaching the dealer.
             zonesProp.arraySize = 2;
             var lalay = zonesProp.GetArrayElementAtIndex(0);
             lalay.FindPropertyRelative("areaName").stringValue = "Lalay";
-            lalay.FindPropertyRelative("center").vector3Value = new Vector3(71f, 0f, -162f);
-            lalay.FindPropertyRelative("radius").floatValue = 92f;
+            lalay.FindPropertyRelative("center").vector3Value = new Vector3(55f, 0f, -166f);
+            lalay.FindPropertyRelative("radius").floatValue = 105f;
 
             var highland = zonesProp.GetArrayElementAtIndex(1);
             highland.FindPropertyRelative("areaName").stringValue = "Highland";

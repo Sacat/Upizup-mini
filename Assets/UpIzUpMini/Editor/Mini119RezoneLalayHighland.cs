@@ -34,16 +34,14 @@ namespace UpIzUpMini.EditorTools
             // the farm shop to the car dealer and highland is from the
             // farm to the secondary village" - confirmed "secondary
             // village" means the farm's own safehouse/upper-plot
-            // cluster, i.e. Highland just ends at its own farm cluster
-            // (no further place beyond it yet). This REPLACES the
-            // earlier two-circle west+east Lalay split - Lalay is now
-            // ONE circle spanning Stall_FARM SHOP (-6.75,-142.97) to
-            // NPC_CarDealer (149.30,-180.35), centred on their midpoint.
-            // Everything west of the farm shop (Dog Life block, etc.) is
-            // deliberately NOT covered any more, per this explicit
-            // redefinition - it simply shows no area name there.
-            var lalayCenter = new Vector3(71f, 0f, -162f);
-            float lalayRadius = 92f;
+            // cluster, i.e. Highland just ends at its own farm cluster.
+            // Then corrected once more: "dog life block should be where
+            // the lalay road starts" - Lalay's west end moves from the
+            // farm shop back to the Dog Life block (-38.59,-152.24),
+            // still reaching NPC_CarDealer (149.30,-180.35) at the east
+            // end. Single circle centred on their midpoint.
+            var lalayCenter = new Vector3(55f, 0f, -166f);
+            float lalayRadius = 105f;
             // Highland: tight around the farm/safehouse cluster only -
             // starts right at the bridge, does not reach the dealer.
             var highlandCenter = new Vector3(104f, 0f, -128f);
@@ -65,7 +63,7 @@ namespace UpIzUpMini.EditorTools
 
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            Debug.Log($"MINI-119 REZONE: Lalay center={lalayCenter} radius={lalayRadius} (farm shop to car dealer), Highland center={highlandCenter} radius={highlandRadius} (bridge to the farm's own safehouse/upper-plot cluster).");
+            Debug.Log($"MINI-119 REZONE: Lalay center={lalayCenter} radius={lalayRadius} (Dog Life block to car dealer), Highland center={highlandCenter} radius={highlandRadius} (bridge to the farm's own safehouse/upper-plot cluster).");
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
