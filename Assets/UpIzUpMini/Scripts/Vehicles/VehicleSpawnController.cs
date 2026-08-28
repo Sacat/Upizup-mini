@@ -649,9 +649,15 @@ namespace UpIzUpMini.Vehicles
                 // SuperMotoHandFootLock technique already proven for the
                 // driver - "rig his hands to his side" done the reliable
                 // way, not Mecanim IK.
+                // MINI-119 follow-up, user: "pillion rider is almost
+                // perfect now just bring him closer to the main
+                // character, height and position is great." Height (Y)
+                // and the seated pose numbers below are confirmed
+                // correct - only the rearward (Z) distance needed
+                // reducing.
                 var pillionSeatGo = new GameObject("PillionSeat");
                 pillionSeatGo.transform.SetParent(instance.transform, false);
-                pillionSeatGo.transform.localPosition = seatLocalPos + new Vector3(0f, 0.05f, -0.75f);
+                pillionSeatGo.transform.localPosition = seatLocalPos + new Vector3(0f, 0.05f, -0.45f);
                 pillionSeatGo.transform.localRotation = Quaternion.identity;
 
                 var pillionLeftHandTarget = new GameObject("PillionLeftHandPos").transform;
