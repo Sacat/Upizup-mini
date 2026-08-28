@@ -27,7 +27,6 @@ namespace UpIzUpMini.Vehicles
     /// positions... Do not author a unique rider animation system for every
     /// motorcycle").
     /// </summary>
-    [RequireComponent(typeof(Animator))]
     public class VehicleRider : MonoBehaviour
     {
         [Tooltip("How quickly IK fades in/out when mounting and dismounting, so hands don't snap onto the bars.")]
@@ -141,9 +140,26 @@ namespace UpIzUpMini.Vehicles
         public float WheelieAngleSync { get => wheelieAngleSync; set => wheelieAngleSync = value; }
         public float PoseBlend => _poseBlend;
 
+        // MINI-119 follow-up fix, user's own real-Play-Mode diagnostic
+        // logging confirmed the real cause of the hand/foot tracking
+        // failure (and very likely why the ride-pose animation itself
+        // never fully worked either): Sacat has no Animator on his OWN
+        // root - only "Visual" (a child) does. This class used to be
+        // [RequireComponent(typeof(Animator))] with a same-object-only
+        // GetComponent<Animator>() - since Sacat's root has none, adding
+        // this component made Unity's RequireComponent silently AUTO-
+        // CREATE a blank, empty Animator directly on Sacat (no
+        // Controller, no Avatar, isHuman false forever) the instant
+        // AddComponent<VehicleRider> ran. Every OnAnimatorIK/
+        // BeginSustainedAction call since has been talking to that dead
+        // ghost Animator, never the real one on Visual.
+        // [RequireComponent] removed entirely (it was actively harmful
+        // here, not just unnecessary) and GetComponent switched to
+        // GetComponentInChildren, which finds the real one regardless of
+        // which object it actually lives on.
         private void Awake()
         {
-            _animator = GetComponent<Animator>();
+            _animator = GetComponentInChildren<Animator>();
             _anim = GetComponent<HumanoidAnimationManager>();
             _player = GetComponent<PlayerController>();
             _characterController = GetComponent<CharacterController>();
