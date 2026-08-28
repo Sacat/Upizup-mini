@@ -26,10 +26,29 @@ namespace UpIzUpMini.Combat
         [SerializeField] HumanoidAnimationManager animationManager;
         [SerializeField] bool despawnOnDefeat;
         [SerializeField] float despawnDelay = 1.35f;
+
+        // MINI-119 follow-up, user: "if i hit the npc they will behave
+        // like ragdoll... if there health is 0 then they fade after
+        // lying down for 3 seconds. if not then they walk." NpcRagdoll
+        // is optional (added only to police/villagers/gang members per
+        // the user's own scope - shopkeepers/dealers/mission NPCs never
+        // get one) - Hit() below only ragdolls if one is actually
+        // present, otherwise falls back to the original animation-only
+        // reaction so nothing else that already calls Hit() breaks.
+        [SerializeField] NpcRagdoll ragdoll;
+        [Tooltip("How long a FATAL hit lies ragdolled before fading, per the user's own number.")]
+        [SerializeField] float fatalLieSeconds = 3f;
+        [Tooltip("How long a non-fatal ragdoll hit lies down before getting back up and walking.")]
+        [SerializeField] float nonFatalLieSeconds = 2f;
+        [SerializeField] float fadeSeconds = 1f;
+
         float health;
         float recoverAt;
         float despawnAt;
+        float fadeStartAt;
+        bool fading;
         CharacterController controller;
+        Renderer[] renderers;
 
         /// <summary>True while lying down after being knocked out. Movement
         /// scripts (PoliceOfficer) check this and stop steering rather than
@@ -50,6 +69,8 @@ namespace UpIzUpMini.Combat
             health = maxHealth;
             controller = GetComponent<CharacterController>();
             if (animationManager == null) animationManager = GetComponent<HumanoidAnimationManager>();
+            if (ragdoll == null) ragdoll = GetComponent<NpcRagdoll>();
+            renderers = GetComponentsInChildren<Renderer>(true);
         }
 
         void OnEnable()
@@ -74,6 +95,40 @@ namespace UpIzUpMini.Combat
             if (IsDown) return;
 
             health = Mathf.Max(0f, health - damage);
+
+            // MINI-119 follow-up, user: "if i hit the npc they will
+            // behave like ragdoll... if there health is 0 then they
+            // fade after lying down for 3 seconds. if not then they
+            // walk." A ragdoll reaction fires for EVERY hit that lands
+            // (not just the fatal one) - fatal vs non-fatal only
+            // changes what happens once they're down: fade away, or get
+            // back up and resume walking. ragdoll is only present on
+            // police/villagers/gang members per the user's own scope -
+            // shopkeepers/dealers/mission NPCs never get one, so they
+            // fall through to the original animation-only reaction
+            // below unchanged.
+            if (ragdoll != null)
+            {
+                Vector3 impactVelocity = push.sqrMagnitude > 0.0001f
+                    ? push.normalized * Mathf.Max(4f, push.magnitude * 6f)
+                    : Vector3.zero;
+                ragdoll.Ragdoll(impactVelocity);
+                IsDown = true;
+                if (controller != null) controller.enabled = false;
+
+                if (health <= 0f)
+                {
+                    LastDefeatedAt = Time.time;
+                    fadeStartAt = Time.time + fatalLieSeconds;
+                    fading = false;
+                }
+                else
+                {
+                    recoverAt = Time.time + nonFatalLieSeconds;
+                }
+                return;
+            }
+
             if (controller != null && controller.enabled) controller.Move(push);
 
             if (health <= 0f)
@@ -93,7 +148,7 @@ namespace UpIzUpMini.Combat
                     // character) - fall back to the old vanish-until-
                     // recovered behaviour rather than leaving a standing,
                     // unresponsive body.
-                    foreach (var r in GetComponentsInChildren<Renderer>(true)) r.enabled = false;
+                    foreach (var r in renderers) r.enabled = false;
                 }
                 if (controller != null) controller.enabled = false;
             }
@@ -105,6 +160,41 @@ namespace UpIzUpMini.Combat
 
         void Update()
         {
+            if (ragdoll != null && IsDown)
+            {
+                if (health <= 0f)
+                {
+                    // Fatal: lie ragdolled for fatalLieSeconds, then
+                    // shrink-fade to nothing and deactivate. Scale
+                    // (not material alpha) so this works regardless of
+                    // whatever shader each NPC model happens to use.
+                    if (!fading)
+                    {
+                        if (Time.time < fadeStartAt) return;
+                        fading = true;
+                        fadeStartAt = Time.time;
+                        return;
+                    }
+
+                    float t = Mathf.Clamp01((Time.time - fadeStartAt) / fadeSeconds);
+                    transform.localScale = Vector3.one * (1f - t);
+                    if (t >= 1f)
+                    {
+                        gameObject.SetActive(false);
+                        transform.localScale = Vector3.one;
+                    }
+                    return;
+                }
+
+                // Non-fatal: lie down briefly, then get back up and walk.
+                if (recoverAt <= 0f || Time.time < recoverAt) return;
+                ragdoll.Recover();
+                IsDown = false;
+                recoverAt = 0f;
+                if (controller != null) controller.enabled = true;
+                return;
+            }
+
             if (despawnOnDefeat && IsDown && despawnAt > 0f && Time.time >= despawnAt)
             {
                 gameObject.SetActive(false);
@@ -116,7 +206,7 @@ namespace UpIzUpMini.Combat
             recoverAt = 0f;
             IsDown = false;
             animationManager?.EndSustainedAction();
-            foreach (var r in GetComponentsInChildren<Renderer>(true)) r.enabled = true;
+            foreach (var r in renderers) r.enabled = true;
             if (controller != null) controller.enabled = true;
         }
 
@@ -125,9 +215,13 @@ namespace UpIzUpMini.Combat
             health = maxHealth;
             recoverAt = 0f;
             despawnAt = 0f;
+            fadeStartAt = 0f;
+            fading = false;
+            transform.localScale = Vector3.one;
             IsDown = false;
+            if (ragdoll != null) ragdoll.Recover();
             animationManager?.EndSustainedAction();
-            foreach (var r in GetComponentsInChildren<Renderer>(true)) r.enabled = true;
+            foreach (var r in renderers) r.enabled = true;
             if (controller != null) controller.enabled = true;
         }
     }

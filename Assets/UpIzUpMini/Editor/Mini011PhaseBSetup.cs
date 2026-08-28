@@ -2745,8 +2745,13 @@ namespace UpIzUpMini.EditorTools
 
                 var animationManager = AddHumanoidAnimationManager(go, visual.GetComponentInChildren<Animator>());
                 var combatHealth = go.AddComponent<NpcCombatHealth>();
+                // MINI-119 follow-up, user: "if i hit the npc they will
+                // behave like ragdoll... you can do it will the police,
+                // villagers, gang members."
+                var ragdoll = go.AddComponent<NpcRagdoll>();
                 var chSo = new SerializedObject(combatHealth);
                 chSo.FindProperty("animationManager").objectReferenceValue = animationManager;
+                chSo.FindProperty("ragdoll").objectReferenceValue = ragdoll;
                 chSo.ApplyModifiedPropertiesWithoutUndo();
 
                 var member = go.AddComponent<GangMemberController>();
@@ -2928,8 +2933,10 @@ namespace UpIzUpMini.EditorTools
 
                 var animationManager = AddHumanoidAnimationManager(go, visual.GetComponentInChildren<Animator>());
                 var combatHealth = go.AddComponent<NpcCombatHealth>();
+                var ragdoll = go.AddComponent<NpcRagdoll>();
                 var chSo = new SerializedObject(combatHealth);
                 chSo.FindProperty("animationManager").objectReferenceValue = animationManager;
+                chSo.FindProperty("ragdoll").objectReferenceValue = ragdoll;
                 chSo.FindProperty("despawnOnDefeat").boolValue = true;
                 chSo.ApplyModifiedPropertiesWithoutUndo();
 
@@ -3908,8 +3915,10 @@ namespace UpIzUpMini.EditorTools
                     var npcAnimationManager = AddHumanoidAnimationManager(npcGo, npcAnimator);
 
                     var combatHealth = npcGo.AddComponent<NpcCombatHealth>();
+                    var ragdoll = npcGo.AddComponent<NpcRagdoll>();
                     var chSo = new SerializedObject(combatHealth);
                     chSo.FindProperty("animationManager").objectReferenceValue = npcAnimationManager;
+                    chSo.FindProperty("ragdoll").objectReferenceValue = ragdoll;
                     chSo.ApplyModifiedPropertiesWithoutUndo();
 
                     // Officers pace the road by the sellers and give chase
@@ -3931,6 +3940,27 @@ namespace UpIzUpMini.EditorTools
                     oso.FindProperty("combatHealth").objectReferenceValue = combatHealth;
                     oso.ApplyModifiedPropertiesWithoutUndo();
                     return;
+                }
+
+                // MINI-119 follow-up, user: "if i hit the npc they will
+                // behave like ragdoll... you can do it will the police,
+                // villagers, gang members" - this generic patrol path is
+                // where plain Villager NPCs land (shopkeepers/dealers/
+                // mission NPCs don't call this branch with patrols=true
+                // for those roles), so give Villagers the same
+                // combat/ragdoll setup Police already gets, without
+                // touching non-Villager patrol roles.
+                if (role == NpcRole.Villager)
+                {
+                    var villagerAnimator = npcVisual.GetComponentInChildren<Animator>();
+                    var villagerAnimationManager = AddHumanoidAnimationManager(npcGo, villagerAnimator);
+
+                    var villagerCombatHealth = npcGo.AddComponent<NpcCombatHealth>();
+                    var villagerRagdoll = npcGo.AddComponent<NpcRagdoll>();
+                    var vchSo = new SerializedObject(villagerCombatHealth);
+                    vchSo.FindProperty("animationManager").objectReferenceValue = villagerAnimationManager;
+                    vchSo.FindProperty("ragdoll").objectReferenceValue = villagerRagdoll;
+                    vchSo.ApplyModifiedPropertiesWithoutUndo();
                 }
 
                 var patrol = npcGo.AddComponent<PatrolNPC>();
