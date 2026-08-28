@@ -30,33 +30,55 @@ namespace UpIzUpMini.EditorTools
             var area = Object.FindFirstObjectByType<AreaNameDisplay>();
             if (area == null) { Debug.LogError("MINI-119 REZONE: no AreaNameDisplay in scene."); return; }
 
-            // Bridge_03_user_highland_lalay_inroad ~ (80.93, -146.67).
-            // Lalay: far west (Bridge_00 ~x=-65) to the bridge (x~81),
-            // centred with margin.
-            var lalayCenter = new Vector3(8f, 0f, -148f);
-            float lalayRadius = 85f;
-            // Highland: the bridge (x~81) to the safehouse/upper farm
-            // cluster (x~128), centred with margin.
+            // MINI-119 follow-up, user: "lalay should end by the car
+            // dealer." NPC_CarDealer sits at (149.30, -180.35) - well
+            // PAST the bridge (80.93, -146.67) and even past the farm
+            // safehouse cluster (104-128, -108 to -134), on a lower/
+            // south road branch (z ~-150 to -180) distinct from the
+            // farm inroad (z rising toward -108 as it climbs). A single
+            // big Lalay circle reaching the dealer would sit closer to
+            // the farm cluster than Highland's own tight circle does
+            // (nearest-center-wins), wrongly relabeling the farm as
+            // Lalay - so Lalay is TWO circles instead: one for the
+            // original west-of-bridge stretch (market, Dog Life block,
+            // LalayHouse), one for the bridge-to-dealer stretch. Both
+            // are named "Lalay" - AreaNameDisplay just returns whichever
+            // zone's centre is nearest, name collisions are fine.
+            var lalayWestCenter = new Vector3(-20f, 0f, -140f);
+            // MINI-119 follow-up fix: 70m left LalayHouse (49.98,-144.95)
+            // just outside (~70.2m from centre) - confirmed via
+            // Mini119ZoneResolveCheck resolving "" there. Widened with
+            // margin.
+            float lalayWestRadius = 85f;
+            var lalayEastCenter = new Vector3(115f, 0f, -165f);
+            float lalayEastRadius = 45f;
+            // Highland: tight around the farm/safehouse cluster only -
+            // starts right at the bridge, does not reach the dealer.
             var highlandCenter = new Vector3(104f, 0f, -128f);
             float highlandRadius = 40f;
 
             var so = new SerializedObject(area);
             var zonesProp = so.FindProperty("zones");
-            zonesProp.arraySize = 2;
+            zonesProp.arraySize = 3;
 
-            var lalay = zonesProp.GetArrayElementAtIndex(0);
-            lalay.FindPropertyRelative("areaName").stringValue = "Lalay";
-            lalay.FindPropertyRelative("center").vector3Value = lalayCenter;
-            lalay.FindPropertyRelative("radius").floatValue = lalayRadius;
+            var lalayWest = zonesProp.GetArrayElementAtIndex(0);
+            lalayWest.FindPropertyRelative("areaName").stringValue = "Lalay";
+            lalayWest.FindPropertyRelative("center").vector3Value = lalayWestCenter;
+            lalayWest.FindPropertyRelative("radius").floatValue = lalayWestRadius;
 
-            var highland = zonesProp.GetArrayElementAtIndex(1);
+            var lalayEast = zonesProp.GetArrayElementAtIndex(1);
+            lalayEast.FindPropertyRelative("areaName").stringValue = "Lalay";
+            lalayEast.FindPropertyRelative("center").vector3Value = lalayEastCenter;
+            lalayEast.FindPropertyRelative("radius").floatValue = lalayEastRadius;
+
+            var highland = zonesProp.GetArrayElementAtIndex(2);
             highland.FindPropertyRelative("areaName").stringValue = "Highland";
             highland.FindPropertyRelative("center").vector3Value = highlandCenter;
             highland.FindPropertyRelative("radius").floatValue = highlandRadius;
 
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            Debug.Log($"MINI-119 REZONE: Lalay now center={lalayCenter} radius={lalayRadius} (whole road up to the bridge), Highland now center={highlandCenter} radius={highlandRadius} (bridge to the farm/safehouse).");
+            Debug.Log($"MINI-119 REZONE: Lalay west center={lalayWestCenter} radius={lalayWestRadius}, Lalay east center={lalayEastCenter} radius={lalayEastRadius} (reaches the car dealer), Highland center={highlandCenter} radius={highlandRadius} (bridge to farm/safehouse only, does not reach the dealer).");
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());

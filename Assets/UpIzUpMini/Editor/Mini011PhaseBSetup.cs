@@ -5643,24 +5643,38 @@ namespace UpIzUpMini.EditorTools
             var aso = new SerializedObject(area);
             aso.FindProperty("label").objectReferenceValue = areaText;
             var zonesProp = aso.FindProperty("zones");
-            zonesProp.arraySize = 2;
 
             // MINI-119 follow-up, user: "i want highland to start from
-            // after the bridge. lalay would be the entire road." The
-            // bridge is Bridge_03_user_highland_lalay_inroad (~80.93,
-            // -146.67 in the live scene - literally named for this
-            // transition and the closest bridge to the farm, confirmed
-            // via Mini119BridgeLocateCheck). AreaNameDisplay only
-            // supports circular zones, so "entire road, split at the
-            // bridge" is approximated as two circles: Lalay spans the
-            // whole road from the far west up to the bridge, Highland
-            // spans from the bridge to the farm/safehouse cluster.
-            var lalay = zonesProp.GetArrayElementAtIndex(0);
-            lalay.FindPropertyRelative("areaName").stringValue = "Lalay";
-            lalay.FindPropertyRelative("center").vector3Value = new Vector3(8f, 0f, -148f);
-            lalay.FindPropertyRelative("radius").floatValue = 85f;
+            // after the bridge. lalay would be the entire road" then
+            // "lalay should end by the car dealer." The bridge is
+            // Bridge_03_user_highland_lalay_inroad (~80.93, -146.67 -
+            // literally named for this transition and the closest
+            // bridge to the farm). NPC_CarDealer sits further out at
+            // (149.30, -180.35), past the bridge but on a lower/south
+            // road branch distinct from the farm inroad (which climbs
+            // toward the safehouse at z~-108 to -134) - so a single big
+            // Lalay circle reaching the dealer would sit closer to the
+            // farm cluster than Highland's own tight circle
+            // (AreaNameDisplay picks whichever zone centre is nearest),
+            // wrongly relabeling the farm as Lalay. Lalay is instead TWO
+            // circles - west of the bridge (market/Dog Life/LalayHouse)
+            // and bridge-to-dealer - both named "Lalay" (name
+            // collisions are fine, ResolveArea just returns whichever
+            // is nearest). Highland stays a tight circle on the farm/
+            // safehouse cluster only, starting at the bridge, never
+            // reaching the dealer.
+            zonesProp.arraySize = 3;
+            var lalayWest = zonesProp.GetArrayElementAtIndex(0);
+            lalayWest.FindPropertyRelative("areaName").stringValue = "Lalay";
+            lalayWest.FindPropertyRelative("center").vector3Value = new Vector3(-20f, 0f, -140f);
+            lalayWest.FindPropertyRelative("radius").floatValue = 85f;
 
-            var highland = zonesProp.GetArrayElementAtIndex(1);
+            var lalayEast = zonesProp.GetArrayElementAtIndex(1);
+            lalayEast.FindPropertyRelative("areaName").stringValue = "Lalay";
+            lalayEast.FindPropertyRelative("center").vector3Value = new Vector3(115f, 0f, -165f);
+            lalayEast.FindPropertyRelative("radius").floatValue = 45f;
+
+            var highland = zonesProp.GetArrayElementAtIndex(2);
             highland.FindPropertyRelative("areaName").stringValue = "Highland";
             highland.FindPropertyRelative("center").vector3Value = new Vector3(104f, 0f, -128f);
             highland.FindPropertyRelative("radius").floatValue = 40f;

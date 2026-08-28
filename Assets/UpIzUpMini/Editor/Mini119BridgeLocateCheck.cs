@@ -29,7 +29,8 @@ namespace UpIzUpMini.EditorTools
             if (farmPlot != null) farmCenter = farmPlot.transform.position;
             var safehouse = GameObject.Find("FarmSafehouse_Building");
 
-            Debug.Log($"MINI-119 BRIDGE LOCATE: farmPlot={(farmPlot != null ? farmPlot.transform.position.ToString() : "NOT FOUND")}, farmSafehouse={(safehouse != null ? safehouse.transform.position.ToString() : "NOT FOUND")}, LalayHouse={(GameObject.Find("LalayHouse") != null ? GameObject.Find("LalayHouse").transform.position.ToString() : "NOT FOUND")}, market Stall_FARM SHOP={(GameObject.Find("Stall_FARM SHOP") != null ? GameObject.Find("Stall_FARM SHOP").transform.position.ToString() : "NOT FOUND")}.");
+            var carDealer = GameObject.Find("NPC_CarDealer");
+            Debug.Log($"MINI-119 BRIDGE LOCATE: farmPlot={(farmPlot != null ? farmPlot.transform.position.ToString() : "NOT FOUND")}, farmSafehouse={(safehouse != null ? safehouse.transform.position.ToString() : "NOT FOUND")}, LalayHouse={(GameObject.Find("LalayHouse") != null ? GameObject.Find("LalayHouse").transform.position.ToString() : "NOT FOUND")}, market Stall_FARM SHOP={(GameObject.Find("Stall_FARM SHOP") != null ? GameObject.Find("Stall_FARM SHOP").transform.position.ToString() : "NOT FOUND")}, NPC_CarDealer={(carDealer != null ? carDealer.transform.position.ToString() : "NOT FOUND")}.");
 
             int i = 0;
             foreach (Transform bridge in bridges.transform)
