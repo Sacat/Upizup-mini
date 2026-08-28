@@ -94,6 +94,37 @@ namespace UpIzUpMini.Vehicles
             _rightFoot = AddIK(animator.GetBoneTransform(HumanBodyBones.RightFoot), _pendingRightFoot);
             _leftFoot = AddIK(animator.GetBoneTransform(HumanBodyBones.LeftFoot), _pendingLeftFoot);
             _attached = true;
+
+            // MINI-119 follow-up, user: "even when turning the handle
+            // bar it doesnt work... analyze and try again." Rather than
+            // swap the mechanism a fourth time on another guess, log
+            // exactly what actually got wired (or didn't) and, every
+            // second after, exactly where the bone sits versus its
+            // target - so the NEXT diagnosis is read off the user's own
+            // Console output instead of guessed at from outside Play
+            // Mode again.
+            Debug.Log($"MINI-119 HAND/FOOT LOCK: attached after waiting {_framesWaited} frame(s) - RightHand={_rightHand != null}, LeftHand={_leftHand != null}, RightFoot={_rightFoot != null}, LeftFoot={_leftFoot != null}. Any 'false' here means that specific bone or target Transform was null - the lock for that limb never got built at all.");
+        }
+
+        private float _logTimer;
+
+        private void LateUpdate()
+        {
+            if (!_attached) return;
+
+            _logTimer += Time.deltaTime;
+            if (_logTimer < 1f) return;
+            _logTimer = 0f;
+
+            LogLimb("RightHand", _rightHand);
+            LogLimb("LeftHand", _leftHand);
+        }
+
+        private static void LogLimb(string label, Gadd420.IK ik)
+        {
+            if (ik == null) return;
+            float dist = Vector3.Distance(ik.transform.position, ik.target.position);
+            Debug.Log($"MINI-119 HAND/FOOT LOCK: {label} bonePos={ik.transform.position} targetPos={ik.target.position} distance={dist:F3}m (should be ~0 if the lock is actually holding)");
         }
 
         private static Gadd420.IK AddIK(Transform bone, Transform target)
