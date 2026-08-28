@@ -53,10 +53,20 @@ namespace UpIzUpMini.EditorTools
             ("NPC_Villager_LalayEast",    64f, -150.0f, 9f, 1f, 0.05f),
         };
 
+        // MINI-119 follow-up fix, user: "i dont want people through the
+        // farm are where the hedge is inside." NPC_Villager_HighlandFarm
+        // originally sat at (116,-128), confirmed INSIDE
+        // HighlandFarmPrivacyBushes' hedge rectangle via
+        // Mini119FarmHedgeCheck - moved to (103,-144), just outside the
+        // farm's own entrance gap, patrolling side-to-side there instead
+        // of through the interior. (Also fixed directly on the live
+        // scene's already-placed instance via
+        // Mini119FixHighlandFarmVillager - this source update only
+        // matters for a future full rebuild.)
         private static readonly (string name, float x, float z, float half, float fx, float fz)[] HighlandSpots =
         {
             ("NPC_Villager_HighlandInroad",  92f, -144f, 8f, 0.6f, 0.8f),
-            ("NPC_Villager_HighlandFarm",   116f, -128f, 8f, 0.4f, 0.9f),
+            ("NPC_Villager_HighlandFarm",   103f, -144f, 8f, 0.9f, -0.44f),
             ("NPC_Villager_HighlandUpper",  128f, -108f, 8f, 0.2f, 1f),
         };
 
