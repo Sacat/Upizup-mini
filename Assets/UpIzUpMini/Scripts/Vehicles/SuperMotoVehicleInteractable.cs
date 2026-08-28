@@ -48,6 +48,7 @@ namespace UpIzUpMini.Vehicles
         private BikeRiderAnimation _riderAnim;
         private SuperMotoHandFootLock _handFootLock;
         private VehicleRider _pillion;
+        private SuperMotoHandFootLock _pillionHandFootLock;
         private GameObject _mountedPlayer;
         private int _lockedSlotIndex = -1;
 
@@ -214,6 +215,19 @@ namespace UpIzUpMini.Vehicles
 
             if (!passenger.Mount(_pillionSeat)) return;
             _pillion = passenger;
+
+            // MINI-119 follow-up, user: "rig his hands to his side."
+            // Same continuous, direct bone-override technique already
+            // proven for the driver - the pillion's own hand targets
+            // (PillionLeftHandPos/PillionRightHandPos, positioned at his
+            // sides) pull his hands away from wherever the reused
+            // "RideBike" pose naturally puts them (reaching forward for
+            // a handlebar he doesn't have). No foot targets - left null,
+            // same as the driver's setup gracefully skips a null goal.
+            _pillionHandFootLock = otherSlot.root.GetComponent<SuperMotoHandFootLock>();
+            if (_pillionHandFootLock == null) _pillionHandFootLock = otherSlot.root.AddComponent<SuperMotoHandFootLock>();
+            _pillionHandFootLock.Attach(otherSlot.root.GetComponentInChildren<Animator>(),
+                _pillionSeat.RightHandTarget, _pillionSeat.LeftHandTarget, null, null);
         }
 
         private void DismountPillion()
@@ -223,6 +237,8 @@ namespace UpIzUpMini.Vehicles
             Vector3 exit = transform.position - transform.right * dismountSideOffset + Vector3.up * 0.1f;
             _pillion.Dismount(exit);
             _pillion = null;
+            _pillionHandFootLock?.Detach();
+            _pillionHandFootLock = null;
         }
 
         private void Dismount()

@@ -624,31 +624,48 @@ namespace UpIzUpMini.Vehicles
                 Vector3 relativeWheelieShift = tmaxWheelie - tmaxSeated;
                 seat.ConfigureWheeliePose(new Vector3(0.03f, -0.84f, 0.04f) + relativeWheelieShift, 22f);
 
-                // MINI-119 follow-up, user: "i want pillion rider to hop
-                // at the back and attach the hands... to there sides. if
-                // the pillion rider is following." Same proven pillion
-                // system BikeInteractable already uses for the TMAX -
-                // the OTHER main character hops onto a passenger
-                // VehicleSeat automatically when the driver mounts, IF
-                // they're nearby and not off doing something else. No
-                // vendor-provided rear-seat marker on this prefab (only
-                // "Rider 1" exists) - placed behind the driver's own seat
-                // instead, a starting point to refine live the same way
-                // the driver's seat was. No hand/foot targets on
-                // purpose - a passenger has nothing to grip, so leaving
-                // them unset means VehicleRider's own OnAnimatorIK
-                // skips those goals entirely and the authored
-                // "RidePillion" clip's own natural hands-at-the-sides
-                // pose shows through untouched, matching exactly what
-                // was asked for.
+                // MINI-119 follow-up, user: "the pillion is on the main
+                // character... use the same freeze animation as the main
+                // character just rig his hands to his side." Real cause
+                // of the pillion floating on top of the driver: this
+                // seat was never given its own baked seatedOffset - it
+                // was silently using VehicleSeat's shared DEFAULT
+                // (calibrated for the TMAX), the exact same class of bug
+                // the driver himself had before that offset got baked
+                // in. Fixed by baking one here too (reusing the driver's
+                // own numbers as a starting point - same bike, similar
+                // seated posture, just a different seat anchor) and
+                // pushing the seat anchor itself further back so the two
+                // riders don't overlap.
+                //
+                // Also switched off the vendor's "RidePillion" cheer clip
+                // entirely per the user's own instruction - reuses
+                // "RideBike" (the SAME pose the driver holds) instead.
+                // Since that pose's own authored hand position reaches
+                // forward as if gripping a handlebar the passenger
+                // doesn't have, two simple target Transforms are added
+                // at his own sides (children of the seat, so they move
+                // with him) and pinned via the same continuous
+                // SuperMotoHandFootLock technique already proven for the
+                // driver - "rig his hands to his side" done the reliable
+                // way, not Mecanim IK.
                 var pillionSeatGo = new GameObject("PillionSeat");
                 pillionSeatGo.transform.SetParent(instance.transform, false);
-                pillionSeatGo.transform.localPosition = seatLocalPos + new Vector3(0f, 0.05f, -0.35f);
+                pillionSeatGo.transform.localPosition = seatLocalPos + new Vector3(0f, 0.05f, -0.75f);
                 pillionSeatGo.transform.localRotation = Quaternion.identity;
 
+                var pillionLeftHandTarget = new GameObject("PillionLeftHandPos").transform;
+                pillionLeftHandTarget.SetParent(pillionSeatGo.transform, false);
+                pillionLeftHandTarget.localPosition = new Vector3(-0.2f, -0.15f, 0f);
+
+                var pillionRightHandTarget = new GameObject("PillionRightHandPos").transform;
+                pillionRightHandTarget.SetParent(pillionSeatGo.transform, false);
+                pillionRightHandTarget.localPosition = new Vector3(0.2f, -0.15f, 0f);
+
                 var pillionSeat = instance.AddComponent<VehicleSeat>();
-                pillionSeat.Configure(pillionSeatGo.transform, null, null, null, null, "MountBike", "RidePillion");
+                pillionSeat.Configure(pillionSeatGo.transform, pillionLeftHandTarget, pillionRightHandTarget, null, null, "MountBike", "RideBike");
                 pillionSeat.SetRole(VehicleSeat.SeatRole.Passenger);
+                pillionSeat.ConfigureSeatedPose(new Vector3(0.03f, -0.84f, 0.04f), 0f);
 
                 var wheelieAssistForSeat = instance.GetComponent<SuperMotoWheelieAssist>();
                 var interactable = instance.AddComponent<SuperMotoVehicleInteractable>();
