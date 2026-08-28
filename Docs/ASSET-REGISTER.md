@@ -90,6 +90,12 @@ don't pan out visually or technically.
 |---|---|---|---|---|
 | MINI-AST-121 | Sacat Modular Base Rigged | User-generated Hitem3D download `C:\Users\PCSS-PC\Downloads\Hi3D_Untitled_allparts_20260820_223739.glb`; rigged locally with AccuRIG Free; cleaned/staged in Blender | Created under the user's paid Hitem3D subscription from the user's approved Sacat reference workflow; local derivative and AccuRIG export records retained in `Docs/CharacterPipeline/MINI-105/` | Isolated canonical body candidate: white vest, black boxer pants, barefoot, 101-bone full-finger Humanoid. The immutable 100k master now has derived 25k/12k/4.5k mobile LOD candidates under `Assets/UpIzUpMini/Art/Characters/Modular/Sacat/Mobile/`, with one material, four influences and a validated LODGroup. Playable Sacat remains unchanged until static and motion approval. |
 
+## Combat animation (MINI-120)
+
+| asset_id | asset_name | source | licence | purpose |
+|---|---|---|---|---|
+| MINI-AST-122 | "Punching" (Jab Punch) | Downloaded from mixamo.com under the user's own free Adobe/Mixamo account, with the user's explicit in-chat permission; landed at `Assets/Mixamo/Animations/Mixamo_JabPunch.fbx` | Adobe Mixamo's standard free-use licence (no per-asset fee, personal/commercial use permitted) | Real motion-capture bare-fist jab, replacing `HumanM@Attack1H01_R.fbx` (a Kevin Iglesias one-handed WEAPON-swing clip, the already-owned "Human Melee Animations FREE" pack's only attack animations are all weapon-based: 1H/2H/Polearm/Shield, none unarmed) as the player's melee punch. Confirmed via rendered before/after comparison (`Logs/Tasks/MINI-120/`, not committed - gitignored) that the old clip rotates the whole torso sideways mid-swing (a sword follow-through) while the new clip keeps the character facing forward with a normal boxing stance - this is the concrete root cause of the user's "warped when punching" report. Wired in via `Mini011PhaseBSetup.GetSharedActionEntries()` (future rebuilds) and `Mini120PatchPunchClip.cs` (patched all 23 already-placed `HumanoidAnimationManager`s in the live scene directly). User chose to try Mixamo over a paid pack first, after a hand-keyframed free Asset Store pack ("Fighter Pack Bundle FREE") looked too cartoonish. |
+
 ## Explicitly rejected
 
 - Adventurer Character, Fighter Character, Warriors And Commoner (local `E:\Assets`) — fantasy/medieval sword-fighter aesthetic, wrong genre.

@@ -342,7 +342,19 @@ namespace UpIzUpMini.EditorTools
 
         private static HumanoidAnimationManager.ActionEntry[] GetSharedActionEntries()
         {
-            var meleeClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Combat/1H/HumanM@Attack1H01_R.fbx");
+            // MINI-120 (combat bug-fix pass), user: "certain aspect of the
+            // character looks warped when punching." Root cause found by
+            // inspecting the actually-owned Kevin Iglesias pack: it has
+            // zero bare-fist animations - every "Attack" clip in it is a
+            // WEAPON swing (1H/2H/Polearm/Shield), and Attack1H01_R was
+            // being reused for punching with no weapon in hand. Confirmed
+            // visually (Mini120RenderPunchPose.cs, Logs/Tasks/MINI-120/):
+            // the old clip rotates Sacat's whole torso sideways mid-swing
+            // (a sword follow-through), while this real jab-punch clip
+            // (Mixamo, free, user's own account, real motion capture)
+            // keeps him facing forward the whole time with a clean,
+            // anatomically normal boxing stance.
+            var meleeClip = LoadClip("Assets/Mixamo/Animations/Mixamo_JabPunch.fbx");
             var hitReactionClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDamage01.fbx");
             var knockedDownClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death01.fbx");
             return new[]
