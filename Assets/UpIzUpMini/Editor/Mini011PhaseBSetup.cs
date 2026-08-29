@@ -363,6 +363,7 @@ namespace UpIzUpMini.EditorTools
             // Mixamo's own preview (see Docs/ASSET-REGISTER.md).
             var hookClip = LoadClip(MeleeMoveLibrary.HookClipPath);
             var rightHookClip = LoadClip(MeleeMoveLibrary.RightHookClipPath);
+            var finisherClip = LoadClip(MeleeMoveLibrary.FinisherClipPath);
             return new[]
             {
                 new HumanoidAnimationManager.ActionEntry
@@ -381,6 +382,12 @@ namespace UpIzUpMini.EditorTools
                 {
                     id = MeleeMoveLibrary.RightHookId,
                     clip = rightHookClip,
+                    fullBody = false,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = MeleeMoveLibrary.FinisherId,
+                    clip = finisherClip,
                     fullBody = false,
                 },
                 new HumanoidAnimationManager.ActionEntry

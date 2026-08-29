@@ -26,8 +26,8 @@ namespace UpIzUpMini.Combat
         // including the tightened reach/bodyRadiusBonus fixing the
         // separately-reported over-generous hit detection.
         [Header("Combo")]
-        [Tooltip("How long after a swing's recovery ends the combo chain stays alive - press Attack again within this window to advance to the next move, otherwise the next press restarts at the jab.")]
-        [SerializeField] float comboResetSeconds = 1.0f;
+        [Tooltip("How long after a swing's recovery ends the combo chain stays alive - press Attack again within this window to advance to the next move, otherwise the next press restarts at the jab. 1.5s (rather than a tighter arcade-mash window) since this project's real-time gap between the user's own test presses has been the likely cause of a combo silently resetting before the next press landed.")]
+        [SerializeField] float comboResetSeconds = 1.5f;
 
         [Header("Cost")]
         [SerializeField] float staminaCost = 7f;
@@ -95,12 +95,24 @@ namespace UpIzUpMini.Combat
             var move = CurrentMove;
             nextHit = Time.time + move.TotalSeconds;
             _comboExpiresAt = Time.time + move.TotalSeconds + comboResetSeconds;
+            int firedStep = _comboStep;
             _comboStep = (_comboStep + 1) % MeleeMoveLibrary.Chain.Length;
 
             // Plays even on a swing that connects with nothing - a real
             // attack animation reads as a fight, not just a damage tick.
-            animationManager?.PlayAction(move.id);
+            bool played = animationManager?.PlayAction(move.id) ?? false;
             swing.Begin(move.BuildProfile());
+
+            // MINI-120 combo request, user: "i have only seeing one
+            // punch." Real diagnostic, not a guess - if this always logs
+            // step 0/"Melee" no matter how many times F is pressed, the
+            // combo-reset window (comboResetSeconds) is expiring between
+            // presses (or something is resetting _comboStep elsewhere);
+            // if it logs the right step but "played=False", the clip's
+            // Animator state doesn't exist on this character's actual
+            // controller (check the Player.log for HumanoidAnimationManager
+            // errors around HasState).
+            Debug.Log($"MINI-120 COMBO: fired step {firedStep} ({move.id}), played={played}, next combo step will be {_comboStep}, chain resets at t={_comboExpiresAt:F2} (now={Time.time:F2}).");
         }
 
         /// <summary>Advances windup/active/recovery. Public for deterministic

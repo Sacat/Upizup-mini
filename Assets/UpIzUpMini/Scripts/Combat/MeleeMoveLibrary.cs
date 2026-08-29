@@ -27,6 +27,7 @@ namespace UpIzUpMini.Combat
         public const string JabId = "Melee";
         public const string HookId = "MeleeHook";
         public const string RightHookId = "MeleeRightHook";
+        public const string FinisherId = "MeleeFinisher";
 
         // Asset paths, not Resources paths - the clips live under
         // Assets/Mixamo, loaded via the same AssetDatabase-based
@@ -37,12 +38,20 @@ namespace UpIzUpMini.Combat
         public const string JabClipPath = "Assets/Mixamo/Animations/Mixamo_JabPunch.fbx";
         public const string HookClipPath = "Assets/Mixamo/Animations/Mixamo_Hook.fbx";
         public const string RightHookClipPath = "Assets/Mixamo/Animations/Mixamo_RightHook.fbx";
+        // MINI-120 combo request, user: "i like the idea for this punch
+        // first and then the second time would be a hook and then
+        // something else and then the combo etc." The 4th and final
+        // step is the real multi-strike "Punch Combo" clip (already
+        // downloaded, MINI-AST-124) as the payoff finisher, instead of
+        // one more single punch.
+        public const string FinisherClipPath = "Assets/Mixamo/Animations/Mixamo_PunchCombo4.fbx";
 
         /// <summary>
-        /// The 3-hit alternating combo chain: Jab -> Hook -> Right Hook,
-        /// looping back to Jab. SimpleMeleeCombat advances one step per
-        /// landed button press within the combo window and resets to
-        /// index 0 if the player waits too long between hits.
+        /// The 4-hit escalating combo chain: Jab -> Hook -> Right Hook ->
+        /// Finisher (the real multi-strike "Punch Combo" clip), looping
+        /// back to Jab. SimpleMeleeCombat advances one step per landed
+        /// button press within the combo window and resets to index 0
+        /// if the player waits too long between hits.
         ///
         /// Damage ramps up through the chain (a real "combo payoff" -
         /// finishing the sequence hits harder than throwing one jab and
@@ -90,6 +99,27 @@ namespace UpIzUpMini.Combat
                 forwardOffset = 0.22f,
                 reach = 1.05f,
                 radius = 0.26f,
+                arcDegrees = 60f,
+                bodyRadiusBonus = 0.15f,
+            },
+            new ComboMove
+            {
+                // The multi-strike clip itself covers several hits over
+                // its own ~1.1s length - windup/active/recovery here
+                // describe the SWING TIMELINE (when ResolveContact's one
+                // damage instance fires and when the next Attack() is
+                // allowed), not an attempt to key every individual
+                // strike inside the clip to its own hit. A single,
+                // bigger finisher hit is the intended payoff.
+                id = FinisherId,
+                clipPath = FinisherClipPath,
+                damage = 48f,
+                windupSeconds = 0.2f,
+                activeSeconds = 0.15f,
+                recoverySeconds = 0.55f,
+                forwardOffset = 0.24f,
+                reach = 1.1f,
+                radius = 0.28f,
                 arcDegrees = 60f,
                 bodyRadiusBonus = 0.15f,
             },
