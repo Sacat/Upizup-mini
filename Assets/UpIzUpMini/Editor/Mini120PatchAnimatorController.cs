@@ -32,7 +32,7 @@ namespace UpIzUpMini.EditorTools
             // Read each combo state's motion BEFORE, so the log proves
             // this actually changed/created something rather than
             // silently no-op'ing.
-            string[] stateNames = { "Melee", "MeleeHook", "MeleeRightHook", "MeleeFinisher" };
+            string[] stateNames = { "Melee", "MeleeHook", "MeleeRightHook", "MeleeFinisher", "MeleeKickSacat", "MeleeKickFranki" };
             var before = new System.Collections.Generic.Dictionary<string, string>();
             foreach (var s in stateNames) before[s] = FindStateMotionName(controller, s);
 

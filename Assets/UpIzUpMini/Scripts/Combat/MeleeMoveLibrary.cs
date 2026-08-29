@@ -28,6 +28,16 @@ namespace UpIzUpMini.Combat
         public const string HookId = "MeleeHook";
         public const string RightHookId = "MeleeRightHook";
         public const string FinisherId = "MeleeFinisher";
+        // MINI-120 combo request, user: "can you add a kick at the end"
+        // then "put one on each main character." Sacat and Franki get
+        // DISTINCT kick clips - since every character shares the same
+        // StarterAssetsThirdPerson.controller, a single shared action id
+        // can only ever have ONE baked Motion, so two ids are needed
+        // (not one "MeleeKick" both characters point at) for this to
+        // actually be two different animations rather than the same one
+        // twice.
+        public const string KickSacatId = "MeleeKickSacat";
+        public const string KickFrankiId = "MeleeKickFranki";
 
         // Asset paths, not Resources paths - the clips live under
         // Assets/Mixamo, loaded via the same AssetDatabase-based
@@ -45,20 +55,17 @@ namespace UpIzUpMini.Combat
         // downloaded, MINI-AST-124) as the payoff finisher, instead of
         // one more single punch.
         public const string FinisherClipPath = "Assets/Mixamo/Animations/Mixamo_PunchCombo4.fbx";
+        public const string KickSacatClipPath = "Assets/Mixamo/Animations/Mixamo_KickSacat.fbx";
+        public const string KickFrankiClipPath = "Assets/Mixamo/Animations/Mixamo_KickFranki.fbx";
 
         /// <summary>
-        /// The 4-hit escalating combo chain: Jab -> Hook -> Right Hook ->
-        /// Finisher (the real multi-strike "Punch Combo" clip), looping
-        /// back to Jab. SimpleMeleeCombat advances one step per landed
-        /// button press within the combo window and resets to index 0
-        /// if the player waits too long between hits.
-        ///
-        /// Damage ramps up through the chain (a real "combo payoff" -
-        /// finishing the sequence hits harder than throwing one jab and
-        /// stopping) - tune these together with the user's own feel
-        /// feedback, not just once from a rule of thumb.
+        /// The shared first 4 steps of the combo chain - Jab -> Hook ->
+        /// Right Hook -> Finisher. GetChainFor() appends the 5th,
+        /// per-character kick step. Kept internal so SimpleMeleeCombat
+        /// always goes through GetChainFor() rather than reading this
+        /// directly and missing the kick.
         /// </summary>
-        public static readonly ComboMove[] Chain =
+        private static readonly ComboMove[] BaseChain =
         {
             new ComboMove
             {
@@ -124,6 +131,60 @@ namespace UpIzUpMini.Combat
                 bodyRadiusBonus = 0.15f,
             },
         };
+
+        // Kicks have real reach (a leg extends further than an arm) -
+        // given a bigger reach/radius than any of the punches, and the
+        // biggest damage as the true chain-ender.
+        private static readonly ComboMove KickSacat = new ComboMove
+        {
+            id = KickSacatId,
+            clipPath = KickSacatClipPath,
+            damage = 42f,
+            windupSeconds = 0.22f,
+            activeSeconds = 0.15f,
+            recoverySeconds = 0.5f,
+            forwardOffset = 0.28f,
+            reach = 1.3f,
+            radius = 0.3f,
+            arcDegrees = 55f,
+            bodyRadiusBonus = 0.15f,
+        };
+
+        private static readonly ComboMove KickFranki = new ComboMove
+        {
+            id = KickFrankiId,
+            clipPath = KickFrankiClipPath,
+            // MINI-093/GAME-DESIGN: Franki is written as stronger than
+            // Sacat - his kick hits harder, matching that established
+            // character trait rather than being a reskinned copy.
+            damage = 46f,
+            windupSeconds = 0.22f,
+            activeSeconds = 0.15f,
+            recoverySeconds = 0.5f,
+            forwardOffset = 0.28f,
+            reach = 1.3f,
+            radius = 0.3f,
+            arcDegrees = 55f,
+            bodyRadiusBonus = 0.15f,
+        };
+
+        private static readonly ComboMove[] ChainWithSacatKick = { BaseChain[0], BaseChain[1], BaseChain[2], BaseChain[3], KickSacat };
+        private static readonly ComboMove[] ChainWithFrankiKick = { BaseChain[0], BaseChain[1], BaseChain[2], BaseChain[3], KickFranki };
+
+        /// <summary>
+        /// The real combo chain to use for a given character - the
+        /// shared 4 punches plus that character's own kick as the 5th
+        /// and final step. Matched by GameObject name (the same
+        /// convention already used throughout this project, e.g.
+        /// GameObject.Find("Sacat")/("Franki")) since SimpleMeleeCombat
+        /// has no other reliable per-character identity to key off.
+        /// Falls back to Sacat's kick for anything else (a future third
+        /// character, a test dummy) rather than throwing.
+        /// </summary>
+        public static ComboMove[] GetChainFor(string characterName)
+        {
+            return characterName == "Franki" ? ChainWithFrankiKick : ChainWithSacatKick;
+        }
 
         public struct ComboMove
         {

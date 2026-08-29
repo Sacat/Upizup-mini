@@ -364,6 +364,12 @@ namespace UpIzUpMini.EditorTools
             var hookClip = LoadClip(MeleeMoveLibrary.HookClipPath);
             var rightHookClip = LoadClip(MeleeMoveLibrary.RightHookClipPath);
             var finisherClip = LoadClip(MeleeMoveLibrary.FinisherClipPath);
+            // MINI-120 combo request, user: "can you add a kick at the
+            // end" then "put one on each main character" - Sacat and
+            // Franki each get their own distinct kick clip as the 5th
+            // combo step (see MeleeMoveLibrary.GetChainFor).
+            var kickSacatClip = LoadClip(MeleeMoveLibrary.KickSacatClipPath);
+            var kickFrankiClip = LoadClip(MeleeMoveLibrary.KickFrankiClipPath);
             return new[]
             {
                 new HumanoidAnimationManager.ActionEntry
@@ -388,6 +394,18 @@ namespace UpIzUpMini.EditorTools
                 {
                     id = MeleeMoveLibrary.FinisherId,
                     clip = finisherClip,
+                    fullBody = false,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = MeleeMoveLibrary.KickSacatId,
+                    clip = kickSacatClip,
+                    fullBody = false,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = MeleeMoveLibrary.KickFrankiId,
+                    clip = kickFrankiClip,
                     fullBody = false,
                 },
                 new HumanoidAnimationManager.ActionEntry

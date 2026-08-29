@@ -28,6 +28,8 @@ namespace UpIzUpMini.EditorTools
             "Assets/Mixamo/Animations/Mixamo_RightHook.fbx",
             "Assets/Mixamo/Animations/Mixamo_PunchCombo4.fbx",
             "Assets/Mixamo/Animations/Mixamo_ComboPunch8.fbx",
+            "Assets/Mixamo/Animations/Mixamo_KickSacat.fbx",
+            "Assets/Mixamo/Animations/Mixamo_KickFranki.fbx",
         };
 
         [MenuItem("Up Iz Up Mini/MINI-120/Setup Mixamo Punch Import (one-off)")]

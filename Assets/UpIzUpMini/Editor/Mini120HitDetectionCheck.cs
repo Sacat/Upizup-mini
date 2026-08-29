@@ -24,7 +24,7 @@ namespace UpIzUpMini.EditorTools
         [MenuItem("Up Iz Up Mini/MINI-120/Check Hit Detection Reach - New Combo Moves (one-off, read-only)")]
         public static void RunNew()
         {
-            foreach (var move in MeleeMoveLibrary.Chain)
+            foreach (var move in MeleeMoveLibrary.GetChainFor("Sacat"))
             {
                 Measure($"{move.id} (reach={move.reach}, radius={move.radius}, bonus={move.bodyRadiusBonus})", move.BuildProfile());
             }

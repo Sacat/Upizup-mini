@@ -96,7 +96,7 @@ namespace UpIzUpMini.Combat
             nextHit = Time.time + move.TotalSeconds;
             _comboExpiresAt = Time.time + move.TotalSeconds + comboResetSeconds;
             int firedStep = _comboStep;
-            _comboStep = (_comboStep + 1) % MeleeMoveLibrary.Chain.Length;
+            _comboStep = (_comboStep + 1) % Chain.Length;
 
             // Plays even on a swing that connects with nothing - a real
             // attack animation reads as a fight, not just a damage tick.
@@ -122,6 +122,15 @@ namespace UpIzUpMini.Combat
             if (swing.Advance(deltaSeconds)) ResolveContact();
         }
 
+        // MINI-120 combo request, user: "put one on each main character"
+        // (the final kick step) - MeleeMoveLibrary.GetChainFor(name)
+        // returns Sacat's or Franki's own 5-move chain (same first 4
+        // punches, different kick clip as the finisher). Resolved once
+        // and cached, not re-looked-up every Attack() call - the
+        // character's name never changes at runtime.
+        private MeleeMoveLibrary.ComboMove[] Chain => _chain ??= MeleeMoveLibrary.GetChainFor(gameObject.name);
+        private MeleeMoveLibrary.ComboMove[] _chain;
+
         /// <summary>The move that just started (or is about to start) -
         /// _comboStep is advanced past it in Attack() before this is next
         /// read, so ResolveContact must capture the move BEFORE Attack()
@@ -131,7 +140,7 @@ namespace UpIzUpMini.Combat
         {
             get
             {
-                _activeMove = MeleeMoveLibrary.Chain[_comboStep];
+                _activeMove = Chain[_comboStep];
                 return _activeMove;
             }
         }
