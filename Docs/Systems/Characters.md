@@ -1,0 +1,33 @@
+# Characters & Animation
+
+## Current state
+
+Sacat and Franki are switchable protagonists with separate vitals/positions and shared economy/progression. MINI-107 (modular Sacat production - Hitem3D generation, AccuRIG rigging, mobile LODs) is **paused mid-task**: the original 100k rig animates correctly and remains the playable character; the derived 25k/12k/4.5k mobile LODs pass static checks but fail motion deformation and are NOT approved for playable integration. Do not resume this without the user explicitly requesting character production again, and repair the LOD motion deformation before any playable swap.
+
+User-approved manual placements are visual locks - e.g. Sacat's and Boss C's two-piece chain placement (`VA-001`/`VA-002`-style register entries in `Docs/VISUAL-APPROVAL-REGISTER.md`). Never recalculate or replace an approved transform; treat it the same way `MapGeneration.md` treats manual world placement - authoritative, bug-hunt elsewhere first.
+
+## Architecture
+
+- `Assets/UpIzUpMini/Scripts/Character/HumanoidAnimationManager.cs` - the reusable action-layer foundation EVERY system with character animation depends on (Combat, Vehicles). See `Combat.md`'s "what didn't work" entry - this component's own `actions` list is NOT what actually plays at runtime; the shared `StarterAssetsThirdPerson.controller` asset is.
+- Character production pipeline (MINI-105/107): Hitem3D generates candidates -> AccuRIG (free, local) auto-rigs -> Blender owns topology/UVs/skeleton/weights/bind pose/export. `Docs/CharacterPipeline/System/` and `Tools/CharacterPipeline/` hold the manifest system. `Docs/CHARACTER-PRODUCTION-WORKFLOW.md` is mandatory reading before touching this - read it in full, this file is a ledger, not a substitute.
+- One canonical full-finger Humanoid body per wardrobe family; clothes are separate skinned geometry sharing the same skeleton/bind pose, hiding covered body regions; accessories use named per-character attachment profiles.
+- Animation retargeting: any real Mixamo/motion-capture Humanoid clip retargets automatically onto ANY valid Humanoid avatar via Mecanim - confirmed repeatedly working this session (see `Combat.md`) - no per-character remapping needed as long as both source and target are genuinely Humanoid.
+
+## What worked / what didn't
+
+- **(MINI-107, unresolved) The 25k/12k/4.5k mobile LODs fail motion deformation despite passing static checks.** A static pose/silhouette check is NOT sufficient proof a decimated rig is safe to ship - it must be watched moving before being approved. This is the same lesson as `Combat.md`/`Vehicles.md`'s repeated "batch/static checks can pass while real behaviour fails" theme, here applied to mesh decimation instead of code.
+- **(2026-08-15) Local scan-derived meshes were often absurdly oversized for mobile** (~2,000,000-triangle photogrammetry scans, 183MB each) with no growth-stage variants - decimated to ~0.2% of original triangle count via vertex-clustering while still visibly reading correctly, then the multi-hundred-MB sources were deleted, keeping only the small decimated result.
+- **(2026-08-28, this session) Real motion-capture clips retarget cleanly onto this project's Humanoid characters with zero extra rigging work** - confirmed via direct rendered comparison (`Combat.md`'s Mixamo jab-punch fix). This is a strong argument for sourcing new character ANIMATION from real mocap (Mixamo, ActorCore, similar) rather than hand-keyframed free packs, which have repeatedly looked wrong (see `Combat.md`'s cartoonish-pack lesson).
+
+## Open items
+
+- MINI-107 LOD motion-deformation repair - paused, not resolved. Do not integrate the failed LOD candidates.
+- TMAX see-through/oversized-payload issue is arguably a Characters/asset-pipeline problem more than a Vehicles one - see `Vehicles.md`'s open items, listed there since it's vehicle-specific, but the underlying cause (normals/backface holes, texture import settings) is the same class of problem as character asset production.
+
+## Key files
+
+- `Assets/UpIzUpMini/Scripts/Character/HumanoidAnimationManager.cs`
+- `Docs/CHARACTER-PRODUCTION-WORKFLOW.md` (mandatory before any character/wardrobe/rig work)
+- `Docs/CharacterPipeline/System/`, `Tools/CharacterPipeline/`
+- `Docs/VISUAL-APPROVAL-REGISTER.md` (locked placements - never recalculate)
+- `Docs/ASSET-REGISTER.md` MINI-AST-121 (Sacat Modular Base Rigged, the MINI-107 candidate)
