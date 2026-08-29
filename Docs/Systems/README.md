@@ -28,6 +28,7 @@ Introduced 2026-08-29 at the user's explicit request: "a modular system that det
 | rigging, LODs, wardrobe, character models, animation import/retargeting | `Characters.md` |
 | patrol behaviour, police/gang AI, heat, faction reputation, NPC pathing | `NPCsAndAI.md` |
 | Editor tools, batch verification, builds, the diagnostic-tool pattern itself | `BuildAndVerification.md` |
+| menus, pause screen, HUD, canvas layering/sorting, panels not appearing/rendering behind other UI | `UI.md` |
 | "what's the current state", "what's next", session handoff to a fresh agent | this file, then `../NEXT-CHATGPT-PLUS-HANDOFF.md` |
 
 If a system doesn't exist yet as a file below, create it using the template - don't let a real system stay undocumented because it wasn't on the original list.
@@ -72,3 +73,4 @@ Exact paths.
 - [Characters](Characters.md)
 - [NPCs & AI](NPCsAndAI.md)
 - [Build & Verification](BuildAndVerification.md)
+- [UI](UI.md)

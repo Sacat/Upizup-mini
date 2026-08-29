@@ -28,6 +28,7 @@ Data-driven since MINI-120 (2026-08-29). The player's own melee is a real 5-hit 
 
 ## Open items
 
+- **(2026-08-29) Fixed**: Sacat's kick (2.17s clip) visibly dragged compared to Franki's (1.60s clip) since the swing timing (0.87s) is unrelated to the actual clip length - the animation kept playing well after the hit/cooldown had already resolved. Fixed by setting the "MeleeKickSacat" Animator STATE's own `speed` to 1.5x directly (NOT by adding a `speed` field to `HumanoidAnimationManager.ActionEntry` - that struct is already serialized on 20+ existing per-character entries across the live scene, and a new field would default to 0 on all of them, silently freezing every other move). See `Mini120SetKickSpeed.cs`.
 - User raised, not yet started: faster inter-punch pacing and a possible held/looping "ready" pose between combo hits instead of snapping fully back to idle each time.
 - 5-hit chain confirmed working (Player.log showed `played=True` for all 5 steps) but the user reported "i didnt see the kick" - fixed by switching the kick entries from `fullBody=false` to `true` (see ledger below). Awaiting re-confirmation.
 - Bonus multi-strike clip downloaded but still unused: `Mixamo_ComboPunch8.fbx` (8-hit) - a candidate for an even bigger finisher/rare special move later.

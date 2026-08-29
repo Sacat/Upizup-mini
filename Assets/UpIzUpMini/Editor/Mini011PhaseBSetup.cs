@@ -5866,6 +5866,19 @@ namespace UpIzUpMini.EditorTools
             var canvasGo = new GameObject("PauseMenuCanvas");
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            // MINI-120 follow-up, user: "when i press ESC is doesnt
+            // bring up the quit and resume menu." Confirmed via a live-
+            // scene inspection that the controller/panel/buttons were
+            // all correctly wired and the panel DOES activate - the real
+            // bug is sortingOrder: this canvas defaulted to 0, the same
+            // as HUDCanvas, while GameplayUICanvas sits at 5 and renders
+            // ON TOP of both - so the pause panel was becoming active
+            // but rendering BEHIND whatever gameplay UI (dialogue, shop,
+            // minimap) happened to be on screen, reading as "nothing
+            // happened" when ESC was pressed. Set well above every other
+            // known canvas so pausing always wins regardless of what
+            // else is showing.
+            canvas.sortingOrder = 100;
             var scaler = canvasGo.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
