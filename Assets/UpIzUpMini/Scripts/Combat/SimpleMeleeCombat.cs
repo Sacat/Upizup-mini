@@ -9,23 +9,27 @@ namespace UpIzUpMini.Combat
     public class SimpleMeleeCombat : MonoBehaviour
     {
         // MINI-031: id baked into the shared controller's upper-body
-        // "Action" layer by HumanoidAnimationLayerBuilder. Kept as a
-        // constant here rather than a per-instance field since every
-        // character that can throw a punch plays the same clip.
-        public const string ActionId = "Melee";
+        // "Action" layer by HumanoidAnimationLayerBuilder. Kept as the
+        // jab's own id (unchanged) for backward compatibility - it's
+        // also MeleeMoveLibrary.Chain[0].id, the first combo step.
+        public const string ActionId = MeleeMoveLibrary.JabId;
 
-        [Header("Contact")]
-        [SerializeField] float range = 1.65f;
-        [SerializeField] float hitRadius = 0.38f;
-        [SerializeField] float forwardOffset = 0.3f;
-        [SerializeField] float arcDegrees = 80f;
-        [SerializeField] float windupSeconds = 0.16f;
-        [SerializeField] float activeSeconds = 0.12f;
-        [SerializeField] float recoverySeconds = 0.37f;
+        // MINI-120 (combat bug-fix pass + combo request), user: "so
+        // fighting system... i want you to remember the combat like a
+        // system" then "ok what about combos?" Replaces the single
+        // hardcoded punch with MeleeMoveLibrary.Chain - a real 3-hit
+        // alternating combo (Jab -> Hook -> Right Hook), each step its
+        // own data (clip/damage/reach/timing), not a bigger pile of
+        // fields on this component. Old single-punch fields (range,
+        // hitRadius, damage, windup/active/recovery) are gone - every
+        // one of those numbers now lives per-move in the library,
+        // including the tightened reach/bodyRadiusBonus fixing the
+        // separately-reported over-generous hit detection.
+        [Header("Combo")]
+        [Tooltip("How long after a swing's recovery ends the combo chain stays alive - press Attack again within this window to advance to the next move, otherwise the next press restarts at the jab.")]
+        [SerializeField] float comboResetSeconds = 1.0f;
 
-        [Header("Cost and damage")]
-        [SerializeField] float damage = 35f;
-        [SerializeField] float cooldown = .65f;
+        [Header("Cost")]
         [SerializeField] float staminaCost = 7f;
         [SerializeField] HumanoidAnimationManager animationManager;
         [SerializeField] CharacterVitals vitals;
@@ -39,9 +43,15 @@ namespace UpIzUpMini.Combat
         [SerializeField] float togetherDamageMultiplier = 1.5f;
 
         float nextHit;
+        int _comboStep;
+        float _comboExpiresAt;
         readonly MeleeSwingTimeline swing = new MeleeSwingTimeline();
         public bool IsControlled => GetComponent<PlayerController>()?.IsControlled == true;
         public bool IsAttacking => swing.IsRunning;
+
+        /// <summary>Which combo step will fire on the next Attack() call -
+        /// exposed for UI (e.g. a combo counter) and deterministic tests.</summary>
+        public int ComboStep => _comboStep;
 
         void Awake()
         {
@@ -59,6 +69,12 @@ namespace UpIzUpMini.Combat
 
             AdvanceAttack(Time.deltaTime);
 
+            // The combo chain drops back to the jab if the player didn't
+            // follow up in time - checked every frame, not just at the
+            // next Attack() call, so ComboStep reads correctly for UI
+            // even between presses.
+            if (_comboStep != 0 && Time.time > _comboExpiresAt) _comboStep = 0;
+
             // F is both "punch" and "get on the bike" (MINI-069). Without this
             // guard you throw a punch on the same frame you mount, every time.
             if (Vehicles.BikeInteractable.ConsumedMountKeyThisFrame) return;
@@ -68,18 +84,23 @@ namespace UpIzUpMini.Combat
 
         /// <summary>
         /// Commits a swing and plays its animation. Damage is intentionally
-        /// deferred until AdvanceAttack reaches the active window.
+        /// deferred until AdvanceAttack reaches the active window. Advances
+        /// the combo chain one step (Jab -> Hook -> Right Hook -> Jab...).
         /// </summary>
         public void Attack()
         {
             if (swing.IsRunning || Time.time < nextHit) return;
             if (vitals != null && !vitals.TrySpendStamina(staminaCost)) return;
 
-            nextHit = Time.time + cooldown;
+            var move = CurrentMove;
+            nextHit = Time.time + move.TotalSeconds;
+            _comboExpiresAt = Time.time + move.TotalSeconds + comboResetSeconds;
+            _comboStep = (_comboStep + 1) % MeleeMoveLibrary.Chain.Length;
+
             // Plays even on a swing that connects with nothing - a real
             // attack animation reads as a fight, not just a damage tick.
-            animationManager?.PlayAction(ActionId);
-            swing.Begin(BuildProfile());
+            animationManager?.PlayAction(move.id);
+            swing.Begin(move.BuildProfile());
         }
 
         /// <summary>Advances windup/active/recovery. Public for deterministic
@@ -89,11 +110,25 @@ namespace UpIzUpMini.Combat
             if (swing.Advance(deltaSeconds)) ResolveContact();
         }
 
+        /// <summary>The move that just started (or is about to start) -
+        /// _comboStep is advanced past it in Attack() before this is next
+        /// read, so ResolveContact must capture the move BEFORE Attack()
+        /// changes _comboStep, not re-derive it after the fact.</summary>
+        private MeleeMoveLibrary.ComboMove _activeMove;
+        private MeleeMoveLibrary.ComboMove CurrentMove
+        {
+            get
+            {
+                _activeMove = MeleeMoveLibrary.Chain[_comboStep];
+                return _activeMove;
+            }
+        }
+
         private void ResolveContact()
         {
             float appliedDamage = CalculateAppliedDamage();
             if (MeleeContactResolver.TryFindNearest(
-                    transform, BuildProfile(), NpcCombatHealth.All,
+                    transform, _activeMove.BuildProfile(), NpcCombatHealth.All,
                     (NpcCombatHealth candidate) => !candidate.IsDown, out NpcCombatHealth target))
             {
                 target.Hit(appliedDamage, transform.forward * .8f);
@@ -103,16 +138,12 @@ namespace UpIzUpMini.Combat
             }
         }
 
-        private MeleeAttackProfile BuildProfile() => new MeleeAttackProfile(
-            windupSeconds, activeSeconds, recoverySeconds,
-            forwardOffset, range, hitRadius, arcDegrees);
-
         /// <summary>
         /// The damage this swing deals, together-bonus included. Public
         /// and split out from Attack() so the bonus logic can be verified
         /// directly, independently of the timed contact query.
         /// </summary>
-        public float CalculateAppliedDamage() => IsCompanionNearby() ? damage * togetherDamageMultiplier : damage;
+        public float CalculateAppliedDamage() => IsCompanionNearby() ? _activeMove.damage * togetherDamageMultiplier : _activeMove.damage;
 
         /// <summary>
         /// True when the other boy is close by, on his feet, and free to

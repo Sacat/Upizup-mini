@@ -21,13 +21,33 @@ namespace UpIzUpMini.EditorTools
     {
         private const string FbxPath = "Assets/Mixamo/Animations/Mixamo_JabPunch.fbx";
 
+        private static readonly string[] ComboFbxPaths =
+        {
+            "Assets/Mixamo/Animations/Mixamo_JabPunch.fbx",
+            "Assets/Mixamo/Animations/Mixamo_Hook.fbx",
+            "Assets/Mixamo/Animations/Mixamo_RightHook.fbx",
+            "Assets/Mixamo/Animations/Mixamo_PunchCombo4.fbx",
+            "Assets/Mixamo/Animations/Mixamo_ComboPunch8.fbx",
+        };
+
         [MenuItem("Up Iz Up Mini/MINI-120/Setup Mixamo Punch Import (one-off)")]
         public static void Run()
         {
-            AssetDatabase.ImportAsset(FbxPath, ImportAssetOptions.ForceUpdate);
+            SetupOne(FbxPath);
+        }
 
-            var importer = AssetImporter.GetAtPath(FbxPath) as ModelImporter;
-            if (importer == null) { Debug.LogError("MINI-120 SETUP: couldn't find ModelImporter for " + FbxPath); return; }
+        [MenuItem("Up Iz Up Mini/MINI-120/Setup Mixamo Combo Clips Import (one-off)")]
+        public static void RunCombo()
+        {
+            foreach (var path in ComboFbxPaths) SetupOne(path);
+        }
+
+        private static void SetupOne(string fbxPath)
+        {
+            AssetDatabase.ImportAsset(fbxPath, ImportAssetOptions.ForceUpdate);
+
+            var importer = AssetImporter.GetAtPath(fbxPath) as ModelImporter;
+            if (importer == null) { Debug.LogError("MINI-120 SETUP: couldn't find ModelImporter for " + fbxPath); return; }
 
             importer.animationType = ModelImporterAnimationType.Human;
             importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
@@ -36,19 +56,19 @@ namespace UpIzUpMini.EditorTools
             importer.importAnimation = true;
             importer.SaveAndReimport();
 
-            var clips = AssetDatabase.LoadAllAssetsAtPath(FbxPath);
+            var clips = AssetDatabase.LoadAllAssetsAtPath(fbxPath);
             int clipCount = 0;
             foreach (var obj in clips)
             {
                 if (obj is AnimationClip clip && !clip.name.Contains("__preview__"))
                 {
-                    Debug.Log($"MINI-120 SETUP: found clip '{clip.name}', length={clip.length:F2}s, frameRate={clip.frameRate}, isHumanMotion={clip.isHumanMotion}, isLooping={clip.isLooping}");
+                    Debug.Log($"MINI-120 SETUP: [{fbxPath}] found clip '{clip.name}', length={clip.length:F2}s, frameRate={clip.frameRate}, isHumanMotion={clip.isHumanMotion}, isLooping={clip.isLooping}");
                     clipCount++;
                 }
             }
 
-            var avatar = AssetDatabase.LoadAssetAtPath<Avatar>(FbxPath);
-            Debug.Log($"MINI-120 SETUP: import done. animationType={importer.animationType}, avatar valid={(avatar != null && avatar.isValid)}, avatar isHuman={(avatar != null && avatar.isHuman)}, clips found={clipCount}.");
+            var avatar = AssetDatabase.LoadAssetAtPath<Avatar>(fbxPath);
+            Debug.Log($"MINI-120 SETUP: [{fbxPath}] import done. animationType={importer.animationType}, avatar valid={(avatar != null && avatar.isValid)}, avatar isHuman={(avatar != null && avatar.isHuman)}, clips found={clipCount}.");
         }
     }
 }

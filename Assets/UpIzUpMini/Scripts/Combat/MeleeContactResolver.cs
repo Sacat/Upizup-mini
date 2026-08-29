@@ -17,10 +17,27 @@ namespace UpIzUpMini.Combat
         public float reach;
         public float radius;
         public float arcDegrees;
+        // MINI-120 (combat bug-fix pass), user: "I can punch the air close
+        // to the character and the character gets hurt." Measured, not
+        // guessed (Mini120HitDetectionCheck.cs): this fixed forgiveness
+        // margin, stacked on top of radius, was letting a swing land up
+        // to 2.3m away and 0.6m to either side - a lunging-weapon-scale
+        // hit volume left over from when the punch was a weapon-swing
+        // clip, never retuned for a real arm's-length jab. Exposed here
+        // (was a hardcoded +0.35f) so each move in a data-driven combat
+        // system can carry its own realistic value instead of one
+        // generic constant shared by every swing. Optional constructor
+        // param defaults to the original 0.35f so every other caller
+        // (PoliceOfficer, FactionBrawler, CompanionCombatAssist) keeps
+        // its existing feel unless explicitly retuned - this fix is
+        // scoped to the player's own reported complaint, not applied
+        // silently everywhere.
+        public float bodyRadiusBonus;
 
         public MeleeAttackProfile(
             float windupSeconds, float activeSeconds, float recoverySeconds,
-            float forwardOffset, float reach, float radius, float arcDegrees)
+            float forwardOffset, float reach, float radius, float arcDegrees,
+            float bodyRadiusBonus = 0.35f)
         {
             this.windupSeconds = Mathf.Max(0f, windupSeconds);
             this.activeSeconds = Mathf.Max(0.01f, activeSeconds);
@@ -29,6 +46,7 @@ namespace UpIzUpMini.Combat
             this.reach = Mathf.Max(this.forwardOffset + 0.05f, reach);
             this.radius = Mathf.Max(0.05f, radius);
             this.arcDegrees = Mathf.Clamp(arcDegrees, 1f, 180f);
+            this.bodyRadiusBonus = Mathf.Max(0f, bodyRadiusBonus);
         }
 
         public float TotalSeconds => windupSeconds + activeSeconds + recoverySeconds;
@@ -141,7 +159,7 @@ namespace UpIzUpMini.Combat
             // Contact radius plus a modest body radius approximates a fist
             // meeting a character capsule, without relying on target collider
             // topology or an omnidirectional overlap sphere.
-            return DistancePointToSegment(bodyPoint, start, end) <= profile.radius + 0.35f;
+            return DistancePointToSegment(bodyPoint, start, end) <= profile.radius + profile.bodyRadiusBonus;
         }
 
         /// <summary>Complete single-target contact check used when an AI has

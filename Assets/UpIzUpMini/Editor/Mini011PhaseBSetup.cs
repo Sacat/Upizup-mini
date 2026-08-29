@@ -357,12 +357,30 @@ namespace UpIzUpMini.EditorTools
             var meleeClip = LoadClip("Assets/Mixamo/Animations/Mixamo_JabPunch.fbx");
             var hitReactionClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@CombatDamage01.fbx");
             var knockedDownClip = LoadClip("Assets/Kevin Iglesias/Human Animations/Animations/Male/Combat/HumanM@Death01.fbx");
+            // MINI-120 combo request, user: "so fighting system... what
+            // about combos?" The 2nd/3rd steps of MeleeMoveLibrary.Chain -
+            // real Mixamo punches the user watched and confirmed in
+            // Mixamo's own preview (see Docs/ASSET-REGISTER.md).
+            var hookClip = LoadClip(MeleeMoveLibrary.HookClipPath);
+            var rightHookClip = LoadClip(MeleeMoveLibrary.RightHookClipPath);
             return new[]
             {
                 new HumanoidAnimationManager.ActionEntry
                 {
                     id = SimpleMeleeCombat.ActionId,
                     clip = meleeClip,
+                    fullBody = false,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = MeleeMoveLibrary.HookId,
+                    clip = hookClip,
+                    fullBody = false,
+                },
+                new HumanoidAnimationManager.ActionEntry
+                {
+                    id = MeleeMoveLibrary.RightHookId,
+                    clip = rightHookClip,
                     fullBody = false,
                 },
                 new HumanoidAnimationManager.ActionEntry

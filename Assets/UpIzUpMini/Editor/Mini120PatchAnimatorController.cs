@@ -29,28 +29,31 @@ namespace UpIzUpMini.EditorTools
             var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
             if (controller == null) { Debug.LogError("MINI-120 PATCH CONTROLLER: couldn't load " + ControllerPath); return; }
 
-            // Read the Melee state's motion BEFORE, so the log proves this
-            // actually changed something rather than silently no-op'ing.
-            string before = FindMeleeMotionName(controller);
+            // Read each combo state's motion BEFORE, so the log proves
+            // this actually changed/created something rather than
+            // silently no-op'ing.
+            string[] stateNames = { "Melee", "MeleeHook", "MeleeRightHook" };
+            var before = new System.Collections.Generic.Dictionary<string, string>();
+            foreach (var s in stateNames) before[s] = FindStateMotionName(controller, s);
 
             var entries = Mini011PhaseBSetup.GetSharedActionEntriesPublic();
             HumanoidAnimationLayerBuilder.EnsureActionLayers(controller, entries);
             AssetDatabase.SaveAssets();
 
-            string after = FindMeleeMotionName(controller);
-            Debug.Log($"MINI-120 PATCH CONTROLLER: 'Melee' state motion BEFORE='{before}', AFTER='{after}'.");
-
-            if (before == after)
-                Debug.LogWarning("MINI-120 PATCH CONTROLLER: motion name unchanged - if this still isn't the new clip, something else is wrong.");
+            foreach (var s in stateNames)
+            {
+                string after = FindStateMotionName(controller, s);
+                Debug.Log($"MINI-120 PATCH CONTROLLER: '{s}' state motion BEFORE='{before[s]}', AFTER='{after}'.");
+            }
         }
 
-        private static string FindMeleeMotionName(AnimatorController controller)
+        private static string FindStateMotionName(AnimatorController controller, string stateName)
         {
             foreach (var layer in controller.layers)
             {
                 foreach (var child in layer.stateMachine.states)
                 {
-                    if (child.state.name == "Melee")
+                    if (child.state.name == stateName)
                         return child.state.motion != null ? child.state.motion.name : "NULL";
                 }
             }
