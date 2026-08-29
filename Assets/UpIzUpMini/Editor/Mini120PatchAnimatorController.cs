@@ -39,6 +39,19 @@ namespace UpIzUpMini.EditorTools
             var entries = Mini011PhaseBSetup.GetSharedActionEntriesPublic();
             HumanoidAnimationLayerBuilder.EnsureActionLayers(controller, entries);
             AssetDatabase.SaveAssets();
+            // MINI-120 combo fix round 2, user: combo step cycles
+            // correctly in the real Player.log but PlayAction fails for
+            // every state added by this tool except the original
+            // "Melee" (which has been through many prior builds).
+            // HasState succeeds against this exact asset when checked
+            // live in the Editor right after patching - the built
+            // Player disagreeing points at a stale build-time bake, not
+            // a data problem. Forcing a full reimport (not just a save)
+            // is the standard fix for a Unity build not picking up an
+            // AnimatorController change made via AddState() through a
+            // script rather than the GUI.
+            AssetDatabase.ImportAsset(ControllerPath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
 
             foreach (var s in stateNames)
             {
