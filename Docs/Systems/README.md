@@ -26,7 +26,8 @@ Introduced 2026-08-29 at the user's explicit request: "a modular system that det
 | conversations, dialect/patois lines, dialogue panels, NPC lines | `Dialogue.md` |
 | money, shops, crops, farming, inventory, purchases, strains | `Economy.md` |
 | rigging, LODs, wardrobe, character models, animation import/retargeting | `Characters.md` |
-| patrol behaviour, police/gang AI, heat, faction reputation, NPC pathing | `NPCsAndAI.md` |
+| patrol behaviour, police AI, heat, general NPC pathing | `NPCsAndAI.md` |
+| gangs, Dog Life, Not Ah Word, rival crews, territory/block behaviour, recruitment | `Gang.md` |
 | Editor tools, batch verification, builds, the diagnostic-tool pattern itself | `BuildAndVerification.md` |
 | menus, pause screen, HUD, canvas layering/sorting, panels not appearing/rendering behind other UI | `UI.md` |
 | "what's the current state", "what's next", session handoff to a fresh agent | this file, then `../NEXT-CHATGPT-PLUS-HANDOFF.md` |
@@ -72,5 +73,6 @@ Exact paths.
 - [Economy](Economy.md)
 - [Characters](Characters.md)
 - [NPCs & AI](NPCsAndAI.md)
+- [Gang](Gang.md)
 - [Build & Verification](BuildAndVerification.md)
 - [UI](UI.md)

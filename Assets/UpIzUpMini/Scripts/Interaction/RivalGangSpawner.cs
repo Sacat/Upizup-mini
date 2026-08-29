@@ -161,10 +161,35 @@ namespace UpIzUpMini.Interaction
                 _walkingGroup.Add(member);
                 _walkingGroupOriginalWaypoints[member] = patrol.Waypoints;
                 Vector3 start = member.transform.position;
-                patrol.SetWaypoints(new[] { start, start + roadDirection * groupWalkDistance });
+                // MINI-120 follow-up, user: "i only see someone floating
+                // in the air on the building opposite side." Real bug:
+                // this used to be `start + roadDirection * groupWalkDistance`
+                // - a flat offset that keeps `start`'s own Y unchanged,
+                // never re-sampling ground height at the new spot 24m
+                // away. If that spot sits near a building (different
+                // elevation than the block itself), the destination
+                // waypoint's Y is simply wrong for what's actually there,
+                // reading as the member floating/embedded relative to
+                // whatever's really at that height. Ground-snapped via
+                // raycast, the same technique already proven throughout
+                // this project (e.g. VehicleSpawnController.GroundSnap).
+                Vector3 destination = GroundSnap(start + roadDirection * groupWalkDistance);
+                patrol.SetWaypoints(new[] { start, destination });
             }
 
             if (_walkingGroup.Count > 0) _groupWalkEndsAt = Time.time + groupWalkDurationSeconds;
+        }
+
+        /// <summary>Same raycast-based ground-height technique used
+        /// throughout this project (e.g. VehicleSpawnController.
+        /// GroundSnap) - this scene's ground is collider-based, not a
+        /// Unity Terrain, so height must be sampled by raycast, not
+        /// Terrain.SampleHeight.</summary>
+        private static Vector3 GroundSnap(Vector3 pos)
+        {
+            if (Physics.Raycast(pos + Vector3.up * 40f, Vector3.down, out RaycastHit hit, 90f))
+                return hit.point;
+            return pos;
         }
 
         private void EndGroupWalk()
