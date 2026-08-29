@@ -48,13 +48,24 @@ namespace UpIzUpMini.EditorTools
             var actionsProp = so.FindProperty("actions");
             if (actionsProp == null) return 0;
 
+            // MINI-120 follow-up, user: "i didnt see the kick" - real
+            // cause was fullBody=false (upper-body-masked, legs excluded
+            // - see Mini011PhaseBSetup.GetSharedActionEntries' own
+            // comment on this same fix). Re-authors the entry in place
+            // if it already exists (from the first, wrongly-masked
+            // pass) instead of skipping, so re-running this after fixing
+            // the shared entry definition actually takes effect here too.
             for (int i = 0; i < actionsProp.arraySize; i++)
             {
                 var idProp = actionsProp.GetArrayElementAtIndex(i).FindPropertyRelative("id");
                 if (idProp != null && idProp.stringValue == kickId)
                 {
-                    Debug.Log($"MINI-120 ADD KICK ENTRIES: '{characterName}' already has '{kickId}' - skipping.");
-                    return 0;
+                    var existing = actionsProp.GetArrayElementAtIndex(i);
+                    existing.FindPropertyRelative("clip").objectReferenceValue = clip;
+                    existing.FindPropertyRelative("fullBody").boolValue = true;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    Debug.Log($"MINI-120 ADD KICK ENTRIES: '{characterName}' already had '{kickId}' - re-authored fullBody=true in place.");
+                    return 1;
                 }
             }
 
@@ -63,10 +74,10 @@ namespace UpIzUpMini.EditorTools
             var newElement = actionsProp.GetArrayElementAtIndex(newIndex);
             newElement.FindPropertyRelative("id").stringValue = kickId;
             newElement.FindPropertyRelative("clip").objectReferenceValue = clip;
-            newElement.FindPropertyRelative("fullBody").boolValue = false;
+            newElement.FindPropertyRelative("fullBody").boolValue = true;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            Debug.Log($"MINI-120 ADD KICK ENTRIES: added '{kickId}' (clip={(clip != null ? clip.name : "NULL")}) to '{characterName}'.");
+            Debug.Log($"MINI-120 ADD KICK ENTRIES: added '{kickId}' (clip={(clip != null ? clip.name : "NULL")}, fullBody=true) to '{characterName}'.");
             return 1;
         }
     }

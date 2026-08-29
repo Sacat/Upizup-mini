@@ -519,15 +519,14 @@ namespace UpIzUpMini.Vehicles
             // own header.
             instance.AddComponent<SuperMotoUprightAssist>();
 
-            // MINI-119 follow-up, user: "i didnt see the screen read out if
-            // E was held or not." The earlier readout lived inside
-            // Mini119StockDemoBikeTuner's toggleable/scrollable panel and
-            // was missed entirely. This is a standalone, always-visible
-            // overlay (H to hide) showing the same live diagnostic -
-            // whether E is registering at all and exactly what is blocking
-            // the wheelie - so the user can report back what the game
-            // itself says instead of me guessing from batch tests.
-            instance.AddComponent<SuperMotoWheelieHud>();
+            // MINI-120 follow-up, user: "remove the wheelie and bike
+            // stuff on the screen." The always-visible wheelie diagnostic
+            // HUD (added earlier in MINI-119 to debug why E wasn't
+            // registering) is dev-only overlay clutter now that riding/
+            // wheelie is confirmed working - removed from the real
+            // mount flow. SuperMotoWheelieHud.cs itself is left in the
+            // project (not deleted) in case a future wheelie regression
+            // needs the same diagnostic again.
 
             // MINI-119 follow-up fix, user: "E didnt work for wheelie. i
             // still had to press crtl." A RequireComponent on one of the
@@ -554,16 +553,14 @@ namespace UpIzUpMini.Vehicles
             var camAnchor = camAnchorGo.AddComponent<BikeCameraAnchor>();
             camAnchor.Follow(instance.transform);
 
-            // MINI-119 follow-up, user: "it crashes too easy... it tends
-            // to lean on a side while riding sometimes... i like the
-            // wheelie but it needs upright assist as well." The asset
-            // already HAS real upright-assist (Gadd420.AutoLeveling -
-            // autoLevelForce/dotForAutoLevel/antiSpinTorque) and wheelie-
-            // specific assist (AutoLeveling.safeWheelies/antiLoopStrength/
-            // maxWheelieAngle) - nothing new to invent, just expose what's
-            // already there as live sliders. See Mini119StockDemoBikeTuner.
-            if (instance.GetComponent<Mini119StockDemoBikeTuner>() == null)
-                instance.AddComponent<Mini119StockDemoBikeTuner>();
+            // MINI-120 follow-up, user: "remove the wheelie and bike
+            // stuff on the screen." The live-tuning slider panel (T to
+            // toggle) is dev-only scaffolding from when the wheelie/
+            // upright-assist values were still being found - removed
+            // from the real mount flow now that they're tuned and
+            // confirmed. Mini119StockDemoBikeTuner.cs itself is left in
+            // the project (not deleted) in case those values need
+            // retuning again later.
 
             // MINI-119 follow-up, user: "i must press F to get stable in
             // the beginning because the spawn lands with a crash" then

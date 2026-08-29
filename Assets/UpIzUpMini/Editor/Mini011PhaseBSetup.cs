@@ -396,17 +396,28 @@ namespace UpIzUpMini.EditorTools
                     clip = finisherClip,
                     fullBody = false,
                 },
+                // MINI-120 follow-up, user: "i didnt see the kick." Real
+                // cause: the punches deliberately play on the "Action"
+                // layer, upper-body-masked (BuildUpperBodyMask excludes
+                // LeftLeg/RightLeg/foot IK) so the character keeps
+                // walking while punching. A kick's whole point is leg
+                // movement - masked out, the kick state still fires
+                // (confirmed True in the user's own Player.log) but the
+                // legs never actually move, which reads as no kick
+                // happening at all. fullBody=true plays it on
+                // FullBodyOverride instead (unmasked), same as vehicle
+                // seating already does.
                 new HumanoidAnimationManager.ActionEntry
                 {
                     id = MeleeMoveLibrary.KickSacatId,
                     clip = kickSacatClip,
-                    fullBody = false,
+                    fullBody = true,
                 },
                 new HumanoidAnimationManager.ActionEntry
                 {
                     id = MeleeMoveLibrary.KickFrankiId,
                     clip = kickFrankiClip,
-                    fullBody = false,
+                    fullBody = true,
                 },
                 new HumanoidAnimationManager.ActionEntry
                 {
