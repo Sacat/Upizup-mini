@@ -106,6 +106,9 @@
     "mapLabScene": "Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity",
     "mapLabBuilder": "Assets/UpIzUpMini/Editor/Mini095LalayMapLabSetup.cs",
     "gameplayScene": "Assets/UpIzUpMini/Scenes/GrandBayProof.unity",
-    "migrationBuilder": "Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs"
+    "migrationBuilder": "Assets/UpIzUpMini/Editor/Mini100GrandBayMapMigration.cs",
+    "roadSystemProofScene": "Assets/UpIzUpMini/Scenes/MapLab_MBRoad_LalayHighlandProof.unity",
+    "roadSystemProofBuilder": "Assets/UpIzUpMini/Editor/Mini123MBRoadHighlandProof.cs",
+    "roadSystemProofEvidence": "Logs/Tasks/MINI-123/MBRoad-Complete-Remaining-Network-Overhead-1280x720.png"
   }
 }

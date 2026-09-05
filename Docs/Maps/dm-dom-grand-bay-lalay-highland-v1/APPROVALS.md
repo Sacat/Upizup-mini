@@ -14,6 +14,21 @@
 
 Map truth and the corrected graybox are approved. The user described the simplified result as “exactly what i want” and then authorized transfer into Up Iz Up Mini. Final house meshes, vegetation, drains, landmark art and placeholder colors remain editable; topology, road width/continuity, Lalay density relationship, Highland connection, church/beach relationship and jetty-to-sea placement are locked for migration.
 
+## MINI-121 MB Road System foundation accepted
+
+- Evidence: `Logs/Tasks/MINI-121/Legacy-Lalay-PlayerHeight-1280x720.png`, `MBRoad-Lalay-PlayerHeight-1280x720.png`, `Legacy-Lalay-Overhead-1600x1000.png`, and `MBRoad-Lalay-Overhead-1600x1000.png`.
+- User: “yes i love it so far continue”.
+- Approved: the exact existing Lalay alignment reconstructed as two MB Road System spline roads, the 6.2m width, and the rollback design that retains the original road instead of deleting it.
+- Still editable: asphalt texture/material, junction finish, bridge templates and any runtime-only tuning found during driving.
+- Live migration remains pending the upgraded junction/material evidence and a vehicle pass.
+
+## MINI-123 Highland road and bridge treatment accepted
+
+- Evidence: `Logs/Tasks/MINI-123/MBRoad-Highland-NoSidewalk-PlayerHeight-1280x720.png`, `MBRoad-Highland-BridgeConnection-1280x720.png`, `MBRoad-Highland-Lalay-DriveLine-1280x720.png`, and `MBRoad-Highland-Bridge-HighlandApproach-1280x720.png`.
+- User: “looks good for now so go ahead”.
+- Approved: no sidewalks outside the Lalay main road, terrain-aware approach grading, and collidable road transitions overlapping both ends of the Highland–Lalay bridge.
+- Continued proof now converts all nine remaining roads while retaining disabled rollback roads. Complete-network visual approval and a vehicle pass remain required before live migration.
+
 ## MINI-102 south Backstreet and role-layout candidate
 
 - The user-marked Backstreet now runs south/below Lalay and joins the main road at both ends; the accidental northern version no longer exists.

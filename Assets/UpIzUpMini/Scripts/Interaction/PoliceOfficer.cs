@@ -71,6 +71,8 @@ namespace UpIzUpMini.Interaction
         private float _sideSign;
         private float _nextStrike;
         private CharacterVitals _pendingVictim;
+        private int _strikeStep;
+        private NpcCombatMoveLibrary.Move _activeStrikeMove;
         private readonly MeleeSwingTimeline _strike = new MeleeSwingTimeline();
         private readonly NavPathSteerer _steerer = new NavPathSteerer();
         private readonly NpcObstacleJumpMotor _jumpMotor = new NpcObstacleJumpMotor();
@@ -265,9 +267,10 @@ namespace UpIzUpMini.Interaction
             if (victim == null || victim.IsDead) return false;
 
             _pendingVictim = victim;
-            _nextStrike = Time.time + strikeCooldown;
-            animationManager?.PlayAction(SimpleMeleeCombat.ActionId);
-            return _strike.Begin(BuildStrikeProfile());
+            _activeStrikeMove = NpcCombatMoveLibrary.Get(NpcFighterStyle.Police, _strikeStep++);
+            _nextStrike = Time.time + Mathf.Max(strikeCooldown, _activeStrikeMove.TotalSeconds + .25f);
+            animationManager?.PlayAction(_activeStrikeMove.id);
+            return _strike.Begin(_activeStrikeMove.BuildProfile());
         }
 
         /// <summary>Advances the police windup/active/recovery timeline.
@@ -283,8 +286,8 @@ namespace UpIzUpMini.Interaction
         {
             if (_pendingVictim == null || _pendingVictim.IsDead) return;
             if (!MeleeContactResolver.CanHitTarget(
-                    transform, _pendingVictim.transform, BuildStrikeProfile())) return;
-            _pendingVictim.Damage(strikeDamage);
+                    transform, _pendingVictim.transform, ActiveStrikeProfile())) return;
+            _pendingVictim.Damage(_activeStrikeMove.damage > 0f ? _activeStrikeMove.damage : strikeDamage);
         }
 
         private void CancelStrike()
@@ -296,6 +299,9 @@ namespace UpIzUpMini.Interaction
         private MeleeAttackProfile BuildStrikeProfile() => new MeleeAttackProfile(
             strikeWindupSeconds, strikeActiveSeconds, strikeRecoverySeconds,
             0.28f, strikeRange, strikeRadius, strikeArcDegrees);
+
+        private MeleeAttackProfile ActiveStrikeProfile() =>
+            string.IsNullOrEmpty(_activeStrikeMove.id) ? BuildStrikeProfile() : _activeStrikeMove.BuildProfile();
 
         private bool HasLineOfSight(GameObject player)
         {

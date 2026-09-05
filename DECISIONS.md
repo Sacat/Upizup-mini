@@ -1,5 +1,19 @@
 # Up Iz Up Mini — Decisions
 
+## D-013 — Bike wheelie ceiling and collision-only rider ejection
+
+- Date: 2026-08-31
+- Decision owner: User
+- Decision: Cap commanded bike wheelies at 89 degrees. Wheelie angle or bike tilt alone must never crash or eject driver/pillion; only a sufficiently hard physical collision may eject them. This supersedes the earlier 90-degree balance / 95-degree fall-back rule.
+- Consequence: Both bike controllers use a shared 89-degree runtime clamp. Crash detection retains MINI-135's ground-filtered, contact-normal hard-impact path and has no over-angle path. Future tuning must not reintroduce angle-triggered crashes unless the user explicitly revises this decision.
+
+## D-012 — TMAX uses the SuperMoto as its moving-wheel and steering reference
+
+- Date: 2026-08-30
+- Decision owner: User
+- Decision: Fit black SuperMoto-reference wheel meshes to the TMAX and synchronize the front wheel, fork/handlebar and rider grip targets, while leaving the proven TMAX WheelColliders and handling untouched.
+- Consequence: MINI-124 is a reversible visual integration. The fused scan geometry remains until the user decides whether the overlay is sufficient or authorizes a later Blender mesh-separation cleanup.
+
 ## D-011 — Every world expansion uses a gated district manifest
 
 - Date: 2026-08-20

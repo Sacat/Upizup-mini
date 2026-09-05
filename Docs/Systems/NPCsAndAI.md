@@ -15,6 +15,8 @@ Patrol/navigation, hit reaction, and police heat/chase/search/recovery all exist
 
 ## What worked / what didn't
 
+- **(2026-08-30) Persistent interactables need a different defeat policy from population NPCs (MINI-132).** Farm/shop sellers, buyers, bosses and other named `TownNPCInteractable` roles now ragdoll from a vehicle hit but are protected from removal: they recover where the ragdoll stopped and walk back to the exact world position/rotation captured at startup. Villagers and police fade then reappear at home after 100 seconds. Dog Life remains controlled by its own external pool rather than being silently given a second respawn timer.
+
 - **(historical) NavMesh-based steering (MINI-052) was tried for companion following and reverted back to direct-line steering** after a hill-glitching report - direct-line movement, layered onto the existing `CharacterController` scripts, was what actually worked for this project's terrain, not a full NavMeshAgent swap.
 - **(2026-08-28) Extending ragdoll-on-hit to Villager-role NPCs required a genuine gap-fill, not a tweak** - Villagers previously had NO `NpcCombatHealth` component at all (confirmed via grep before assuming otherwise); only Police and Gang members did. Added via the same additive-patch pattern as `MapGeneration.md`'s ledger (a tool that finds already-placed NPCs in the live scene and attaches what's missing, rather than a full scene rebuild).
 - **(2026-08-28) `FindObjectsByType` without `FindObjectsInactive.Include` silently misses pooled/inactive NPCs** - a lesson that also applies to `Gang.md`'s pooled rosters (Not Ah Word/Dog Life), see that file for the specific incident.

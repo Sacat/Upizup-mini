@@ -1,4 +1,114 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-04 — MINI-140 E-to-mount / Q-to-wheelie control remap
+
+- Vehicle mount / enter / dismount is now E (the world interact key) for the TMAX, SuperMoto and Range Rover, routed through the normal interaction path while each vehicle keeps its own wider mount reach.
+- The bike wheelie is now Q (TMAX `wheelieKey`; `SuperMotoWheelieKeyRemap` reads Q only, E removed). F is the melee Attack key only and is no longer read by any vehicle.
+- The phone's Q call-partner action is suppressed while the active character is mounted; on foot it is unchanged.
+- The E press that mounts a vehicle is guarded so it cannot also dismount the same frame.
+- Updated the serialized key codes in `TMAX_560.prefab` and `RangeRover_Vehicle.prefab` — input bindings only, no mesh/transform/seat/effect/placement change.
+- Focused MINI-140 plus standing MINI-065 / MINI-139 / MINI-137 validations pass; Windows build succeeds and a 15-second startup smoke stayed alive with no exceptions. Live control feel approval remains.
+## 2026-09-01 — MINI-139 TMAX 12 mph wheelie sustain floor
+
+- Set an effective 12 mph (19.31 km/h) minimum for both starting and sustaining TMAX wheelies.
+- Routed below-threshold wheelies into the existing smooth zero-degree recovery target rather than snapping the bike down.
+- Preserved rear-contact-chatter tolerance, the 89-degree cap, crash filtering, handling, animation, effects, wheels and placement.
+- Focused MINI-139 and standing MINI-138 validations pass; Windows build and 12-second startup smoke pass. Live feel approval remains.
+## 2026-08-31 — MINI-138 wheelie crash sensitivity correction
+
+- Distinguished forced-wheelie rotational contact velocity from real bike travel speed.
+- During an active wheelie, rider ejection now requires a 15% harder impact plus at least 16.5 m/s of actual Rigidbody speed.
+- Preserved normal upright crashes, genuine high-speed wheelie wall crashes, NPC impact handling, the 89-degree cap, animation, effects and handling.
+- Focused regression and Windows build pass; the player remained alive through the 12-second startup smoke. Live feel approval remains.
+## 2026-08-31 — MINI-137 TMAX wheelie effects and SuperMoto lift pose
+
+- Reduced TMAX exhaust frequency, puff size, maximum opacity and particle budget without moving the approved right-rear outlet.
+- Added a mobile-bounded rear-underside spark effect gated to a ridden TMAX at the 89-degree cap and at least 12 mph.
+- Applied the in-game SuperMoto's proven 0.22 authored lift blend to TMAX riders only while mounted and restored their previous setting on dismount.
+- Preserved handling, wheels, seats, IK, pillion, crash behavior, scene and prefab placement.
+- Focused MINI-137 and standing MINI-136 validations pass; Windows build succeeds and the player remained alive through the startup smoke. Live visual/motion approval remains.
+
+
+## 2026-08-31 — MINI-136 89-degree wheelie cap and collision-only crash
+
+- Added one shared 89-degree commanded-wheelie ceiling and applied it to both TMAX and SuperMoto, including runtime clamping of serialized/tuner values.
+- Removed the angle/tilt polling, backward kick and over-angle ejection path from bike crash detection.
+- Preserved MINI-135's filtered hard-collision rider-ejection path and all approved handling, wheels, rider fit and scene placement.
+- Focused MINI-136 and standing MINI-132 validations pass; Windows player rebuilt and remained running through the 12-second startup smoke. Live motion approval remains.
+
+## 2026-08-31 — MINI-135 crash threshold and seller impact correction
+
+- Replaced raw collision-magnitude bike ejection with contact-normal closing speed, ignored upward road/ground contacts, and raised hard-obstacle/NPC ejection thresholds.
+- Set 90 degrees as the wheelie balance point, preserved rider attachment through 95 degrees, and added a backward angular kick before driver/pillion ejection beyond 95.
+- Added idempotent runtime CharacterControllers to stationary town NPCs so sellers receive vehicle collision/trigger hits and retain protected ragdoll recovery/return-to-post behavior.
+- Focused MINI-135 and standing MINI-132 validations pass; Windows player rebuilt and final startup smoke passed. Live feel approval remains.
+
+
+## 2026-08-30 — MINI-132 shared vehicle-impact and combat foundation
+
+- Made Franki's whole combo 25% stronger with 30% heavier impact, rather than strengthening only his final kick.
+- Added distinct slower/weaker three-move Mixamo combinations for police and gang fighters.
+- Added one speed/contact-driven collision adapter to the TMAX, SuperMoto and cars; all hits route through `NpcCombatHealth` and the existing humanoid ragdoll.
+- Added protected seller/named-NPC recovery: get up where they fell, restore health, then walk back to the exact original post. Ambient police/villagers fade and return later; Dog Life keeps its external pool.
+- Focused validation and Unity compile pass; Windows player rebuilt and short smoke run contained no exception. Live motion approval and rider-ejection extension remain.
+
+## 2026-08-30 — MINI-131 TMAX wheel lock and restrained turn lean
+
+- Replaced cumulative TMAX wheel positioning with cached local hub rest points reapplied in a final late frame pass; forced-displacement validation stays stable over 250 cycles.
+- Changed the held turn animation into a short 0.38-second accent with a stronger entry threshold and faster return to neutral.
+- Capped rider cosmetic-roll following at 52% and procedural roll at 9 degrees without changing the bike's physics, approved seat offsets, IK or wheelie.
+- Moved the bounded exhaust outlet slightly lower and farther to the right-rear.
+- Focused and standing TMAX validations pass; rebuilt Windows player starts and remains running for the smoke window without an exception.
+
+## 2026-08-30 — MINI-129/130 rider fit and Dog Life respawn
+
+- Advanced only the TMAX driver by 0.12m in both seated and wheelie poses, preserving approved height, side placement and pitch and leaving the pillion unchanged.
+- Fixed pooled Dog Life reactivation by refreshing `NpcCombatHealth` references during respawn and safely handling renderer objects replaced while the NPC was inactive.
+- Extended the Dog Life validator to reproduce the real stale/null renderer-cache failure before reactivation.
+- TMAX and Dog Life focused validation pass; rebuilt Windows player succeeds and a 12-second smoke run has no Dog Life respawn NullReference exception.
+
+## 2026-08-30 — MINI-128 TMAX parking, effects and pillion alignment
+
+- Locked the empty test TMAX at the exact Farm Shop/Produce Buyer road midpoint until the player mounts it and added a location alert tied to the existing orange minimap marker.
+- Added bounded right-rear exhaust puffs plus SuperMoto-reference tyre smoke and black tread marks that activate only under rear-wheel braking or measured slip.
+- Preserved the pillion's approved height/offset while changing its seat anchor to a neutral forward rotation and its ride pose to the stable SuperMoto-style `RideBike` pose.
+- Focused validation, standing TMAX validation and the Windows build pass. Live player inspection confirmed movement, visible smoke/marks and two forward-facing riders; the unrelated pre-existing gang-respawn exception remains.
+
+## 2026-08-30 — MINI-127 purchasable TMAX control repair
+
+- Confirmed the spawned and Car Dealer TMAX are the same prefab; no alternative shop-only TMAX existed.
+- Reconnected mount/riding input to the prefab's fully wired `TmaxBikeControllerCustom` and disabled the incomplete vendor controller stack for every spawned or purchased TMAX.
+- Increased the effective F-mount radius to 4.25m and hid the saved overlapping SuperMoto comparison bike during the temporary TMAX test.
+- Focused validation and Windows build pass. An 18-second standalone smoke run logs the repair with no vendor steering/nitrous exception; the unrelated pre-existing gang-respawn exception remains.
+
+## 2026-08-30 — MINI-126 TMAX market-road placement and Windows rebuild
+
+- Moved the temporary TMAX test spawn to the road midpoint between the Farm Shop and Produce Buyer stalls.
+- Aligned the bike along Lalay using the perpendicular of the stall-to-stall direction; an existing TMAX is moved to the same test position instead of duplicated.
+- Rebuilt `Builds/GrandBayProof/UpIzUpMini.exe`; fresh scene/code payload confirmed and the standalone remained running for a 15-second smoke check.
+- The spawn itself logged successfully. Existing non-fatal gang-respawn and vendor nitrous exceptions remain visible in the smoke log and were not expanded into this bounded build task.
+
+## 2026-08-30 — MINI-125 TMAX test spawn
+
+- Added a temporary TMAX-only runtime spawn beside the active character for the MINI-124 wheel/steering playtest.
+- Kept Sacat/Franki on foot with the normal walk-up/F mount flow; no Range Rover, SuperMoto, auto-mount, ownership grant, or save-data change.
+- Added duplicate protection and the existing vehicle minimap marker.
+- Unity compile and the standing MINI-064/065 TMAX prefab/scene validator pass; real riding and appearance still need user confirmation.
+
+## 2026-08-30 — MINI-124 TMAX black spinning wheels and steering
+
+- Replaced the TMAX's invisible thin wheel-disc illusion with fitted black SuperMoto tyre meshes while retaining its original WheelColliders and all physics values.
+- Added a visual fork/handlebar steering pivot driven by the front WheelCollider steer angle; preserved the established root-level hand-target paths and made them follow the pivot at runtime.
+- Added a repeatable upgrade/validation/evidence tool plus a recoverable pre-change prefab copy under `Logs/Tasks/MINI-124`.
+- Focused validation, original MINI-064/065 structural validation and the real-physics drop/drive/wheelie regression pass. Static screenshots and a 2-second articulation proof are ready for user review.
+- Known limitation: the old wheels/bars are fused into the scan's main mesh, so the new moving geometry overlays them until a later Blender separation pass.
+
+## 2026-08-29 — MINI-123 complete remaining-road MB proof
+
+- Extended the isolated MB Road System proof from Highland to every remaining phase-one road without touching `GrandBayProof.unity`.
+- Converted eight mapped routes plus the measured `way/387239000`–`way/23042701` connector: nine active MB roads, 815 road-mesh vertices and nine disabled rollback roads.
+- Retained line-free 6.2m paved roads, a 4.8m dirt Highland farm spur and zero generated non-Lalay sidewalks.
+- Rebuilt both Highland–Lalay bridge joins as terrain-aware, collidable transitions sampled only from authoritative road/terrain surfaces; added two-direction driving-height evidence and deck-overlap validation.
+- Unity focused validation and the `approved_graybox` map-district gate pass. Full-network visual approval and a later vehicle test still gate live migration.
 
 ## 2026-08-22 — MINI-119 follow-up 5 (bike bump/debounce, steep-ledge classification)
 
@@ -300,3 +410,17 @@
 - Added the reusable Up Iz Up Mini character manifest schema, Sacat manifest, production workflow, generic Blender LOD tool, PowerShell runner and isolated Unity motion-proof builder.
 - Confirmed the original 100K Sacat rig animates correctly with the owned Humanoid clips.
 - Rejected the current decimated mobile LODs for motion because joint deformation tears; no playable character or gameplay scene was changed.
+# 2026-08-29 — MINI-121 MB Road System Lalay proof
+
+- Added a reversible, isolated Lalay spline-road proof using the already-installed MB Road System 2.2.1 package.
+- Preserved the approved Map Lab and live gameplay scene; the proof scene contains an inactive two-road legacy rollback root.
+- Retained the sourced Lalay X/Z path, sampled its approved collider heights, reused the approved 6.2m width/material, and generated matching road collision.
+- Validation passed with two MB roads, two legacy backups and 478 generated vertices; captured fixed before/after overhead and player-height evidence. Awaiting user visual approval; no live migration performed.
+
+# 2026-08-29 — MINI-122 line-free Lalay asphalt and connected junction
+
+- Rebuilt the accepted isolated spline proof with dark line-free asphalt; the package's painted-line colour texture is not used.
+- Connected both Lalay spline segments through one MB intersection with two road anchors and a non-colliding visual junction cover.
+- Kept the lined sample available for a possible later secondary road and retained both inactive legacy roads for rollback.
+- Passed batch compile and focused validation with 478 road vertices; captured player-height, overhead and junction evidence. The live gameplay scene and EXE remain unchanged pending visual approval and vehicle testing.
+- Follow-up visual correction inset both spline ends into a 48-segment rounded apron with one continuous collider, added a curved proof-only sidewalk cleanup, removed the two blue house masses obstructing that junction, and revalidated at 470 road vertices. The source Map Lab remains unchanged.

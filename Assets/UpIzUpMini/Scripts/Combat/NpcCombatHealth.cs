@@ -1,23 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UpIzUpMini.Character;
+using UpIzUpMini.Interaction;
 
 namespace UpIzUpMini.Combat
 {
-    /// <summary>
-    /// MINI-038. NPC side of melee combat. Every non-fatal hit plays a
-    /// stagger reaction; taking enough of them (health reaches 0) plays a
-    /// sustained fall/lie-down pose instead of instantly hiding the
-    /// character, and holds it for <see cref="recoverSeconds"/> before
-    /// getting back up. Both use HumanoidAnimationManager, so this needs no
-    /// Animator wiring of its own beyond that reference.
-    /// </summary>
+    public enum NpcDefeatPolicy { ExternalPool, FadeAndRespawnAtHome, RecoverAndReturnToPost }
+
+    /// <summary>Health endpoint shared by melee and vehicle impacts. Pooled gangs retain their external respawner; ambient NPCs fade and return; sellers and named interactables always recover and walk back to their captured post.</summary>
     public class NpcCombatHealth : MonoBehaviour
     {
         public static readonly List<NpcCombatHealth> All = new List<NpcCombatHealth>();
-        // Ids baked into the shared controller's Action/FullBodyOverride
-        // layers by HumanoidAnimationLayerBuilder (see
-        // Mini011PhaseBSetup.GetSharedActionEntries).
         public const string HitReactionActionId = "HitReaction";
         public const string KnockedDownActionId = "KnockedDown";
 
@@ -26,97 +19,75 @@ namespace UpIzUpMini.Combat
         [SerializeField] HumanoidAnimationManager animationManager;
         [SerializeField] bool despawnOnDefeat;
         [SerializeField] float despawnDelay = 1.35f;
-
-        // MINI-119 follow-up, user: "if i hit the npc they will behave
-        // like ragdoll... if there health is 0 then they fade after
-        // lying down for 3 seconds. if not then they walk." NpcRagdoll
-        // is optional (added only to police/villagers/gang members per
-        // the user's own scope - shopkeepers/dealers/mission NPCs never
-        // get one) - Hit() below only ragdolls if one is actually
-        // present, otherwise falls back to the original animation-only
-        // reaction so nothing else that already calls Hit() breaks.
         [SerializeField] NpcRagdoll ragdoll;
-        [Tooltip("How long a FATAL hit lies ragdolled before fading, per the user's own number.")]
         [SerializeField] float fatalLieSeconds = 3f;
-        [Tooltip("How long a non-fatal ragdoll hit lies down before getting back up and walking.")]
         [SerializeField] float nonFatalLieSeconds = 2f;
         [SerializeField] float fadeSeconds = 1f;
+        [SerializeField] NpcDefeatPolicy defeatPolicy = NpcDefeatPolicy.ExternalPool;
+        [SerializeField] float worldRespawnSeconds = 100f;
+        [SerializeField] float returnToPostSpeed = 1.65f;
 
-        float health;
-        float recoverAt;
-        float despawnAt;
-        float fadeStartAt;
-        bool fading;
+        float health, recoverAt, forceRecoverAt, despawnAt, fadeStartAt, respawnAt;
+        bool fading, awaitingRespawn, returningToPost;
         CharacterController controller;
+        Animator animator;
         Renderer[] renderers;
+        Vector3 homePosition;
+        Quaternion homeRotation;
+        Vector3 homeScale;
 
-        /// <summary>True while lying down after being knocked out. Movement
-        /// scripts (PoliceOfficer) check this and stop steering rather than
-        /// fighting the sustained animation layer.</summary>
         public bool IsDown { get; private set; }
         public float Health => health;
-
-        /// <summary>MINI-112: Time.time this fighter was last knocked out
-        /// via the despawn path (float.NegativeInfinity if never). Read by
-        /// RivalGangSpawner to gate how soon a defeated Dog Life member is
-        /// allowed to reappear - previously OnEnable's own ResetForRespawn
-        /// meant simply reactivating the GameObject undid a defeat
-        /// instantly, however little time had actually passed.</summary>
+        public NpcDefeatPolicy DefeatPolicy => defeatPolicy;
         public float LastDefeatedAt { get; private set; } = float.NegativeInfinity;
 
         void Awake()
         {
             health = maxHealth;
             controller = GetComponent<CharacterController>();
+            animator = GetComponentInChildren<Animator>();
             if (animationManager == null) animationManager = GetComponent<HumanoidAnimationManager>();
             if (ragdoll == null) ragdoll = GetComponent<NpcRagdoll>();
             renderers = GetComponentsInChildren<Renderer>(true);
+            homePosition = transform.position;
+            homeRotation = transform.rotation;
+            homeScale = transform.localScale;
+            ConfigureFromRole(GetComponent<TownNPCInteractable>());
         }
 
-        void OnEnable()
+        void OnEnable() { if (!All.Contains(this)) All.Add(this); }
+        void OnDisable() => All.Remove(this);
+
+        public void ConfigureFromRole(TownNPCInteractable npc)
         {
-            if (!All.Contains(this)) All.Add(this);
-            // MINI-112: used to unconditionally ResetForRespawn() here,
-            // which meant simply reactivating the GameObject undid a
-            // defeat instantly regardless of how little time had passed.
-            // The only caller that reactivates a despawnOnDefeat character
-            // (RivalGangSpawner) now calls ResetForRespawn() itself, after
-            // checking a real cooldown against LastDefeatedAt.
+            if (npc == null) return;
+            defeatPolicy = PolicyForRole(npc.Role);
         }
 
-        void OnDisable()
-        {
-            All.Remove(this);
-        }
+        public static NpcDefeatPolicy PolicyForRole(NpcRole role) =>
+            role == NpcRole.Villager || role == NpcRole.Police
+                ? NpcDefeatPolicy.FadeAndRespawnAtHome
+                : NpcDefeatPolicy.RecoverAndReturnToPost;
 
         public void Hit(float damage, Vector3 push)
         {
-            // Already down - can't be hit again until they get back up.
-            if (IsDown) return;
+            Vector3 velocity = push.sqrMagnitude > .0001f
+                ? push.normalized * Mathf.Max(4f, push.magnitude * 6f) : Vector3.zero;
+            HitFromImpact(damage, velocity, transform.position + Vector3.up);
+        }
 
-            health = Mathf.Max(0f, health - damage);
+        public void HitFromImpact(float damage, Vector3 impactVelocity, Vector3 impactPoint)
+        {
+            if (IsDown || awaitingRespawn) return;
+            health = Mathf.Max(0f, health - Mathf.Max(0f, damage));
 
-            // MINI-119 follow-up, user: "if i hit the npc they will
-            // behave like ragdoll... if there health is 0 then they
-            // fade after lying down for 3 seconds. if not then they
-            // walk." A ragdoll reaction fires for EVERY hit that lands
-            // (not just the fatal one) - fatal vs non-fatal only
-            // changes what happens once they're down: fade away, or get
-            // back up and resume walking. ragdoll is only present on
-            // police/villagers/gang members per the user's own scope -
-            // shopkeepers/dealers/mission NPCs never get one, so they
-            // fall through to the original animation-only reaction
-            // below unchanged.
             if (ragdoll != null)
             {
-                Vector3 impactVelocity = push.sqrMagnitude > 0.0001f
-                    ? push.normalized * Mathf.Max(4f, push.magnitude * 6f)
-                    : Vector3.zero;
-                ragdoll.Ragdoll(impactVelocity);
+                ragdoll.Ragdoll(impactVelocity, impactPoint);
                 IsDown = true;
                 if (controller != null) controller.enabled = false;
-
-                if (health <= 0f)
+                bool protectedNpc = defeatPolicy == NpcDefeatPolicy.RecoverAndReturnToPost;
+                if (health <= 0f && !protectedNpc)
                 {
                     LastDefeatedAt = Time.time;
                     fadeStartAt = Time.time + fatalLieSeconds;
@@ -124,50 +95,47 @@ namespace UpIzUpMini.Combat
                 }
                 else
                 {
-                    recoverAt = Time.time + nonFatalLieSeconds;
+                    float severityDelay = Mathf.Lerp(0.15f, 0.85f,
+                        Mathf.InverseLerp(4f, 12f, impactVelocity.magnitude));
+                    recoverAt = Time.time + nonFatalLieSeconds + severityDelay;
+                    forceRecoverAt = recoverAt + 1.25f;
                 }
                 return;
             }
 
+            Vector3 push = impactVelocity / 6f;
             if (controller != null && controller.enabled) controller.Move(push);
-
             if (health <= 0f)
             {
                 IsDown = true;
                 recoverAt = Time.time + recoverSeconds;
                 LastDefeatedAt = Time.time;
                 if (despawnOnDefeat) despawnAt = Time.time + despawnDelay;
-                // Held at full weight (no auto-fade, unlike a one-shot
-                // PlayAction) so the character stays lying down for the
-                // whole recovery window instead of springing back to idle
-                // mid-clip.
                 bool played = animationManager != null && animationManager.BeginSustainedAction(KnockedDownActionId);
-                if (!played)
-                {
-                    // No clip baked in (or no animation manager on this
-                    // character) - fall back to the old vanish-until-
-                    // recovered behaviour rather than leaving a standing,
-                    // unresponsive body.
-                    foreach (var r in renderers) r.enabled = false;
-                }
+                if (!played) SetRenderers(false);
                 if (controller != null) controller.enabled = false;
             }
-            else
-            {
-                animationManager?.PlayAction(HitReactionActionId);
-            }
+            else animationManager?.PlayAction(HitReactionActionId);
         }
 
         void Update()
         {
+            if (awaitingRespawn)
+            {
+                if (Time.time >= respawnAt)
+                {
+                    transform.SetPositionAndRotation(homePosition, homeRotation);
+                    ResetForRespawn();
+                }
+                return;
+            }
+            if (returningToPost) { ReturnToPost(); return; }
+
             if (ragdoll != null && IsDown)
             {
-                if (health <= 0f)
+                bool protectedNpc = defeatPolicy == NpcDefeatPolicy.RecoverAndReturnToPost;
+                if (health <= 0f && !protectedNpc)
                 {
-                    // Fatal: lie ragdolled for fatalLieSeconds, then
-                    // shrink-fade to nothing and deactivate. Scale
-                    // (not material alpha) so this works regardless of
-                    // whatever shader each NPC model happens to use.
                     if (!fading)
                     {
                         if (Time.time < fadeStartAt) return;
@@ -175,53 +143,90 @@ namespace UpIzUpMini.Combat
                         fadeStartAt = Time.time;
                         return;
                     }
-
                     float t = Mathf.Clamp01((Time.time - fadeStartAt) / fadeSeconds);
-                    transform.localScale = Vector3.one * (1f - t);
+                    transform.localScale = homeScale * (1f - t);
                     if (t >= 1f)
                     {
-                        gameObject.SetActive(false);
-                        transform.localScale = Vector3.one;
+                        if (defeatPolicy == NpcDefeatPolicy.FadeAndRespawnAtHome)
+                        {
+                            awaitingRespawn = true;
+                            respawnAt = Time.time + worldRespawnSeconds;
+                            SetRenderers(false);
+                            transform.localScale = homeScale;
+                        }
+                        else { gameObject.SetActive(false); transform.localScale = homeScale; }
                     }
                     return;
                 }
 
-                // Non-fatal: lie down briefly, then get back up and walk.
                 if (recoverAt <= 0f || Time.time < recoverAt) return;
-                ragdoll.Recover();
+                if (Time.time < forceRecoverAt && !ragdoll.IsSettled()) return;
+                ragdoll.Recover(true);
                 IsDown = false;
-                recoverAt = 0f;
+                recoverAt = forceRecoverAt = 0f;
+                if (protectedNpc) { health = maxHealth; returningToPost = true; }
                 if (controller != null) controller.enabled = true;
                 return;
             }
 
             if (despawnOnDefeat && IsDown && despawnAt > 0f && Time.time >= despawnAt)
-            {
-                gameObject.SetActive(false);
-                return;
-            }
+            { gameObject.SetActive(false); return; }
             if (recoverAt <= 0f || Time.time < recoverAt) return;
-
             health = maxHealth;
             recoverAt = 0f;
             IsDown = false;
             animationManager?.EndSustainedAction();
-            foreach (var r in renderers) r.enabled = true;
+            SetRenderers(true);
             if (controller != null) controller.enabled = true;
         }
 
+        void ReturnToPost()
+        {
+            Vector3 delta = homePosition - transform.position;
+            delta.y = 0f;
+            if (delta.sqrMagnitude <= .04f)
+            {
+                transform.SetPositionAndRotation(homePosition, homeRotation);
+                returningToPost = false;
+                SetWalkBlend(0f);
+                return;
+            }
+            Vector3 direction = delta.normalized;
+            transform.rotation = Quaternion.RotateTowards(transform.rotation,
+                Quaternion.LookRotation(direction, Vector3.up), 360f * Time.deltaTime);
+            Vector3 movement = direction * returnToPostSpeed;
+            movement.y = -2f;
+            if (controller != null && controller.enabled) controller.Move(movement * Time.deltaTime);
+            else transform.position += direction * (returnToPostSpeed * Time.deltaTime);
+            SetWalkBlend(1f);
+        }
+
+        void SetWalkBlend(float speed)
+        {
+            if (animator == null) return;
+            animator.SetFloat("Speed", speed);
+            animator.SetFloat("MotionSpeed", speed > .01f ? 1f : 0f);
+        }
+
+        void SetRenderers(bool visible)
+        { if (renderers != null) foreach (var r in renderers) if (r != null) r.enabled = visible; }
+
         public void ResetForRespawn()
         {
+            if (controller == null) controller = GetComponent<CharacterController>();
+            if (animationManager == null) animationManager = GetComponent<HumanoidAnimationManager>();
+            if (animator == null) animator = GetComponentInChildren<Animator>();
+            if (ragdoll == null) ragdoll = GetComponent<NpcRagdoll>();
+            renderers = GetComponentsInChildren<Renderer>(true);
             health = maxHealth;
-            recoverAt = 0f;
-            despawnAt = 0f;
-            fadeStartAt = 0f;
-            fading = false;
-            transform.localScale = Vector3.one;
+            recoverAt = forceRecoverAt = despawnAt = fadeStartAt = respawnAt = 0f;
+            fading = awaitingRespawn = returningToPost = false;
+            transform.localScale = homeScale;
             IsDown = false;
             if (ragdoll != null) ragdoll.Recover();
             animationManager?.EndSustainedAction();
-            foreach (var r in renderers) r.enabled = true;
+            SetRenderers(true);
+            SetWalkBlend(0f);
             if (controller != null) controller.enabled = true;
         }
     }

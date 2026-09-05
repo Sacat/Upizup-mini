@@ -21,14 +21,18 @@ namespace UpIzUpMini.Vehicles
     /// and their own mount clip without touching this file's control logic.
     ///
     /// While mounted this component reads the same movement axes the on-foot
-    /// controller uses and feeds them into TmaxBikeController.SetInput, which
+    /// controller uses and feeds them into TmaxBikeControllerCustom.SetInput, which
     /// is exactly the decoupling that controller was built for (it never
     /// reads Input.* itself, so mobile buttons or AI can drive it later
     /// without changes here).
     /// </summary>
-    [RequireComponent(typeof(TmaxBikeController))]
+    [RequireComponent(typeof(TmaxBikeControllerCustom))]
     public class BikeInteractable : InteractableBase
     {
+        private const float RiderLeanFollowSafetyLimit = 0.52f;
+        private const float RiderMaxLeanSafetyLimit = 9f;
+        public const float SuperMotoWheelieClipWeight = 0.22f;
+
         [SerializeField] private VehicleSeat driverSeat;
         [SerializeField] private VehicleSeat pillionSeat;
 
@@ -73,32 +77,44 @@ namespace UpIzUpMini.Vehicles
         [Tooltip("Hand IK multiplier while wheelieing - the wheelie clip lifts an arm off the bars, so the grip needs forcing past its normal strength.")]
         [SerializeField] private float wheelieHandGrip = 1.6f;
 
-        // Control scheme set by the user directly: "hope the bike will be F",
-        // "so wheelie would have to be R", "lookright should be E, lookleft
-        // should be [Q]". E is deliberately NOT the wheelie any more - it is
-        // the on-foot interact key everywhere else in this game, and reusing
-        // it while mounted made getting on and wheelieing the same button.
-        // MINI-069, user's control scheme: "the wheelie button for the bike
-        // should be E instead and F would be to mount and dismount".
-        // The look-left/look-right fields that used to sit here were REMOVED
-        // rather than rebound - they were declared but never read by anything,
-        // so they were dead weight holding on to Q and E ("i dont need the
-        // looking around on the bike").
-        [SerializeField] private KeyCode wheelieKey = KeyCode.E;
-        [SerializeField] private KeyCode dismountKey = KeyCode.F;
-        [Tooltip("Same key as dismount, so F is simply 'get on / get off'. Handled here rather than through InteractionDetector's E, which stays the general-purpose interact key for everything else in the world.")]
-        [SerializeField] private KeyCode mountKey = KeyCode.F;
+        // MINI-140 control scheme, set by the user directly: "E for mount/enter
+        // vehicles, Q for wheelie". Mounting now uses the SAME key as every
+        // other world interaction (E / GameAction.Interact) instead of a
+        // bespoke F check - you walk up and press E to get on, press E again to
+        // get off. F goes back to being purely the melee Attack key. The
+        // wheelie moves off E (which is now the get-on/get-off key) onto Q.
+        // Q also calls the partner/gang on the phone when ON FOOT - that path
+        // is suppressed while mounted (see CellPhoneController, MINI-140) so a
+        // Q tap mid-wheelie doesn't also summon anyone.
+        //
+        // Superseded history for context: MINI-069 had F=mount / E=wheelie;
+        // before that "bike will be F" / "wheelie would have to be R". The
+        // look-left/look-right fields that once lived here were deleted long
+        // ago (declared, never read).
+        [SerializeField] private KeyCode wheelieKey = KeyCode.Q;
+        [SerializeField] private KeyCode dismountKey = KeyCode.E;
+        [Tooltip("MINI-140: same key as dismount and as the world interact key - E is simply 'get on / get off'. The interactable/prompt still announces the bike when you walk up; this key check just keeps the bike's own wider mount range.")]
+        [SerializeField] private KeyCode mountKey = KeyCode.E;
         [Tooltip("How close the active character must be for the mount key to work.")]
         [SerializeField] private float mountRange = 3.2f;
+        private const float MinimumMountRange = 4.25f;
 
         [Tooltip("MINI-073: how close the other main character must be, when the driver mounts, to hop on the pillion seat automatically.")]
         [SerializeField] private float pillionBoardRadius = 8f;
 
-        private TmaxBikeController _bike;
+        private TmaxBikeControllerCustom _bike;
+        private Rigidbody _body;
+        private bool _parkingLockLogged;
         private VehicleRider _driver;
         private VehicleRider _pillion;
         private BikeRiderAnimation _driverAnim;
+        private float _savedWheelieClipWeight = -1f;
         private BikeCameraAnchor _camAnchor;
+        // MINI-140: E now mounts AND dismounts. Record the frame a mount
+        // happened so the same key-down that got the rider on cannot be read
+        // again as a dismount later in that same frame (script execution order
+        // between InteractionDetector and this component is not fixed).
+        private int _mountedFrame = -1;
         public float RiderLeanFollow { get => riderLeanFollow; set => riderLeanFollow = value; }
         public float RiderExtraLean { get => riderExtraLeanDegrees; set => riderExtraLeanDegrees = value; }
         public float RiderMaxLean { get => riderMaxLeanDegrees; set => riderMaxLeanDegrees = value; }
@@ -110,7 +126,11 @@ namespace UpIzUpMini.Vehicles
 
         private void Awake()
         {
-            _bike = GetComponent<TmaxBikeController>();
+            _bike = GetComponent<TmaxBikeControllerCustom>();
+            _body = GetComponent<Rigidbody>();
+            VehicleImpactResponder.Ensure(gameObject);
+            VehicleDamageController.Ensure(gameObject);
+            BikeCrashEjectionController.Ensure(gameObject);
             if (driverSeat == null || pillionSeat == null)
             {
                 // Seats are wired at build time (Mini065TmaxPhysicsTest.
@@ -133,14 +153,27 @@ namespace UpIzUpMini.Vehicles
         {
             if (HasRider || driverSeat == null || interactor == null) return;
 
+            // Release the empty-bike parking lock immediately before the
+            // rider takes control. Kinematic parking is stronger and more
+            // reliable than WheelCollider brake torque on Lalay's incline.
+            if (_body != null && _body.isKinematic)
+            {
+                _body.isKinematic = false;
+                _body.WakeUp();
+            }
+
             var rider = interactor.GetComponent<VehicleRider>();
             if (rider == null) rider = interactor.AddComponent<VehicleRider>();
 
             if (rider.Mount(driverSeat))
             {
                 _driver = rider;
+                _mountedFrame = Time.frameCount;
                 _driverAnim = interactor.GetComponent<BikeRiderAnimation>();
                 if (_driverAnim == null) _driverAnim = interactor.AddComponent<BikeRiderAnimation>();
+                // Match the exact authored lift pose used by the original SuperMoto rider.
+                _savedWheelieClipWeight = _driverAnim.WheelieClipWeight;
+                _driverAnim.WheelieClipWeight = SuperMotoWheelieClipWeight;
                 RetargetGameCamera(toBike: true);
 
                 SetCompanionFollowing(false);
@@ -238,7 +271,7 @@ namespace UpIzUpMini.Vehicles
             var pc = active.root.GetComponent<PlayerController>();
             if (pc != null && !pc.IsControlled) return;
 
-            if (Vector3.Distance(active.root.transform.position, transform.position) > mountRange) return;
+            if (Vector3.Distance(active.root.transform.position, transform.position) > Mathf.Max(mountRange, MinimumMountRange)) return;
 
             ConsumedMountKeyThisFrame = true;
             Interact(active.root);
@@ -261,7 +294,7 @@ namespace UpIzUpMini.Vehicles
             var pc = character.GetComponent<PlayerController>();
             if (pc != null && !pc.IsControlled) return false;
 
-            if (Vector3.Distance(character.transform.position, transform.position) > mountRange) return false;
+            if (Vector3.Distance(character.transform.position, transform.position) > Mathf.Max(mountRange, MinimumMountRange)) return false;
 
             Interact(character);
             return HasRider;
@@ -271,7 +304,27 @@ namespace UpIzUpMini.Vehicles
         {
             TryMountByKey();
 
-            if (!HasRider) return;
+            if (!HasRider)
+            {
+                // MINI-128: the temporary market-road TMAX could free-roll
+                // down Lalay before the player reached it, making a successful
+                // spawn look like no spawn at all. Treat an empty bike as
+                // parked: brake both wheels and clear any stale wheelie input.
+                _bike?.SetInput(0f, 0f, 1f);
+                _bike?.SetWheelieHeld(false);
+                if (_body != null && !_body.isKinematic)
+                {
+                    _body.linearVelocity = Vector3.zero;
+                    _body.angularVelocity = Vector3.zero;
+                    _body.isKinematic = true;
+                }
+                if (!_parkingLockLogged)
+                {
+                    _parkingLockLogged = true;
+                    Debug.Log($"MINI-128 TMAX PARKED: Empty bike locked at {transform.position} until F mounts it.");
+                }
+                return;
+            }
 
             // Same axes the on-foot controller reads, so riding feels
             // continuous with walking rather than a different control scheme.
@@ -346,13 +399,20 @@ namespace UpIzUpMini.Vehicles
                 // those measurements lean too.
 
 
+                // MINI-131: the authored lean clip already adds a visible
+                // torso swing. Following 81% of a 15-degree bike lean and
+                // then adding that clip compounded into the rider sweeping
+                // too far across the scooter. Preserve prefab tuning as an
+                // upper request, but apply a restrained runtime safety limit.
+                float effectiveLeanFollow = Mathf.Min(riderLeanFollow, RiderLeanFollowSafetyLimit);
+                float effectiveMaxLean = Mathf.Min(riderMaxLeanDegrees, RiderMaxLeanSafetyLimit);
                 float riderRoll =
-                    (_bike.CurrentVisualLean * riderLeanFollow)
+                    (_bike.CurrentVisualLean * effectiveLeanFollow)
                     + (_driverAnim != null ? _driverAnim.SmoothedSteer * riderExtraLeanDegrees : 0f);
                 // Clamped, not scaled down: the rider keeps tracking the bike
                 // one-for-one through ordinary cornering and simply stops short
                 // of the extreme angles that read as him falling off.
-                _driver.SetExtraRoll(Mathf.Clamp(riderRoll, -riderMaxLeanDegrees, riderMaxLeanDegrees));
+                _driver.SetExtraRoll(Mathf.Clamp(riderRoll, -effectiveMaxLean, effectiveMaxLean));
 
                 // Hands locked to the grips for the WHOLE wheelie, including
                 // the way back down ("make it stay there until the wheelie is
@@ -380,13 +440,17 @@ namespace UpIzUpMini.Vehicles
             {
                 _pillion.SetExtraPitch(-_bike.CurrentPitchAngle * wheelieCounterLean);
 
+                float effectiveLeanFollow = Mathf.Min(riderLeanFollow, RiderLeanFollowSafetyLimit);
+                float effectiveMaxLean = Mathf.Min(riderMaxLeanDegrees, RiderMaxLeanSafetyLimit);
                 float pillionRoll =
-                    (_bike.CurrentVisualLean * riderLeanFollow)
+                    (_bike.CurrentVisualLean * effectiveLeanFollow)
                     + (_driverAnim != null ? _driverAnim.SmoothedSteer * riderExtraLeanDegrees : 0f);
-                _pillion.SetExtraRoll(Mathf.Clamp(pillionRoll, -riderMaxLeanDegrees, riderMaxLeanDegrees));
+                _pillion.SetExtraRoll(Mathf.Clamp(pillionRoll, -effectiveMaxLean, effectiveMaxLean));
             }
 
-            if (Input.GetKeyDown(dismountKey))
+            // Guard the mount frame: the E press that just mounted must not
+            // also be read as a dismount (see _mountedFrame).
+            if (Input.GetKeyDown(dismountKey) && Time.frameCount != _mountedFrame)
                 DismountDriver();
         }
 
@@ -453,6 +517,22 @@ namespace UpIzUpMini.Vehicles
             }
         }
 
+        public bool CrashEject(Vector3 impactVelocity, Vector3 impactPoint)
+        {
+            if (_driver == null) return false;
+
+            GameObject driverObject = _driver.gameObject;
+            GameObject pillionObject = _pillion != null ? _pillion.gameObject : null;
+            DismountDriver();
+
+            PlayerCrashRagdoll.Trigger(driverObject, impactVelocity, impactPoint);
+            if (pillionObject != null)
+                PlayerCrashRagdoll.Trigger(
+                    pillionObject,
+                    impactVelocity * 0.85f + transform.right * 0.7f,
+                    impactPoint - transform.forward * 0.45f);
+            return true;
+        }
         private void DismountDriver()
         {
             if (_driver == null) return;
@@ -472,6 +552,9 @@ namespace UpIzUpMini.Vehicles
             if (_driverAnim != null)
             {
                 _driverAnim.ClearPose();
+                if (_savedWheelieClipWeight >= 0f)
+                    _driverAnim.WheelieClipWeight = _savedWheelieClipWeight;
+                _savedWheelieClipWeight = -1f;
                 _driverAnim = null;
             }
 

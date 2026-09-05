@@ -21,6 +21,87 @@ Acceptance criteria:
 - Scene runs without console errors and passes a batch-mode compile.
 
 ## In progress
+### MINI-140 — E-to-mount / Q-to-wheelie control remap
+
+Goal: move vehicle mount/enter/dismount onto E (the world interact key) and the bike wheelie onto Q, across the TMAX, SuperMoto and Range Rover, without disturbing handling/visuals; keep the on-foot Q phone call working by suppressing it only while mounted.
+
+Status: Implemented and validated by Claude on 2026-09-04. Focused MINI-140 plus standing MINI-065 / MINI-139 / MINI-137 validations pass; Windows build succeeds and a 15-second startup smoke stayed alive with no exceptions. `TMAX_560.prefab` and `RangeRover_Vehicle.prefab` had input-binding key codes updated (no visual/physics/placement change). Ownership released. Awaiting live control-feel approval — walk-up-E mount, E dismount, Q wheelie on both bikes, and on-foot Q still calling the partner.
+### MINI-139 — TMAX 12 mph wheelie sustain floor
+
+Goal: require 12 mph to start and sustain a TMAX wheelie, lowering smoothly through the existing recovery path below that speed.
+
+Status: Implemented and validated by Codex on 2026-09-01. Boundary checks prove exact 12 mph works, below 12 mph cannot start/sustain, and ineligible input resolves to the existing zero-degree target. Standing MINI-138 regression, Windows build and startup smoke pass. Awaiting live lowering-feel approval.
+### MINI-138 — Wheelie-mode crash sensitivity correction
+
+Goal: stop rotation-driven tail/rear-body contacts from ejecting riders too easily during wheelies without disabling genuine high-speed crash ragdolls.
+
+Status: Implemented and validated by Codex on 2026-08-31. Wheelie crashes require a higher impact and real Rigidbody speed; 12 mph rotational scrape rejection, upright crash preservation and high-speed wheelie crash behavior pass the focused regression. Windows build and startup smoke pass. Awaiting live feel approval.
+### MINI-137 — TMAX wheelie effects and SuperMoto lift pose
+
+Goal: reduce TMAX exhaust, add sparks at the 89-degree cap above 12 mph, and reuse the SuperMoto rider's proven lift animation behavior.
+
+Status: Implemented and validated by Codex on 2026-08-31. Focused MINI-137 and standing MINI-136 validation pass; Windows build succeeds and a 12-second launch smoke stayed alive. Awaiting live approval of exhaust amount, spark placement and wheelie rider motion.
+
+### MINI-136 — 89-degree wheelie cap without angle crashes
+
+Goal: cap TMAX and SuperMoto wheelies at 89 degrees and prevent wheelie angle alone from crashing/ejecting riders.
+
+Status: Implemented and validated by Codex on 2026-08-31. Both controllers use the shared runtime clamp; tilt polling/backward-kick ejection is removed while filtered hard-impact ejection remains. Focused and MINI-132 regression validation, Windows build and startup smoke pass. Awaiting live wheelie and collision feel approval.
+
+### MINI-135 — Crash threshold and seller impact correction
+
+Goal: stop minor bumps/glancing collisions from ejecting bike riders, preserve the user-defined 90-degree balance and 95-degree fall-back window, and make stationary sellers hittable by vehicles.
+
+Status: Implemented and validated by Codex on 2026-08-31. Hard crashes now use surface-normal closing speed with ground filtering and higher thresholds; beyond 95 degrees the bike receives a fall-back kick before driver/pillion ragdoll ejection. Stationary sellers receive a runtime CharacterController and share protected impact/recovery with police. Focused and MINI-132 regression validation, Windows build and startup smoke pass. Awaiting live motion/feel approval.
+
+
+### MINI-132 — Varied NPC combat combinations and player advantage
+
+Goal: give gang and police NPCs several readable fighting combinations while keeping their attacks a little slower and weaker than Sacat and Franki.
+
+Status: Shared impact/combat foundation built and validated by Codex on 2026-08-30, with MINI-135 correcting stationary seller collision bodies and rider ejection sensitivity on 2026-08-31. Fresh Windows build is ready. Awaiting live seller-hit/return and crash-motion approval.
+
+### MINI-131 — TMAX wheel lock and restrained rider lean
+
+Goal: stop the fitted TMAX wheels drifting off their hubs during long rides and reduce the rider's excessive turn/lean swing without disturbing approved seating or physics.
+
+Status: Built and structurally verified by Codex on 2026-08-30. A 250-cycle forced-displacement check proves wheel correction does not accumulate; standing TMAX checks and Windows build pass. Awaiting the user's sustained ride with repeated turns. Exhaust was moved slightly lower/farther right-rear in the same bounded vehicle pass.
+
+### MINI-130 — Dog Life pooled respawn repair
+
+Goal: allow defeated Dog Life members to return after their real cooldown without the pooled inactive-character reset throwing and aborting reactivation.
+
+Status: Evidence ready from Codex on 2026-08-30. The exact stale/null renderer-cache regression is covered by the focused validator, the Windows build succeeds, and a built-player smoke run no longer contains the repeating `NpcCombatHealth.ResetForRespawn` exception. Awaiting a real defeat/wait/respawn playtest.
+
+### MINI-129 — TMAX main-rider forward fit
+
+Goal: bring only the main TMAX rider forward while preserving the approved height and leaving the pillion unchanged.
+
+Status: Evidence ready from Codex on 2026-08-30. Driver seated and wheelie offsets both advance 0.12m along the bike, with side/height/pitch unchanged; focused prefab validation and the Windows build pass. Awaiting the user's visual ride confirmation.
+
+### MINI-128 — TMAX parking, road effects and pillion alignment
+
+Goal: keep the market TMAX visible until mounted, add mobile-bounded right-rear exhaust and black braking/slip marks, and make the pillion face forward without changing the approved seat height.
+
+Status: Evidence ready from Codex on 2026-08-30. Focused and standing TMAX validation pass, the Windows player is rebuilt, and live inspection confirmed the correct midpoint spawn, successful riding, visible smoke/marks and forward-facing pillion. Awaiting the user's sustained ride and effect-taste confirmation.
+
+### MINI-127 — Purchasable TMAX control repair
+
+Goal: make the existing shop/test TMAX easy to mount and drive without replacing its approved model or physics.
+
+Status: Built and structurally/runtime-log verified by Codex on 2026-08-30. The same prefab serves purchase and test spawn; input now reaches its fully wired custom controller, the broken vendor controller stack is disabled, the overlapping comparison bike is hidden during the test, and mount range is more forgiving. Awaiting the user's real W/S/A/D, brake and wheelie playtest.
+
+### MINI-125 — TMAX test spawn
+
+Goal: spawn only the upgraded TMAX beside Sacat/Franki so the new wheels, steering and rider-hand following can be checked immediately in the real game.
+
+Status: Evidence ready from Codex on 2026-08-30. Runtime spawn is isolated to one TMAX, no auto-mount, no save ownership, and no Range Rover/SuperMoto dev spawn. Compile and MINI-064/065 validation pass; awaiting the user's Play Mode ride check.
+
+### MINI-124 — TMAX spinning wheels and steering assembly
+
+Goal: replace the TMAX's thin wheel-disc illusion with fitted black wheel meshes, then synchronize front-wheel steering, wheel spin, the handlebar/fork pivot and rider grip targets using the SuperMoto hierarchy as the reference while preserving all existing TMAX physics and rider tuning.
+
+Status: Evidence ready from Codex on 2026-08-30. Black SuperMoto tyre meshes, steering pivot and grip-target following are implemented without physics changes. Focused validation, original MINI-065 structural validation and the real-physics drop/drive/wheelie regression pass. Screenshots and a 2-second articulation video are ready; user visual approval and a real ride/hand-follow test remain before the EXE build.
 
 ### MINI-119 follow-up — Motorbike Physics Tool: reverted, then re-integrated with a proven fix set + a new continuous roll-corrector
 
@@ -1819,3 +1900,14 @@ Introduce `phone_basic` through a mission/tutorial: call the farming partner fir
 ### MINI-116 — TMAX visual and mobile production repair (proposed)
 
 Diagnose see-through geometry/material defects, rebuild a safe optimized production copy, reduce the current oversized payload, preserve rider anchors, then prove visuals, riding motion and build-size improvement.
+# MINI-121 — MB Road System Lalay proof (evidence ready; awaiting visual approval)
+
+Created a separate `MapLab_MBRoad_LalayProof.unity` scene from the approved Map Lab without modifying the source or live gameplay scene. The two authoritative Lalay polylines now drive MB Road System Bezier roads at the approved 6.2m width, with exact source-road height sampling, generated mesh collision, only 478 generated vertices, and both legacy road objects retained inactive as rollback. Batch compile/focused validation and fixed legacy/new screenshots passed under `Logs/Tasks/MINI-121/`. Do not migrate this road into `GrandBayProof.unity` until the user accepts the screenshots. Full packet: `Docs/WorkPackets/MINI-121.md`.
+
+# MINI-122 — Line-free Lalay asphalt and connected junction (evidence ready)
+
+Upgraded the isolated MB proof without touching the live game: both spline pieces now meet through one rounded MB intersection with one continuous apron collider and a curved outer sidewalk, and Lalay uses line-free dark asphalt with a mobile-sized 512px normal detail. The proof-only blue obstruction was removed; the lined sample is retained unused for a possible later secondary road. Compile, focused validation and three fixed screenshots passed under `Logs/Tasks/MINI-122/`. Final user visual approval and a later vehicle test are required before migration. Full packet: `Docs/WorkPackets/MINI-122.md`.
+
+# MINI-123 — Complete remaining MB road proof (evidence ready; awaiting network approval)
+
+The isolated combined proof now converts all nine remaining phase-one roads: eight mapped routes plus the measured gap connector. Paved roads remain line-free and 6.2m wide; the Highland farm spur remains a 4.8m dirt track; no sidewalks are generated outside the already-approved Lalay main road. Both bridge ends have terrain-aware, collidable transitions. Nine originals remain disabled for rollback. Focused Unity validation and the approved-graybox map gate pass; show `Logs/Tasks/MINI-123/MBRoad-Complete-Remaining-Network-Overhead-1280x720.png` before any live migration.

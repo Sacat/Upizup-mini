@@ -29,14 +29,20 @@ namespace UpIzUpMini.Vehicles
         [Tooltip("Below this speed the rider uses the upright stopped pose rather than the leaned-forward riding pose.")]
         [SerializeField] private float movingSpeedKmh = 3f;
         [Tooltip("How much steering input counts as a deliberate lean.")]
-        [SerializeField] private float leanInputThreshold = 0.3f;
+        [SerializeField] private float leanInputThreshold = 0.55f;
+        [Tooltip("Once leaning, steering must fall below this smaller threshold before a new lean accent can play. Prevents rapid left/right pose flicker.")]
+        [SerializeField] private float leanExitThreshold = 0.18f;
         [Tooltip("Seconds to smooth the steering value the lean decision is made from. Raised per the user's \"just making bend slower\" - real keyboard input is instant on/off, so without this the rider snapped between lean poses the moment a key was tapped.")]
-        [SerializeField] private float leanInputSmoothing = 0.35f;
+        [SerializeField] private float leanInputSmoothing = 0.45f;
+        [Tooltip("Return-to-centre is deliberately faster than entering a lean, so the rider stops swinging as soon as the turn is released.")]
+        [SerializeField] private float leanReturnSmoothing = 0.14f;
         [Tooltip("Crossfade time into the WHEELIE pose - how fast the character angles up into it. Was sharing the generic 0.15s default, i.e. a near-snap, which is what the user meant by \"the character is angling too fast\". Separate from the bike's own rise rate and from the seated<->wheelie position blend.")]
         [SerializeField] private float wheelieBlendSeconds = 0.5f;
 
         [Tooltip("Crossfade time into a lean pose. Longer than the default action blend so leaning reads as the rider easing over rather than switching pose.")]
-        [SerializeField] private float leanBlendSeconds = 0.45f;
+        [SerializeField] private float leanBlendSeconds = 0.24f;
+        [Tooltip("The authored lean clip is only a short turn accent. After this time the normal ride pose resumes while restrained procedural roll keeps the body with the bike.")]
+        [SerializeField] private float leanPoseMaxSeconds = 0.38f;
 
         [Tooltip("ON (user's choice - \"i like the cheer animation so use it\"): play the pack's own wheelie pose. OFF: hold the ordinary riding pose through the wheelie instead. With partial blending below, OFF is now equivalent to a blend of 0.")]
         [SerializeField] private bool useWheelieClip = true;
@@ -52,6 +58,8 @@ namespace UpIzUpMini.Vehicles
         private bool _restPlayed;
 
         private float _smoothedSteer;
+        private int _activeLeanDirection;
+        private float _leanPoseSeconds;
 
         private HumanoidAnimationManager _anim;
         private string _current;
@@ -83,15 +91,19 @@ namespace UpIzUpMini.Vehicles
 
         public float SmoothedSteer => _smoothedSteer;
 
-        public void UpdatePose(TmaxBikeController bike, float steerInput)
+        public void UpdatePose(TmaxBikeControllerCustom bike, float steerInput)
         {
             if (_anim == null || bike == null) return;
 
             // Ease the steering value the lean is chosen from. Keyboard input
             // is a hard 0/1, so reacting to it directly made the rider snap
             // between lean poses on every tap.
-            float k = leanInputSmoothing > 0.001f
-                ? Time.deltaTime / leanInputSmoothing
+            bool returningToCentre = Mathf.Abs(steerInput) < Mathf.Abs(_smoothedSteer)
+                && (Mathf.Approximately(steerInput, 0f)
+                    || Mathf.Sign(steerInput) == Mathf.Sign(_smoothedSteer));
+            float smoothing = returningToCentre ? leanReturnSmoothing : leanInputSmoothing;
+            float k = smoothing > 0.001f
+                ? Time.deltaTime / smoothing
                 : 1f;
             _smoothedSteer = Mathf.MoveTowards(_smoothedSteer, steerInput, k);
             steerInput = _smoothedSteer;
@@ -156,6 +168,35 @@ namespace UpIzUpMini.Vehicles
             // restart the clip.
             if (_restPlayed && !moving && !wheelieing) return;
 
+            if (_activeLeanDirection == 0)
+            {
+                if (steerInput <= -leanInputThreshold)
+                {
+                    _activeLeanDirection = -1;
+                    _leanPoseSeconds = 0f;
+                }
+                else if (steerInput >= leanInputThreshold)
+                {
+                    _activeLeanDirection = 1;
+                    _leanPoseSeconds = 0f;
+                }
+            }
+            else if (Mathf.Abs(steerInput) <= leanExitThreshold)
+            {
+                _activeLeanDirection = 0;
+                _leanPoseSeconds = 0f;
+            }
+            else if (steerInput <= -leanInputThreshold && _activeLeanDirection > 0)
+            {
+                _activeLeanDirection = -1;
+                _leanPoseSeconds = 0f;
+            }
+            else if (steerInput >= leanInputThreshold && _activeLeanDirection < 0)
+            {
+                _activeLeanDirection = 1;
+                _leanPoseSeconds = 0f;
+            }
+
             string want;
 
             if (wheelieing)
@@ -170,13 +211,15 @@ namespace UpIzUpMini.Vehicles
             {
                 want = Mini011Ids.Stopped;
             }
-            else if (steerInput < -leanInputThreshold)
+            else if (_activeLeanDirection < 0 && _leanPoseSeconds < leanPoseMaxSeconds)
             {
                 want = Mini011Ids.LeanLeft;
+                _leanPoseSeconds += Time.deltaTime;
             }
-            else if (steerInput > leanInputThreshold)
+            else if (_activeLeanDirection > 0 && _leanPoseSeconds < leanPoseMaxSeconds)
             {
                 want = Mini011Ids.LeanRight;
+                _leanPoseSeconds += Time.deltaTime;
             }
             else
             {
@@ -264,6 +307,9 @@ namespace UpIzUpMini.Vehicles
             _wasMoving = false;
             _stoppedSeconds = 0f;
             _restPlayed = false;
+            _activeLeanDirection = 0;
+            _leanPoseSeconds = 0f;
+            _smoothedSteer = 0f;
             if (_anim != null) _anim.EndSustainedAction();
         }
 

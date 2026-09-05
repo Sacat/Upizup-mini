@@ -40,8 +40,10 @@ namespace UpIzUpMini.Vehicles
 
         [Tooltip("How close to the DRIVER'S DOOR the player must be. Measured at the door rather than the car body, so you cannot climb in through the boot.")]
         [SerializeField] private float doorRange = 2.6f;
-        [SerializeField] private KeyCode enterKey = KeyCode.F;
-        [SerializeField] private KeyCode exitKey = KeyCode.F;
+        // MINI-140: enter/exit on E (the world interact key), matching the
+        // bikes and every other interaction. F is the melee Attack key only.
+        [SerializeField] private KeyCode enterKey = KeyCode.E;
+        [SerializeField] private KeyCode exitKey = KeyCode.E;
 
         [Tooltip("Held pose while seated. The pack has no car-sitting clip, so the bike's upright seated pose stands in - it reads acceptably through glass.")]
         [SerializeField] private string seatedPoseId = "BikeStopped";
@@ -71,6 +73,10 @@ namespace UpIzUpMini.Vehicles
         private HumanoidAnimationManager _otherMainAnim;
         private Transform _otherMainSeat;
 
+        // MINI-140: E now enters AND exits - stop the enter frame's key-down
+        // from being re-read as an exit the same frame.
+        private int _enteredFrame = -1;
+
         public bool HasDriver => _driver != null;
 
         /// <summary>MINI-073: the car the player is CURRENTLY DRIVING, if any -
@@ -81,6 +87,8 @@ namespace UpIzUpMini.Vehicles
         private void Awake()
         {
             if (car == null) car = GetComponent<CarController>();
+            VehicleImpactResponder.Ensure(gameObject);
+            VehicleDamageController.Ensure(gameObject);
         }
 
         public override string PromptLabel =>
@@ -104,7 +112,7 @@ namespace UpIzUpMini.Vehicles
                 return;
             }
 
-            if (Input.GetKeyDown(exitKey)) { Exit(); return; }
+            if (Input.GetKeyDown(exitKey) && Time.frameCount != _enteredFrame) { Exit(); return; }
 
             TryBoardOtherMainCharacter();
 
@@ -148,6 +156,7 @@ namespace UpIzUpMini.Vehicles
             if (HasDriver || interactor == null || seatAnchor == null) return;
 
             _driver = interactor;
+            _enteredFrame = Time.frameCount;
             _driverOriginalParent = interactor.transform.parent;
 
             // Movement off first: a live CharacterController fights being parented

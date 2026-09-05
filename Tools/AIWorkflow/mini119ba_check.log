@@ -1,0 +1,21 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.10f1 (e35f0c77bd8e) revision 14901004'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) Professional' Language: 'en' Physical Memory: 15826 MB
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-PCSS-PC" at "2026-08-27T12:25:23.4523903Z"
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-08-27T12:25:23Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+E:\Unity\Up Iz Up Mini
+-logFile
+Tools/AIWorkflow/mini119ba_check.log
+Successfully changed project path to: E:\Unity\Up Iz Up Mini
+E:/Unity/Up Iz Up Mini
+Exiting without the bug reporter. Application will terminate with return code 1

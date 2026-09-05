@@ -35,6 +35,24 @@ namespace UpIzUpMini.Character
             // menu's Q only reads while paused.
             if (!Input.GetKeyDown(callKey)) return;
 
+            // MINI-140: Q is the bike wheelie key while riding ("E for
+            // mount/enter vehicles, Q for wheelie"). If the active character
+            // is currently on a vehicle, a Q tap is a wheelie input - do not
+            // also summon the partner/gang. VehicleRider.Mount and
+            // CarInteractable.Enter both clear PlayerController.IsControlled,
+            // so this covers the TMAX, the SuperMoto and the car. On foot
+            // IsControlled is true and the phone call works unchanged.
+            var callSwitcher = CharacterSwitchManager.Instance;
+            if (callSwitcher?.Slots != null && callSwitcher.Slots.Length > 0)
+            {
+                var activeSlot = callSwitcher.Slots[
+                    Mathf.Clamp(callSwitcher.ActiveIndex, 0, callSwitcher.Slots.Length - 1)];
+                var activePc = activeSlot?.root != null
+                    ? activeSlot.root.GetComponent<PlayerController>()
+                    : null;
+                if (activePc != null && !activePc.IsControlled) return;
+            }
+
             var economy = EconomyManager.Instance;
             // No phone yet - C does nothing, silently, rather than nagging
             // the player about an item they haven't been offered.

@@ -123,6 +123,8 @@ MINI-099 established the default method for later Grand Bay districts, the rest 
 8. Keep landmark and future-property IDs even when their visible placeholder is removed. Colored planning slabs do not enter gameplay; future farms remain inactive stable anchors until progression unlocks them.
 9. End beach geometry at the shoreline. Jetties begin on accessible land, cross sand/stone, and visibly extend into navigable water.
 10. Validate counts, colliders, bridge symmetry, grades, no-build zones and fixed cameras before migration. Then require live walking and two-way driving after migration.
+11. When replacing graybox ribbons with a spline-road tool, copy the approved map to an isolated proof, sample each legacy collider for Y while retaining its exact X/Z route, and move every replaced ribbon into an inactive rollback root. Generate district-specific materials and sidewalks explicitly: Lalay's main street may retain sidewalks; Highland, farm, Backstreet and secondary routes do not receive them automatically.
+12. Treat bridge approaches as their own graded road sections. Sample only authoritative road and terrain colliders—not unrestricted scene hits—overlap both ends of the driveable deck, match the bridge width, cap crossfall, attach matching mesh collision and capture both driving directions before approval.
 
 This recipe is parameterized by each district manifest: road widths, grade caps, density classes, coast polygons, travel compression, materials, budgets and progression visibility change per map; the sequence and gates do not.
 

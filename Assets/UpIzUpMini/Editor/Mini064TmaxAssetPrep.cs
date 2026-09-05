@@ -443,7 +443,10 @@ namespace UpIzUpMini.EditorTools
             // the visible seat height.
             var pillionMarker = CreateMarker(root.transform, "PillionSeat",
                 new Vector3(0f, RiderSeatHeight, rearZ * 0.72f));
-            pillionMarker.localRotation = Quaternion.Euler(RiderSeatPitchBack, 0f, 0f);
+            // MINI-128: preserve the approved height/position but match the
+            // proven SuperMoto pillion's neutral orientation. The old -30deg
+            // anchor compounded with the passenger pose and rotated him.
+            pillionMarker.localRotation = Quaternion.identity;
             // MINI-077: "his hand should be on the body of the main
             // character" - moved from the grab rails out at the pillion's
             // OWN position (rearZ*0.95) to the DRIVER's waist instead. The

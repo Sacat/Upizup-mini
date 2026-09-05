@@ -70,6 +70,8 @@ namespace UpIzUpMini.Combat
         private float _nextAttack;
         private FactionBrawler _chaseTarget;
         private FactionBrawler _pendingStrikeTarget;
+        private int _attackStep;
+        private NpcCombatMoveLibrary.Move _activeMove;
         private readonly MeleeSwingTimeline _swing = new MeleeSwingTimeline();
         private readonly NpcObstacleJumpMotor _jumpMotor = new NpcObstacleJumpMotor();
 
@@ -161,11 +163,12 @@ namespace UpIzUpMini.Combat
             }
 
             if (Time.time < _nextAttack) return;
-            _nextAttack = Time.time + cooldown;
+            _activeMove = NpcCombatMoveLibrary.Get(NpcFighterStyle.Gang, _attackStep++);
+            _nextAttack = Time.time + Mathf.Max(cooldown, _activeMove.TotalSeconds + .28f);
 
-            animationManager?.PlayAction(SimpleMeleeCombat.ActionId);
+            animationManager?.PlayAction(_activeMove.id);
             _pendingStrikeTarget = target;
-            _swing.Begin(BuildProfile());
+            _swing.Begin(_activeMove.BuildProfile());
         }
 
         /// <summary>Advances this fighter's one-hit swing. Public so the
@@ -183,17 +186,21 @@ namespace UpIzUpMini.Combat
             if (expected == null || expected.IsOutOfAction) return;
 
             bool found = MeleeContactResolver.TryFindNearest(
-                transform, BuildProfile(), All,
+                transform, ActiveProfile(), All,
                 (FactionBrawler candidate) => candidate == expected
                                                 && candidate.side != side
                                                 && !candidate.IsOutOfAction,
                 out FactionBrawler target);
-            if (found) target.ReceiveHit(damage, transform.forward * 0.8f);
+            if (found) target.ReceiveHit(_activeMove.damage > 0f ? _activeMove.damage : damage,
+                transform.forward * 0.65f);
         }
 
         private MeleeAttackProfile BuildProfile() => new MeleeAttackProfile(
             attackWindupSeconds, attackActiveSeconds, attackRecoverySeconds,
             0.28f, attackRange, hitRadius, attackArcDegrees);
+
+        private MeleeAttackProfile ActiveProfile() =>
+            string.IsNullOrEmpty(_activeMove.id) ? BuildProfile() : _activeMove.BuildProfile();
 
         /// <summary>
         /// Takes a hit through whichever health component this fighter actually

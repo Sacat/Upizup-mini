@@ -32,8 +32,12 @@ namespace UpIzUpMini.Vehicles
     /// </summary>
     public class SuperMotoVehicleInteractable : InteractableBase
     {
-        [SerializeField] private KeyCode mountKey = KeyCode.F;
-        [SerializeField] private KeyCode dismountKey = KeyCode.F;
+        // MINI-140: mount/dismount on E (the world interact key), matching
+        // every other vehicle and every other interaction in the game. F is
+        // the melee Attack key only. The SuperMoto's wheelie moves to Q -
+        // handled in SuperMotoWheelieKeyRemap, not here.
+        [SerializeField] private KeyCode mountKey = KeyCode.E;
+        [SerializeField] private KeyCode dismountKey = KeyCode.E;
         [SerializeField] private float mountRange = 3.5f;
         [SerializeField] private float dismountSideOffset = 1.3f;
         [Tooltip("MINI-119 follow-up: how close the OTHER main character must be, when the driver mounts, to hop on the pillion seat automatically - same convention as BikeInteractable's own pillionBoardRadius.")]
@@ -66,8 +70,18 @@ namespace UpIzUpMini.Vehicles
         private SuperMotoHandFootLock _pillionHandFootLock;
         private GameObject _mountedPlayer;
         private int _lockedSlotIndex = -1;
+        // MINI-140: E mounts AND dismounts - stop the mount frame's key-down
+        // from being re-read as a dismount the same frame.
+        private int _mountedFrame = -1;
 
         public bool HasRider => _mountedPlayer != null;
+
+        private void Awake()
+        {
+            VehicleImpactResponder.Ensure(gameObject);
+            VehicleDamageController.Ensure(gameObject);
+            BikeCrashEjectionController.Ensure(gameObject);
+        }
 
         public void Configure(VehicleSeat seat, VehicleSeat pillionSeat, SuperMotoWheelieAssist wheelieAssist, Transform camAnchor)
         {
@@ -144,7 +158,7 @@ namespace UpIzUpMini.Vehicles
             // the moment the passenger actually arrives.
             if (_pillion == null) BoardPillion();
 
-            if (Input.GetKeyDown(dismountKey)) Dismount();
+            if (Input.GetKeyDown(dismountKey) && Time.frameCount != _mountedFrame) Dismount();
         }
 
         private void TryMountByKey()
@@ -189,6 +203,7 @@ namespace UpIzUpMini.Vehicles
                 _seat.RightHandTarget, _seat.LeftHandTarget, _seat.RightFootTarget, _seat.LeftFootTarget);
 
             _mountedPlayer = player;
+            _mountedFrame = Time.frameCount;
 
             var switcher = CharacterSwitchManager.Instance;
             if (switcher?.Slots != null)
@@ -258,6 +273,22 @@ namespace UpIzUpMini.Vehicles
             _pillionHandFootLock = null;
         }
 
+        public bool CrashEject(Vector3 impactVelocity, Vector3 impactPoint)
+        {
+            if (!HasRider) return false;
+
+            GameObject driverObject = _mountedPlayer;
+            GameObject pillionObject = _pillion != null ? _pillion.gameObject : null;
+            Dismount();
+
+            PlayerCrashRagdoll.Trigger(driverObject, impactVelocity, impactPoint);
+            if (pillionObject != null)
+                PlayerCrashRagdoll.Trigger(
+                    pillionObject,
+                    impactVelocity * 0.85f - transform.right * 0.7f,
+                    impactPoint - transform.forward * 0.45f);
+            return true;
+        }
         private void Dismount()
         {
             if (!HasRider) return;

@@ -34,6 +34,32 @@ supersedes: null
 notes: Important constraints
 ```
 
+```yaml
+id: VA-008
+status: APPROVED
+date: 2026-08-29
+task: MINI-123
+subject: Highland no-sidewalk spline treatment and two-sided bridge connection
+scene_or_prefab: Assets/UpIzUpMini/Scenes/MapLab_MBRoad_LalayHighlandProof.unity
+evidence:
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-123\MBRoad-Highland-NoSidewalk-PlayerHeight-1280x720.png
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-123\MBRoad-Highland-BridgeConnection-1280x720.png
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-123\MBRoad-Highland-Lalay-DriveLine-1280x720.png
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-123\MBRoad-Highland-Bridge-HighlandApproach-1280x720.png
+approved_aspects:
+  - line-free Highland road with no sidewalks
+  - terrain-aware road banking capped at eight degrees
+  - collidable graded transitions overlapping both bridge ends
+  - reversible isolated proof that leaves the live game untouched
+still_editable:
+  - the other phase-one road conversions and their junction finish
+  - final vehicle-driving tuning
+  - live-scene migration after complete-network approval
+user_words: "looks good for now so go ahead"
+supersedes: null
+notes: This authorizes continued work across the remaining proof network. It does not authorize live-scene replacement by itself.
+```
+
 ## Active records
 
 ```yaml
@@ -191,4 +217,32 @@ still_editable:
 user_words: "ok great use this one"
 supersedes: null
 notes: This locks the modeling target, not an AI-generated production mesh. Preserve the existing Sacat identity and skeleton; obtain new approval from fixed screenshots before replacing the playable character.
+```
+
+```yaml
+id: VA-007
+status: APPROVED
+date: 2026-08-29
+task: MINI-121
+subject: MB Road System Lalay spline foundation and rollback approach
+scene_or_prefab: Assets/UpIzUpMini/Scenes/MapLab_MBRoad_LalayProof.unity
+evidence:
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-121\Legacy-Lalay-PlayerHeight-1280x720.png
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-121\MBRoad-Lalay-PlayerHeight-1280x720.png
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-121\Legacy-Lalay-Overhead-1600x1000.png
+  - E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-121\MBRoad-Lalay-Overhead-1600x1000.png
+approved_aspects:
+  - exact existing Lalay X/Z alignment rebuilt as MB Road System splines
+  - approved 6.2 metre two-vehicle width
+  - existing road elevations sampled rather than guessed
+  - legacy Lalay roads retained as an inactive rollback backup
+  - isolated Map Lab proof before any live-scene migration
+still_editable:
+  - asphalt texture and material treatment
+  - road-system junction finish
+  - bridge templates and later road classes
+  - runtime driving adjustments found during hands-on testing
+user_words: "yes i love it so far continue"
+supersedes: null
+notes: This approval authorizes continued work in the isolated proof, not replacement of the playable road. Live migration still requires upgraded visual evidence and a vehicle pass.
 ```

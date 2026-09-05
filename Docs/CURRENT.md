@@ -1,4 +1,84 @@
 # Up Iz Up Mini — Current State
+## MINI-140 E-to-mount / Q-to-wheelie control remap ready for playtest (2026-09-04)
+
+Vehicle mount / enter / dismount is now **E** — the same key as every other world
+interaction — for the TMAX, SuperMoto and Range Rover, routed through the normal
+`InteractionDetector` path while each vehicle keeps its own wider mount reach. The
+bike **wheelie is Q** (TMAX `wheelieKey`, and `SuperMotoWheelieKeyRemap` now reads
+Q only, E removed). **F** is the melee Attack key only and is no longer read by any
+vehicle. The phone's **Q** call-partner action is suppressed while the active
+character is mounted (`PlayerController.IsControlled`), so a Q tap mid-wheelie
+never summons anyone; on foot it is unchanged. The E press that mounts is guarded
+so it cannot also dismount the same frame. Two prefabs (`TMAX_560`,
+`RangeRover_Vehicle`) had their serialized key codes updated — input bindings only,
+no mesh / transform / seat / effect / placement change. Focused MINI-140 plus
+standing MINI-065 / MINI-139 / MINI-137 validations pass; Windows build succeeded
+and a 15-second startup smoke stayed alive with no exceptions. Control feel is
+hands-on only and still needs the user's ride test.
+## MINI-139 TMAX 12 mph wheelie floor ready for playtest (2026-09-01)
+
+The TMAX now requires at least 12 mph (19.31 km/h) both to begin and to sustain a wheelie. If speed drops below the floor while raised, the controller selects its existing zero-degree target and lowers the front at the already-approved recovery rate; it does not snap down. Rear-wheel ground chatter remains excluded from the sustain gate, preserving the proven deep-wheelie behavior. The shared 89-degree cap, crash filter, handling, rider animation, sparks, exhaust, wheels, scene and prefab are unchanged. Focused MINI-139 and standing MINI-138 validations pass; Windows build and 12-second startup smoke pass. Live lowering feel remains for the user's test.
+## MINI-138 wheelie crash sensitivity corrected, ready for playtest (2026-08-31)
+
+Wheelie-mode collisions no longer eject from rotational tail/rear-body contact alone. While either bike is above 8 degrees of active wheelie, ejection now requires a 15% harder contact plus real Rigidbody travel speed of at least 16.5 m/s (59.4 km/h); therefore a 12 mph wheelie scrape cannot throw the rider even if Unity reports a large rotation-driven relative velocity. Upright crash thresholds, NPC impacts, the 89-degree cap, handling, animation, sparks and placement are unchanged. The focused collision regression and Windows build pass; the rebuilt player survived the 12-second startup smoke. Live wheelie contact feel still requires the user's playtest.
+## MINI-137 TMAX wheelie effects and SuperMoto lift pose ready for playtest (2026-08-31)
+
+TMAX exhaust now emits roughly half as often, uses smaller puffs, caps at 24 particles and peaks at 22% opacity. A separate rear-underside spark effect is capped at 20 short-lived particles and activates only while ridden at the shared 89-degree wheelie cap and at or above 12 mph (19.31 km/h). The TMAX rider temporarily uses the same 0.22 authored wheelie-lift blend proven on the in-game SuperMoto, restoring the character's previous value on dismount. Handling, wheels, seats, IK, pillion, crash logic, scene and prefab placement are unchanged. Focused MINI-137 and standing MINI-136 validations pass; Windows build succeeds and remained alive through a 12-second startup smoke. Spark placement, exhaust taste and rider motion still require the user's live playtest.
+
+
+## MINI-136 89-degree wheelie cap and collision-only crash ready for playtest (2026-08-31)
+
+TMAX and SuperMoto now share a hard 89-degree commanded-wheelie ceiling. Runtime clamps prevent prefab or tuning values from requesting more than 89 degrees. Bike tilt/wheelie angle no longer triggers rider ejection or a backward kick; only MINI-135's filtered hard physical collision path can eject driver and pillion. Steering, suspension, wheel mapping, rider fit, scene placement and impact thresholds are unchanged. Focused MINI-136 validation, standing MINI-132 regression, Windows rebuild and a 12-second startup smoke pass. Real wheelie and hard-collision feel still require the user's playtest.
+
+## MINI-135 crash sensitivity and seller-hit correction ready for playtest (2026-08-31)
+
+Playtest feedback from MINI-134 is addressed. Hard collision ejection now requires 16.5 m/s of closing speed into a non-ground surface instead of raw collision magnitude, upward-facing road/ground contacts are ignored, glancing scrapes use only the normal component, and NPC contact has an even higher 24.75 m/s ejection threshold. Ninety degrees is the balance point; riders remain attached through 95 degrees, then the bike receives a backward angular kick and both driver/pillion eject through the existing ragdoll path. Stationary sellers now receive an idempotent CharacterController hit body at runtime, allowing vehicle collisions/triggers to reach the same protected health/recovery path as police without regenerating or moving the scene. MINI-135 focused validation, MINI-132 regression, Windows rebuild, and final startup smoke pass. Real riding is still required to approve sensitivity and fall-back motion.
+
+
+## MINI-134 crash, damage, and recovery pass ready for playtest (2026-08-30)
+
+TMAX and SuperMoto now share a hard-crash rider-ejection controller: solid impacts at 11.5 m/s or an over-balance wheelie beyond 92 degrees release the driver and pillion into a temporary physics ragdoll, then recover only after a minimum lie time and physical settling. Normal NPC contact requires a higher threshold before ejection. TMAX, SuperMoto and cars also share lightweight collision durability with automatic upright recovery, while NPC vehicle-hit momentum is reduced/capped and nonfatal NPC ragdolls wait for settling before standing from their landing location. MINI-134 focused validation, the standing MINI-132 regression, Unity compile, Windows rebuild and a 12-second player startup smoke pass. Live crashing is still required to approve ejection reliability, impact strength, get-up timing and vehicle recovery feel.
+
+
+## MINI-133 Range Rover wheel and road-effects polish ready for playtest (2026-08-30)
+
+The driveable Range Rover now has four explicitly mapped visual wheels over the source model's fused wheels. All four follow their matching WheelCollider for suspension and spin, while only the front pair follow steering. Five dark-metal spokes per wheel make rotation readable without changing the verified 2,500 kg physics, wheel colliders, handling, spawn or scene placement. Twin rear tyres produce short marks and small smoke only while braking/slipping above 7 km/h; a separate right-rear tailpipe produces bounded exhaust only while driven. Focused prefab validation and Unity compile pass. Front/rear screenshots are in `Logs/Tasks/MINI-133`; live driving is still required to approve wheel fit, rotation, steering direction and effect strength. No Windows player was rebuilt in this packet.
+
+## MINI-132 shared impact combat ready for live playtest (2026-08-30)
+
+Every TMAX, SuperMoto and car now routes real Rigidbody collision speed/contact through one `VehicleImpactResponder` into `NpcCombatHealth` and the existing SuperMoto-derived humanoid ragdoll. Existing shop sellers and named interactables are upgraded lazily on first impact, always recover even from a heavy hit, align their animated root to the fallen body, then walk back to their exact captured post. Ambient villagers/police use a 100-second fade/return policy; Dog Life keeps its proven external pool. Franki's entire five-move chain now deals 25% more damage and 30% more impact than Sacat, while police and gangs use separate three-move Mixamo combinations with lower damage and slower timing. MINI-132 validation, Unity compile and Windows build pass; a short standalone smoke contained no exception. Vehicle-hit direction/feel and seller get-up/walk-back still require the user's live playtest. Rider ejection on wall crash/over-vertical wheelie remains the next separate extension of MINI-132.
+
+## MINI-131 TMAX wheel lock and restrained rider lean ready for playtest (2026-08-30)
+
+TMAX wheel visuals now rebuild their positions from immutable authored local hub points in a final late frame pass, rather than reading their last world position back as the next baseline. A focused validator deliberately displaced both wheels 250 times and confirmed zero planar drift after correction. The rider now needs a stronger turn before the authored lean starts, plays it only as a 0.38-second accent, returns to neutral faster, follows at most 52% of cosmetic bike roll, and is capped at 9 degrees of procedural roll. The exhaust outlet was also moved slightly lower and farther to the right-rear at the user's request. Focused MINI-131 plus standing MINI-065/124/127 checks pass, the Windows player is fresh, and a 12-second startup smoke remained running with no exception. User must confirm wheel stability and rider feel during a sustained ride with repeated turns. Next requested combat packet: give gang/police multiple combinations while keeping them slower and weaker than Sacat/Franki.
+
+## MINI-129/130 TMAX rider fit and Dog Life respawn repaired (2026-08-30)
+
+The TMAX main rider is moved 0.12m farther forward in both normal riding and wheelie keyframes; approved height, side placement and pitch are unchanged, and the pillion is untouched. The Dog Life respawn failure was traced to `NpcCombatHealth.ResetForRespawn` using stale/uninitialized cached renderers while pooled members were inactive: it now refreshes runtime references at the respawn boundary and safely ignores replaced renderers. The focused TMAX and Dog Life validators pass, a fresh Windows build succeeded, and a 12-second built-player smoke run contains no `NpcCombatHealth.ResetForRespawn`/NullReference exception. User should visually confirm the new rider position and defeat/wait/respawn one Dog Life member in normal play.
+
+## MINI-128 TMAX parking, road effects and pillion alignment ready for playtest (2026-08-30)
+
+The temporary TMAX now stays locked at the exact Lalay midpoint between the Farm Shop and Produce Buyer until mounted, with an on-screen location alert and the existing orange vehicle minimap marker. While ridden it emits a bounded mobile-conscious exhaust puff from the right rear and reuses the installed SuperMoto tread/smoke art only during rear-wheel braking or measured slip. The pillion keeps the approved seat height/offset but now uses a neutral forward-facing anchor and the stable `RideBike` pose instead of the rotated cheer-tail pose. Focused validation, the standing TMAX checks and a fresh Windows build pass. A live player inspection confirmed the parked spawn, successful movement, visible right-rear smoke, black road marks and two forward-facing riders. The existing `NpcCombatHealth.ResetForRespawn` gang exception remains unrelated. User should now confirm sustained riding feel and whether the smoke/mark amount looks right during normal play.
+
+## MINI-127 purchasable TMAX controls repaired, awaiting ride feel confirmation (2026-08-30)
+
+The spawned and Car Dealer-purchased TMAX are the same `TMAX_560.prefab`; no second better purchasable model was hidden in the project. The ride failure came from `BikeInteractable` feeding an incomplete vendor controller whose wheel arrays and steering references are unwired, while the prefab's original `TmaxBikeControllerCustom` remains fully wired. Mount input now feeds that custom controller, incompatible vendor behaviours are disabled immediately on spawn/purchase, the effective F-mount radius is 4.25m, and the saved `StockDemoSuperMoto` comparison bike is hidden only during the temporary TMAX test so the two bikes no longer overlap. Focused validation and Windows build pass; an 18-second player smoke run logs the repair and has no `RB_Controller.HandleSteering` or `NitrousManager` exception. The pre-existing `NpcCombatHealth.ResetForRespawn` gang error remains unrelated. User must confirm W/S/A/D, Space brake and E wheelie feel in the rebuilt player.
+
+## MINI-126 market-road TMAX build ready (2026-08-30)
+
+The temporary TMAX test spawn now uses the real midpoint between `Stall_FARM SHOP` and `Stall_PRODUCE BUYER`, ground-snaps onto the Lalay road, and faces perpendicular to the stall-to-stall line so the bike is aligned along the road. A fresh Windows player was built at `Builds/GrandBayProof/UpIzUpMini.exe`; `level0` and `Assembly-CSharp.dll` are newer than the spawn code, and a 15-second smoke run logged the TMAX at `(-8.00, 10.46, -152.09)` and remained running. The smoke log also contains existing repeated `NpcCombatHealth.ResetForRespawn` and vendor `Gadd420.NitrousManager` exceptions; neither stack includes the TMAX spawn path, but they remain a separate runtime-cleanup item. User must confirm the bike's visible placement and ride in the real build.
+
+## MINI-125 TMAX test spawn ready (2026-08-30)
+
+The upgraded MINI-124 TMAX now spawns once beside the active character at runtime for immediate inspection and riding. This temporary path spawns only the TMAX, leaves Sacat/Franki on foot, uses the normal walk-up/F mount flow, adds the vehicle minimap marker, does not write ownership/save data, and does not spawn the Range Rover, SuperMoto, or stock demo bike. Unity compile and the standing MINI-064/065 prefab/scene validator pass. Real spawn position, wheel motion, steering and rider-hand following still require the user's Play Mode check.
+
+## MINI-124 TMAX wheel and steering upgrade evidence ready (2026-08-30)
+
+The TMAX prefab now carries fitted black SuperMoto-reference wheel meshes: both spin from the existing WheelCollider poses and the front tyre steers. A separate visual fork/handlebar pivot follows the same steering angle, while Sacat/Franki's established root-level hand targets are driven from that pivot without changing their stable prefab paths. Physics is unchanged (480kg; wheel radii `0.30352196`); focused validation, the original MINI-064/065 validator and the real-physics drop/drive/wheelie regression pass. Before/after screenshots and a two-second motion proof are in `Logs/Tasks/MINI-124`. The original scan's old wheels/handlebar remain fused into its body under the new moving overlay; user visual approval and a real ride/hand-follow playtest are still required before an EXE build or visual lock.
+
+## MINI-123 complete isolated MB-road network proof, awaiting full-network visual approval (2026-08-29)
+
+The reversible MB Road System evaluation now covers the two approved Lalay spline roads plus all nine remaining phase-one roads in `MapLab_MBRoad_LalayHighlandProof.unity`. The remaining network totals 815 road-mesh vertices, uses line-free 6.2m paved roads and one 4.8m dirt Highland farm spur, generates no sidewalks outside the Lalay main street, and retains all nine replaced ribbons disabled for rollback. Both Highland–Lalay bridge ends use terrain-aware, collidable transitions and were approved by the user as VA-008 (“looks good for now so go ahead”). Unity focused validation and the approved-graybox map gate pass; `GrandBayProof.unity` remains untouched. Next gate: user reviews `Logs/Tasks/MINI-123/MBRoad-Complete-Remaining-Network-Overhead-1280x720.png`; only after approval should a separate bounded live-migration/vehicle-test packet be claimed.
 
 ## MINI-119 follow-up chain: NPC ragdoll, Koss purchase, world population, zone/tuning fixes (2026-08-28)
 

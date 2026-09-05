@@ -138,19 +138,26 @@ namespace UpIzUpMini.EditorTools
                 lf: "LeftFootTarget", rf: "RightFootTarget",
                 ridePose: "RideBike", mount: "MountBike");
 
-            // MINI-079: "i want to use the latter part of cheer2 for the
-            // pillion just so he wouldnt do all that cheering before he
-            // sits and his head is still too far back." cheer02_Loop is
-            // 6.00s (see its ActionEntry comment in Mini011PhaseBSetup) -
-            // starting at 3.6s skips the cheering lead-in (arms up, head
-            // back) and lands in the settled latter portion, still safely
-            // inside the loop.
+            // MINI-129: user approved the driver's height but asked for the
+            // main rider to sit farther forward. Move only the driver's
+            // local-forward component by 0.12m; keep side, height and pitch
+            // unchanged. Apply the same delta to the wheelie keyframe so the
+            // rider does not slide backward when the pose blends.
+            var driverSeat = prefabRoot.transform.Find("DriverSeat")?.GetComponent<VehicleSeat>();
+            if (driverSeat != null)
+            {
+                driverSeat.ConfigureSeatedPose(new Vector3(0.11f, -0.01f, 0.44f), 0f);
+                driverSeat.ConfigureWheeliePose(new Vector3(0f, -0.40f, 0.40f), 22f);
+            }
+
+            // MINI-128: match the proven SuperMoto pillion treatment. The
+            // old RidePillion/cheer tail compounded with the angled anchor
+            // and rotated the passenger; height/position remain unchanged.
             WireSeat(prefabRoot, "PillionSeat_Seat", VehicleSeat.SeatRole.Passenger,
                 seatAnchor: "PillionSeat",
                 lh: "PillionGrabLeft", rh: "PillionGrabRight",
                 lf: "PillionFootLeft", rf: "PillionFootRight",
-                ridePose: "RidePillion", mount: "MountBike",
-                ridePoseStartTimeSeconds: 3.6f);
+                ridePose: "RideBike", mount: "MountBike");
 
             // MINI-066 fix: BikeInteractable belongs on the PREFAB, not just
             // the test scene. It was previously added only in BuildTestScene,

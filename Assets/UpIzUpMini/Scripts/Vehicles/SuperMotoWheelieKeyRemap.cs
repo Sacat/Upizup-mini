@@ -64,17 +64,16 @@ namespace UpIzUpMini.Vehicles
             FrontBreak();
         }
 
+        // MINI-140, user: "E for mount/enter vehicles, Q for wheelie." E is
+        // now the SuperMoto's mount/dismount key (SuperMotoVehicleInteractable),
+        // so it is removed here entirely - Q is the sole wheelie key. The sign
+        // (+1) is the one the pack's cosmetic Gadd420.PlayerLeaning script
+        // reads as "lean the rider's weight back", which is the correct
+        // wheelie-prep look; the real lift physics (SuperMotoWheelieAssist)
+        // ignores the sign.
         protected override void GetLeanBackValue()
         {
-            if (Input.GetKey(KeyCode.E) || Input.GetKey(KeyCode.Q))
-            {
-                if (Input.GetKey(KeyCode.E)) wheelieInput = -1;
-                if (Input.GetKey(KeyCode.Q)) wheelieInput = 1;
-            }
-            else
-            {
-                wheelieInput = 0;
-            }
+            wheelieInput = Input.GetKey(KeyCode.Q) ? 1 : 0;
         }
 
         // MINI-119 follow-up, user: "i want the arrow keys to be apart of

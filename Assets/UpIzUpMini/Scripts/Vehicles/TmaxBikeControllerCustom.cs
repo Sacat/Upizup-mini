@@ -175,6 +175,8 @@ namespace UpIzUpMini.Vehicles
         // input.
         [Header("Wheelie")]
         [SerializeField] private bool enableWheelie = true;
+        public const float MinimumWheelieSpeedMph = 12f;
+        public const float MinimumWheelieSpeedKmh = MinimumWheelieSpeedMph * 1.609344f;
         // MINI-077: raised 1 -> 8 km/h per the user's later explicit request
         // ("the min speed of wheelie should 8km"). Overrides the earlier 1
         // km/h floor set for a different reason (pressing E doing nothing at
@@ -182,8 +184,8 @@ namespace UpIzUpMini.Vehicles
         // dead stop" while reading as a deliberate rolling start.
         [SerializeField] private float wheelieMinSpeedKmh = 8f;
         [SerializeField] private float wheelieMaxSpeedKmh = 70f;
-        [Tooltip("Degrees of nose-up pitch the front reaches while E is held. Now DIRECTLY DRIVEN (see ApplyWheelie) so any value works, including past 90 and all the way to a full 360 loop, per the user's \"make it go all the way to 360\". Slider goes to 360; 90 = front pointing straight up.")]
-        [SerializeField] private float maxWheelieAngle = 90f;
+        [Tooltip("Degrees of nose-up pitch while E is held. The shared bike contract clamps this to 89 degrees.")]
+        [SerializeField] private float maxWheelieAngle = BikeCrashEjectionController.MaximumWheelieDegrees;
         [Tooltip("Degrees/second the target pitch rises while held, and falls while released - keeps the lift progressive and the recovery smooth rather than snapping (\"no instant 90-degree rotation\"). Raised 30->45->60 across two rounds of the user's \"make it go up faster\".")]
         // MINI-118: nudged 60->72 to compensate for a real, measured side
         // effect of the heavier bike - real pitch dropped from a baseline
@@ -355,10 +357,20 @@ namespace UpIzUpMini.Vehicles
         // real keyboard feel/timing - these properties let the actual
         // values be dragged live in Play Mode instead of guessed at and
         // re-verified only by a script.
-        public float MaxWheelieAngle { get => maxWheelieAngle; set => maxWheelieAngle = value; }
+        public float MaxWheelieAngle
+        {
+            get => BikeCrashEjectionController.ClampWheelieDegrees(maxWheelieAngle);
+            set => maxWheelieAngle = BikeCrashEjectionController.ClampWheelieDegrees(value);
+        }
         public float WheelieRiseRate { get => wheelieRiseRate; set => wheelieRiseRate = value; }
         public float WheelieHydraulicStrength { get => wheelieHydraulicStrength; set => wheelieHydraulicStrength = value; }
         public float WheelieMinSpeedKmh { get => wheelieMinSpeedKmh; set => wheelieMinSpeedKmh = value; }
+        public float EffectiveWheelieMinimumSpeedKmh => Mathf.Max(wheelieMinSpeedKmh, MinimumWheelieSpeedKmh);
+        public bool MeetsWheelieMinimumSpeed(float speedKmh) => speedKmh >= EffectiveWheelieMinimumSpeedKmh;
+        public bool CanSustainWheelieAtSpeed(float speedKmh) =>
+            enableWheelie && brakeInput < 0.1f && MeetsWheelieMinimumSpeed(speedKmh);
+        public static float ResolveWheelieTarget(bool held, bool eligible, float configuredAngle) =>
+            held && eligible ? BikeCrashEjectionController.ClampWheelieDegrees(configuredAngle) : 0f;
         public float WheelieMaxSpeedKmh { get => wheelieMaxSpeedKmh; set => wheelieMaxSpeedKmh = value; }
         public float WheelieAirSteerTorque { get => wheelieAirSteerTorque; set => wheelieAirSteerTorque = value; }
         public float WheelieRollAssist { get => wheelieRollAssist; set => wheelieRollAssist = value; }
@@ -369,7 +381,7 @@ namespace UpIzUpMini.Vehicles
         public float LowSpeedExtraStability { get => lowSpeedExtraStability; set => lowSpeedExtraStability = value; }
         public float CenterOfMassOffsetForward { get => comOffsetForward; set => comOffsetForward = value; }
         public float CenterOfMassOffsetRight { get => comOffsetRight; set => comOffsetRight = value; }
-        public float DebugForcedPitchAngle { get => debugForcedPitchAngle; set => debugForcedPitchAngle = value; }
+        public float DebugForcedPitchAngle { get => BikeCrashEjectionController.ClampWheelieDegrees(debugForcedPitchAngle); set => debugForcedPitchAngle = BikeCrashEjectionController.ClampWheelieDegrees(value); }
         public float DebugForcedPitchStrength { get => debugForcedPitchStrength; set => debugForcedPitchStrength = value; }
 
         // MINI-119 follow-up, user: "sliders as not make it spin when
@@ -400,7 +412,7 @@ namespace UpIzUpMini.Vehicles
         public bool WheelieEligible =>
             enableWheelie
             && brakeInput < 0.1f
-            && SpeedKmh >= wheelieMinSpeedKmh
+            && MeetsWheelieMinimumSpeed(SpeedKmh)
             && SpeedKmh <= wheelieMaxSpeedKmh
             && rearWheel != null && rearWheel.isGrounded;
 
@@ -1249,11 +1261,11 @@ namespace UpIzUpMini.Vehicles
             bool canStart =
                 enableWheelie
                 && brakeInput < 0.1f
-                && SpeedKmh >= wheelieMinSpeedKmh
+                && MeetsWheelieMinimumSpeed(SpeedKmh)
                 && SpeedKmh <= wheelieMaxSpeedKmh
                 && rearWheel.isGrounded;
 
-            bool canSustain = enableWheelie && brakeInput < 0.1f;
+            bool canSustain = CanSustainWheelieAtSpeed(SpeedKmh);
 
             bool eligible = WheelieForcingPose ? canSustain : canStart;
 
@@ -1267,7 +1279,7 @@ namespace UpIzUpMini.Vehicles
             // feel: the front settles a little before climbing again,
             // rather than snapping.
             bool wantsWheelie = eligible && wheelieHeld;
-            float targetPitch = wantsWheelie ? maxWheelieAngle : 0f;
+            float targetPitch = ResolveWheelieTarget(wheelieHeld, eligible, maxWheelieAngle);
 
             currentWheelieTarget =
                 Mathf.MoveTowards(currentWheelieTarget, targetPitch, wheelieRiseRate * Time.fixedDeltaTime);
@@ -1373,7 +1385,7 @@ namespace UpIzUpMini.Vehicles
             float pitchVelocity =
                 Vector3.Dot(rb.angularVelocity, flatRight);
 
-            float error = debugForcedPitchAngle - pitchAngle;
+            float error = BikeCrashEjectionController.ClampWheelieDegrees(debugForcedPitchAngle) - pitchAngle;
             float correction =
                 (error * debugForcedPitchStrength) -
                 (pitchVelocity * debugForcedPitchStrength * 0.3f);

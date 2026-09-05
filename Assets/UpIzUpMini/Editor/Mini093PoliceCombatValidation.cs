@@ -36,7 +36,10 @@ namespace UpIzUpMini.EditorTools
                 officer.AdvancePoliceAttack(0.1f);
                 Expect(Mathf.Abs(victim.Health - startingHealth) < 0.01f,
                     "Police damage happened before windup completed.");
-                officer.AdvancePoliceAttack(0.13f);
+                // MINI-132 deliberately slows NPC strikes. Advance beyond
+                // the longest police move windup instead of preserving the
+                // old single-punch 0.22s assumption.
+                officer.AdvancePoliceAttack(0.3f);
                 float afterFirstHit = victim.Health;
                 Expect(afterFirstHit < startingHealth, "Police active contact did not reduce player health.");
                 officer.AdvancePoliceAttack(0.05f);
@@ -47,7 +50,7 @@ namespace UpIzUpMini.EditorTools
                 SetField(officer, "_nextStrike", -1f);
                 victimGo.transform.position = new Vector3(0f, 0f, -1.2f);
                 Expect(BeginStrike(officer, victimGo), "Behind-target test strike did not begin.");
-                officer.AdvancePoliceAttack(0.23f);
+                officer.AdvancePoliceAttack(0.5f);
                 Expect(Mathf.Abs(victim.Health - afterFirstHit) < 0.01f,
                     "Police damaged a target behind the officer.");
 
@@ -59,7 +62,7 @@ namespace UpIzUpMini.EditorTools
                 {
                     SetField(officer, "_nextStrike", -1f);
                     Expect(BeginStrike(officer, victimGo), $"Repeated police strike {i + 1} did not begin.");
-                    officer.AdvancePoliceAttack(0.23f);
+                    officer.AdvancePoliceAttack(0.5f);
                     officer.AdvancePoliceAttack(1f);
                 }
 

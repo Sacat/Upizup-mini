@@ -19,6 +19,14 @@ Lalay road → market/institutions → Highland inroad → dirty farm trail → 
 - `HighlandFarms`: farming land, later land purchases, and farm safehouse.
 - `DominicaTravelMap`: island overview used for future district selection.
 
+## Phase-one road-system rule
+
+- Preserve the approved route coordinates and compressed scale; spline tooling changes road construction, not map truth.
+- Use one line-free 6.2m two-vehicle paved class across retained phase-one roads, with the Highland farm spur as a 4.8m dirt class.
+- Limit generated sidewalks to Lalay's main street. Highland, Backstreet, farm and supporting secondary routes use shoulders/terrain instead.
+- Every spline road requires matching mesh collision and an inactive copy of its approved predecessor until live driving is accepted.
+- Bridge approaches overlap the deck at both ends and grade from authoritative road/terrain colliders with a maximum 8-degree crossfall.
+
 ## Data requirements
 
 Create `Docs/MAP-ANCHORS.json` only from verified coordinates. Each record should contain:

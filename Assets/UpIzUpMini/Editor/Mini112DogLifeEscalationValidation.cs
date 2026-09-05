@@ -77,6 +77,12 @@ namespace UpIzUpMini.EditorTools
                 + cooldown + "s - the respawn cooldown is not being respected.");
 
             SetAutoProperty(health, "LastDefeatedAt", Time.time - (cooldown + 5f)); // safely past the cooldown
+            // MINI-130 regression: reproduce the real built-player failure.
+            // A stale/null renderer cache used to throw inside
+            // ResetForRespawn, so RivalGangSpawner never reached
+            // member.SetActive(true). The reset must rebuild that cache.
+            var renderersField = typeof(NpcCombatHealth).GetField("renderers", BindingFlags.NonPublic | BindingFlags.Instance);
+            renderersField.SetValue(health, null);
             reactivateMethod.Invoke(members, null);
             Check(ref pass, ref fail, member0.activeSelf,
                 "a member defeated well past the cooldown window was NOT reactivated - the cooldown gate is too strict or never clears.");

@@ -42,6 +42,20 @@ namespace UpIzUpMini.Interaction
 
         public NpcRole Role => role;
         [SerializeField] private string npcName = "Villager";
+        private void Awake() => EnsurePhysicalHitCollider(gameObject);
+
+        public static Collider EnsurePhysicalHitCollider(GameObject npc)
+        {
+            if (npc == null) return null;
+            CharacterController controller = npc.GetComponent<CharacterController>();
+            if (controller == null) controller = npc.AddComponent<CharacterController>();
+            controller.center = new Vector3(0f, 0.95f, 0f);
+            controller.height = 1.85f;
+            controller.radius = 0.32f;
+            controller.stepOffset = 0.3f;
+            controller.slopeLimit = 50f;
+            return controller;
+        }
 
         // Phrasing follows the real Dominican conversation the user
         // supplied: "yea wii", "yah wii", "mn", "nuh", "facts", "irie",

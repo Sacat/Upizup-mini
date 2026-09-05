@@ -67,6 +67,13 @@ namespace UpIzUpMini.Vehicles
         // only ever appear via the normal dealer purchase flow now.
         private const bool DevSpawnNearPlayerOnStart = false;
 
+        // MINI-125: temporary, narrowly-scoped visual/ride test for the
+        // upgraded TMAX. Unlike DevSpawnNearPlayerOnStart this spawns only
+        // the TMAX: no Range Rover, no SuperMoto and no ownership grant.
+        // The existing walk-up mount controls and purchase path stay intact.
+        // Flip this back to false after the user's MINI-124 ride approval.
+        private const bool DevSpawnTmaxNearPlayerOnStart = true;
+
         // MINI-119 follow-up, user: "you may have to temporarily disable
         // the main character and just use the ragdoll and the bike
         // character until testing is successful." Same on/off-flag
@@ -102,7 +109,7 @@ namespace UpIzUpMini.Vehicles
         // own behaviour, not our integration of it. Flip back to false
         // once this baseline is confirmed solid in this map, then
         // reintroduce our own facade/mapping one small change at a time.
-        private const bool StockDemoBikeTestMode = true;
+        private const bool StockDemoBikeTestMode = false;
         [Tooltip("MINI-119: only used when StockDemoBikeTestMode is true - the Motorbike Physics Tool's own, completely unmodified Assets/MotorbikePhysicsTool/Prefabs/BikesWithRagdolls/SuperMotoWRagdoll.prefab. Wired by Mini119WireStockDemoBike.cs, not the normal scene builder.")]
         [SerializeField] private GameObject stockDemoBikePrefab;
 
@@ -131,6 +138,29 @@ namespace UpIzUpMini.Vehicles
 
         private void Update()
         {
+            if (DevSpawnTmaxNearPlayerOnStart)
+            {
+                if (_devSpawnDone) return;
+                var activeForTmaxTest = CharacterSwitchManager.Instance?.Active;
+                if (activeForTmaxTest?.root == null) return;
+                _devSpawnDone = true;
+
+                // The saved scene still contains the earlier SuperMoto/Koss
+                // comparison bike. It occupies the same market-road test
+                // area and made the player see two overlapping mount prompts.
+                // Runtime-only: preserve the user's scene placement while
+                // presenting one unambiguous TMAX during this focused test.
+                var oldComparisonBike = GameObject.Find("StockDemoSuperMoto");
+                if (oldComparisonBike != null)
+                {
+                    oldComparisonBike.SetActive(false);
+                    Debug.Log("MINI-127 TMAX REPAIR: Disabled the saved StockDemoSuperMoto comparison bike for this TMAX test.");
+                }
+
+                DevSpawnTmaxNearPlayer(activeForTmaxTest.root.transform);
+                return;
+            }
+
             if (StockDemoBikeTestMode)
             {
                 if (_devSpawnDone) return;
@@ -148,6 +178,121 @@ namespace UpIzUpMini.Vehicles
 
             _devSpawnDone = true;
             DevSpawnNearPlayer(active.root.transform);
+        }
+
+        /// <summary>
+        /// MINI-125: spawns one normal TMAX close enough for immediate visual
+        /// and ride testing. This deliberately does not mark the bike as
+        /// purchased or touch save data. An already-present TMAX is respected
+        /// rather than duplicated.
+        /// </summary>
+        private void DevSpawnTmaxNearPlayer(Transform player)
+        {
+            Vector3 forward = Vector3.ProjectOnPlane(player.forward, Vector3.up).normalized;
+            if (forward.sqrMagnitude < 0.01f) forward = Vector3.forward;
+            Vector3 right = Vector3.Cross(Vector3.up, forward).normalized;
+            Vector3 spawnPos = GroundSnap(player.position + forward * 4f + right * 2.75f);
+            Quaternion spawnRot = Quaternion.LookRotation(forward, Vector3.up);
+
+            // User-approved test location: the Lalay road directly between
+            // the Farm Shop and Produce Buyer. The stalls sit on opposite
+            // sides of the road, so their midpoint is the road centre and a
+            // perpendicular to the stall-to-stall vector faces along it.
+            var farmShopStall = GameObject.Find("Stall_FARM SHOP");
+            var produceBuyerStall = GameObject.Find("Stall_PRODUCE BUYER");
+            if (farmShopStall != null && produceBuyerStall != null)
+            {
+                Vector3 mid = (farmShopStall.transform.position + produceBuyerStall.transform.position) * 0.5f;
+                spawnPos = GroundSnap(mid);
+                Vector3 acrossRoad = produceBuyerStall.transform.position - farmShopStall.transform.position;
+                acrossRoad.y = 0f;
+                if (acrossRoad.sqrMagnitude > 0.01f)
+                {
+                    forward = Vector3.Cross(Vector3.up, acrossRoad.normalized);
+                    spawnRot = Quaternion.LookRotation(forward, Vector3.up);
+                }
+            }
+
+            var existing = FindFirstObjectByType<TmaxBikeControllerCustom>();
+            if (existing != null)
+            {
+                PrepareTmaxForCustomControl(existing.gameObject);
+                var existingBody = existing.GetComponent<Rigidbody>();
+                if (existingBody != null)
+                {
+                    existingBody.linearVelocity = Vector3.zero;
+                    existingBody.angularVelocity = Vector3.zero;
+                }
+                existing.transform.SetPositionAndRotation(spawnPos, spawnRot);
+                Physics.SyncTransforms();
+                _tmaxSpawned = true;
+                EnsureVehicleMarker(existing.gameObject, "TMAX 560");
+                AnnounceTmaxTestLocation();
+                Debug.Log($"MINI-126 TEST SPAWN: Existing TMAX moved to the market road at {spawnPos}, facing along Lalay; no duplicate created.");
+                return;
+            }
+
+            if (tmaxPrefab == null)
+            {
+                Debug.LogError("MINI-125 TEST SPAWN: VehicleSpawner has no TMAX prefab assigned.");
+                return;
+            }
+
+            var bike = Instantiate(tmaxPrefab, spawnPos, spawnRot);
+            bike.name = "PlayerTMAX_Test";
+            PrepareTmaxForCustomControl(bike);
+            _tmaxSpawned = true;
+            EnsureVehicleMarker(bike, "TMAX 560");
+            AnnounceTmaxTestLocation();
+            Debug.Log($"MINI-126 TEST SPAWN: Upgraded TMAX placed on the Lalay road between the Farm Shop and Produce Buyer at {spawnPos}, facing along the road. Walk up and press F to ride.");
+        }
+
+        private static void AnnounceTmaxTestLocation()
+        {
+            MissionSystem.Instance?.Alert(
+                "TNAX READY\nParked on Lalay between the Farm Shop and Produce Buyer. Follow the orange vehicle marker on the minimap.");
+        }
+
+        private static void EnsureVehicleMarker(GameObject vehicle, string label)
+        {
+            var marker = vehicle.GetComponent<GtaMiniMapMarker>();
+            if (marker == null) marker = vehicle.AddComponent<GtaMiniMapMarker>();
+            marker.Configure(MiniMapMarkerKind.Vehicle, label, VehicleMarkerColour);
+        }
+
+        /// <summary>
+        /// The imported TMAX currently carries two controller stacks. The
+        /// project's original custom controller is fully wired to its wheel
+        /// colliders; the later vendor facade is not (empty wheel arrays and
+        /// null fork/centre-of-gravity references), so it throws every frame
+        /// and consumes input without moving the bike. Keep the visual model
+        /// and proven custom physics, and silence only that incompatible
+        /// runtime stack on every test-spawned or purchased instance.
+        /// </summary>
+        private static void PrepareTmaxForCustomControl(GameObject bike)
+        {
+            if (bike == null) return;
+
+            var custom = bike.GetComponent<TmaxBikeControllerCustom>();
+            if (custom != null) custom.enabled = true;
+
+            SetBehaviourEnabled<TmaxBikeController>(bike, false);
+            SetBehaviourEnabled<TmaxTestInput>(bike, false);
+            SetBehaviourEnabled<GaddInputAdapter>(bike, false);
+            SetBehaviourEnabled<Gadd420.RB_Controller>(bike, false);
+            SetBehaviourEnabled<Gadd420.Input_Manager>(bike, false);
+            SetBehaviourEnabled<Gadd420.NitrousManager>(bike, false);
+            SetBehaviourEnabled<Gadd420.CrashController>(bike, false);
+            SetBehaviourEnabled<Gadd420.GroundAngle>(bike, false);
+            SetBehaviourEnabled<Gadd420.AutoLeveling>(bike, false);
+
+            Debug.Log("MINI-127 TMAX REPAIR: Custom TMAX controller active; incompatible vendor controller stack disabled.");
+        }
+
+        private static void SetBehaviourEnabled<T>(GameObject root, bool enabled) where T : Behaviour
+        {
+            foreach (var behaviour in root.GetComponentsInChildren<T>(true))
+                behaviour.enabled = enabled;
         }
 
         /// <summary>
@@ -827,7 +972,7 @@ namespace UpIzUpMini.Vehicles
         /// </summary>
         public static void ReturnBikeHome()
         {
-            var bike = FindFirstObjectByType<TmaxBikeController>();
+            var bike = FindFirstObjectByType<TmaxBikeControllerCustom>();
             if (bike == null) return;
 
             Transform home = Instance != null ? Instance.bikeHome : null;
@@ -948,11 +1093,12 @@ namespace UpIzUpMini.Vehicles
             // safehouse), that IS your bike - move it rather than instantiating a
             // second one. Two TMAXes would both answer ReturnBikeHome and end up
             // stacked on the same spot.
-            var existing = FindFirstObjectByType<TmaxBikeController>();
+            var existing = FindFirstObjectByType<TmaxBikeControllerCustom>();
             GameObject bike;
             if (existing != null)
             {
                 bike = existing.gameObject;
+                PrepareTmaxForCustomControl(bike);
                 var erb = bike.GetComponent<Rigidbody>();
                 if (erb != null)
                 {
@@ -965,6 +1111,7 @@ namespace UpIzUpMini.Vehicles
             else
             {
                 bike = Instantiate(tmaxPrefab, spawnPos, spawnRot);
+                PrepareTmaxForCustomControl(bike);
             }
             bike.name = "PlayerTMAX";
             _tmaxSpawned = true;

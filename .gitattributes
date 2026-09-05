@@ -17,3 +17,4 @@
 /Docs/CharacterPipeline/MINI-105/SacatNoHeadphones/Sacat-NoHeadphones-Staging.blend filter=lfs diff=lfs merge=lfs -text
 /Docs/CharacterPipeline/MINI-105/WeightTransferProof/Sacat-ModularBase-WeightTransfer.blend filter=lfs diff=lfs merge=lfs -text
 /Assets/Mixamo/Animations/Mixamo_JabPunch.fbx filter=lfs diff=lfs merge=lfs -text
+/Assets/RayznGames/BicycleSystem/HDRP/Scenes/BicycleScene_HDRP/BicycleScene_HDRP[[:space:]]Baking[[:space:]]Set.CellSupportData.bytes filter=lfs diff=lfs merge=lfs -text

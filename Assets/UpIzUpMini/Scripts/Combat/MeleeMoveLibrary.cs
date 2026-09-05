@@ -21,6 +21,8 @@ namespace UpIzUpMini.Combat
     /// </summary>
     public static class MeleeMoveLibrary
     {
+        public const float FrankiDamageMultiplier = 1.25f;
+        public const float FrankiImpactMultiplier = 1.3f;
         // Action ids baked into the shared controller's upper-body
         // "Action" layer by HumanoidAnimationLayerBuilder, same
         // convention SimpleMeleeCombat.ActionId already used.
@@ -185,6 +187,14 @@ namespace UpIzUpMini.Combat
         {
             return characterName == "Franki" ? ChainWithFrankiKick : ChainWithSacatKick;
         }
+
+        /// <summary>Franki is the Strong protagonist. This applies to his
+        /// whole chain, not only the visually different final kick.</summary>
+        public static float GetDamageMultiplierFor(string characterName) =>
+            characterName == "Franki" ? FrankiDamageMultiplier : 1f;
+
+        public static float GetImpactMultiplierFor(string characterName) =>
+            characterName == "Franki" ? FrankiImpactMultiplier : 1f;
 
         public struct ComboMove
         {

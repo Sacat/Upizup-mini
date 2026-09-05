@@ -9,14 +9,10 @@ namespace UpIzUpMini.Vehicles
     /// synchronise a physics wheel with its rendered model, so no wheel-
     /// spin/steer math needed to be invented here.
     ///
-    /// Adapted from the user-supplied reference component. One TMAX-
-    /// specific note: because the real wheel geometry on this bike is
-    /// baked into one static scan mesh with no separable wheel mesh (see
-    /// PROJECT-HANDOFF.md's MINI-064 investigation), the two "visual"
-    /// transforms this drives are small stand-in wheel discs placed near
-    /// the real wheel positions, not the real wheel mesh itself - a
-    /// spinning approximation ("the illusion that they turn"), not a
-    /// literal one.
+    /// MINI-124 upgrades the children of the two driven transforms from
+    /// thin placeholder discs to fitted SuperMoto wheel meshes. Physics
+    /// remains unchanged: these are visual-only children and the original
+    /// WheelColliders still own suspension, steering and contact.
     ///
     /// Bug fix (user report: the rear disc doesn't align with the real
     /// mesh's rear wheel from behind). The real cause: the physics
@@ -40,6 +36,7 @@ namespace UpIzUpMini.Vehicles
     /// (still fully overwritten from the collider's own spin/steer pose,
     /// same known, accepted limitation as before).
     /// </summary>
+    [DefaultExecutionOrder(10000)]
     public class TmaxWheelVisuals : MonoBehaviour
     {
         [Header("Physics")]
@@ -49,16 +46,124 @@ namespace UpIzUpMini.Vehicles
         [Header("Visual")]
         [SerializeField] private Transform frontWheelVisual;
         [SerializeField] private Transform rearWheelVisual;
+        [Tooltip("Visual-only fork/handlebar pivot. It follows the front WheelCollider steer angle but never spins with the wheel.")]
+        [SerializeField] private Transform steeringPivot;
+        [Tooltip("Existing rider IK targets. They remain at their established root paths and are moved from the steering pivot's pose at runtime.")]
+        [SerializeField] private Transform leftGripTarget;
+        [SerializeField] private Transform rightGripTarget;
+
+        private Quaternion steeringBaseLocalRotation = Quaternion.identity;
+        private Vector3 leftGripPivotOffset;
+        private Vector3 rightGripPivotOffset;
+        private Quaternion leftGripPivotRotation = Quaternion.identity;
+        private Quaternion rightGripPivotRotation = Quaternion.identity;
+        private Vector3 frontWheelRestLocalPosition;
+        private Vector3 rearWheelRestLocalPosition;
+        private bool wheelRestPositionsCached;
+
+        private void Awake()
+        {
+            CacheWheelRestPositions();
+            CacheSteeringBaseRotation();
+        }
+
+        private void OnEnable()
+        {
+            CacheSteeringBaseRotation();
+        }
 
         private void LateUpdate()
         {
-            UpdateWheel(frontCollider, frontWheelVisual);
-            UpdateWheel(rearCollider, rearWheelVisual);
+            CacheWheelRestPositions();
+            UpdateWheel(frontCollider, frontWheelVisual, frontWheelRestLocalPosition);
+            UpdateWheel(rearCollider, rearWheelVisual, rearWheelRestLocalPosition);
+            UpdateSteeringAssembly();
         }
+
+        private void CacheWheelRestPositions()
+        {
+            if (wheelRestPositionsCached)
+                return;
+
+            if (frontWheelVisual != null)
+                frontWheelRestLocalPosition = frontWheelVisual.localPosition;
+            if (rearWheelVisual != null)
+                rearWheelRestLocalPosition = rearWheelVisual.localPosition;
+
+            wheelRestPositionsCached = frontWheelVisual != null && rearWheelVisual != null;
+        }
+
+        private void CacheSteeringBaseRotation()
+        {
+            if (steeringPivot != null)
+            {
+                steeringBaseLocalRotation = steeringPivot.localRotation;
+                CacheGrip(leftGripTarget, out leftGripPivotOffset, out leftGripPivotRotation);
+                CacheGrip(rightGripTarget, out rightGripPivotOffset, out rightGripPivotRotation);
+            }
+        }
+
+        private void UpdateSteeringAssembly()
+        {
+            if (frontCollider == null || steeringPivot == null)
+                return;
+
+            steeringPivot.localRotation = steeringBaseLocalRotation
+                * Quaternion.Euler(0f, frontCollider.steerAngle, 0f);
+            ApplyGrip(leftGripTarget, leftGripPivotOffset, leftGripPivotRotation);
+            ApplyGrip(rightGripTarget, rightGripPivotOffset, rightGripPivotRotation);
+        }
+
+        private void CacheGrip(Transform grip, out Vector3 offset, out Quaternion rotation)
+        {
+            if (grip == null || steeringPivot == null)
+            {
+                offset = Vector3.zero;
+                rotation = Quaternion.identity;
+                return;
+            }
+
+            offset = steeringPivot.InverseTransformPoint(grip.position);
+            rotation = Quaternion.Inverse(steeringPivot.rotation) * grip.rotation;
+        }
+
+        private void ApplyGrip(Transform grip, Vector3 offset, Quaternion rotation)
+        {
+            if (grip == null || steeringPivot == null)
+                return;
+
+            grip.SetPositionAndRotation(
+                steeringPivot.TransformPoint(offset),
+                steeringPivot.rotation * rotation);
+        }
+
+#if UNITY_EDITOR
+        public void ConfigureVisuals(
+            WheelCollider front,
+            WheelCollider rear,
+            Transform frontVisual,
+            Transform rearVisual,
+            Transform forkAndHandlebarPivot,
+            Transform leftGrip,
+            Transform rightGrip)
+        {
+            frontCollider = front;
+            rearCollider = rear;
+            frontWheelVisual = frontVisual;
+            rearWheelVisual = rearVisual;
+            steeringPivot = forkAndHandlebarPivot;
+            leftGripTarget = leftGrip;
+            rightGripTarget = rightGrip;
+            wheelRestPositionsCached = false;
+            CacheWheelRestPositions();
+            CacheSteeringBaseRotation();
+        }
+#endif
 
         private static void UpdateWheel(
             WheelCollider collider,
-            Transform visual)
+            Transform visual,
+            Vector3 restLocalPosition)
         {
             if (collider == null || visual == null)
                 return;
@@ -68,10 +173,18 @@ namespace UpIzUpMini.Vehicles
                 out Quaternion rotation
             );
 
-            Vector3 p = visual.position;
-            p.y = position.y;
-            visual.position = p;
-            visual.rotation = rotation;
+            // Rebuild the visual pose from an immutable authored rest point
+            // every frame. The previous implementation read visual.position
+            // back as its next baseline; any animation/order offset could
+            // therefore become permanent and slowly walk a wheel off its hub.
+            // Parent.TransformPoint also keeps the scan's approved asymmetric
+            // X/Z placement and cosmetic bike lean, while WheelCollider owns
+            // suspension height, spin and steering.
+            Vector3 lockedPosition = visual.parent != null
+                ? visual.parent.TransformPoint(restLocalPosition)
+                : visual.position;
+            lockedPosition.y = position.y;
+            visual.SetPositionAndRotation(lockedPosition, rotation);
         }
     }
 }

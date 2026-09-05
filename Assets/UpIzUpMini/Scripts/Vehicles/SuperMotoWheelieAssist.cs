@@ -51,7 +51,7 @@ namespace UpIzUpMini.Vehicles
         [Tooltip("Degrees per second the wheelie angle climbs while held, and falls back to 0 when released.")]
         public float riseRateDegPerSecond = 72f;
         [Tooltip("Maximum wheelie angle (deg) a full, sustained hold reaches.")]
-        public float rampCeilingDeg = 75f;
+        public float rampCeilingDeg = BikeCrashEjectionController.MaximumWheelieDegrees;
         [Tooltip("Minimum speed (km/h) to START a wheelie - has no effect on SUSTAINING one already in progress.")]
         public float wheelieMinSpeedKmh = 8f;
         [Tooltip("Maximum speed (km/h) to START a wheelie.")]
@@ -296,7 +296,9 @@ namespace UpIzUpMini.Vehicles
             // wheelie because both keys now do the one thing being asked
             // for, not two different things.
             bool wantsWheelie = eligible && Mathf.Abs(wheelieIn) > 0.01f;
-            float targetPitch = wantsWheelie ? rampCeilingDeg : 0f;
+            float targetPitch = wantsWheelie
+                ? BikeCrashEjectionController.ClampWheelieDegrees(rampCeilingDeg)
+                : 0f;
 
             _currentWheelieTarget = Mathf.MoveTowards(
                 _currentWheelieTarget, targetPitch, riseRateDegPerSecond * Time.fixedDeltaTime);

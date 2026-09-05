@@ -152,7 +152,8 @@ namespace UpIzUpMini.Combat
                     transform, _activeMove.BuildProfile(), NpcCombatHealth.All,
                     (NpcCombatHealth candidate) => !candidate.IsDown, out NpcCombatHealth target))
             {
-                target.Hit(appliedDamage, transform.forward * .8f);
+                float impact = 0.8f * MeleeMoveLibrary.GetImpactMultiplierFor(gameObject.name);
+                target.Hit(appliedDamage, transform.forward * impact);
                 var npc = target.GetComponent<TownNPCInteractable>();
                 if (npc != null && npc.Role == NpcRole.Police)
                     EconomyManager.Instance?.AddHeat(EconomyManager.MaxHeat);
@@ -164,7 +165,11 @@ namespace UpIzUpMini.Combat
         /// and split out from Attack() so the bonus logic can be verified
         /// directly, independently of the timed contact query.
         /// </summary>
-        public float CalculateAppliedDamage() => IsCompanionNearby() ? _activeMove.damage * togetherDamageMultiplier : _activeMove.damage;
+        public float CalculateAppliedDamage()
+        {
+            float damage = _activeMove.damage * MeleeMoveLibrary.GetDamageMultiplierFor(gameObject.name);
+            return IsCompanionNearby() ? damage * togetherDamageMultiplier : damage;
+        }
 
         /// <summary>
         /// True when the other boy is close by, on his feet, and free to
