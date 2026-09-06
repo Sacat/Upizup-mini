@@ -1,5 +1,9 @@
 # Up Iz Up Mini — Task Board
 
+## MINI-142 — applied, Windows build ready; playtest pending
+
+Approved house/grass/carrot/banana/bud art integrated additively; measured local Dog Life overlap repaired. Backup retained,281 protected transforms unchanged, crop-stage and219 road sample checks pass. User requested build after Unity screenshot; Windows build succeeded. Test actual riding/harvesting/house approaches; phone profiling and inner sidewalk finish remain. Details Docs/WorkPackets/MINI-142.md.
+
 ## Done (pending user confirmation)
 
 ### MINI-001 — 2.5D Grand Bay proof of concept

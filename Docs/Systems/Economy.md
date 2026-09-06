@@ -13,6 +13,10 @@ Already the project's own best example of "design as a reusable system" (see `..
 
 ## What worked / what didn't
 
+- **MINI-142 final update 2026-09-06:** new carrot/banana and baked buds now integrated/built after user request. Crop IDs, seven illegal-strain registrations and growth logic retained; fourteen plot bindings, four-stage attachment/visibility checks pass. Baked buds use9244/4036 triangle LODs and two shared1024 maps. Split Fruit_A/B for hybrid colours; all parts share a ground-level growth parent. Fine Blender resin detail is softer in the baked game material. Runtime harvest/appearance and phone profiling remain user/device checks.
+
+- **2026-09-06 MINI-142 crop art integration is review-only.** Export JSON separates body/foliage/fruit. FarmPlot roots have non-uniform scale (including Y~0.06); cancel that on visual roots and anchor to the soil top, then scale only the Plant child during growth. Preserve crop IDs and registry paths. Carrot crown sits above soil while root extends below; banana stalk/flower belong to foliage, NOT the fruit group or they disappear/recolour with ripeness. All four stages pass attachment/visibility checks across 14 plots. Refined buds approved in Blender; baked Unity appearance still being verified. See WorkPackets/MINI-142.md.
+
 - **2026-09-05 MINI-141 crop art preview only.** Carrot, banana, Bushers and Purple candidates rendered in Blender (Logs/Tasks/MINI-141/02-Crop-Preview.png). First banana leaf/bunch silhouette failed internal review and was refined before presentation. Counts: carrot 348 triangles, banana 3696, cannabis 1796 each. No crop IDs, growth, harvest, inventory or existing prefab changed. User approval, mesh consolidation/LODs, stage-specific soil/root handling and Unity visual verification remain required.
 
 - **(established pattern, reconfirmed 2026-08-28) Internal item IDs must never change once shipped**, even when the display name changes (renaming would strip the item off any existing save) - e.g. `tmax_560` kept its id when renamed to "TNAX 560", `chain_gold` kept its id when renamed to "Gucci Law". Display-name-only renames are safe; id renames are not.

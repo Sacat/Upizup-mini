@@ -1,5 +1,9 @@
 # Up Iz Up Mini — Asset Register
 
+## MINI-142 locally generated approved art (2026-09-06)
+
+Blender source Tools/ArtPreview/mini141_preview.py and mini142_export.py; no third-party downloaded art, account upload or paid generation used. User-approved Caribbean one/two-storey exteriors, sparse grass, carrot/banana and refined buds. Assets/UpIzUpMini/Art/Environment/Mini142 contains native mesh assets, two opaque shaders, shared128px palette and two shared1024px bud maps. House LODs2282/1144 and3426/1716tris; grass7; carrot348; banana3696; buds9244/4036. Bud procedural texture baked locally; close-up grain reduced. Provenance, reproducible commands, evidence and mobile/runtime limits: Docs/WorkPackets/MINI-142.md. These are exterior generic residences, not a new interior system. Existing special/manual assets untouched.
+
 Every non-generated art asset imported into the Mini project must have a row
 here before (or in the same change as) import, per `AGENTS.md`. Nothing
 below is imported into the Mini *project* yet — acquisition (adding to the

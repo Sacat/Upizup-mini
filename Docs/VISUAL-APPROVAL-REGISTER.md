@@ -62,6 +62,17 @@ notes: This authorizes continued work across the remaining proof network. It doe
 
 ## Active records
 
+### VA-009 — Approved Blender house/grass/crop direction
+
+- Date: 2026-09-06; packet MINI-141, integration MINI-142.
+- User words: "all" / "all are good for now" / "continue".
+- Evidence: Logs/Tasks/MINI-141/01-Houses-Grass-Preview.png and 02-Crop-Preview.png, matching Blender sources.
+- Approved: one/two-storey house style, pastel plaster, pitched metal roofs, framed openings/verandas; sparse grass; carrot/banana/cannabis candidate silhouettes.
+- Still editable: production mesh consolidation, LODs, mapping onto existing lots and growth stages; final in-game lighting and fitting require screenshots.
+- Existing road routes, shops, manual accessories, characters, vehicles and gameplay identities remain protected. Road gap near Dog Life is authorized for an evidence-based local repair.
+- MINI-142 refined bud silhouette approved by "yes looks better" (2026-09-06), evidence Logs/Tasks/MINI-142/Buds/Cannabis-BudClose.png. Actual Unity house screenshot then shown; user instructed "continue and try to build exe before tokens expire", authorizing application/build. Runtime visual/handling acceptance remains separate from design approval.
+
+
 ```yaml
 id: VA-001
 status: SUPERSEDED

@@ -1,5 +1,11 @@
 # Up Iz Up Mini — Current State
+## MINI-142 house/crop art and local road repair applied; Windows build ready (2026-09-06)
+
+After the Unity house screenshot, the user requested "continue and try to build exe before tokens expire". Promoted the additive review to GrandBayProof.unity with an exact original-scene backup hash guard; 281 protected gameplay transforms unchanged. Added 86 generic house exteriors with LODs, 423 grass tufts, carrot/banana and baked green/purple buds across 14 plots (seven existing illegal strain IDs retained). Crop-stage checks and 219 local road lane samples pass. Windows build succeeded (397,915,219 bytes), fresh level0 2026-09-06; path Builds/GrandBayProof/UpIzUpMini.exe. Review copy and immutable backup retained. Real driving, harvesting/LOD appearance and phone performance still need playtest/device profiling. See Docs/WorkPackets/MINI-142.md; never rerun the full scene generator.
+
 ## MINI-141 house/grass/crop previews awaiting visual approval (2026-09-05)
+Smoke caveat for MINI-142:15s built-player startup remained running with no fatal/exception matches, but inactive CharacterController.Move warnings repeated heavily. Record in WorkPackets/MINI-142.md; needs NPC diagnostic, not claimed clean runtime.
+
 
 Actual Blender model previews and sources are in Logs/Tasks/MINI-141 (houses/grass and carrot/banana/cannabis sheets). No Assets, scenes, prefab, controls or EXE changes. User requested images before integration. Geometry budgets measured, but production mesh consolidation, LODs, materials, colliders, growth-stage wiring and phone profiling are still owed. Road issue located by user near Dog Life on Lalay: evidence suggests legacy live road differs from isolated MB proof; exact live gap still requires capture/raycast inspection. Packet and reusable generator: Docs/WorkPackets/MINI-141.md, Tools/ArtPreview/mini141_preview.py. Owner released; next step is the user's visual decision.
 

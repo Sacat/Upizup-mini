@@ -30,11 +30,34 @@ reserved_files:
 ```yaml
 current_owner: None
 active_task: None
-claimed_at: None
+claimed_at: 2026-09-06
 reserved_files: []
+completed_task_files:
+  - Tools/ArtPreview/mini142_export.py
+  - Docs/WorkPackets/MINI-142.md
+  - Docs/VISUAL-APPROVAL-REGISTER.md
+  - Docs/ASSET-REGISTER.md
+  - Docs/Systems/MapGeneration.md
+  - Docs/Systems/Economy.md
+  - Docs/CURRENT.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
+  - Assets/UpIzUpMini/Art/Environment/Mini142/
+  - Assets/UpIzUpMini/Editor/Mini142ArtIntegration.cs
+  - Assets/UpIzUpMini/Editor/Mini142ArtIntegration.Apply.cs
+  - Assets/UpIzUpMini/Editor/Mini142ArtIntegration.Road.cs
+  - Assets/UpIzUpMini/Editor/Mini142ArtIntegration.Crops.cs
+  - Assets/UpIzUpMini/Scenes/GrandBayProof_Mini142Review.unity
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Logs/Tasks/MINI-142/
 ```
 
-### 2026-09-05 — MINI-141 — Map Generation / Economy art
+### 2026-09-06 — MINI-142 — Map Generation / Economy art
+
+- Approved art and local Dog Life seam repair applied after user continuation/build request; backup and281 protected transforms verified, Windows build passed. Real playtest/device profiling remain. See Docs/Systems/MapGeneration.md, Docs/Systems/Economy.md and Docs/WorkPackets/MINI-142.md. Reserved files below are historical MINI-142 scope; ownership released.
+
+### 2026-09-05 — MINI-141 — preview detail
 
 - Blender houses/grass/crop previews ready for user approval; live map/EXE untouched; Dog Life road gap requires live verification. See Docs/Systems/MapGeneration.md, Docs/Systems/Economy.md and Docs/WorkPackets/MINI-141.md.
 

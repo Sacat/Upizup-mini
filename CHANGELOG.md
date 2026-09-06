@@ -1,4 +1,9 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-06 — MINI-142 approved environment and crop art
+
+- Applied86 detailed generic houses with LODs, sparse batched grass, new carrot/banana and baked green/purple bud visuals across14 plots; IDs and growth logic preserved.
+- Patched measured Dog Life road overlap in place;219 collider samples pass. Preserved281 gameplay transforms, special properties and immutable original-scene backup.
+- Unity renders inspected/shown, user requested continuation/build. Windows build passed; live playtest and phone profiling remain. See Docs/WorkPackets/MINI-142.md.
 ## 2026-09-05 — MINI-141 Blender art previews
 
 - Added a repeatable standalone Blender generator and inspected house/grass and carrot/banana/cannabis preview renders. Awaiting user approval; gameplay unchanged.
