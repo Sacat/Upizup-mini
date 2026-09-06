@@ -1,4 +1,10 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-05 — MINI-141 Blender art previews
+
+- Added a repeatable standalone Blender generator and inspected house/grass and carrot/banana/cannabis preview renders. Awaiting user approval; gameplay unchanged.
+- Recorded geometry budgets and required integration/LOD/material/collision work; no Hitem3D credits spent.
+- Recorded the suspected legacy-road versus MB-proof mismatch near Dog Life. Exact gap and repair remain unverified in Unity.
+
 ## 2026-09-04 — MINI-140 E-to-mount / Q-to-wheelie control remap
 
 - Vehicle mount / enter / dismount is now E (the world interact key) for the TMAX, SuperMoto and Range Rover, routed through the normal interaction path while each vehicle keeps its own wider mount reach.

@@ -21,6 +21,10 @@ Acceptance criteria:
 - Scene runs without console errors and passes a batch-mode compile.
 
 ## In progress
+### MINI-141 — House, grass and crop art approval previews
+
+Blender previews ready under Logs/Tasks/MINI-141. User must approve appearance before Unity integration. Road gap near Dog Life identified for live survey; not repaired. See Docs/WorkPackets/MINI-141.md. Ownership released.
+
 ### MINI-140 — E-to-mount / Q-to-wheelie control remap
 
 Goal: move vehicle mount/enter/dismount onto E (the world interact key) and the bike wheelie onto Q, across the TMAX, SuperMoto and Range Rover, without disturbing handling/visuals; keep the on-foot Q phone call working by suppressing it only while mounted.

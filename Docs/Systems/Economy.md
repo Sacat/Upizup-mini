@@ -13,6 +13,8 @@ Already the project's own best example of "design as a reusable system" (see `..
 
 ## What worked / what didn't
 
+- **2026-09-05 MINI-141 crop art preview only.** Carrot, banana, Bushers and Purple candidates rendered in Blender (Logs/Tasks/MINI-141/02-Crop-Preview.png). First banana leaf/bunch silhouette failed internal review and was refined before presentation. Counts: carrot 348 triangles, banana 3696, cannabis 1796 each. No crop IDs, growth, harvest, inventory or existing prefab changed. User approval, mesh consolidation/LODs, stage-specific soil/root handling and Unity visual verification remain required.
+
 - **(established pattern, reconfirmed 2026-08-28) Internal item IDs must never change once shipped**, even when the display name changes (renaming would strip the item off any existing save) - e.g. `tmax_560` kept its id when renamed to "TNAX 560", `chain_gold` kept its id when renamed to "Gucci Law". Display-name-only renames are safe; id renames are not.
 - **(2026-08-28) Adding a new vehicle to the economy was cheap specifically because the item table was already generic** - the Koss required one new tuple in `DealerSpecs` plus one new branch in `SpawnPurchasedVehicle` (which itself reused a shared vehicle-wiring helper, see `Vehicles.md`), not a new purchase architecture.
 

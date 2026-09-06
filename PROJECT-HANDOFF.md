@@ -34,6 +34,10 @@ claimed_at: None
 reserved_files: []
 ```
 
+### 2026-09-05 — MINI-141 — Map Generation / Economy art
+
+- Blender houses/grass/crop previews ready for user approval; live map/EXE untouched; Dog Life road gap requires live verification. See Docs/Systems/MapGeneration.md, Docs/Systems/Economy.md and Docs/WorkPackets/MINI-141.md.
+
 ### 2026-09-04 — MINI-140 — Vehicles
 
 - Remapped vehicle mount/enter/dismount to E (the world interact key) and the bike wheelie to Q across the TMAX, SuperMoto and Range Rover; F is melee Attack only; the phone's Q call-partner is suppressed while mounted. Two prefabs had input-binding key codes updated (no visual/physics/placement change). Focused MINI-140 + standing MINI-065/139/137 regressions, Windows build and 15 s smoke pass; control feel remains for playtest. Details: Docs/Systems/Vehicles.md and Docs/WorkPackets/MINI-140.md.

@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-141 house/grass/crop previews awaiting visual approval (2026-09-05)
+
+Actual Blender model previews and sources are in Logs/Tasks/MINI-141 (houses/grass and carrot/banana/cannabis sheets). No Assets, scenes, prefab, controls or EXE changes. User requested images before integration. Geometry budgets measured, but production mesh consolidation, LODs, materials, colliders, growth-stage wiring and phone profiling are still owed. Road issue located by user near Dog Life on Lalay: evidence suggests legacy live road differs from isolated MB proof; exact live gap still requires capture/raycast inspection. Packet and reusable generator: Docs/WorkPackets/MINI-141.md, Tools/ArtPreview/mini141_preview.py. Owner released; next step is the user's visual decision.
+
 ## MINI-140 E-to-mount / Q-to-wheelie control remap ready for playtest (2026-09-04)
 
 Vehicle mount / enter / dismount is now **E** — the same key as every other world
