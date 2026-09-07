@@ -1,5 +1,18 @@
 # Up Iz Up Mini — Visual Approval Register
 
+## VA-009 - Round gold watch cuff-fit preview
+
+id: VA-009
+status: PROPOSED
+date: 2026-09-07
+task: MINI-145
+subject: GoldWatchMobile / SacatWatchFit / FrankiWatchFit
+scene_or_prefab: Assets/UpIzUpMini/Scenes/WatchWardrobeProof.unity
+evidence: Logs/Tasks/MINI-145/Sacat-Watch-Close.png; Franki-Watch-Close.png; Sacat-Watch-Full.png; Franki-Watch-Full.png
+approved_aspects: MINI-144 linked gold style; user requested revision to entirely round top and mobile wrist previews.
+still_editable: exact wrist/cuff scale, rotation, position and final in-game appearance until accepted.
+notes: Watch currently sits over original long-sleeve cuffs. No chain edits. Mobile content budget passed, not device performance certification. No shop or gameplay integration yet.
+
 This file protects looks and placements the user has explicitly approved. Absence from this file does not mean an agent may ignore the design brief; it means the item has not yet received a formal visual lock.
 
 ## Status values

@@ -1,5 +1,9 @@
 # Up Iz Up Mini — Asset Register
 
+## MINI-145 original round gold watch (2026-09-07)
+
+Locally authored with Blender via Tools/CharacterPipeline/mini145_watch_mobile.py; no third-party mesh/logo/texture or paid credits. Derived from user-approved MINI-144 concept with requested circular case. Assets/UpIzUpMini/Art/Accessories/GoldWatchMobile: two FBXs1644/788tris, two32x8 generated palette/metallic maps, one Standard material, LOD prefab and independent Sacat/Franki AccessoryPlacementProfiles. About86KB disk payload including metadata. Proof-only; over-cuff fit awaiting user approval and no Android profiling. Do not import the 29.8k-triangle concept .blend into gameplay. Evidence and source: Docs/WorkPackets/MINI-145.md.
+
 ## MINI-142 locally generated approved art (2026-09-06)
 
 Blender source Tools/ArtPreview/mini141_preview.py and mini142_export.py; no third-party downloaded art, account upload or paid generation used. User-approved Caribbean one/two-storey exteriors, sparse grass, carrot/banana and refined buds. Assets/UpIzUpMini/Art/Environment/Mini142 contains native mesh assets, two opaque shaders, shared128px palette and two shared1024px bud maps. House LODs2282/1144 and3426/1716tris; grass7; carrot348; banana3696; buds9244/4036. Bud procedural texture baked locally; close-up grain reduced. Provenance, reproducible commands, evidence and mobile/runtime limits: Docs/WorkPackets/MINI-142.md. These are exterior generic residences, not a new interior system. Existing special/manual assets untouched.

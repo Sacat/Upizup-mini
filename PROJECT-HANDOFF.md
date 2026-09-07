@@ -32,6 +32,21 @@ current_owner: None
 active_task: None
 claimed_at: 2026-09-07
 reserved_files: []
+completed_mini145_files:
+  - Tools/CharacterPipeline/mini145_watch_mobile.py
+  - Assets/UpIzUpMini/Art/Accessories/GoldWatchMobile/
+  - Assets/UpIzUpMini/Editor/Mini145WatchProof.cs
+  - Assets/UpIzUpMini/Scenes/WatchWardrobeProof.unity
+  - Docs/WorkPackets/MINI-145.md
+  - Docs/Systems/Characters.md
+  - Docs/CURRENT.md
+  - TASKS.md
+  - CHANGELOG.md
+  - PROJECT-HANDOFF.md
+next_packet: MINI-145 round gold watch isolated wrist proof
+completed_mini145_registers:
+  - Docs/ASSET-REGISTER.md
+  - Docs/VISUAL-APPROVAL-REGISTER.md
 completed_mini144_files:
   - Tools/CharacterPipeline/mini144_rig_audit.py
   - Tools/CharacterPipeline/mini144_watch_preview.py
@@ -79,6 +94,10 @@ completed_task_files:
   - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
   - Logs/Tasks/MINI-142/
 ```
+
+### 2026-09-07 — MINI-145 — Characters / round-watch wrist proof
+
+- Round mobile watch1644/788tris and isolated Sacat/Franki cuff screenshots ready; fit approval pending, gameplay untouched. See Docs/Systems/Characters.md and Docs/WorkPackets/MINI-145.md.
 
 ### 2026-09-07 — MINI-144 — Characters / wardrobe preview
 

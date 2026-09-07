@@ -1,4 +1,10 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-07 — MINI-145 round mobile watch proof
+
+- Original round gold-watch meshes with1644/788-triangle LODs, one shared atlas material and separate cuff fit profiles.
+- Isolated Unity previews on actual Sacat/Franki; 36 idle/walk/run attachment samples each pass, original gameplay scene unchanged.
+- Watch fit awaits user approval; no gameplay, purchase, chain or EXE changes.
+
 ## 2026-09-07 — MINI-144 isolated wardrobe audit and watch concept
 
 - Resume user-approved wardrobe production; original Blender gold-watch preview and reusable read-only rig audit added outside Assets.

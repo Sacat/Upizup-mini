@@ -1,6 +1,10 @@
 # Up Iz Up Mini — Task Board
 
-## MINI-144 — wardrobe resumed; watch concept approval pending
+## MINI-145 — round mobile watch wrist proof; fit approval pending
+
+1644/788-triangle isolated candidate and separate Sacat/Franki over-cuff fittings. Unity import/attachment checks pass; screenshots ready. No shop/EXE integration. See Docs/WorkPackets/MINI-145.md.
+
+## MINI-144 — wardrobe resumed; watch concept accepted with round-case revision
 
 Gold-watch Blender concept and base-body audit ready. No in-game swap. Next optimize/fit approved watch and inspect Unity mobile rig binding; build one outfit and at-home per-character wardrobe only after visual/motion gates. See Docs/WorkPackets/MINI-144.md.
 

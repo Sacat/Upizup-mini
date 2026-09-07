@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-145 round watch wrist previews ready (2026-09-07)
+
+User requested fully round case and mobile optimization, shown on both actual protagonists. Isolated prefab/scene and separate fit profiles now exist; 1644/788 triangles, one material, two32x8 maps. Unity compile and36 attachment samples per character pass; canonical scene hash unchanged. Screenshots under Logs/Tasks/MINI-145 show the watch OVER the original sleeve cuffs. User approval pending; no gameplay/chain/shop/EXE changes. Next connect approved watch to watch_rollie/CharacterEquipment, not a new economy. Wardrobe/clothes/base-body repair still unfinished. See Docs/WorkPackets/MINI-145.md. Owner released.
+
 ## MINI-144 wardrobe production resumed; isolated watch preview (2026-09-07)
 
 User confirms MINI-143 works well. Wardrobe next: match original clothes quality, one polo/jeans/trainers/cap/gold-watch plus untouched chain; individual saved outfits and changing at home. Original Blender gold-watch preview is ready for approval in Logs/Tasks/MINI-144/Gold-Watch-Preview.png. No gameplay/assets/EXE changes. Base-body audit found no unweighted mobile vertices and similar Blender bone perturbations; Unity tearing remains unresolved and requires actual rig-binding/motion comparison. Preview watch is not mobile-ready yet (29.8k triangles); optimize only after design approval. Docs/WorkPackets/MINI-144.md is the current continuation; older pause instructions are superseded by this user request, but no body swap is approved. Owner released.
