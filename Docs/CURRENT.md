@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-149 — free accessory try-on foundation; clothing unfinished
+
+Home E -> 5 Wardrobe -> 6 Free try-on: 1 tries selected existing watch/cap/shades, 3 next, 2 clears trials. Session only, no purchase/save grants, separate protagonists. New approved shirt/pants/hat/90/97 shoes and per-item colours are NOT implemented; MINI-148 rejected shell remains outside game. User now authorizes autonomous implementation and testing clothes without purchase. Next actual garment production, not repeated approval requests. See WorkPackets/MINI-149.md. Owner released.
+
 ## MINI-148 — first polo prototype rejected; game unchanged
 
 Isolated Blender body-surface shell failed visual review (patchy/clipped topology after decimation). No playable integration or EXE change. Logs/Tasks/MINI-148 contains diagnostic renders; these are NOT approved garment screenshots. Next clean continuous polo topology with real armholes/hem/collar, correct bind-space transfer and covered-body masking, then motion proof. Do not repeat the scan-shell shortcut. See WorkPackets/MINI-148.md. Owner released.

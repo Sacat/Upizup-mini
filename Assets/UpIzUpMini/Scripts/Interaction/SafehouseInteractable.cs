@@ -37,6 +37,8 @@ namespace UpIzUpMini.Interaction
         private bool _wardrobeOpen;
         private GameObject _menuUser;
         private string _wardrobeFeedback;
+        private bool _trialMode;
+        private int _trialIndex;
         private CharacterEquipment WardrobeEquipment => _menuUser!=null?_menuUser.GetComponent<CharacterEquipment>():null;
         private bool MenuUserNearby => _menuUser!=null && Vector3.Distance(_menuUser.transform.position,transform.position)<=4f
             && (_menuUser.GetComponent<PlayerController>()==null || _menuUser.GetComponent<PlayerController>().IsControlled)
@@ -52,9 +54,10 @@ namespace UpIzUpMini.Interaction
                 if (!Owned) return "[ E ] House (locked)";
                 if(_wardrobeOpen)
                 {
+                    if(_trialMode)return "FREE TRY-ON - "+(CharacterSwitchManager.Instance?.Active.displayName??"Character")+"\n"+CharacterEquipment.TrialItemLabels[_trialIndex]+"\n[1] Try  [2] Undo all trials  [3] Next  [E] Back\nSession only. No purchase or save changes.\nNew shirts/pants/90/97 shoes still in production.";
                     var equipment=WardrobeEquipment;
                     string status=equipment==null||!equipment.WatchOwned?"Buy a gold watch at the Clothes Man first.":equipment.WatchEquipped?"Gold watch: wearing":"Gold watch: stored";
-                    return "WARDROBE - "+(CharacterSwitchManager.Instance?.Active.displayName??"Character")+"\n"+status+"\n[1] Wear  [2] Remove  [E] Back\n"+(_wardrobeFeedback??"Rest or save afterward to keep your choice.");
+                    return "WARDROBE - "+(CharacterSwitchManager.Instance?.Active.displayName??"Character")+"\n"+status+"\n[1] Wear  [2] Remove  [6] Free try-on  [E] Back\n"+(_wardrobeFeedback??"Rest or save afterward to keep your choice.");
                 }
                 return _menuOpen ? "[1] Rest  [2] Save  [3] Load\n[4] Set Respawn  [5] Wardrobe  [E] Leave" : "[ E ] Use bed / wardrobe";
             }
@@ -68,6 +71,14 @@ namespace UpIzUpMini.Interaction
             if(!Owned||!MenuUserNearby){_menuOpen=false;_wardrobeOpen=false;return;}
             if(_wardrobeOpen)
             {
+                if(_trialMode)
+                {
+                    if(GameInput.WasPressed(GameAction.WardrobeWear))WardrobeEquipment?.SetTrialItem(CharacterEquipment.TrialItemIds[_trialIndex],true);
+                    else if(GameInput.WasPressed(GameAction.WardrobeRemove))WardrobeEquipment?.ClearTrialItems();
+                    else if(GameInput.WasPressed(GameAction.WardrobeNext))_trialIndex=(_trialIndex+1)%CharacterEquipment.TrialItemIds.Length;
+                    return;
+                }
+                if(GameInput.WasPressed(GameAction.WardrobeTrial)){_trialMode=true;_trialIndex=0;return;}
                 if(GameInput.WasPressed(GameAction.WardrobeWear))ChooseWatch(true);
                 else if(GameInput.WasPressed(GameAction.WardrobeRemove))ChooseWatch(false);
                 return;
@@ -123,6 +134,7 @@ namespace UpIzUpMini.Interaction
                 return;
             }
 
+            if(_trialMode){_trialMode=false;_lastFeedback=null;return;}
             if(_wardrobeOpen){_wardrobeOpen=false;_lastFeedback=null;return;}
             _menuUser=interactor;
             // E toggles the bed menu; the actual actions are 1/2/3 so
@@ -140,7 +152,7 @@ namespace UpIzUpMini.Interaction
         public bool OpenWardrobe()
         {
             if(!Owned||!_menuOpen||!MenuUserNearby)return false;
-            _wardrobeOpen=true;_wardrobeFeedback=null;return true;
+            _wardrobeOpen=true;_trialMode=false;_wardrobeFeedback=null;return true;
         }
         public bool ChooseWatch(bool wear)
         {

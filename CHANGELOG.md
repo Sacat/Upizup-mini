@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Changelog
+## MINI-149 — purchase-free trial foundation
+
+Home wardrobe gains session-only existing accessory trials; no economy/save grants, no scene/art changes. New clothing and colour UI remain pending, not claimed complete.
+
 ## MINI-148 — isolated polo diagnostic
 
 Blender fitting attempted, visually rejected for patchy/clipped topology. Recorded failed approach and next topology requirement; no gameplay/EXE changes.

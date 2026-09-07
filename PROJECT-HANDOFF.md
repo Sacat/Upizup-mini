@@ -1,5 +1,7 @@
 # Up Iz Up Mini — Project Handoff
 
+MINI-149: free session-only accessory try-on foundation; approved clothing models/colours still unfinished. See Characters ledger and Docs/WorkPackets/MINI-149.md.
+
 MINI-148: first Blender polo shell rejected internally; no game changes. Clean garment topology required next; see Characters ledger and Docs/WorkPackets/MINI-148.md.
 
 2026-09-07 MINI-147 approval: shirts/pants/hat and revised Mike 90/97 footwear accepted; next fitted shirt proof. See Docs/WorkPackets/MINI-147.md final approval and Characters ledger.
@@ -40,6 +42,16 @@ current_owner: None
 active_task: None
 claimed_at: 2026-09-07
 reserved_files: []
+completed_mini149_files:
+  - Assets/UpIzUpMini/Scripts/Character/CharacterEquipment.cs
+  - Assets/UpIzUpMini/Scripts/Interaction/SafehouseInteractable.cs
+  - Assets/UpIzUpMini/Scripts/Input/GameInput.cs
+  - Assets/UpIzUpMini/Editor/Mini149FreeWardrobeValidation.cs
+  - Docs/WorkPackets/MINI-149.md
+  - Docs/CURRENT.md
+  - Docs/Systems/Characters.md
+  - PROJECT-HANDOFF.md
+  - CHANGELOG.md
 completed_mini148_files:
   - Tools/CharacterPipeline/mini148_polo_preview.py
   - Docs/WorkPackets/MINI-148.md

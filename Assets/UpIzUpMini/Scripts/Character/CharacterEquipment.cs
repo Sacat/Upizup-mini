@@ -24,6 +24,17 @@ namespace UpIzUpMini.Character
         [SerializeField] private GameObject watchPrefab;
         [SerializeField] private AccessoryPlacementProfile watchPlacement;
         private readonly HashSet<string> _unequippedItems = new HashSet<string>();
+        // Temporary try-ons never grant ownership, advance missions or enter saves.
+        private readonly HashSet<string> _trialItems = new HashSet<string>();
+        public static readonly string[] TrialItemIds = { "watch_rollie", "cap_mike", "shades_ray" };
+        public static readonly string[] TrialItemLabels = { "Gold watch", "Existing cap (prototype)", "Existing shades (prototype)" };
+        public bool SetTrialItem(string id, bool wear)
+        {
+            if (System.Array.IndexOf(TrialItemIds,id)<0) return false;
+            if(wear)_trialItems.Add(id);else _trialItems.Remove(id);
+            RefreshEquipment();return true;
+        }
+        public void ClearTrialItems(){_trialItems.Clear();RefreshEquipment();}
 
         // Ownership remains in EconomyManager; wardrobe selections belong to each wearer.
         // Missing fields in legacy saves mean owned items keep their old equipped default.
@@ -35,7 +46,7 @@ namespace UpIzUpMini.Character
             RefreshEquipment();
         }
         public bool WatchOwned => Has(EconomyManager.Instance,"watch_rollie");
-        public bool WatchEquipped => WatchOwned && !_unequippedItems.Contains("watch_rollie");
+        public bool WatchEquipped => _trialItems.Contains("watch_rollie") || WatchOwned && !_unequippedItems.Contains("watch_rollie");
         public bool SetWatchEquipped(bool equipped)
         {
             if(!WatchOwned)return false;
@@ -200,10 +211,10 @@ namespace UpIzUpMini.Character
                 if (pair.Key != null) pair.Key.sharedMaterials = pair.Value;
             }
 
-            Apply("cap_mike", HumanBodyBones.Head, Has(economy, "cap_mike"),
+            Apply("cap_mike", HumanBodyBones.Head, _trialItems.Contains("cap_mike") || Has(economy, "cap_mike"),
                 () => BuildCap(new Color(0.85f, 0.15f, 0.15f)));
 
-            Apply("shades_ray", HumanBodyBones.Head, Has(economy, "shades_ray"),
+            Apply("shades_ray", HumanBodyBones.Head, _trialItems.Contains("shades_ray") || Has(economy, "shades_ray"),
                 () => BuildShades());
 
             Apply("chain_gold", HumanBodyBones.Chest, Has(economy, "chain_gold"),

@@ -1,4 +1,8 @@
 # Characters & Animation
+## MINI-149 — session-only try-on
+
+CharacterEquipment.SetTrialItem/ClearTrialItems maintain a separate allowlisted set (watch/cap/shades), never economy ownership or saved wardrobe. Safehouse free submenu selects trials; original cap/shades remain prototype art and are labelled. Generic garments and colours remain unfinished. User authorizes autonomous next work and free outfit tests, preserving accessories. See MINI-149 packet/tests; no scene or art changes.
+
 ## MINI-148 — rejected polo-shell experiment
 
 Do not extract/decimate scan faces and present as a finished garment: MINI-148 produced patchy seams and body clipping. Evaluated-world-space shell also cannot simply reapply original rig modifier (double transform). Script Tools/CharacterPipeline/mini148_polo_preview.py retained for audit only. Need clean continuous garment topology, controlled clearance, region hiding and bind-space skinning. No live asset changed; approved concepts and watch/chain locks remain intact. WorkPackets/MINI-148.md records rejected evidence.

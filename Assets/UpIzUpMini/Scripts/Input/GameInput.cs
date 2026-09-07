@@ -19,7 +19,9 @@ namespace UpIzUpMini.InputSystem
         Tutorial,
         Wardrobe,
         WardrobeWear,
-        WardrobeRemove
+        WardrobeRemove,
+        WardrobeTrial,
+        WardrobeNext
     }
 
     /// <summary>
@@ -147,6 +149,8 @@ namespace UpIzUpMini.InputSystem
                 case GameAction.Wardrobe: return KeyCode.Alpha5;
                 case GameAction.WardrobeWear: return KeyCode.Alpha1;
                 case GameAction.WardrobeRemove: return KeyCode.Alpha2;
+                case GameAction.WardrobeTrial: return KeyCode.Alpha6;
+                case GameAction.WardrobeNext: return KeyCode.Alpha3;
                 default: return KeyCode.None;
             }
         }

@@ -1,0 +1,7 @@
+# MINI-149 — purchase-free wardrobe testing
+
+Implemented: home E -> 5 -> 6 opens free try-on, 1 tries item, 3 selects next, 2 clears all trials, E returns. Session-only watch/cap/shades; original prototype cap/shades are labelled honestly. No new polo/pants/hat/shoes or colour UI shipped. User's broader request remains unfinished; this packet is only test infrastructure. No economy writes, purchase events, save ownership grants or scene edits. Existing approved art unchanged. Trial access does not make WatchOwned true. Next priority actual garment production, not further accessory polish.
+
+Validation: Mini149FreeWardrobeValidation checks each trial visibility, no partner leak, unchanged money/ownership/wardrobe-save fields, arbitrary item denial and clear restoration. Logs/MINI-149-final.log is final build evidence. No full live UI test performed. Ownership released.
+
+User authorizes autonomous work and free try-ons. Implement bounded session-only try-on of existing accessories through home wardrobe. No economy grants or save ownership changes; no mission unlocks. Existing watch, cap and shades available; do not pretend failed polo or unbuilt 90/97 models are shipped. Generic item selection structure is preparation for actual garments, which still need production. Preserve approved watch/chain fitting and scene. Build once with focused ownership/save isolation checks. Class A UI/code; user requests final playtest instead of interim approvals.
