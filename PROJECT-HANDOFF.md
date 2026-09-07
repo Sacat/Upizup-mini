@@ -1,5 +1,7 @@
 # Up Iz Up Mini — Project Handoff
 
+MINI-151: visual home wardrobe accessory trial UI and rebuilt EXE; clothing models still unfinished. See Docs/Systems/UI.md and Docs/WorkPackets/MINI-151.md. MINI-150 prototype paused outside game.
+
 MINI-149: free session-only accessory try-on foundation; approved clothing models/colours still unfinished. See Characters ledger and Docs/WorkPackets/MINI-149.md.
 
 MINI-148: first Blender polo shell rejected internally; no game changes. Clean garment topology required next; see Characters ledger and Docs/WorkPackets/MINI-148.md.
@@ -41,7 +43,19 @@ reserved_files:
 current_owner: None
 active_task: None
 claimed_at: 2026-09-07
-reserved_files: []
+reserved_files:
+  - Assets/UpIzUpMini/Scripts/UI/VisualWardrobePanel.cs
+  - Assets/UpIzUpMini/Scripts/Character/CharacterEquipment.cs
+  - Assets/UpIzUpMini/Scripts/Interaction/SafehouseInteractable.cs
+  - Docs/WorkPackets/MINI-151.md
+  - Docs/Systems/UI.md
+completed_mini150_files:
+  - Tools/CharacterPipeline/mini150_polo_shell.py
+  - Docs/WorkPackets/MINI-150.md
+  - Docs/CURRENT.md
+  - Docs/Systems/Characters.md
+  - PROJECT-HANDOFF.md
+  - CHANGELOG.md
 completed_mini149_files:
   - Assets/UpIzUpMini/Scripts/Character/CharacterEquipment.cs
   - Assets/UpIzUpMini/Scripts/Interaction/SafehouseInteractable.cs

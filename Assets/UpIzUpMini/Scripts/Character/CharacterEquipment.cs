@@ -35,6 +35,13 @@ namespace UpIzUpMini.Character
             RefreshEquipment();return true;
         }
         public void ClearTrialItems(){_trialItems.Clear();RefreshEquipment();}
+        public List<string> CaptureTrialItems()=>new List<string>(_trialItems);
+        public void RestoreTrialItems(IEnumerable<string> ids)
+        {
+            _trialItems.Clear();
+            if(ids!=null)foreach(var id in ids)if(System.Array.IndexOf(TrialItemIds,id)>=0)_trialItems.Add(id);
+            RefreshEquipment();
+        }
 
         // Ownership remains in EconomyManager; wardrobe selections belong to each wearer.
         // Missing fields in legacy saves mean owned items keep their old equipped default.

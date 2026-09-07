@@ -25,6 +25,8 @@ Multiple `Canvas` objects coexist in the scene at different `sortingOrder` value
 
 ## Open items
 
+- MINI-151 (2026-09-07): VisualWardrobePanel is runtime-only, entered from owned-home E -> 5. Bakes skinned preview; shares GPU-only static meshes without reading vertices; rotate and session-only Apply/Cancel. Hides/restores enabled canvases while paused. Use opaque whiteTexture tinted dark, not blackTexture, for backdrop; keep negative GUI depth rather than resetting it before the event ends. Hidden player screenshot was black: visible built-player proof is required. New garments/colours are explicitly unavailable. Final visual acceptance and actual home-button interaction remain user playtest gates. See WorkPackets/MINI-151.md.
+
 - No other UI-specific gaps logged yet as of this file's creation. Future UI/menu work should extend this file rather than being folded into whichever gameplay system happens to be the reason for the change.
 
 ## Key files

@@ -1,0 +1,9 @@
+# MINI-151 — visual wardrobe interface
+
+Release result: Windows build succeeded (Logs/MINI-151-release.log); Wardrobe-Release.png visually inspected with opaque clean UI and isolated character preview. Preview initially shows the character back; use Rotate controls (front-facing initialization remains polish). Actual mouse Apply/Cancel and home-entry flow require user playtest. No claim of completed garment fitting.
+
+Implemented 2026-09-07. Build/validation logs: Logs/MINI-151-release.log. Proof screenshots/logs under Logs/Tasks/MINI-151. First live screenshot caught background bleed-through and unreadable static mesh access; fixed GPU-only accessory copying and opaque backdrop, retained approved fits. Apply/Cancel buttons need user interaction playtest; automated proof opens, tries watch, captures, cancels and quits. Do not call this finished garment swapping or mobile-certified. Actual garments and colour masks remain future work. MINI-150 Blender prototype is saved but unreviewed and unintegrated.
+
+User requests visual wardrobe and authorizes implementation. Scope: owned-home visual panel with actual baked character preview, rotation, existing accessory try-on, Apply/Cancel; explicitly unavailable pending clothing categories. Separate characters and transactional session-only trial state. No paid assets, ownership grants or scene edits. Approved watch/chain transforms protected. MINI-150 shirt prototype paused, not integrated.
+
+Verification: real built-player screenshot using explicit proof argument only; no proof auto-start in ordinary runs. Preview clones mesh renderers only, no gameplay components; allocate only while open, release render texture/meshes on close. Cancel restores exact trial set. Keyboard entry home E -> 5; pointer buttons allow future touch. Real mobile profiling not claimed.

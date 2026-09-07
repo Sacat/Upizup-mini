@@ -83,7 +83,12 @@ namespace UpIzUpMini.Interaction
                 else if(GameInput.WasPressed(GameAction.WardrobeRemove))ChooseWatch(false);
                 return;
             }
-            if(GameInput.WasPressed(GameAction.Wardrobe)){OpenWardrobe();return;}
+            if(GameInput.WasPressed(GameAction.Wardrobe))
+            {
+                if(Owned&&MenuUserNearby&&WardrobeEquipment!=null)
+                { UpIzUpMini.UI.VisualWardrobePanel.Open(WardrobeEquipment);_menuOpen=false;_wardrobeOpen=false;_lastFeedback=null; }
+                return;
+            }
 
             if (Input.GetKeyDown(KeyCode.Alpha1)) { Rest(); }
             else if (Input.GetKeyDown(KeyCode.Alpha2))

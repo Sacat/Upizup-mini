@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-151 — visual wardrobe test build
+
+Home E -> 5 opens visual accessory preview with rotation and Apply/Cancel. Trials remain per-character and session-only; no purchases needed. New shirts/pants/hat/90/97 footwear and colours remain IN PRODUCTION, not implemented. Approved watch/chain assets untouched. See WorkPackets/MINI-151.md and UI ledger. MINI-150 continuous polo prototype is paused outside Assets and not visually approved.
+
 ## MINI-149 — free accessory try-on foundation; clothing unfinished
 
 Home E -> 5 Wardrobe -> 6 Free try-on: 1 tries selected existing watch/cap/shades, 3 next, 2 clears trials. Session only, no purchase/save grants, separate protagonists. New approved shirt/pants/hat/90/97 shoes and per-item colours are NOT implemented; MINI-148 rejected shell remains outside game. User now authorizes autonomous implementation and testing clothes without purchase. Next actual garment production, not repeated approval requests. See WorkPackets/MINI-149.md. Owner released.
