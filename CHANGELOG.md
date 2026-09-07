@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-07 — wardrobe design approval
+
+- User approved clothing and hat, plus revised Air Max 90/97-inspired Mike footwear sheet. Preserve independent colour selection requirement. Concept-only; no game/EXE changes.
+
 ## 2026-09-07 — MINI-147 clothing reference preview
 
 - Record next wardrobe capsule and per-character/per-slot colour requirement; create clothing-only AI style preview. No gameplay or EXE changes; approval required before 3D production/integration.

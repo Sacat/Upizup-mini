@@ -1,4 +1,8 @@
 # Characters & Animation
+## MINI-147 final design approval
+
+User accepted shirts/pants/hat from first sheet; superseded its court trainers with Mike 90 and Mike 97 Air Max-inspired styles and approved new footwear sheet "yes that's it". Preserve both references under Logs/Tasks/MINI-147. Per-item/per-character colours required. Proceed to fitted shirt/motion proof next; concept acceptance is not a playable-body swap or paid-credit authorization. Details and original-label caveat in WorkPackets/MINI-147.md.
+
 ## MINI-147 — clothing capsule reference gate (2026-09-07)
 
 Watch/home wardrobe accepted as good for now. Next explicitly shirt, pants, hat, shoes and per-item colours. Imagegen concept sheet in Logs/Tasks/MINI-147/Wardrobe-Concept-v1.png is NOT implemented clothing. Approval pending. WorkPackets/MINI-147.md records material-mask/slot/body-family contract and proposed budgets. Existing ApplyGarment is tint-only; do not call it removable geometry. Do not fit over bulky original clothes or ship failed mobile body. First shirt proof requires compatible skinned base, region hiding and real motion evidence. No Hitem3D credits spent.

@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-147 — wardrobe design direction approved (2026-09-07)
+
+User approved shirts, pants and hat, replacing original court shoes with Air Max 90/97-inspired Mike options; footwear sheet approved "yes that's it". References: Logs/Tasks/MINI-147/Wardrobe-Concept-v1.png (exclude old trainers) and Footwear-90-97-Concept.png. Selectable colours remain per item/per character. Concept-only; no body/game/EXE changes. Next fitted shirt proof, not more concept redesign. See WorkPackets/MINI-147.md final approval. Owner released.
+
 ## MINI-147 — shirt/pants/hat/shoes concept awaiting approval (2026-09-07)
 
 User accepts watch/home wardrobe as good for now and requests shirt, pants, hat and shoes with individual colours, Nike/Lacoste style. Clothing-only concept shown from built-in imagegen: Logs/Tasks/MINI-147/Wardrobe-Concept-v1.png. Includes polo/tee, jeans/shorts/trousers, cap and trainers; Mike/Lacos fictional labels retained from earlier brief. No game, mesh, save or EXE changes. Next: approve style then first fitted shirt/motion proof, resolving modular-body Unity deformation gate before any body swap. Details Docs/WorkPackets/MINI-147.md. Owner released.

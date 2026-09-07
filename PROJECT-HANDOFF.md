@@ -1,5 +1,7 @@
 # Up Iz Up Mini — Project Handoff
 
+2026-09-07 MINI-147 approval: shirts/pants/hat and revised Mike 90/97 footwear accepted; next fitted shirt proof. See Docs/WorkPackets/MINI-147.md final approval and Characters ledger.
+
 2026-09-07 MINI-147: Characters — shirt/pants/hat/shoes colour-selectable concept ready for user approval; no game changes. See Docs/Systems/Characters.md and Docs/WorkPackets/MINI-147.md.
 
 2026-09-07 MINI-146: approved watch purchase/home wardrobe integrated and built; Characters, Economy and UI system ledgers contain workflow/evidence and remaining live playtest. See Docs/WorkPackets/MINI-146.md.
@@ -36,6 +38,12 @@ current_owner: None
 active_task: None
 claimed_at: 2026-09-07
 reserved_files: []
+completed_mini147_approval_files:
+  - Docs/WorkPackets/MINI-147.md
+  - Docs/CURRENT.md
+  - Docs/Systems/Characters.md
+  - PROJECT-HANDOFF.md
+  - CHANGELOG.md
 completed_mini147_files:
   - Docs/WorkPackets/MINI-147.md
   - Docs/CURRENT.md

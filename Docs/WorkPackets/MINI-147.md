@@ -1,5 +1,13 @@
 # MINI-147 — first clothing capsule reference lock
 
+## Final user approval — 2026-09-07
+
+User: "airmax 90 and 97 style shoe and everything else is good", then approved footwear-only sheet with "yes that's it". All shirt/pants/hat concepts in Wardrobe-Concept-v1.png approved; its original court trainers are superseded, NOT approved for production. Footwear references now Footwear-90-97-Concept.png: Mike 90 angular layered retro runner with heel air window; Mike 97 streamlined wave-panel runner with long air window. Selectable per-item/per-character colours remain required. This locks design direction, not exact generated multiview topology or fitted gameplay appearance. Watch/chains retain their separate exact placement locks.
+
+Footwear concept made with built-in imagegen, visually inspected and shown; two distinct silhouettes, original MIKE labels, black/white/silver/red/navy swatches. Prompt: footwear-only light-gray studio sheet, MIKE 90 and MIKE 97 large three-quarter and smaller side profiles, 90 angular mesh/suede panels and heel window, 97 silver flowing layers and full-length window, game-art realistic material detail, no people/clothes/watches, CONCEPT ONLY — NOT IN GAME YET. AI produced a swoosh-like overlay on the 90 despite the no-swoosh prompt; use original panel design during modeling, not a claim of licensed Nike artwork. No game assets changed, no 3D production or compile/build this pass.
+
+Next: first compatible fitted shirt and motion proof using character pipeline; do not regenerate more outfit concepts or ask user to reapprove these same styles. No Hitem3D spending authorized by visual acceptance alone.
+
 Integrator: Codex. Status: evidence_ready; awaiting user design approval. Approval class C for later character integration. Hitem3D/asset-store spend: zero. One built-in image-generation concept sheet only; stop for design approval before modeling/integration. Ownership released.
 
 ## User intent
