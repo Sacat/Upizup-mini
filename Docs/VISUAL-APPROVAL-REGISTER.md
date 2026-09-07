@@ -3,14 +3,14 @@
 ## VA-009 - Round gold watch cuff-fit preview
 
 id: VA-009
-status: PROPOSED
+status: APPROVED
 date: 2026-09-07
 task: MINI-145
 subject: GoldWatchMobile / SacatWatchFit / FrankiWatchFit
 scene_or_prefab: Assets/UpIzUpMini/Scenes/WatchWardrobeProof.unity
 evidence: Logs/Tasks/MINI-145/Sacat-Watch-Close.png; Franki-Watch-Close.png; Sacat-Watch-Full.png; Franki-Watch-Full.png
 approved_aspects: MINI-144 linked gold style; MINI-145 round design accepted by user, with90-degree clockwise orientation revision requested and now previewed.
-still_editable: exact wrist/cuff scale, rotation, position and final in-game appearance until accepted.
+still_editable: gameplay wiring only; exact wrist/cuff scale, rotation, position and design are protected after user "yes perfect". Final whole-wrist evidence: MINI-145 Sacat-Watch-Side.png and Franki-Watch-Side.png. MINI-146 integrates unchanged fits; runtime clipping still needs playtest.
 notes: Watch currently sits over original long-sleeve cuffs. No chain edits. Mobile content budget passed, not device performance certification. No shop or gameplay integration yet.
 latest_revision: User clarified whole-watch90-degree wrist orbit and confirmed proceeding; profiles updated without changing size. New evidence Logs/Tasks/MINI-145/Sacat-Watch-Side.png and Franki-Watch-Side.png. Placement confirmation pending.
 

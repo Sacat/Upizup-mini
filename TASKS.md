@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Task Board
+## MINI-146 — watch purchase/home wardrobe built; playtest next
+
+Individual ownership and saved wear/remove supported at owned homes. Approved fits/chains protected. Build/startup and focused checks pass. User test E -> 5 at home, wear/remove, save/reload and character switching. Full clothes/base-body pipeline remains future work.
+
 
 ## MINI-145 — round mobile watch wrist proof; fit approval pending
 

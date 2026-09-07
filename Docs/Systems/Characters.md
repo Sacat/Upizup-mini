@@ -1,4 +1,8 @@
 # Characters & Animation
+## MINI-146 — watch integration ledger (2026-09-07)
+
+Proven: CharacterEquipment uses watchPrefab + per-character watchPlacement exactly like approved chain placement, without touching chains. Approved MINI-145 fits locked by user. Hidden-item set separates ownership from wearing; CaptureWardrobe/RestoreWardrobe enable future slots without a new economy. Current UI supports watch only. Canonical scene patched references only; all transforms/profile hashes guarded. Editor removal must use DestroyImmediate on instances outside Play Mode; runtime uses Destroy. Purchase screenshots Logs/Tasks/MINI-146 show actual approved prefab. Do not re-fit or regenerate characters. Full wardrobe/body LOD repair and live animation clipping are not signed off.
+
 
 ## Current state
 

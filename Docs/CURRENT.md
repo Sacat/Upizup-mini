@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-146 — approved watch integrated and Windows build ready (2026-09-07)
+
+User approved whole-wrist fitting with "yes perfect". Existing per-character watch purchase now uses the approved mobile prefab and exact protected fits. Owned safehouse: E, 5 Wardrobe, 1 Wear / 2 Remove; rest/save afterward. Ownership and wearing remain separate per Sacat/Franki; missing old-save fields default to owned items worn. Chains, watch assets and every scene transform preserved. Focused purchase/resale/home/save-JSON checks pass, build 398087331 bytes, 12-second headless startup survives with no error/exception matches. Purchased-watch screenshots inspected; actual menu/save/reload and moving wrist clipping require user playtest. Full clothing catalogue and base-body repair remain future work. See Docs/WorkPackets/MINI-146.md. Owner released.
+
 ## MINI-145 round watch wrist previews ready (2026-09-07)
 
 Latest clarification supersedes dial-only interpretation: user meant entire watch around wrist. Both profiles now orbit90 degrees around forearm, size/axial position unchanged. Side.png screenshots show result; Logs/MINI-145-whole-wrist-turn.log passes. No gameplay integration yet; revised fitting awaits confirmation.

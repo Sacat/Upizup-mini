@@ -1,4 +1,8 @@
 # Economy
+## MINI-146 — individual watch wardrobe ledger (2026-09-07)
+
+Reuse watch_rollie unchanged price/unlock and per-character ownership. Purchase equips approved prefab; home wear/remove costs nothing and preserves ownership; resale affects seller only. GameSave adds sacatUnequippedItems/frankiUnequippedItems; missing fields default worn. Validation covers two purchases, independent removal, resale and JSON roundtrip without writing user PlayerPrefs. Actual full save/reload awaits playtest. Do not introduce shared ownership or a second shop system. Tool: Mini146WardrobeIntegration; packet Docs/WorkPackets/MINI-146.md.
+
 
 ## Current state
 

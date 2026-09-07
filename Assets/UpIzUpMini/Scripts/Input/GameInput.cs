@@ -16,7 +16,10 @@ namespace UpIzUpMini.InputSystem
         AssignFarmhand,
         SwitchCharacter,
         Attack,
-        Tutorial
+        Tutorial,
+        Wardrobe,
+        WardrobeWear,
+        WardrobeRemove
     }
 
     /// <summary>
@@ -141,6 +144,9 @@ namespace UpIzUpMini.InputSystem
                 case GameAction.SwitchCharacter: return KeyCode.Tab;
                 case GameAction.Attack: return KeyCode.F;
                 case GameAction.Tutorial: return KeyCode.H;
+                case GameAction.Wardrobe: return KeyCode.Alpha5;
+                case GameAction.WardrobeWear: return KeyCode.Alpha1;
+                case GameAction.WardrobeRemove: return KeyCode.Alpha2;
                 default: return KeyCode.None;
             }
         }

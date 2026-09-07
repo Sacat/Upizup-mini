@@ -21,6 +21,27 @@ namespace UpIzUpMini.Character
         [SerializeField] private Animator animator;
         [SerializeField] private int characterIndex;
         [SerializeField] private AccessoryPlacementProfile chainPlacement;
+        [SerializeField] private GameObject watchPrefab;
+        [SerializeField] private AccessoryPlacementProfile watchPlacement;
+        private readonly HashSet<string> _unequippedItems = new HashSet<string>();
+
+        // Ownership remains in EconomyManager; wardrobe selections belong to each wearer.
+        // Missing fields in legacy saves mean owned items keep their old equipped default.
+        public List<string> CaptureWardrobe() => new List<string>(_unequippedItems);
+        public void RestoreWardrobe(IEnumerable<string> unequipped)
+        {
+            _unequippedItems.Clear();
+            if(unequipped!=null)foreach(var id in unequipped)if(!string.IsNullOrEmpty(id))_unequippedItems.Add(id);
+            RefreshEquipment();
+        }
+        public bool WatchOwned => Has(EconomyManager.Instance,"watch_rollie");
+        public bool WatchEquipped => WatchOwned && !_unequippedItems.Contains("watch_rollie");
+        public bool SetWatchEquipped(bool equipped)
+        {
+            if(!WatchOwned)return false;
+            if(equipped)_unequippedItems.Remove("watch_rollie");else _unequippedItems.Add("watch_rollie");
+            RefreshEquipment();return true;
+        }
 
         /// <summary>
         /// MINI-067 chain placement, relative to the CHEST bone but expressed in
@@ -188,7 +209,7 @@ namespace UpIzUpMini.Character
             Apply("chain_gold", HumanBodyBones.Chest, Has(economy, "chain_gold"),
                 () => BuildChain());
 
-            Apply("watch_rollie", HumanBodyBones.LeftLowerArm, Has(economy, "watch_rollie"),
+            Apply("watch_rollie", HumanBodyBones.LeftLowerArm, WatchEquipped,
                 () => BuildWatch());
 
             // Clothing recolours the character's own garments rather than
@@ -276,7 +297,14 @@ namespace UpIzUpMini.Character
                 go.name = $"Equip_{itemId}";
                 go.transform.SetParent(anchor, false);
 
-                if (itemId == "chain_gold")
+                if (itemId == "watch_rollie" && watchPlacement != null && watchPlacement.useManualPlacement)
+                {
+                    go.transform.localPosition=watchPlacement.localPosition;
+                    go.transform.localRotation=Quaternion.Euler(watchPlacement.localEulerAngles);
+                    go.transform.localScale=watchPlacement.localScale;
+                    ApplyFittedChildren(go.transform,watchPlacement);
+                }
+                else if (itemId == "chain_gold")
                 {
                     if (chainPlacement != null && chainPlacement.useManualPlacement)
                     {
@@ -322,7 +350,9 @@ namespace UpIzUpMini.Character
             }
             else if (!owned && present)
             {
-                Destroy(existing);
+                existing.SetActive(false);
+                if (Application.isPlaying) Destroy(existing);
+                else DestroyImmediate(existing);
                 _spawned.Remove(itemId);
             }
         }
@@ -478,8 +508,9 @@ namespace UpIzUpMini.Character
             return root;
         }
 
-        private static GameObject BuildWatch()
+        private GameObject BuildWatch()
         {
+            if(watchPrefab!=null)return Instantiate(watchPrefab);
             var root = new GameObject("Watch");
             var face = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             face.transform.SetParent(root.transform, false);

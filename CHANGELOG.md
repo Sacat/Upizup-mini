@@ -1,4 +1,9 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-07 — MINI-146 approved watch and home wardrobe
+
+- Connect approved watch prefab and individual fits to existing purchase. Add owned-home wear/remove and independent save fields with old-save defaults. Preserve chains and scene placements.
+- Focused validation and Windows build pass; 12-second startup smoke clean. Live wardrobe/movement acceptance remains user test.
+
 ## 2026-09-07 — Whole-watch wrist rotation clarification
 
 - Turn both complete watch attachments90 degrees around the forearm, preserving size/axial placement; back up profiles and capture side views. Unity proof passes; gameplay/EXE unchanged.

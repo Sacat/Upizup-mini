@@ -1,4 +1,8 @@
 # UI
+## MINI-146 — home wardrobe ledger (2026-09-07)
+
+Reuse SafehouseInteractable prompt: E opens owned bed, 5 opens wardrobe, 1 wears/2 removes watch, E returns. Only controlled nearby character may change; locked homes refuse. Named GameInput actions appended without renumbering old actions. Save/rest retains choice. Text and handler checks passed, but editor Camera.Render screenshots cannot verify IMGUI menu: user must test live home flow and normal save/reload. No full garment UI or mobile certification claimed.
+
 
 Added 2026-08-29 - a real gap in the original 9-system list, created per `README.md`'s own instruction not to leave a real system undocumented just because it wasn't on the initial list.
 

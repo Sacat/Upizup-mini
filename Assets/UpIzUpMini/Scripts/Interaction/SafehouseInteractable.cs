@@ -1,6 +1,7 @@
 using UnityEngine;
 using UpIzUpMini.Character;
 using UpIzUpMini.Economy;
+using UpIzUpMini.InputSystem;
 
 namespace UpIzUpMini.Interaction
 {
@@ -33,6 +34,13 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private Vector3 spawnPoint;
 
         private string _lastFeedback;
+        private bool _wardrobeOpen;
+        private GameObject _menuUser;
+        private string _wardrobeFeedback;
+        private CharacterEquipment WardrobeEquipment => _menuUser!=null?_menuUser.GetComponent<CharacterEquipment>():null;
+        private bool MenuUserNearby => _menuUser!=null && Vector3.Distance(_menuUser.transform.position,transform.position)<=4f
+            && (_menuUser.GetComponent<PlayerController>()==null || _menuUser.GetComponent<PlayerController>().IsControlled)
+            && (CharacterSwitchManager.Instance==null || CharacterSwitchManager.Instance.Active.root==_menuUser);
 
         private bool Owned => string.IsNullOrEmpty(requiredItemId)
             || (EconomyManager.Instance != null && EconomyManager.Instance.OwnsItem(requiredItemId));
@@ -42,7 +50,13 @@ namespace UpIzUpMini.Interaction
             get
             {
                 if (!Owned) return "[ E ] House (locked)";
-                return _menuOpen ? "[1] Rest  [2] Save  [3] Load  [4] Set Respawn  [E] Leave" : "[ E ] Use bed";
+                if(_wardrobeOpen)
+                {
+                    var equipment=WardrobeEquipment;
+                    string status=equipment==null||!equipment.WatchOwned?"Buy a gold watch at the Clothes Man first.":equipment.WatchEquipped?"Gold watch: wearing":"Gold watch: stored";
+                    return "WARDROBE - "+(CharacterSwitchManager.Instance?.Active.displayName??"Character")+"\n"+status+"\n[1] Wear  [2] Remove  [E] Back\n"+(_wardrobeFeedback??"Rest or save afterward to keep your choice.");
+                }
+                return _menuOpen ? "[1] Rest  [2] Save  [3] Load\n[4] Set Respawn  [5] Wardrobe  [E] Leave" : "[ E ] Use bed / wardrobe";
             }
         }
 
@@ -51,6 +65,14 @@ namespace UpIzUpMini.Interaction
         private void Update()
         {
             if (!_menuOpen) return;
+            if(!Owned||!MenuUserNearby){_menuOpen=false;_wardrobeOpen=false;return;}
+            if(_wardrobeOpen)
+            {
+                if(GameInput.WasPressed(GameAction.WardrobeWear))ChooseWatch(true);
+                else if(GameInput.WasPressed(GameAction.WardrobeRemove))ChooseWatch(false);
+                return;
+            }
+            if(GameInput.WasPressed(GameAction.Wardrobe)){OpenWardrobe();return;}
 
             if (Input.GetKeyDown(KeyCode.Alpha1)) { Rest(); }
             else if (Input.GetKeyDown(KeyCode.Alpha2))
@@ -101,6 +123,8 @@ namespace UpIzUpMini.Interaction
                 return;
             }
 
+            if(_wardrobeOpen){_wardrobeOpen=false;_lastFeedback=null;return;}
+            _menuUser=interactor;
             // E toggles the bed menu; the actual actions are 1/2/3 so
             // resting, saving and loading are separate deliberate choices.
             _menuOpen = !_menuOpen;
@@ -111,6 +135,19 @@ namespace UpIzUpMini.Interaction
             }
 
             _lastFeedback = "Rest to heal and cool off, or save/load.";
+        }
+
+        public bool OpenWardrobe()
+        {
+            if(!Owned||!_menuOpen||!MenuUserNearby)return false;
+            _wardrobeOpen=true;_wardrobeFeedback=null;return true;
+        }
+        public bool ChooseWatch(bool wear)
+        {
+            if(!_wardrobeOpen||!Owned||!MenuUserNearby)return false;
+            bool changed=WardrobeEquipment!=null&&WardrobeEquipment.SetWatchEquipped(wear);
+            _wardrobeFeedback=changed?(wear?"Yah, I looking more fresh now. Save when ready.":"Watch stored. You still own it. Save when ready."):"This character needs to buy the watch first.";
+            return changed;
         }
 
         private void Rest()

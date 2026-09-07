@@ -1,5 +1,7 @@
 # Up Iz Up Mini — Project Handoff
 
+2026-09-07 MINI-146: approved watch purchase/home wardrobe integrated and built; Characters, Economy and UI system ledgers contain workflow/evidence and remaining live playtest. See Docs/WorkPackets/MINI-146.md.
+
 **2026-08-29: this file is now an INDEX, not the detail.** Detail for any given system (architecture, what worked/didn't, open items) lives in `Docs/Systems/*.md` — start at `Docs/Systems/README.md` (the router) and read only the system file(s) your task actually touches. New entries below should stay short (date, system(s), one sentence, link to the system file's own entry) rather than growing into another wall of narrative text the way the pre-2026-08-29 history below did.
 
 ## Project
@@ -32,6 +34,22 @@ current_owner: None
 active_task: None
 claimed_at: 2026-09-07
 reserved_files: []
+completed_mini146_files:
+  - Assets/UpIzUpMini/Scripts/Character/CharacterEquipment.cs
+  - Assets/UpIzUpMini/Scripts/Interaction/SafehouseInteractable.cs
+  - Assets/UpIzUpMini/Scripts/Input/GameInput.cs
+  - Assets/UpIzUpMini/Scripts/SaveLoadSystem.cs
+  - Assets/UpIzUpMini/Editor/Mini146WardrobeIntegration.cs
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Docs/WorkPackets/MINI-146.md
+  - Docs/CURRENT.md
+  - Docs/Systems/Characters.md
+  - Docs/Systems/Economy.md
+  - Docs/Systems/UI.md
+  - Docs/VISUAL-APPROVAL-REGISTER.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
 completed_whole_wrist_rotation_files:
   - Assets/UpIzUpMini/Editor/Mini145WatchProof.cs
   - Assets/UpIzUpMini/Art/Accessories/GoldWatchMobile/
