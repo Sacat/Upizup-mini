@@ -178,7 +178,7 @@ namespace UpIzUpMini.UI
             yield return new WaitForSecondsRealtime(3);
             var equipment=CharacterSwitchManager.Instance?.Active.root.GetComponent<CharacterEquipment>();
             if(equipment==null){Debug.LogError("WARDROBE_PROOF_NO_CHARACTER");Application.Quit(1);yield break;}
-            Begin(equipment);Select(0);
+            Begin(equipment);Select(0);Select(1);Select(2);yaw=90;RebuildPreview();
             yield return new WaitForSecondsRealtime(1);
             ScreenCapture.CaptureScreenshot(path);
             yield return new WaitForSecondsRealtime(2);

@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-152 — watch lowered; accessory placement test build
+
+Watch moved toward hand per explicit user correction; original profile size/rotation untouched. Head prototype offsets corrected for bone scale. EXE rebuilt; screenshot Logs/Tasks/MINI-151/Wardrobe-WristFix.png inspected. Franki and moving fit still need playtest. Original fused hat remains beneath prototype: full replacement unfinished. Next requested scope is shirt and pants only. See WorkPackets/MINI-152.md and Characters ledger.
+
 ## MINI-151 — visual wardrobe test build
 
 Home E -> 5 opens visual accessory preview with rotation and Apply/Cancel. Trials remain per-character and session-only; no purchases needed. New shirts/pants/hat/90/97 footwear and colours remain IN PRODUCTION, not implemented. Approved watch/chain assets untouched. See WorkPackets/MINI-151.md and UI ledger. MINI-150 continuous polo prototype is paused outside Assets and not visually approved.

@@ -1,5 +1,7 @@
 # Up Iz Up Mini — Project Handoff
 
+MINI-152: user-authorized watch lowering and head accessory offsets, built screenshot; Characters ledger records remaining fused hat/garment limitations.
+
 MINI-151: visual home wardrobe accessory trial UI and rebuilt EXE; clothing models still unfinished. See Docs/Systems/UI.md and Docs/WorkPackets/MINI-151.md. MINI-150 prototype paused outside game.
 
 MINI-149: free session-only accessory try-on foundation; approved clothing models/colours still unfinished. See Characters ledger and Docs/WorkPackets/MINI-149.md.
@@ -44,6 +46,10 @@ current_owner: None
 active_task: None
 claimed_at: 2026-09-07
 reserved_files:
+  - Docs/WorkPackets/MINI-152.md
+  - Docs/Systems/Characters.md
+  - Docs/CURRENT.md
+  - CHANGELOG.md
   - Assets/UpIzUpMini/Scripts/UI/VisualWardrobePanel.cs
   - Assets/UpIzUpMini/Scripts/Character/CharacterEquipment.cs
   - Assets/UpIzUpMini/Scripts/Interaction/SafehouseInteractable.cs

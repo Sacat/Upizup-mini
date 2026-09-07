@@ -321,6 +321,16 @@ namespace UpIzUpMini.Character
                     go.transform.localRotation=Quaternion.Euler(watchPlacement.localEulerAngles);
                     go.transform.localScale=watchPlacement.localScale;
                     ApplyFittedChildren(go.transform,watchPlacement);
+                    // MINI-152: user explicitly requested a lower wrist position.
+                    // Preserve approved orbit, rotation, size and radial clearance;
+                    // change only distance along the forearm toward the hand.
+                    var hand=animator.GetBoneTransform(HumanBodyBones.LeftHand);
+                    if(hand!=null)
+                    {
+                        var axis=(hand.position-anchor.position).normalized;
+                        var wristTarget=hand.position-axis*.018f;
+                        go.transform.position+=axis*Vector3.Dot(wristTarget-go.transform.position,axis);
+                    }
                 }
                 else if (itemId == "chain_gold")
                 {
@@ -415,8 +425,21 @@ namespace UpIzUpMini.Character
             return copy.transform;
         }
 
-        private static void PositionOnBone(Transform t, string itemId)
+        private void PositionOnBone(Transform t, string itemId)
         {
+            if(itemId=="cap_mike" || itemId=="shades_ray")
+            {
+                // Head bones have rig-dependent axes and inherited scale.
+                // Specify offsets in character metres, then keep the resulting
+                // bone-local transform so animation still carries the accessory.
+                var anchor=t.parent;
+                t.rotation=transform.rotation;
+                t.position=anchor.position+transform.up*(itemId=="cap_mike"?.10f:.025f)
+                    +transform.forward*(itemId=="cap_mike"?.0f:.105f);
+                var s=anchor.lossyScale;
+                t.localScale=new Vector3(1f/Mathf.Max(.0001f,Mathf.Abs(s.x)),1f/Mathf.Max(.0001f,Mathf.Abs(s.y)),1f/Mathf.Max(.0001f,Mathf.Abs(s.z)));
+                return;
+            }
             switch (itemId)
             {
                 case "cap_mike":

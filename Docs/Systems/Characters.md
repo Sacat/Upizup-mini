@@ -1,4 +1,8 @@
 # Characters & Animation
+## MINI-152 — wrist lowering and head attachment correction
+
+User explicitly revised previously approved watch axial placement: too high. Runtime now projects watch along forearm to 18mm before hand bone, preserving profile rotation/scale/radial offset and untouched rollback profiles. Cap/shades now use metre offsets and cancel head bone scale instead of generic bone-local metres. Built screenshot Logs/Tasks/MINI-151/Wardrobe-WristFix.png shows watch nearer hand; user acceptance and Franki/live movement proof still owed. Prototype cap still overlays original fused hat; this is NOT finished hat replacement. New shirt/pants remain next task. No chain edits. Build Logs/MINI-152-wrist-build.log succeeded.
+
 ## MINI-149 — session-only try-on
 
 CharacterEquipment.SetTrialItem/ClearTrialItems maintain a separate allowlisted set (watch/cap/shades), never economy ownership or saved wardrobe. Safehouse free submenu selects trials; original cap/shades remain prototype art and are labelled. Generic garments and colours remain unfinished. User authorizes autonomous next work and free outfit tests, preserving accessories. See MINI-149 packet/tests; no scene or art changes.

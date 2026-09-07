@@ -1,0 +1,7 @@
+# MINI-152 — correct prototype head accessory attachments
+
+Result: build succeeded Logs/MINI-152-wrist-build.log. Actual side screenshot Logs/Tasks/MINI-151/Wardrobe-WristFix.png inspected: watch closer to hand. Cap no longer far above head but overlaps original fused hat; not finished replacement. Franki and movement fit unverified. User visual approval pending. Owner released; next shirt/pants production still outstanding.
+
+User additionally authorizes lowering the watch toward the wrist. Original profiles remain rollback data; runtime fitting preserves scale/rotation/radial offset and moves only along forearm to 18mm before the hand bone. Must inspect actual screenshot before calling approved. Shirts/pants are next, not implemented by this placement patch.
+
+User reports floating cap and misplaced accessories in visual wardrobe. Scope: existing cap/glasses bone attachment and static preview verification. Preserve approved watch and chain assets/profiles, body and clothes. No new garment production or paid tools. One integrator Codex; reserve CharacterEquipment.cs, VisualWardrobePanel.cs and current/character/handoff/change notes. Zero external credits. Acceptance: built screenshot of all trial accessories; numeric offsets not visual acceptance. Compare actual game attachment against preview before touching any approved fit. User screenshot is baseline. Remaining clothing replacement still not implemented.
