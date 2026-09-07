@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SacatWatchFit
   m_EditorClassIdentifier: Assembly-CSharp::UpIzUpMini.Character.AccessoryPlacementProfile
   useManualPlacement: 1
-  localPosition: {x: 0.0031024814, y: 0.20293893, z: 0.00078811124}
-  localEulerAngles: {x: 0.000031162737, y: 165.74492, z: 90.00004}
+  localPosition: {x: 0.00078811136, y: 0.20293893, z: -0.0031024811}
+  localEulerAngles: {x: 0.000029028304, y: 255.74492, z: 90.00004}
   localScale: {x: 1.2163495, y: 1.2163492, z: 1.2163492}
   fittedChildren: []

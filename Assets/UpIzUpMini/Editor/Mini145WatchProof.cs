@@ -19,6 +19,37 @@ namespace UpIzUpMini.EditorTools
         const string Out="Logs/Tasks/MINI-145";
         const string Scene="Assets/UpIzUpMini/Scenes/GrandBayProof.unity";
         static void Require(bool ok,string text){if(!ok)throw new Exception("MINI145: "+text);}
+        // User clarification: orbit the ENTIRE watch around the forearm, not the dial.
+        // Positive rotation is toward screen-right from the original front wrist view.
+        public static void RotateAroundWristOnce()
+        {
+            Directory.CreateDirectory(Out);
+            string receipt=Out+"/whole-watch-quarter-turn-applied.txt";
+            if(File.Exists(receipt)){BuildCapture();return;}
+            var changes=new List<string>();
+            var turn=Quaternion.AngleAxis(90,Vector3.up);
+            foreach(string name in new[]{"Sacat","Franki"})
+            {
+                string path=Art+"/"+name+"WatchFit.asset";
+                var fit=AssetDatabase.LoadAssetAtPath<AccessoryPlacementProfile>(path);
+                Require(fit!=null,"missing original wrist fit "+name);
+                string backup=Out+"/"+name+"WatchFit-BeforeWholeWristTurn.asset";
+                Require(!File.Exists(backup),"partial revision exists; inspect backup before retry");
+                File.Copy(path,backup);
+                Vector3 oldPosition=fit.localPosition,oldScale=fit.localScale;
+                Quaternion oldRotation=Quaternion.Euler(fit.localEulerAngles);
+                // These actual Mixamo forearms run along local +Y, confirmed by the
+                // fitted hand/forearm positions. Orbit offset AND orientation together.
+                fit.localPosition=turn*oldPosition;
+                fit.localEulerAngles=(turn*oldRotation).eulerAngles;
+                Require(fit.localScale==oldScale,"size changed");
+                Require(Mathf.Abs(fit.localPosition.y-oldPosition.y)<.00001f,"axial placement changed");
+                Require(Mathf.Abs(Quaternion.Angle(oldRotation,Quaternion.Euler(fit.localEulerAngles))-90)<.001f,"not a quarter turn");
+                EditorUtility.SetDirty(fit);
+                changes.Add(name+": whole watch +90 around forearm; local position="+fit.localPosition.ToString("F6")+" rotation="+fit.localEulerAngles+" unchanged scale="+fit.localScale);
+            }
+            AssetDatabase.SaveAssets();File.WriteAllLines(receipt,changes);BuildCapture();
+        }
         [MenuItem("Tools/Up Iz Up Mini/MINI-145/Round Watch Wrist Proof")]
         public static void BuildCapture()
         {
@@ -131,6 +162,7 @@ namespace UpIzUpMini.EditorTools
                 Sample(animator,clip,.4f);
                 Vector3 target=fitted.transform.position;
                 Capture(camera,target+subject.transform.forward*.26f-subject.transform.right*.10f+subject.transform.up*.08f,target,Out+"/"+name+"-Watch-Close.png");
+                Capture(camera,target+fitted.transform.up*.28f+subject.transform.up*.065f,target+fitted.transform.up*.018f,Out+"/"+name+"-Watch-Side.png");
                 var body=subject.GetComponentsInChildren<SkinnedMeshRenderer>().First();Bounds bounds=body.bounds;
                 Capture(camera,bounds.center+subject.transform.forward*3.5f+subject.transform.right*.5f,bounds.center,Out+"/"+name+"-Watch-Full.png");
                 evidence.Add(name+" attachment unchanged across 36 idle/walk/run samples; visual fit/motion acceptance pending");

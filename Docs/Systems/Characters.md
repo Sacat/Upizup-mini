@@ -19,6 +19,8 @@ User-approved manual placements are visual locks - e.g. Sacat's and Boss C's two
 
 ## What worked / what didn't
 
+- **MINI-145 whole-wrist clarification:** User meant whole accessory orbit, not dial roll. Apply rotation around bone's forearm axis to BOTH attachment position and orientation, retaining axial distance/scale. Updated Sacat/Franki profiles by+90 localY and captured new Side.png views. No mesh changes. BuildCapture preserves these profiles; RotateAroundWristOnce is a one-shot user revision, not the normal rebuild entry point.
+
 - **MINI-145 rotation revision:** User approved design and requested90 degrees clockwise. Rotate case/dial/crown geometry only, not entire bracelet attachment; keeps band's fit and separate profiles identical. Captures verify crown at right; budgets and attachment checks unchanged. Generator preserves this orientation for future rebuilds.
 
 - **MINI-145:** Rebuilding the approved watch silhouette as deliberately low-poly pieces (rather than decimating each tiny high-poly part) reduced 29,800 to1,644 triangles while retaining circular case, hands, markers and bracelet; 788-triangle distant mesh, 32x8 colour/metallic atlas, one shared Standard material. Fit profiles on LeftLowerArm preserve original character scale. Existing long sleeves require over-cuff preview fitting; moving toward the hand hides the dial. Never auto-recompute approved profiles: proof tool now preserves stored values. 36 sampled idle/walk/run frames prove only attachment stability, not live clipping-free motion. Gameplay integration waits for screenshot approval.

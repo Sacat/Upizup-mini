@@ -1,5 +1,11 @@
 # MINI-145 - Round gold watch, mobile geometry and both wrist previews
 
+## Whole-wrist clarification (2026-09-07)
+
+User clarified the requested90-degree right turn means the complete watch around the wrist, not just the dial, then explicitly confirmed proceeding. Applied+90 degrees around each actual forearm's local+Y to BOTH profile position and rotation. Size and axial position preserved; no mesh/dial/material change in this revision. Profiles backed up in Logs/Tasks/MINI-145/*WatchFit-BeforeWholeWristTurn.asset; receipt whole-watch-quarter-turn-applied.txt. Use BuildCapture for repeat verification, NOT the one-shot RotateAroundWristOnce action.
+
+Logs/MINI-145-whole-wrist-turn.log passes compile/capture,90-degree/size/axial assertions and36 sampled attachments per character. Canonical scene hash unchanged. New Sacat-Watch-Side.png / Franki-Watch-Side.png inspected; original-angle Close.png files also updated. Exact revised placement awaits user confirmation. Still over sleeves and isolated, no runtime purchase/EXE integration. Ownership released.
+
 ## User rotation revision (2026-09-07)
 
 User accepted design and asked for90 degrees right. Circular case, dial and crown rotated90 degrees clockwise around face normal in both source LODs; bracelet/lugs and both saved wrist profiles unchanged (git diff confirmed). Before images preserved as Sacat/Franki-Watch-Before-Rotation.png. New close-ups inspected: crown at right. Logs/MINI-145-watch-rotation.log passes compile/capture and36 attachment samples each; same1644/788tris. Canonical scene hash unchanged. Rotation still presented for confirmation; no shop/EXE integration. Ownership released.

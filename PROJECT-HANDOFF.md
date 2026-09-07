@@ -32,6 +32,16 @@ current_owner: None
 active_task: None
 claimed_at: 2026-09-07
 reserved_files: []
+completed_whole_wrist_rotation_files:
+  - Assets/UpIzUpMini/Editor/Mini145WatchProof.cs
+  - Assets/UpIzUpMini/Art/Accessories/GoldWatchMobile/
+  - Assets/UpIzUpMini/Scenes/WatchWardrobeProof.unity
+  - Docs/WorkPackets/MINI-145.md
+  - Docs/Systems/Characters.md
+  - Docs/CURRENT.md
+  - Docs/VISUAL-APPROVAL-REGISTER.md
+  - CHANGELOG.md
+  - PROJECT-HANDOFF.md
 completed_watch_rotation_files:
   - Tools/CharacterPipeline/mini145_watch_mobile.py
   - Assets/UpIzUpMini/Art/Accessories/GoldWatchMobile/
@@ -106,6 +116,8 @@ completed_task_files:
 ```
 
 ### 2026-09-07 — MINI-145 — Characters / round-watch wrist proof
+
+- Clarification: whole watch now rotated90 degrees around each wrist, not just dial. Size/axial position retained; Side.png screenshots ready. See packet Whole-wrist clarification entry.
 
 - User accepted design;90-degree clockwise case/dial/crown revision captured on both characters, wrist profiles unchanged. See MINI-145 packet rotation entry.
 

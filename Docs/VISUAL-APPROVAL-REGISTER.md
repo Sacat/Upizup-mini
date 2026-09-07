@@ -12,6 +12,7 @@ evidence: Logs/Tasks/MINI-145/Sacat-Watch-Close.png; Franki-Watch-Close.png; Sac
 approved_aspects: MINI-144 linked gold style; MINI-145 round design accepted by user, with90-degree clockwise orientation revision requested and now previewed.
 still_editable: exact wrist/cuff scale, rotation, position and final in-game appearance until accepted.
 notes: Watch currently sits over original long-sleeve cuffs. No chain edits. Mobile content budget passed, not device performance certification. No shop or gameplay integration yet.
+latest_revision: User clarified whole-watch90-degree wrist orbit and confirmed proceeding; profiles updated without changing size. New evidence Logs/Tasks/MINI-145/Sacat-Watch-Side.png and Franki-Watch-Side.png. Placement confirmation pending.
 
 This file protects looks and placements the user has explicitly approved. Absence from this file does not mean an agent may ignore the design brief; it means the item has not yet received a formal visual lock.
 

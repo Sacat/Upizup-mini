@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-07 — Whole-watch wrist rotation clarification
+
+- Turn both complete watch attachments90 degrees around the forearm, preserving size/axial placement; back up profiles and capture side views. Unity proof passes; gameplay/EXE unchanged.
+
 ## 2026-09-07 — Watch face orientation revision
 
 - Turn round case/dial/crown90 degrees clockwise on both preview characters; bracelet, wrist fits and triangle budgets unchanged. Unity proof passes; no gameplay/EXE changes.
