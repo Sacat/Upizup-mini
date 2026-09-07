@@ -6,6 +6,7 @@ using UpIzUpMini.Interaction;
 
 namespace UpIzUpMini.Combat
 {
+    [DefaultExecutionOrder(-50)] // Commit kick before PlayerController reads movement this frame.
     public class SimpleMeleeCombat : MonoBehaviour
     {
         // MINI-031: id baked into the shared controller's upper-body
@@ -48,6 +49,9 @@ namespace UpIzUpMini.Combat
         readonly MeleeSwingTimeline swing = new MeleeSwingTimeline();
         public bool IsControlled => GetComponent<PlayerController>()?.IsControlled == true;
         public bool IsAttacking => swing.IsRunning;
+        public bool BlocksMovement => swing.IsRunning && _activeMove.LocksMovement;
+        private bool _hitLanded;
+        void OnDisable() { swing.Cancel(); _hitLanded = false; }
 
         /// <summary>Which combo step will fire on the next Attack() call -
         /// exposed for UI (e.g. a combo counter) and deterministic tests.</summary>
@@ -61,7 +65,7 @@ namespace UpIzUpMini.Combat
 
         void Update()
         {
-            if (!IsControlled)
+            if (!IsControlled || (vitals != null && vitals.IsDead))
             {
                 swing.Cancel();
                 return;
@@ -100,7 +104,8 @@ namespace UpIzUpMini.Combat
 
             // Plays even on a swing that connects with nothing - a real
             // attack animation reads as a fight, not just a damage tick.
-            bool played = animationManager?.PlayAction(move.id) ?? false;
+            bool played = animationManager?.PlayAction(move.id, .08f, move.LocksMovement ? move.TotalSeconds - .15f : -1f) ?? false;
+            _hitLanded = false;
             swing.Begin(move.BuildProfile());
 
             // MINI-120 combo request, user: "i have only seeing one
@@ -119,7 +124,7 @@ namespace UpIzUpMini.Combat
         /// headless tests; runtime calls it once per controlled frame.</summary>
         public void AdvanceAttack(float deltaSeconds)
         {
-            if (swing.Advance(deltaSeconds)) ResolveContact();
+            if (swing.AdvanceContactWindow(deltaSeconds) && !_hitLanded) _hitLanded = ResolveContact();
         }
 
         // MINI-120 combo request, user: "put one on each main character"
@@ -145,19 +150,21 @@ namespace UpIzUpMini.Combat
             }
         }
 
-        private void ResolveContact()
+        private bool ResolveContact()
         {
             float appliedDamage = CalculateAppliedDamage();
             if (MeleeContactResolver.TryFindNearest(
                     transform, _activeMove.BuildProfile(), NpcCombatHealth.All,
-                    (NpcCombatHealth candidate) => !candidate.IsDown, out NpcCombatHealth target))
+                    (NpcCombatHealth candidate) => candidate.isActiveAndEnabled && !candidate.IsDown, out NpcCombatHealth target))
             {
                 float impact = 0.8f * MeleeMoveLibrary.GetImpactMultiplierFor(gameObject.name);
                 target.Hit(appliedDamage, transform.forward * impact);
                 var npc = target.GetComponent<TownNPCInteractable>();
                 if (npc != null && npc.Role == NpcRole.Police)
                     EconomyManager.Instance?.AddHeat(EconomyManager.MaxHeat);
+                return true;
             }
+            return false;
         }
 
         /// <summary>

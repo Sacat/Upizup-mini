@@ -35,6 +35,7 @@ namespace UpIzUpMini.Combat
         Vector3 homePosition;
         Quaternion homeRotation;
         Vector3 homeScale;
+        bool initialized;
 
         public bool IsDown { get; private set; }
         public float Health => health;
@@ -43,6 +44,15 @@ namespace UpIzUpMini.Combat
 
         void Awake()
         {
+            EnsureInitialized();
+        }
+
+        // An authored inactive gang member can be reset by its pool before
+        // Unity calls Awake. Capture its approved pose/scale before any reset
+        // writes them, and never recapture a faded or displaced runtime pose.
+        void EnsureInitialized()
+        {
+            if (initialized) return;
             health = maxHealth;
             controller = GetComponent<CharacterController>();
             animator = GetComponentInChildren<Animator>();
@@ -52,6 +62,7 @@ namespace UpIzUpMini.Combat
             homePosition = transform.position;
             homeRotation = transform.rotation;
             homeScale = transform.localScale;
+            initialized = true;
             ConfigureFromRole(GetComponent<TownNPCInteractable>());
         }
 
@@ -213,6 +224,7 @@ namespace UpIzUpMini.Combat
 
         public void ResetForRespawn()
         {
+            EnsureInitialized();
             if (controller == null) controller = GetComponent<CharacterController>();
             if (animationManager == null) animationManager = GetComponent<HumanoidAnimationManager>();
             if (animator == null) animator = GetComponentInChildren<Animator>();

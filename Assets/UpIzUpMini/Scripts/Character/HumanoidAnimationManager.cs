@@ -126,7 +126,7 @@ namespace UpIzUpMini.Character
         /// state doesn't exist (e.g. the controller hasn't been rebuilt
         /// since the id was added) — safe to call speculatively.
         /// </summary>
-        public bool PlayAction(string id, float blendIn = 0.08f)
+        public bool PlayAction(string id, float blendIn = 0.08f, float durationOverride = -1f)
         {
             if (animator == null || string.IsNullOrEmpty(id)) return false;
             if (!_byId.TryGetValue(id, out var entry)) return false;
@@ -141,7 +141,9 @@ namespace UpIzUpMini.Character
             animator.CrossFadeInFixedTime(id, blendIn, layer, 0f);
 
             float clipLength = entry.clip != null ? entry.clip.length : 0.5f;
-            var fade = FadeLayerAfter(layer, clipLength + blendIn);
+            // Optional measured playback duration for accelerated kick states;
+            // all existing non-melee/vehicle callers retain their old timing.
+            var fade = FadeLayerAfter(layer, durationOverride > 0f ? durationOverride : clipLength + blendIn);
             if (entry.fullBody)
             {
                 if (_fullBodyFade != null) StopCoroutine(_fullBodyFade);

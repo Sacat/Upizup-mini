@@ -15,6 +15,8 @@ Patrol/navigation, hit reaction, and police heat/chase/search/recovery all exist
 
 ## What worked / what didn't
 
+- **2026-09-07 MINI-143:** PatrolNPC's disabled-controller fallback directly moved Transform during ragdoll. It now yields while health is down or its existing controller is disabled/inactive; true controller-less NPC fallback remains. PlayerController likewise skips disabled/inactive controllers. Combined with the gang zero-scale fix (Gang.md),12s built-player smoke had0 inactive-controller warnings versus MINI142's heavy spam. No claim that roaming destinations/roof sampling are fixed; normal navigation remains user playtest.
+
 - **(2026-08-30) Persistent interactables need a different defeat policy from population NPCs (MINI-132).** Farm/shop sellers, buyers, bosses and other named `TownNPCInteractable` roles now ragdoll from a vehicle hit but are protected from removal: they recover where the ragdoll stopped and walk back to the exact world position/rotation captured at startup. Villagers and police fade then reappear at home after 100 seconds. Dog Life remains controlled by its own external pool rather than being silently given a second respawn timer.
 
 - **(historical) NavMesh-based steering (MINI-052) was tried for companion following and reverted back to direct-line steering** after a hill-glitching report - direct-line movement, layered onto the existing `CharacterController` scripts, was what actually worked for this project's terrain, not a full NavMeshAgent swap.

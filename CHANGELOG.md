@@ -1,4 +1,10 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-07 — MINI-143 combat contact and gang activation
+
+- Block walking/turning/jumping through kicks; align hit windows to sampled existing clips and fade duration.
+- Retry player contact during active strike window, applying damage once; preserve damage/Franki strength and wall/range checks.
+- Initialize pooled NPC original scale before first respawn reset; four Dog Life members now visible at unchanged block. Stop patrol motion during ragdoll/disabled controller.
+- Focused/shared-impact checks, Windows build and12s startup pass (0 exceptions/inactive-controller warnings). Static screenshot recorded; live combat feel awaits playtest.
 ## 2026-09-06 — MINI-142 approved environment and crop art
 
 - Applied86 detailed generic houses with LODs, sparse batched grass, new carrot/banana and baked green/purple bud visuals across14 plots; IDs and growth logic preserved.

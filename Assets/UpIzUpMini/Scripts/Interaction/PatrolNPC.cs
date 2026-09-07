@@ -59,6 +59,7 @@ namespace UpIzUpMini.Interaction
         // once the fight/chase ends, this simply starts steering back
         // toward its own waypoints again, exactly like any other idle NPC.
         private Combat.FactionBrawler _brawler;
+        private Combat.NpcCombatHealth _health;
 
         private void Awake()
         {
@@ -68,6 +69,7 @@ namespace UpIzUpMini.Interaction
             // building colliders instead of walking through walls.
             _controller = GetComponent<CharacterController>();
             _brawler = GetComponent<Combat.FactionBrawler>();
+            _health = GetComponent<Combat.NpcCombatHealth>();
             _sideSign = (GetInstanceID() & 1) == 0 ? 1f : -1f;
             // Stagger identical patrols so a row of NPCs does not begin
             // walking and stopping in mechanical lockstep.
@@ -87,6 +89,9 @@ namespace UpIzUpMini.Interaction
 
         private void Update()
         {
+            // A disabled controller during ragdoll is not permission to
+            // bypass collisions with direct Transform movement.
+            if ((_health != null && _health.IsDown) || (_controller != null && (!_controller.enabled || !_controller.gameObject.activeInHierarchy))) return;
             if (_brawler != null && _brawler.IsEngaged) return;
 
             float desiredBlend = 0f;

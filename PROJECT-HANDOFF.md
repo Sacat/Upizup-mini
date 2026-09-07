@@ -30,8 +30,26 @@ reserved_files:
 ```yaml
 current_owner: None
 active_task: None
-claimed_at: 2026-09-06
+claimed_at: 2026-09-07
 reserved_files: []
+completed_mini143_files:
+  - Assets/UpIzUpMini/Scripts/Combat/SimpleMeleeCombat.cs
+  - Assets/UpIzUpMini/Scripts/Combat/MeleeContactResolver.cs
+  - Assets/UpIzUpMini/Scripts/Combat/MeleeMoveLibrary.cs
+  - Assets/UpIzUpMini/Scripts/Combat/NpcCombatHealth.cs
+  - Assets/UpIzUpMini/Scripts/Character/PlayerController.cs
+  - Assets/UpIzUpMini/Scripts/Character/HumanoidAnimationManager.cs
+  - Assets/UpIzUpMini/Scripts/Interaction/PatrolNPC.cs
+  - Assets/UpIzUpMini/Editor/Mini143CombatValidation.cs
+  - Assets/UpIzUpMini/Editor/Mini143GangValidation.cs
+  - Docs/WorkPackets/MINI-143.md
+  - Docs/CURRENT.md
+  - Docs/Systems/Combat.md
+  - Docs/Systems/Gang.md
+  - Docs/Systems/NPCsAndAI.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
 completed_task_files:
   - Tools/ArtPreview/mini142_export.py
   - Docs/WorkPackets/MINI-142.md
@@ -52,6 +70,10 @@ completed_task_files:
   - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
   - Logs/Tasks/MINI-142/
 ```
+
+### 2026-09-07 — MINI-143 — Combat / Gang / NPCs
+
+- Kick movement/timing and late contact fixed; Dog Life first-reset zero scale fixed without moving block; tests/build/smoke pass, normal-speed playtest remains. See Docs/Systems/Combat.md, Gang.md, NPCsAndAI.md and Docs/WorkPackets/MINI-143.md.
 
 ### 2026-09-06 — MINI-142 — Map Generation / Economy art
 

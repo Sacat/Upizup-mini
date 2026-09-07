@@ -44,6 +44,7 @@ namespace UpIzUpMini.Character
         private float _verticalVelocity;
         private float _speed;
         private float _animationBlend;
+        private Combat.SimpleMeleeCombat _melee;
 
         // Matches the StarterAssetsThirdPerson controller's parameters.
         private int _animIDSpeed;
@@ -71,6 +72,7 @@ namespace UpIzUpMini.Character
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
+            _melee = GetComponent<Combat.SimpleMeleeCombat>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (vitals == null) vitals = GetComponent<CharacterVitals>();
 
@@ -83,6 +85,7 @@ namespace UpIzUpMini.Character
 
         private void Update()
         {
+            if (_controller == null || !_controller.enabled || !_controller.gameObject.activeInHierarchy) return;
             if (!IsControlled)
             {
                 if (_controller.enabled)
@@ -96,7 +99,8 @@ namespace UpIzUpMini.Character
 
             bool grounded = _controller.isGrounded;
 
-            Vector2 moveInput = GameInput.Move;
+            bool kickLocked = _melee != null && _melee.BlocksMovement;
+            Vector2 moveInput = kickLocked ? Vector2.zero : GameInput.Move;
             float h = moveInput.x;
             float v = moveInput.y;
             Vector3 inputDir = new Vector3(h, 0f, v);
@@ -126,6 +130,7 @@ namespace UpIzUpMini.Character
             Vector3 horizontalVelocity = _controller.velocity;
             horizontalVelocity.y = 0f;
             float currentHorizontal = horizontalVelocity.magnitude;
+            if (kickLocked) { currentHorizontal = 0f; _speed = 0f; _animationBlend = 0f; }
 
             if (Mathf.Abs(currentHorizontal - targetSpeed) > 0.1f)
             {
@@ -152,7 +157,7 @@ namespace UpIzUpMini.Character
             {
                 if (_verticalVelocity < 0f) _verticalVelocity = -2f;
 
-                if (GameInput.WasPressed(GameAction.Jump))
+                if (!kickLocked && GameInput.WasPressed(GameAction.Jump))
                 {
                     _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
                     animator?.SetBool(_animIDJump, true);

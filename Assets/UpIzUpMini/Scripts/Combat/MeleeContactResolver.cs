@@ -92,6 +92,17 @@ namespace UpIzUpMini.Combat
             _elapsed = -1f;
             _resolved = false;
         }
+
+        // Player contact may become valid later in the strike window. Keep
+        // Advance's once-only API unchanged for existing NPC attack callers.
+        public bool AdvanceContactWindow(float deltaSeconds)
+        {
+            if (!IsRunning) return false;
+            float before = _elapsed;
+            float after = before + Mathf.Max(0f, deltaSeconds);
+            Advance(deltaSeconds);
+            return after >= _profile.windupSeconds && before < _profile.windupSeconds + _profile.activeSeconds;
+        }
     }
 
     /// <summary>
@@ -120,7 +131,7 @@ namespace UpIzUpMini.Combat
             for (int i = 0; i < candidates.Count; i++)
             {
                 T candidate = candidates[i];
-                if (candidate == null || candidate.transform == attacker || candidate.transform.IsChildOf(attacker)) continue;
+                if (candidate == null || !candidate.gameObject.activeInHierarchy || candidate.transform == attacker || candidate.transform.IsChildOf(attacker)) continue;
                 if (isEligible != null && !isEligible(candidate)) continue;
                 if (!IsInsideForwardContact(attacker, candidate.transform, profile)) continue;
                 if (!HasLineOfSight(attacker, candidate.transform, chest)) continue;

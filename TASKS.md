@@ -1,5 +1,9 @@
 # Up Iz Up Mini — Task Board
 
+## MINI-143 — combat/gang repair built; playtest pending
+
+Kick-only movement/jump lock, measured kick hit timing and once-per-swing active-window retry; first-inactive Dog Life zero-scale reset fixed. Focused and shared-impact tests pass, four gang members captured at original block, Windows build and12s smoke pass with0 exceptions/inactive-controller warnings. Test normal-speed combat and actual block entry. Details Docs/WorkPackets/MINI-143.md.
+
 ## MINI-142 — applied, Windows build ready; playtest pending
 
 Approved house/grass/carrot/banana/bud art integrated additively; measured local Dog Life overlap repaired. Backup retained,281 protected transforms unchanged, crop-stage and219 road sample checks pass. User requested build after Unity screenshot; Windows build succeeded. Test actual riding/harvesting/house approaches; phone profiling and inner sidewalk finish remain. Details Docs/WorkPackets/MINI-142.md.

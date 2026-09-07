@@ -142,9 +142,9 @@ namespace UpIzUpMini.Combat
             id = KickSacatId,
             clipPath = KickSacatClipPath,
             damage = 42f,
-            windupSeconds = 0.22f,
-            activeSeconds = 0.15f,
-            recoverySeconds = 0.5f,
+            windupSeconds = 0.68f,
+            activeSeconds = 0.22f,
+            recoverySeconds = 0.70f,
             forwardOffset = 0.28f,
             reach = 1.3f,
             radius = 0.3f,
@@ -160,9 +160,9 @@ namespace UpIzUpMini.Combat
             // Sacat - his kick hits harder, matching that established
             // character trait rather than being a reskinned copy.
             damage = 46f,
-            windupSeconds = 0.22f,
-            activeSeconds = 0.15f,
-            recoverySeconds = 0.5f,
+            windupSeconds = 0.57f,
+            activeSeconds = 0.22f,
+            recoverySeconds = 0.96f,
             forwardOffset = 0.28f,
             reach = 1.3f,
             radius = 0.3f,
@@ -198,6 +198,9 @@ namespace UpIzUpMini.Combat
 
         public struct ComboMove
         {
+            // MINI-143: kick contact peaks measured on the actual rigs at
+            // .794s (Sacat, state speed1.5) / .680s (Franki).
+            public bool LocksMovement => id == KickSacatId || id == KickFrankiId;
             public string id;
             public string clipPath;
             public float damage;
