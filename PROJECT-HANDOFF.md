@@ -1,5 +1,7 @@
 # Up Iz Up Mini — Project Handoff
 
+2026-09-07 MINI-147: Characters — shirt/pants/hat/shoes colour-selectable concept ready for user approval; no game changes. See Docs/Systems/Characters.md and Docs/WorkPackets/MINI-147.md.
+
 2026-09-07 MINI-146: approved watch purchase/home wardrobe integrated and built; Characters, Economy and UI system ledgers contain workflow/evidence and remaining live playtest. See Docs/WorkPackets/MINI-146.md.
 
 **2026-08-29: this file is now an INDEX, not the detail.** Detail for any given system (architecture, what worked/didn't, open items) lives in `Docs/Systems/*.md` — start at `Docs/Systems/README.md` (the router) and read only the system file(s) your task actually touches. New entries below should stay short (date, system(s), one sentence, link to the system file's own entry) rather than growing into another wall of narrative text the way the pre-2026-08-29 history below did.
@@ -34,6 +36,13 @@ current_owner: None
 active_task: None
 claimed_at: 2026-09-07
 reserved_files: []
+completed_mini147_files:
+  - Docs/WorkPackets/MINI-147.md
+  - Docs/CURRENT.md
+  - Docs/Systems/Characters.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
 completed_mini146_files:
   - Assets/UpIzUpMini/Scripts/Character/CharacterEquipment.cs
   - Assets/UpIzUpMini/Scripts/Interaction/SafehouseInteractable.cs

@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-07 — MINI-147 clothing reference preview
+
+- Record next wardrobe capsule and per-character/per-slot colour requirement; create clothing-only AI style preview. No gameplay or EXE changes; approval required before 3D production/integration.
+
 ## 2026-09-07 — MINI-146 approved watch and home wardrobe
 
 - Connect approved watch prefab and individual fits to existing purchase. Add owned-home wear/remove and independent save fields with old-save defaults. Preserve chains and scene placements.

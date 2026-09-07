@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Task Board
+## MINI-147 — clothing style approval next
+
+Polo/tee, jeans/shorts/trousers, cap and trainers with per-item colours; concept shown, no game integration. See Docs/WorkPackets/MINI-147.md. User accepts MINI-146 watch as good for now. First fitted shirt is next after reference approval, not a whole unverified outfit/body swap.
+
 ## MINI-146 — watch purchase/home wardrobe built; playtest next
 
 Individual ownership and saved wear/remove supported at owned homes. Approved fits/chains protected. Build/startup and focused checks pass. User test E -> 5 at home, wear/remove, save/reload and character switching. Full clothes/base-body pipeline remains future work.

@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-147 — shirt/pants/hat/shoes concept awaiting approval (2026-09-07)
+
+User accepts watch/home wardrobe as good for now and requests shirt, pants, hat and shoes with individual colours, Nike/Lacoste style. Clothing-only concept shown from built-in imagegen: Logs/Tasks/MINI-147/Wardrobe-Concept-v1.png. Includes polo/tee, jeans/shorts/trousers, cap and trainers; Mike/Lacos fictional labels retained from earlier brief. No game, mesh, save or EXE changes. Next: approve style then first fitted shirt/motion proof, resolving modular-body Unity deformation gate before any body swap. Details Docs/WorkPackets/MINI-147.md. Owner released.
+
 ## MINI-146 — approved watch integrated and Windows build ready (2026-09-07)
 
 User approved whole-wrist fitting with "yes perfect". Existing per-character watch purchase now uses the approved mobile prefab and exact protected fits. Owned safehouse: E, 5 Wardrobe, 1 Wear / 2 Remove; rest/save afterward. Ownership and wearing remain separate per Sacat/Franki; missing old-save fields default to owned items worn. Chains, watch assets and every scene transform preserved. Focused purchase/resale/home/save-JSON checks pass, build 398087331 bytes, 12-second headless startup survives with no error/exception matches. Purchased-watch screenshots inspected; actual menu/save/reload and moving wrist clipping require user playtest. Full clothing catalogue and base-body repair remain future work. See Docs/WorkPackets/MINI-146.md. Owner released.

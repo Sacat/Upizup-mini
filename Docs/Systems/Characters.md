@@ -1,4 +1,8 @@
 # Characters & Animation
+## MINI-147 — clothing capsule reference gate (2026-09-07)
+
+Watch/home wardrobe accepted as good for now. Next explicitly shirt, pants, hat, shoes and per-item colours. Imagegen concept sheet in Logs/Tasks/MINI-147/Wardrobe-Concept-v1.png is NOT implemented clothing. Approval pending. WorkPackets/MINI-147.md records material-mask/slot/body-family contract and proposed budgets. Existing ApplyGarment is tint-only; do not call it removable geometry. Do not fit over bulky original clothes or ship failed mobile body. First shirt proof requires compatible skinned base, region hiding and real motion evidence. No Hitem3D credits spent.
+
 ## MINI-146 — watch integration ledger (2026-09-07)
 
 Proven: CharacterEquipment uses watchPrefab + per-character watchPlacement exactly like approved chain placement, without touching chains. Approved MINI-145 fits locked by user. Hidden-item set separates ownership from wearing; CaptureWardrobe/RestoreWardrobe enable future slots without a new economy. Current UI supports watch only. Canonical scene patched references only; all transforms/profile hashes guarded. Editor removal must use DestroyImmediate on instances outside Play Mode; runtime uses Destroy. Purchase screenshots Logs/Tasks/MINI-146 show actual approved prefab. Do not re-fit or regenerate characters. Full wardrobe/body LOD repair and live animation clipping are not signed off.
