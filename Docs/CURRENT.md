@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-153 — shirt/pants request; prototype rejected at fit gate
+
+User says accessories remain wrong but explicitly wants to move on: shirt and pants only, Claude handles rest. Polo-Front.png from MINI-150 inspected and rejected for shoulder gaps/hem exposure. No fitted production pants yet; no garment integration or new EXE. Current EXE is MINI-152. Read Docs/WorkPackets/MINI-153.md for exact blockers and next steps. Do not call current visual wardrobe a clothing swap system; only accessory trials work.
+
 ## MINI-152 — watch lowered; accessory placement test build
 
 Watch moved toward hand per explicit user correction; original profile size/rotation untouched. Head prototype offsets corrected for bone scale. EXE rebuilt; screenshot Logs/Tasks/MINI-151/Wardrobe-WristFix.png inspected. Franki and moving fit still need playtest. Original fused hat remains beneath prototype: full replacement unfinished. Next requested scope is shirt and pants only. See WorkPackets/MINI-152.md and Characters ledger.

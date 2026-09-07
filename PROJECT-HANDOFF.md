@@ -1,5 +1,7 @@
 # Up Iz Up Mini — Project Handoff
 
+MINI-153: latest shirt/pants-only scope and rejected fit evidence; see Docs/WorkPackets/MINI-153.md and Characters ledger. No garment integration. Accessory placement remains user-rejected.
+
 MINI-152: user-authorized watch lowering and head accessory offsets, built screenshot; Characters ledger records remaining fused hat/garment limitations.
 
 MINI-151: visual home wardrobe accessory trial UI and rebuilt EXE; clothing models still unfinished. See Docs/Systems/UI.md and Docs/WorkPackets/MINI-151.md. MINI-150 prototype paused outside game.

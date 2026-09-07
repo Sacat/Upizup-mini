@@ -1,4 +1,8 @@
 # Characters & Animation
+## MINI-153 — rejected continuous polo fit; latest user scope
+
+MINI-150 front render inspected: shoulder gaps and exposed vest at hem, sleeves too cylindrical. Do not integrate. Pants still unbuilt, modular mobile rig still fails motion gate. Latest request is shirt and pants ONLY, leave remaining accessory errors for Claude. See WorkPackets/MINI-153.md. No new gameplay changes or build in this inspection.
+
 ## MINI-152 — wrist lowering and head attachment correction
 
 User explicitly revised previously approved watch axial placement: too high. Runtime now projects watch along forearm to 18mm before hand bone, preserving profile rotation/scale/radial offset and untouched rollback profiles. Cap/shades now use metre offsets and cancel head bone scale instead of generic bone-local metres. Built screenshot Logs/Tasks/MINI-151/Wardrobe-WristFix.png shows watch nearer hand; user acceptance and Franki/live movement proof still owed. Prototype cap still overlays original fused hat; this is NOT finished hat replacement. New shirt/pants remain next task. No chain edits. Build Logs/MINI-152-wrist-build.log succeeded.
