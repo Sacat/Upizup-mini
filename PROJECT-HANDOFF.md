@@ -32,6 +32,16 @@ current_owner: None
 active_task: None
 claimed_at: 2026-09-07
 reserved_files: []
+completed_watch_rotation_files:
+  - Tools/CharacterPipeline/mini145_watch_mobile.py
+  - Assets/UpIzUpMini/Art/Accessories/GoldWatchMobile/
+  - Assets/UpIzUpMini/Scenes/WatchWardrobeProof.unity
+  - Docs/WorkPackets/MINI-145.md
+  - Docs/Systems/Characters.md
+  - Docs/CURRENT.md
+  - Docs/VISUAL-APPROVAL-REGISTER.md
+  - CHANGELOG.md
+  - PROJECT-HANDOFF.md
 completed_mini145_files:
   - Tools/CharacterPipeline/mini145_watch_mobile.py
   - Assets/UpIzUpMini/Art/Accessories/GoldWatchMobile/
@@ -96,6 +106,8 @@ completed_task_files:
 ```
 
 ### 2026-09-07 — MINI-145 — Characters / round-watch wrist proof
+
+- User accepted design;90-degree clockwise case/dial/crown revision captured on both characters, wrist profiles unchanged. See MINI-145 packet rotation entry.
 
 - Round mobile watch1644/788tris and isolated Sacat/Franki cuff screenshots ready; fit approval pending, gameplay untouched. See Docs/Systems/Characters.md and Docs/WorkPackets/MINI-145.md.
 

@@ -19,6 +19,8 @@ User-approved manual placements are visual locks - e.g. Sacat's and Boss C's two
 
 ## What worked / what didn't
 
+- **MINI-145 rotation revision:** User approved design and requested90 degrees clockwise. Rotate case/dial/crown geometry only, not entire bracelet attachment; keeps band's fit and separate profiles identical. Captures verify crown at right; budgets and attachment checks unchanged. Generator preserves this orientation for future rebuilds.
+
 - **MINI-145:** Rebuilding the approved watch silhouette as deliberately low-poly pieces (rather than decimating each tiny high-poly part) reduced 29,800 to1,644 triangles while retaining circular case, hands, markers and bracelet; 788-triangle distant mesh, 32x8 colour/metallic atlas, one shared Standard material. Fit profiles on LeftLowerArm preserve original character scale. Existing long sleeves require over-cuff preview fitting; moving toward the hand hides the dial. Never auto-recompute approved profiles: proof tool now preserves stored values. 36 sampled idle/walk/run frames prove only attachment stability, not live clipping-free motion. Gameplay integration waits for screenshot approval.
 
 - **MINI-144:** Original and mobile FBXs have no missing/non-normalized weights; mobile has <=4 influences. Isolated Blender bone perturbations are similar across all four meshes, so do not assume a new retopology fixes the Unity-specific tearing. Next inspect Unity LOD bone bindings/bindposes with matched motion proof. Compare evaluated rest/posed data, not raw vertices against evaluated world-space vertices.

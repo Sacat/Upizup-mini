@@ -1,6 +1,8 @@
 # Up Iz Up Mini — Current State
 ## MINI-145 round watch wrist previews ready (2026-09-07)
 
+Latest user revision: design accepted; case/dial/crown now90 degrees clockwise, crown at right. Both fit profiles untouched. Updated close-ups and successful repeat check in Logs/MINI-145-watch-rotation.log. No shop/EXE integration yet.
+
 User requested fully round case and mobile optimization, shown on both actual protagonists. Isolated prefab/scene and separate fit profiles now exist; 1644/788 triangles, one material, two32x8 maps. Unity compile and36 attachment samples per character pass; canonical scene hash unchanged. Screenshots under Logs/Tasks/MINI-145 show the watch OVER the original sleeve cuffs. User approval pending; no gameplay/chain/shop/EXE changes. Next connect approved watch to watch_rollie/CharacterEquipment, not a new economy. Wardrobe/clothes/base-body repair still unfinished. See Docs/WorkPackets/MINI-145.md. Owner released.
 
 ## MINI-144 wardrobe production resumed; isolated watch preview (2026-09-07)

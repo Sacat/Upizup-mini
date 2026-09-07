@@ -1,5 +1,9 @@
 # MINI-145 - Round gold watch, mobile geometry and both wrist previews
 
+## User rotation revision (2026-09-07)
+
+User accepted design and asked for90 degrees right. Circular case, dial and crown rotated90 degrees clockwise around face normal in both source LODs; bracelet/lugs and both saved wrist profiles unchanged (git diff confirmed). Before images preserved as Sacat/Franki-Watch-Before-Rotation.png. New close-ups inspected: crown at right. Logs/MINI-145-watch-rotation.log passes compile/capture and36 attachment samples each; same1644/788tris. Canonical scene hash unchanged. Rotation still presented for confirmation; no shop/EXE integration. Ownership released.
+
 User approves MINI-144 watch design except top/case must be entirely round. Approved scope: optimize and show on Sacat and Franki wrists.
 Integrator Codex. External credits 0. Status implementing. Visual approval still needed for exact wrist fit.
 Protected: canonical GrandBayProof scene, playable character prefabs, chains and materials, gameplay code, EXE.

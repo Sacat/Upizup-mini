@@ -9,7 +9,7 @@ task: MINI-145
 subject: GoldWatchMobile / SacatWatchFit / FrankiWatchFit
 scene_or_prefab: Assets/UpIzUpMini/Scenes/WatchWardrobeProof.unity
 evidence: Logs/Tasks/MINI-145/Sacat-Watch-Close.png; Franki-Watch-Close.png; Sacat-Watch-Full.png; Franki-Watch-Full.png
-approved_aspects: MINI-144 linked gold style; user requested revision to entirely round top and mobile wrist previews.
+approved_aspects: MINI-144 linked gold style; MINI-145 round design accepted by user, with90-degree clockwise orientation revision requested and now previewed.
 still_editable: exact wrist/cuff scale, rotation, position and final in-game appearance until accepted.
 notes: Watch currently sits over original long-sleeve cuffs. No chain edits. Mobile content budget passed, not device performance certification. No shop or gameplay integration yet.
 

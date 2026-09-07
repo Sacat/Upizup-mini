@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-07 — Watch face orientation revision
+
+- Turn round case/dial/crown90 degrees clockwise on both preview characters; bracelet, wrist fits and triangle budgets unchanged. Unity proof passes; no gameplay/EXE changes.
+
 ## 2026-09-07 — MINI-145 round mobile watch proof
 
 - Original round gold-watch meshes with1644/788-triangle LODs, one shared atlas material and separate cuff fit profiles.

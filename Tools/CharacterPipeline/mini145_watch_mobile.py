@@ -1,5 +1,6 @@
 """Round gold watch: intentionally lightweight mesh, atlas and two LODs."""
 import bpy, math, os, json
+from mathutils import Matrix
 ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__),'..','..'))
 OUT=os.path.join(ROOT,'Assets','UpIzUpMini','Art','Accessories','GoldWatchMobile')
 LOG=os.path.join(ROOT,'Logs','Tasks','MINI-145')
@@ -47,6 +48,12 @@ def build(lod):
         a=math.radians(degrees);o=cube((math.sin(a)*length*.4,math.cos(a)*length*.4,z),(width,length,.00025),slot);o.rotation_euler.z=-a
     cyl((0,0,.0332),.00085,.0005,0,8)
     crown=cyl((.022,0,.026),.0022,.004,0,12 if lod==0 else 8);crown.rotation_euler.y=math.pi/2
+    # User-approved design, 90 degrees clockwise when looking at the dial.
+    # Rotate the circular case/dial/crown only; bracelet, lugs and saved wrist
+    # profiles remain untouched so this cannot turn the band across the arm.
+    face_turn=Matrix.Rotation(-math.pi/2,4,'Z')
+    bpy.context.view_layer.update()
+    for part in parts:part.matrix_world=face_turn @ part.matrix_world
     for y in [-.020,.020]:
         for x in [-.011,.011]:cube((x,y,.022),(.005,.008,.005),0)
     total=28 if lod==0 else 18
