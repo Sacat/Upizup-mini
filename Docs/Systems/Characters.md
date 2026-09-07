@@ -1,4 +1,8 @@
 # Characters & Animation
+## MINI-148 — rejected polo-shell experiment
+
+Do not extract/decimate scan faces and present as a finished garment: MINI-148 produced patchy seams and body clipping. Evaluated-world-space shell also cannot simply reapply original rig modifier (double transform). Script Tools/CharacterPipeline/mini148_polo_preview.py retained for audit only. Need clean continuous garment topology, controlled clearance, region hiding and bind-space skinning. No live asset changed; approved concepts and watch/chain locks remain intact. WorkPackets/MINI-148.md records rejected evidence.
+
 ## MINI-147 final design approval
 
 User accepted shirts/pants/hat from first sheet; superseded its court trainers with Mike 90 and Mike 97 Air Max-inspired styles and approved new footwear sheet "yes that's it". Preserve both references under Logs/Tasks/MINI-147. Per-item/per-character colours required. Proceed to fitted shirt/motion proof next; concept acceptance is not a playable-body swap or paid-credit authorization. Details and original-label caveat in WorkPackets/MINI-147.md.

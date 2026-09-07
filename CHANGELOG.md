@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Changelog
+## MINI-148 — isolated polo diagnostic
+
+Blender fitting attempted, visually rejected for patchy/clipped topology. Recorded failed approach and next topology requirement; no gameplay/EXE changes.
+
 ## 2026-09-07 — wardrobe design approval
 
 - User approved clothing and hat, plus revised Air Max 90/97-inspired Mike footwear sheet. Preserve independent colour selection requirement. Concept-only; no game/EXE changes.

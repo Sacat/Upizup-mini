@@ -1,4 +1,8 @@
 # Up Iz Up Mini — Current State
+## MINI-148 — first polo prototype rejected; game unchanged
+
+Isolated Blender body-surface shell failed visual review (patchy/clipped topology after decimation). No playable integration or EXE change. Logs/Tasks/MINI-148 contains diagnostic renders; these are NOT approved garment screenshots. Next clean continuous polo topology with real armholes/hem/collar, correct bind-space transfer and covered-body masking, then motion proof. Do not repeat the scan-shell shortcut. See WorkPackets/MINI-148.md. Owner released.
+
 ## MINI-147 — wardrobe design direction approved (2026-09-07)
 
 User approved shirts, pants and hat, replacing original court shoes with Air Max 90/97-inspired Mike options; footwear sheet approved "yes that's it". References: Logs/Tasks/MINI-147/Wardrobe-Concept-v1.png (exclude old trainers) and Footwear-90-97-Concept.png. Selectable colours remain per item/per character. Concept-only; no body/game/EXE changes. Next fitted shirt proof, not more concept redesign. See WorkPackets/MINI-147.md final approval. Owner released.
