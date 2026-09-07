@@ -32,6 +32,15 @@ current_owner: None
 active_task: None
 claimed_at: 2026-09-07
 reserved_files: []
+completed_mini144_files:
+  - Tools/CharacterPipeline/mini144_rig_audit.py
+  - Tools/CharacterPipeline/mini144_watch_preview.py
+  - Docs/WorkPackets/MINI-144.md
+  - Docs/Systems/Characters.md
+  - Docs/CURRENT.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
 completed_mini143_files:
   - Assets/UpIzUpMini/Scripts/Combat/SimpleMeleeCombat.cs
   - Assets/UpIzUpMini/Scripts/Combat/MeleeContactResolver.cs
@@ -70,6 +79,10 @@ completed_task_files:
   - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
   - Logs/Tasks/MINI-142/
 ```
+
+### 2026-09-07 — MINI-144 — Characters / wardrobe preview
+
+- User accepted MINI-143 and resumed wardrobe: isolated Blender gold-watch concept and rig audit ready, no playable replacement or credits spent. See Docs/Systems/Characters.md and Docs/WorkPackets/MINI-144.md; design and motion approval remain.
 
 ### 2026-09-07 — MINI-143 — Combat / Gang / NPCs
 

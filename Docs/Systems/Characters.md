@@ -2,6 +2,8 @@
 
 ## Current state
 
+2026-09-07: User accepted MINI-143 gameplay and explicitly resumed wardrobe production. MINI-144 isolated base-body audit and Blender gold-watch concept are evidence-ready; no playable swap. See Docs/WorkPackets/MINI-144.md. Target one polo/jeans/trainers/cap/gold-watch capsule and existing chain, separate saved outfits, safehouse changing. User asks to match original clothed-character quality/approach. The previous mobile motion gate remains failed until re-proven.
+
 Sacat and Franki are switchable protagonists with separate vitals/positions and shared economy/progression. MINI-107 (modular Sacat production - Hitem3D generation, AccuRIG rigging, mobile LODs) is **paused mid-task**: the original 100k rig animates correctly and remains the playable character; the derived 25k/12k/4.5k mobile LODs pass static checks but fail motion deformation and are NOT approved for playable integration. Do not resume this without the user explicitly requesting character production again, and repair the LOD motion deformation before any playable swap.
 
 User-approved manual placements are visual locks - e.g. Sacat's and Boss C's two-piece chain placement (`VA-001`/`VA-002`-style register entries in `Docs/VISUAL-APPROVAL-REGISTER.md`). Never recalculate or replace an approved transform; treat it the same way `MapGeneration.md` treats manual world placement - authoritative, bug-hunt elsewhere first.
@@ -14,6 +16,9 @@ User-approved manual placements are visual locks - e.g. Sacat's and Boss C's two
 - Animation retargeting: any real Mixamo/motion-capture Humanoid clip retargets automatically onto ANY valid Humanoid avatar via Mecanim - confirmed repeatedly working this session (see `Combat.md`) - no per-character remapping needed as long as both source and target are genuinely Humanoid.
 
 ## What worked / what didn't
+
+- **MINI-144:** Original and mobile FBXs have no missing/non-normalized weights; mobile has <=4 influences. Isolated Blender bone perturbations are similar across all four meshes, so do not assume a new retopology fixes the Unity-specific tearing. Next inspect Unity LOD bone bindings/bindposes with matched motion proof. Compare evaluated rest/posed data, not raw vertices against evaluated world-space vertices.
+- **MINI-144:** Existing CharacterEquipment provides individual ownership, colour-only garments and primitive cap/watch; preserve chain profile exactly. New original Blender watch concept is preview-only (29.8k evaluated triangles/144 parts); bake/merge/LOD after visual approval, never import this heavy preview directly. Evidence: Logs/Tasks/MINI-144/Gold-Watch-Preview.png. No credits spent.
 
 - **(MINI-107, unresolved) The 25k/12k/4.5k mobile LODs fail motion deformation despite passing static checks.** A static pose/silhouette check is NOT sufficient proof a decimated rig is safe to ship - it must be watched moving before being approved. This is the same lesson as `Combat.md`/`Vehicles.md`'s repeated "batch/static checks can pass while real behaviour fails" theme, here applied to mesh decimation instead of code.
 - **(2026-08-15) Local scan-derived meshes were often absurdly oversized for mobile** (~2,000,000-triangle photogrammetry scans, 183MB each) with no growth-stage variants - decimated to ~0.2% of original triangle count via vertex-clustering while still visibly reading correctly, then the multi-hundred-MB sources were deleted, keeping only the small decimated result.

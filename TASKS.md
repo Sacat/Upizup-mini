@@ -1,6 +1,10 @@
 # Up Iz Up Mini — Task Board
 
-## MINI-143 — combat/gang repair built; playtest pending
+## MINI-144 — wardrobe resumed; watch concept approval pending
+
+Gold-watch Blender concept and base-body audit ready. No in-game swap. Next optimize/fit approved watch and inspect Unity mobile rig binding; build one outfit and at-home per-character wardrobe only after visual/motion gates. See Docs/WorkPackets/MINI-144.md.
+
+## MINI-143 — combat/gang repair built; user accepted 2026-09-07
 
 Kick-only movement/jump lock, measured kick hit timing and once-per-swing active-window retry; first-inactive Dog Life zero-scale reset fixed. Focused and shared-impact tests pass, four gang members captured at original block, Windows build and12s smoke pass with0 exceptions/inactive-controller warnings. Test normal-speed combat and actual block entry. Details Docs/WorkPackets/MINI-143.md.
 

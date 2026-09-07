@@ -1,4 +1,10 @@
 # Up Iz Up Mini — Changelog
+## 2026-09-07 — MINI-144 isolated wardrobe audit and watch concept
+
+- Resume user-approved wardrobe production; original Blender gold-watch preview and reusable read-only rig audit added outside Assets.
+- Document individual slots/colours, safehouse preview/apply/cancel and preservation of purchases and approved chain.
+- Mobile Unity deformation remains unresolved; preview needs optimization and wrist-fit approval. No gameplay or EXE changes, no external spend.
+
 ## 2026-09-07 — MINI-143 combat contact and gang activation
 
 - Block walking/turning/jumping through kicks; align hit windows to sampled existing clips and fade duration.
