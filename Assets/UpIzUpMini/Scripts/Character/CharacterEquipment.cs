@@ -19,6 +19,17 @@ namespace UpIzUpMini.Character
     public class CharacterEquipment : MonoBehaviour
     {
         [SerializeField] private Animator animator;
+        [SerializeField] private GameObject headphonesAccessory;
+        private const string HeadphonesId = "headphones_studio";
+        public bool HeadphonesAvailable => headphonesAccessory != null;
+        public bool HeadphonesEquipped => HeadphonesAvailable && !_unequippedItems.Contains(HeadphonesId);
+        public bool SetHeadphonesEquipped(bool wear)
+        {
+            if (!HeadphonesAvailable) return false;
+            if (wear) _unequippedItems.Remove(HeadphonesId); else _unequippedItems.Add(HeadphonesId);
+            RefreshEquipment();
+            return true;
+        }
         [SerializeField] private int characterIndex;
         [SerializeField] private AccessoryPlacementProfile chainPlacement;
         [SerializeField] private GameObject watchPrefab;
@@ -202,6 +213,7 @@ namespace UpIzUpMini.Character
 
         private void Refresh()
         {
+            if (headphonesAccessory != null) headphonesAccessory.SetActive(HeadphonesEquipped);
             var economy = EconomyManager.Instance;
             if (animator == null || !animator.isHuman) return;
             // An always-equipped NPC must still get dressed when there is no

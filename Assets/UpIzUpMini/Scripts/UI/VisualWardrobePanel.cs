@@ -12,6 +12,7 @@ namespace UpIzUpMini.UI
         static VisualWardrobePanel instance;
         CharacterEquipment wearer;
         List<string> original;
+        List<string> originalWardrobe;
         GameObject stage,model;
         Camera previewCamera;
         RenderTexture texture;
@@ -33,7 +34,7 @@ namespace UpIzUpMini.UI
         }
         void Begin(CharacterEquipment equipment)
         {
-            wearer=equipment;original=wearer.CaptureTrialItems();
+            wearer=equipment;original=wearer.CaptureTrialItems();originalWardrobe=wearer.CaptureWardrobe();
             who=CharacterSwitchManager.Instance?.Active.displayName??"Character";
             oldTime=Time.timeScale;Time.timeScale=0;
             oldCursor=Cursor.visible;oldLock=Cursor.lockState;Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
@@ -106,7 +107,7 @@ namespace UpIzUpMini.UI
         public void Close(bool apply)
         {
             if(wearer==null)return;
-            if(!apply)wearer.RestoreTrialItems(original);
+            if(!apply){wearer.RestoreTrialItems(original);wearer.RestoreWardrobe(originalWardrobe);}
             wearer=null;Time.timeScale=oldTime;Cursor.lockState=oldLock;Cursor.visible=oldCursor;
             foreach(var canvas in hiddenCanvases)if(canvas!=null)canvas.enabled=true;
             hiddenCanvases.Clear();
@@ -150,8 +151,10 @@ namespace UpIzUpMini.UI
                 GUI.Label(new Rect(470,220,570,45),"Choose an available accessory to see it on your character.",label);
                 for(int i=0;i<CharacterEquipment.TrialItemIds.Length;i++)
                     if(GUI.Button(new Rect(470,280+i*68,575,56),CharacterEquipment.TrialItemLabels[i]+"  /  TRY ON",button))Select(i);
-                if(GUI.Button(new Rect(470,490,575,40),"Restore opening outfit",button)){wearer.RestoreTrialItems(original);RebuildPreview();}
-                GUI.Label(new Rect(470,542,575,48),"Approved gold watch fit stays unchanged. Cap and shades are existing prototype models.",small);
+                if(wearer.HeadphonesAvailable && GUI.Button(new Rect(470,484,575,48),"Headphones  /  "+(wearer.HeadphonesEquipped?"REMOVE":"WEAR"),button))
+                {wearer.SetHeadphonesEquipped(!wearer.HeadphonesEquipped);RebuildPreview();}
+                if(GUI.Button(new Rect(470,wearer.HeadphonesAvailable?540:490,575,40),"Restore opening outfit",button)){wearer.RestoreTrialItems(original);wearer.RestoreWardrobe(originalWardrobe);RebuildPreview();}
+                GUI.Label(new Rect(470,wearer.HeadphonesAvailable?584:542,575,30),"Headphone selection is included when you save your game.",small);
             }
             else
             {
