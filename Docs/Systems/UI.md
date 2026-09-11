@@ -1,3 +1,20 @@
+## MINI-166 — VisualWardrobePanel wired to OutfitWardrobe (2026-09-11)
+
+`VisualWardrobePanel`'s Shirts/Pants/Hats/Shoes tabs used to be a hardcoded
+"IN PRODUCTION" placeholder regardless of what was actually fitted. Now
+reads `wearer.GetComponent<OutfitWardrobe>()` and lists real per-slot pieces
+(WORN/WEAR buttons + colour swatches where tintable), falling back to the
+placeholder only for slot/character combos genuinely not built yet. Cancel
+now also restores the `OutfitWardrobe` selection (captured on open) - it
+previously only restored the legacy trial/accessory system, silently
+leaving new outfit picks unrestored. Verified through the exact call path
+`SafehouseInteractable`'s E -> 5 menu uses
+(`Mini166WardrobeUIValidation.cs`, real Play Mode test, not just the
+underlying API): opens, lists Franki's Shirt/Pants pieces, select/Cancel/
+reopen/select/Apply all behave correctly. See `Characters.md`'s MINI-166
+entry for what's actually fitted, and `Docs/WorkPackets/MINI-166.md` for
+full detail.
+
 ## MINI-165 — Headphones as a removable head accessory (2026-09-10)
 
 Sacat's existing headphones are now a separate skinned accessory. Open the home wardrobe, Accessories, then Headphones / REMOVE or WEAR; Apply keeps the choice, Cancel and Restore opening outfit restore it. Existing game saves capture the selection through sacatUnequippedItems; legacy saves default to wearing the headphones. Franki has no headphone assignment; this task does not add a second fitted asset.

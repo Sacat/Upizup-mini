@@ -1,3 +1,18 @@
+## MINI-166 — all four wardrobe slots real for Franki; Sacat has three open placement bugs (2026-09-11)
+
+Continued from the checkpoint below. All four slots (Shirt/Pants/Hat/Shoes)
+now have at least one real, player-selectable design for Franki, wired
+through the actual E -> 5 safehouse wardrobe UI and verified by render/Play
+Mode tests, each step built and checkpointed (latest:
+`Builds/GrandBayProof/UpIzUpMini.exe`, 412,098,293 bytes). Sacat: Shirt is
+done (Tee/Polo via a collar overlay); Pants and Hat are NOT wired for him -
+three separate placement/geometry bugs found this session, all traced far
+enough to rule out easy causes but not fully root-caused, all documented
+rather than shipped broken (see `Docs/Systems/Characters.md`'s MINI-166
+entry). Denim Shorts (both characters) also deferred - leg-skin coverage
+never got a clean, trustworthy visual check. No motion proof yet (idle pose
+only). Full detail: `Docs/WorkPackets/MINI-166.md`.
+
 ## MINI-166 — EXE checkpoint; outfits incomplete (2026-09-11)
 
 Runtime outfit selection/save foundations compile and Windows build passed (`Logs/mini166-build.log`, 411,132,245 bytes total). Fitted meshes and clothing UI are NOT integrated; existing clothing appearance remains. User requested Claude continuation instructions: read `Docs/CLAUDE-CONTINUE-MINI-166.md` and claim MINI-166. Owner released to None.

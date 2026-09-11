@@ -59,7 +59,7 @@ current_owner: Claude
 active_task: MINI-166
 claimed_at: 2026-09-11
 continuation: Docs/CLAUDE-CONTINUE-MINI-166.md
-status: Claimed. Runtime foundations (OutfitWardrobe, save fields, legacy bypass, mesh audit) already compile from the prior checkpoint. Proposing a slot-by-slot production sequence (Shirt first, both characters) rather than attempting all 4 slots x 8 designs x 2 characters in one uncontrolled batch - matches this project's own established one-bounded-slice-at-a-time convention (see e.g. MINI-154/157/159's single-garment passes). Reserved files below; scene/audit checkpoint preserved from the prior Claude/Codex session.
+status: In progress, real ground covered. All four slots (Shirt/Pants/Hat/Shoes) now have at least one real shipped design for Franki, wired through the actual wardrobe UI, verified by render/Play Mode tests, each step built and checkpointed. Sacat: Shirt done; Pants and Hat NOT wired - three separate placement/geometry bugs found and documented (not shipped broken), see Docs/Systems/Characters.md's MINI-166 entry. Denim Shorts (both characters) deferred - leg-skin coverage never got a clean visual check. No motion proof yet. 4 commits landed this session (0f5bdd4, b3b9c0c, cdbd75a, plus this doc round). Next: either root-cause Sacat's placement bugs, resolve leg-skin coverage for Shorts, or motion-proof what's shipped - user's call.
 released_task: MINI-165
 released_reason: MINI-165 headphone head accessory implemented and built; on/off renders and Play Mode wardrobe/save-data tests pass. User button-layout review remains; automated UI captures were blank. See Docs/WorkPackets/MINI-165.md.
 claimed_at: 2026-09-10

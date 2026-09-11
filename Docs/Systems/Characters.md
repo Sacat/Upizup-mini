@@ -1,3 +1,92 @@
+## MINI-166 — OutfitWardrobe: Shirt/Pants/Hat/Shoes slots real for Franki, partial for Sacat (2026-09-11)
+
+`OutfitWardrobe` (slot/piece/binding/tint model, scaffolded in an earlier
+checkpoint) now drives real, player-selectable garments through the actual
+wardrobe UI (see `UI.md`'s matching entry). Status per slot:
+
+- **Shirt**: Tee/Polo, BOTH characters. Franki = full mesh swap on
+  `Ch28_Hoody` (bone-remap-by-name). Sacat = a small collar/placket overlay
+  renderer parented alongside `Ch06` (Ch06 itself never touched, since
+  disabling it via `mesh==null` would erase his whole body).
+- **Pants**: Jeans/Trousers, Franki only - colour clones of `Ch28_Pants`,
+  zero new geometry.
+- **Hat**: No Hat/Lacos Cap, Franki only - a pure C# combined-primitive mesh
+  (crown+peak, matching the existing `BuildCap()` shape) baked into the Head
+  bone's own local space, single-bone rigid skin, no Blender step.
+- **Shoes**: Mike 90/Mike 97, Franki only - colour clones of
+  `Ch28_Sneakers`. That mesh shares its material with the skin renderer -
+  clone into a NEW `Material` instance, never mutate the shared asset.
+
+**Two generic bugs found and fixed in `OutfitWardrobe.Select()` itself
+(benefit every slot, not just the one that found them):**
+1. `renderer.localBounds = piece.mesh.bounds` used the raw source mesh's
+   own bind-pose bounds, which is NOT the space Unity's
+   `SkinnedMeshRenderer.localBounds` expects (rootBone-relative) - the
+   renderer's cull volume ended up nowhere near the real geometry, so Unity
+   silently skipped drawing an otherwise-correctly-skinned mesh (looked
+   "invisible" even though the skin math was right). Fixed with
+   `renderer.updateWhenOffscreen = true` instead of trusting a computed
+   static bounds value.
+2. Swapping to a plain-recoloured material can destroy an already-baked
+   "reveal skin via texture paint" trick (MINI-157/161's technique for
+   faking a short sleeve on a long-sleeve mesh) if the new material wipes
+   the WHOLE mesh to one flat colour instead of only touching the intended
+   region/slot. Never blanket-replace an existing garment's material array;
+   add new colour variants as their OWN new material slot.
+
+**`CharacterEquipment.Refresh()` regression found and fixed**: it used to
+gate `cap_mike` and the shirt/shorts/shoes tint garments off entirely
+whenever `GetComponent<OutfitWardrobe>() != null` - correct only once ALL
+four slots are migrated, but slots are being wired in one at a time. Fixed
+with `OutfitWardrobe.HasSlot(slot)` - each legacy system now stays alive
+per-slot until its own `OutfitWardrobe` binding actually exists.
+
+**Real accessory-fit bugs found and fixed via a proper Play-Mode render**
+(the first attempt, pure Editor edit-mode, found NOTHING spawned at all -
+`CharacterEquipment.Refresh()` early-returns when `EconomyManager.Instance`
+is null outside Play Mode, so that first tool was never exercising the real
+code path - see `BuildAndVerification.md` for the general lesson): the cap
+was floating ~6cm above the skull (the crown-sphere primitive's own radius
+meant its actual surface never reached the true hairline at the old +10cm
+offset) - raised to +16cm, confirmed by render on both characters. Watch
+checked the same way and found already correctly placed - not changed.
+
+**Sacat now has THREE separate, unexplained placement/geometry issues**,
+all found this session, none blindly re-attempted a second time without new
+information:
+1. His Shirt-slot collar overlay initially collapsed to a degenerate single
+   point - root cause found: `collar.parent = arm` in the Blender script set
+   a parent without Blender auto-computing `matrix_parent_inverse` (only the
+   UI "Parent" operator does that), so the FBX exporter baked the
+   armature's transform into the vertex data. Fixed by removing the parent
+   assignment - the Armature modifier alone is sufficient for deformation.
+2. His Pants slot is not wired at all this round - confirmed his leg IS
+   real continuous body-shaped geometry under the current paint (not
+   missing like Franki's arms were, MINI-159), but `Ch06` is his entire body
+   in one renderer, so a generic OutfitWardrobe binding would risk
+   `Select()`'s `mesh==null -> renderer.enabled=false` rule disabling his
+   whole body. Needs a dedicated tint-only (never touch `sharedMesh`/
+   `enabled`) approach.
+3. His Hat placement (identical bake technique to the Shirt-overlay fix,
+   proven correct for Franki) put the cap at EAR height instead of the
+   crown. The bake math is provably pose-independent
+   (`head.localToWorldMatrix * head.worldToLocalMatrix = identity` at the
+   instant of baking), so this is NOT a pose-timing issue - points at
+   something particular to his own transform chain, plausibly related to
+   his root object's ~277.8-degree Y rotation in this scene (also noted in
+   finding #1's investigation), not yet confirmed. Not shipped.
+
+Denim Shorts (both characters) deliberately not attempted - repeated render
+attempts to actually SEE Franki's lower-leg skin region cleanly all missed
+(camera framing kept catching hands/arms, a `Sample()`-not-posing-the-idle-
+clip quirk that showed up across multiple tools this session and is still
+not root-caused), and this project does not cut a hem into geometry it
+hasn't actually looked at. A direct Blender vertex-data check DOES confirm
+`Ch28_Body`'s mesh extends the full height range and has some geometry
+below knee height (170/9012 verts) - inconclusive on its own, real geometry
+work still needed. See `Docs/WorkPackets/MINI-166.md` for full detail,
+exact numbers, and evidence paths.
+
 ## MINI-165 — Headphones as a removable head accessory (2026-09-10)
 
 Sacat's existing headphones are now a separate skinned accessory. Open the home wardrobe, Accessories, then Headphones / REMOVE or WEAR; Apply keeps the choice, Cancel and Restore opening outfit restore it. Existing game saves capture the selection through sacatUnequippedItems; legacy saves default to wearing the headphones. Franki has no headphone assignment; this task does not add a second fitted asset.
