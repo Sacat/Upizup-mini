@@ -302,3 +302,38 @@ re-tested this pass since it was already covered separately.
 
 Compile clean, Windows build succeeded (412,040,965 bytes,
 `Logs/mini166_ui_build.log`).
+
+## Hat slot round 1 — 2026-09-11 (Franki only)
+
+Built a real selectable Hat slot: "No Hat" (default, matches current
+shipped look unchanged) and "Lacos Cap" - a pure C# combined-primitive mesh
+(crown sphere + peak cube, same geometry as the existing `BuildCap()`
+primitive, already positioned correctly this session's accessory-fit fix)
+baked into the Head bone's own local space with an identity bindpose and a
+single-bone rigid skin - the same technique that fixed Sacat's Shirt overlay
+earlier. No Blender/FBX step at all, so that pipeline's risk class doesn't
+apply here.
+
+Verified by render for **Franki**: `Logs/Tasks/MINI-166/Franki-Hat-Front.png`
+- sits correctly on the crown, matches the already-fixed cap placement.
+
+**Sacat's Hat NOT wired this round.** The identical bake produced a cap
+sitting at ear height instead of the crown - a THIRD Sacat-specific
+placement bug this session (after the Shirt-overlay Blender-parenting bug
+and the original cap-offset bug both characters shared). The bake math is
+provably pose-independent (`head.localToWorldMatrix * head.worldToLocalMatrix
+= identity` at the instant of baking, so the placement should be exact
+regardless of any pose timing question), so this points at something
+particular to Sacat's own transform chain - plausibly related to the
+already-documented ~277.8-degree root rotation quirk, not yet confirmed.
+Not shipped broken - Sacat's cap stays on the old, already-fixed
+`CharacterEquipment.PositionOnBone` system for now (unaffected, still
+correct per the earlier accessory-fit pass).
+
+Integrated and saved (`MINI166_HAT_INTEGRATE_PASS saved (Franki only)`),
+compile clean, Windows build succeeded (412,096,229 bytes,
+`Logs/mini166_hat_build.log`).
+
+**Hat slot status: 1 of 1 planned design shipped for 1 of 2 characters.**
+Sacat's Hat placement bug is now the third open Sacat-specific item,
+alongside Denim Shorts (both characters) and Sacat's Pants slot.
