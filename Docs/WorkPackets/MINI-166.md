@@ -337,3 +337,23 @@ compile clean, Windows build succeeded (412,096,229 bytes,
 **Hat slot status: 1 of 1 planned design shipped for 1 of 2 characters.**
 Sacat's Hat placement bug is now the third open Sacat-specific item,
 alongside Denim Shorts (both characters) and Sacat's Pants slot.
+
+## Shoes slot round 1 — 2026-09-11 (Franki only)
+
+Mike 90 (white) / Mike 97 (black) - colour clones of the existing
+`Ch28_Sneakers` mesh, same low-risk pattern as Pants' Jeans/Trousers: zero
+new geometry, no Blender step. One real thing checked before touching
+anything: `Ch28_Sneakers` shares its material ("Ch28_body") with the skin
+renderer - cloned into new `Material` instances rather than mutating the
+shared asset, confirmed by render that skin colour elsewhere is unaffected.
+Verified: `Logs/Tasks/MINI-166/Franki-Mike90-Feet.png`,
+`Franki-Mike97-Feet.png`, `Franki-Mike97-Full.png` - both read as distinct,
+connected sneakers in a full idle pose.
+
+Integrated and saved (`MINI166_SHOES_INTEGRATE_PASS`), compile clean,
+Windows build succeeded (412,098,293 bytes, `Logs/mini166_shoes_build.log`).
+
+**All four slots now have at least one shipped design for Franki.** Sacat
+remains on legacy systems for Pants/Hat (Shirt is done for him). Real
+distinct Mike 90 vs 97 panel geometry (not just colour) is future work, same
+honest scoping as jeans/trousers.
