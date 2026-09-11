@@ -73,11 +73,18 @@ namespace UpIzUpMini.EditorTools
             var skinR = root.GetComponentsInChildren<SkinnedMeshRenderer>(true).First(r => r.enabled);
             var b = skinR.bounds;
             Debug.Log($"MINI166LEG: {tag} enabled skin renderer={skinR.name} bounds.center={b.center} bounds.size={b.size}");
-            // Lower-half of the bounds, wide framing - avoids bone-position
-            // guessing that missed twice already this check.
-            var legFocus = b.center - Vector3.up * (b.size.y * 0.28f);
-            Capture(camera, legFocus + new Vector3(0, 0, -0.8f), legFocus, $"{Out}/{tag}-LegSkin-Front.png");
-            Capture(camera, legFocus + new Vector3(-0.8f, 0, 0), legFocus, $"{Out}/{tag}-LegSkin-Side.png");
+            // Two close-up leg-crop attempts both missed (camera pointed at
+            // empty space or caught an unrelated body part). Using the ONE
+            // framing recipe that has reliably worked all session for a
+            // full-body shot (proven repeatedly: Shirt/Pants/Shoes renders) -
+            // wide enough that hitting SOME part of the character is not in
+            // question, then crop/inspect the lower half of the image
+            // instead of trying to aim a tight camera at bone-derived leg
+            // coordinates again. Also rotation-aware (root.transform.forward)
+            // per the Hat slot's camera lesson - fixed world axes don't work
+            // for Sacat's rotated root.
+            Capture(camera, b.center - root.transform.forward * (b.size.magnitude * 1.1f) + Vector3.up * 0.1f, b.center, $"{Out}/{tag}-LegSkin-Front.png");
+            Capture(camera, b.center - root.transform.right * (b.size.magnitude * 1.1f) + Vector3.up * 0.1f, b.center, $"{Out}/{tag}-LegSkin-Side.png");
 
             root.transform.position = originalPos;
             UnityEngine.Object.DestroyImmediate(camera.gameObject);

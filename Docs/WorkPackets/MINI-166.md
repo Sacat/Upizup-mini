@@ -404,3 +404,35 @@ needs the MINI-157 texture-repaint technique (classify polygons by bone
 position, rasterize a new colour onto just the pants UV region) - real
 production work, not a quick fix. Staying deferred, now for a confirmed
 reason rather than an assumed one.
+
+## Denim Shorts: leg-skin question now CONFIRMED, not just inconclusive (2026-09-11)
+
+Applying the same lesson as the Hat correction (check the render tool
+before trusting a "looks broken" result) - but this time the wide, proven
+full-body framing recipe (used successfully all session for Shirt/Pants/
+Shoes) plus a magenta background (MINI-159's own proven "isolated skin
+render" technique) gave a clean, unambiguous result instead of another
+miss: `Logs/Tasks/MINI-166/Franki-LegSkin-Front.png` shows Franki's
+`Ch28_Body` ALONE (Hoody/Pants/Sneakers hidden) as a floating head, two
+floating hands, and two small foot fragments - NOTHING connecting them.
+**Franki's `Ch28_Body` genuinely has no real torso/leg skin geometry**,
+the exact same class of gap MINI-159 found on his arms (the original asset
+assumed clothing always covers the body, so nobody modelled skin that would
+never be seen).
+
+This is now a confirmed finding, not an inconclusive one: Denim Shorts for
+Franki needs the same repair MINI-161 did for his arms (repaint the
+existing pants geometry's own skin-tone region rather than deleting fabric,
+using real sampled skin tone) before a knee-length hem can be cut safely -
+real production work, correctly still not attempted this session.
+
+Sacat's version of this check doesn't apply the same way: his `Ch06` is one
+fused skin+clothing mesh with no separate "hide the clothes" option (the
+"clothes" are a texture on the same continuous body surface, already
+confirmed real and leg-shaped in an earlier check this session) - the
+MINI-157 texture-repaint technique is the correct path for him regardless,
+same conclusion as before.
+
+Denim Shorts (both characters) remains the one deliberately-not-attempted
+design, now backed by a real confirmed reason instead of an inconclusive
+render.
