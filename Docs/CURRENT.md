@@ -1,3 +1,12 @@
+## MINI-166 handed off to Codex (2026-09-11)
+
+User is switching this task from Claude to Codex. See
+`Docs/CODEX-CONTINUE-MINI-166.md` for the handoff pointer - it routes to
+`Docs/Systems/Characters.md`/`UI.md`'s MINI-166 entries and
+`Docs/WorkPackets/MINI-166.md` for the actual history. Ownership released
+to `None` in `PROJECT-HANDOFF.md`; Codex should claim MINI-166 (same task
+ID) before continuing.
+
 ## MINI-166 — all four wardrobe slots real for Franki; Sacat has three open placement bugs (2026-09-11)
 
 Continued from the checkpoint below. All four slots (Shirt/Pants/Hat/Shoes)

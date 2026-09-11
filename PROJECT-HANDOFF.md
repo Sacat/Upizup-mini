@@ -55,12 +55,14 @@ reserved_files:
 ### Current claim
 
 ```yaml
-current_owner: Claude
-active_task: MINI-166
+current_owner: None
+active_task: None
+continuation: Docs/CODEX-CONTINUE-MINI-166.md
+handoff: User is switching this task from Claude to Codex. Claim MINI-166 (do not start a new task ID) and read Docs/CODEX-CONTINUE-MINI-166.md first - it points to the exact system-ledger entries (Characters.md, UI.md MINI-166 sections) and Docs/WorkPackets/MINI-166.md with the full round-by-round history, root causes, and two hard-won lessons (prefer C# mesh ops over Blender/FBX round-trips; distrust a "broken-looking" render before checking the camera tool itself).
+released_task: MINI-166
+released_reason: User is handing this task to Codex. All four wardrobe slots (Shirt/Pants/Hat/Shoes) have at least one real shipped, verified design for Franki; Shirt is also done for Sacat. Sacat's Pants/Shoes/Shorts remain blocked on a confirmed real constraint (his Ch06 mesh has no separable material slot) and need the MINI-157 texture-repaint technique. No motion proof yet (idle pose only). 10 commits landed this session (0f5bdd4 through d8b0e06). See Docs/CODEX-CONTINUE-MINI-166.md for the full pointer and suggested next steps.
 claimed_at: 2026-09-11
-continuation: Docs/CLAUDE-CONTINUE-MINI-166.md
-status: In progress, real ground covered. All four slots (Shirt/Pants/Hat/Shoes) now have at least one real shipped design for Franki, wired through the actual wardrobe UI, verified by render/Play Mode tests, each step built and checkpointed. Sacat: Shirt done; Pants and Hat NOT wired - three separate placement/geometry bugs found and documented (not shipped broken), see Docs/Systems/Characters.md's MINI-166 entry. Denim Shorts (both characters) deferred - leg-skin coverage never got a clean visual check. No motion proof yet. 4 commits landed this session (0f5bdd4, b3b9c0c, cdbd75a, plus this doc round). Next: either root-cause Sacat's placement bugs, resolve leg-skin coverage for Shorts, or motion-proof what's shipped - user's call.
-released_task: MINI-165
+previous_released_task: MINI-165
 released_reason: MINI-165 headphone head accessory implemented and built; on/off renders and Play Mode wardrobe/save-data tests pass. User button-layout review remains; automated UI captures were blank. See Docs/WorkPackets/MINI-165.md.
 claimed_at: 2026-09-10
 prev_scope_note: MINI-164 - (1) wardrobe-combination contact sheet on live Sacat/Franki; (2) make BOTH characters' hair BLACK (user: "no one hair should be white. black hair"), starting with Franki's pale fade band + shattered crown and Sacat's glossy baked dome.
