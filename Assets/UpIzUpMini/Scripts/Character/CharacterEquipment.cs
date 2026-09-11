@@ -230,7 +230,7 @@ namespace UpIzUpMini.Character
                 if (pair.Key != null) pair.Key.sharedMaterials = pair.Value;
             }
 
-            Apply("cap_mike", HumanBodyBones.Head, _trialItems.Contains("cap_mike") || Has(economy, "cap_mike"),
+            Apply("cap_mike", HumanBodyBones.Head, GetComponent<OutfitWardrobe>() == null && (_trialItems.Contains("cap_mike") || Has(economy, "cap_mike")),
                 () => BuildCap(new Color(0.85f, 0.15f, 0.15f)));
 
             Apply("shades_ray", HumanBodyBones.Head, _trialItems.Contains("shades_ray") || Has(economy, "shades_ray"),
@@ -245,6 +245,7 @@ namespace UpIzUpMini.Character
             // Clothing recolours the character's own garments rather than
             // adding geometry - the models default to black, so a bought
             // item visibly changes their outfit.
+            if (GetComponent<OutfitWardrobe>() != null) return;
             ApplyGarment("shirt_lacos", new[] { "top", "tshirt", "shirt" }, new Color(0.90f, 0.94f, 0.96f));
             ApplyGarment("shorts_adibas", new[] { "bottom", "pants", "trouser" }, new Color(0.25f, 0.32f, 0.62f));
             ApplyGarment("shoes_mike", new[] { "shoes" }, new Color(0.95f, 0.95f, 0.95f));

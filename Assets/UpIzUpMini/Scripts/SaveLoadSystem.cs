@@ -41,6 +41,8 @@ namespace UpIzUpMini
         public List<string> frankiOwnedItemIds = new List<string>();
         public List<string> sacatUnequippedItems = new List<string>();
         public List<string> frankiUnequippedItems = new List<string>();
+        public List<OutfitChoice> sacatOutfit;
+        public List<OutfitChoice> frankiOutfit;
 
         // MINI-073: stashed food/pharmacy items - see EconomyManager's
         // CaptureConsumables/LoadConsumables.
@@ -147,6 +149,8 @@ namespace UpIzUpMini
                     if (slots[1]?.root != null) save.strongPosition = slots[1].root.transform.position;
                     save.sacatUnequippedItems=slots[0]?.root?.GetComponent<CharacterEquipment>()?.CaptureWardrobe();
                     save.frankiUnequippedItems=slots[1]?.root?.GetComponent<CharacterEquipment>()?.CaptureWardrobe();
+                    save.sacatOutfit=slots[0]?.root?.GetComponent<OutfitWardrobe>()?.Capture();
+                    save.frankiOutfit=slots[1]?.root?.GetComponent<OutfitWardrobe>()?.Capture();
                 }
                 save.respawnPosition = switcher.CurrentRespawnPoint;
                 save.respawnLabel = switcher.RespawnLabel;
@@ -214,6 +218,8 @@ namespace UpIzUpMini
                     TeleportSlot(slots[1], save.strongPosition);
                     slots[0]?.root?.GetComponent<CharacterEquipment>()?.RestoreWardrobe(save.sacatUnequippedItems);
                     slots[1]?.root?.GetComponent<CharacterEquipment>()?.RestoreWardrobe(save.frankiUnequippedItems);
+                    slots[0]?.root?.GetComponent<OutfitWardrobe>()?.Restore(save.sacatOutfit);
+                    slots[1]?.root?.GetComponent<OutfitWardrobe>()?.Restore(save.frankiOutfit);
                 }
                 switcher.SwitchTo(save.activeCharacter);
                 switcher.LoadRespawnPoint(save.respawnPosition, save.respawnLabel);
