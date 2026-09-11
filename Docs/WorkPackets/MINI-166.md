@@ -388,3 +388,19 @@ a diagnosis artifact. Sacat's Pants slot remains the one still-open item
 for him, and it hasn't been re-investigated with this same "check the
 render tool's camera, not just the data" lens yet - worth revisiting before
 assuming it's a real placement bug too.
+
+## Sacat's Pants: confirmed real constraint, not a render artifact (2026-09-11)
+
+After the Hat "bug" turned out to be a render-tool camera issue, re-checked
+the Pants deferral with the same skepticism rather than assuming it was
+also a false alarm. Flagged each of Ch06's 4 material slots a distinct
+colour and rendered: `Logs/Tasks/MINI-166/Sacat-MatFlags-Full.png`,
+`Sacat-MatFlags-Back.png`. Result: skin, shirt AND pants are ALL material
+index 0 (`Ch06_body_Reshaped`) - the entire body silhouette renders one
+flat colour. No separate pants-only material slot exists to safely tint.
+This CONFIRMS the original deferral was correct: recolouring index 0 would
+recolour his whole body, not just the pants. A real Pants slot for Sacat
+needs the MINI-157 texture-repaint technique (classify polygons by bone
+position, rasterize a new colour onto just the pants UV region) - real
+production work, not a quick fix. Staying deferred, now for a confirmed
+reason rather than an assumed one.
