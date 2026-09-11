@@ -436,3 +436,53 @@ same conclusion as before.
 Denim Shorts (both characters) remains the one deliberately-not-attempted
 design, now backed by a real confirmed reason instead of an inconclusive
 render.
+
+## Denim Shorts: fixed and shipped for Franki (2026-09-11)
+
+Built the real leg-skin repair after confirming the gap. First attempt
+followed the exact proven Shirt-slot pattern (bisect in Blender, export
+FBX, bone-remap-by-name in Unity) - the Blender-side geometry was verified
+completely correct in isolation (4061 verts, 8051 polys, correct world
+bounds, correct material_index split 4745/3306, no orphan vertex weights,
+correct normals) and every Unity-side check passed too (bounds, bindposes,
+boneWeights, submesh/material correspondence, GPU-skinning warmup timing) -
+**yet the mesh rendered as completely invisible**, from every camera angle,
+across nine separate diagnostic rounds. A sanity check proved it wasn't a
+bones/renderer problem: re-selecting the already-working Jeans piece
+immediately after the identical bone remap rendered perfectly fine on the
+same renderer. The root cause was never found despite exhausting every
+data-level check.
+
+**Abandoned that approach entirely and switched technique**: instead of
+re-exporting through Blender/FBX and remapping bones (a pattern that has
+now caused real bugs three separate times this session - the Shirt overlay
+parenting bug, and now this unexplained one), built the shorts geometry as
+a pure C# operation directly on the ALREADY-WORKING live Jeans mesh -
+`SkinnedMeshRenderer.BakeMesh()` to get real posed vertex positions,
+classify each triangle by height against the hip/knee bone positions
+(converted into the renderer's own local space), split into two submeshes
+via `Mesh.SetTriangles(list, submeshIndex)`, assign the existing pants
+fabric material to one and a new skin-tone material to the other. Zero
+Blender/FBX round-trip, zero bone remapping - the mesh's vertices/bones/
+bindposes are byte-identical to the working Jeans mesh, only the
+triangle-to-submesh assignment changed.
+
+**This worked immediately.** Verified by render:
+`Logs/Tasks/MINI-166/Franki-Shorts-Legs.png`, `Franki-Shorts-Full-A.png` -
+real denim-blue shorts with a jagged natural hem, connected bare legs in
+Franki's real skin tone below it, no gaps, correct idle pose. Integrated
+and saved (`MINI166_SHORTS_INTEGRATE_PASS`), compile clean, Windows build
+succeeded (412,592,837 bytes, `Logs/mini166_shorts_build.log`).
+
+**Lesson for future slots**: prefer building geometry variants as direct
+C# operations on an already-proven-working live mesh (submesh/material
+split, vertex position edits) over a Blender-export-then-bone-remap
+round-trip wherever the change doesn't need new topology from scratch -
+the C# path has now succeeded cleanly twice (this, and would have avoided
+real time lost on the Shirt overlay) where the Blender round-trip has
+caused three distinct, hard-to-diagnose bugs this session.
+
+**Denim Shorts for Sacat remains not attempted** - his fused single-
+material mesh (confirmed by the material-flag check) needs the real
+MINI-157 texture-repaint technique, not this submesh-split technique
+(there's no separate pants submesh to split on his mesh at all).
