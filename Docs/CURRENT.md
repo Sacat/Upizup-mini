@@ -1,4 +1,182 @@
+## MINI-166 — EXE checkpoint; outfits incomplete (2026-09-11)
+
+Runtime outfit selection/save foundations compile and Windows build passed (`Logs/mini166-build.log`, 411,132,245 bytes total). Fitted meshes and clothing UI are NOT integrated; existing clothing appearance remains. User requested Claude continuation instructions: read `Docs/CLAUDE-CONTINUE-MINI-166.md` and claim MINI-166. Owner released to None.
+
+## MINI-165 — Headphones as a removable head accessory (2026-09-10)
+
+Sacat's existing headphones are now a separate skinned accessory. Open the home wardrobe, Accessories, then Headphones / REMOVE or WEAR; Apply keeps the choice, Cancel and Restore opening outfit restore it. Existing game saves capture the selection through sacatUnequippedItems; legacy saves default to wearing the headphones. Franki has no headphone assignment; this task does not add a second fitted asset.
+
+Six disconnected pieces (6,760 triangles) were extracted without changing positions, UVs, normals, weights or materials. The wave scalp, face and repaired clothing remain in the original body mesh. Compile, Play Mode toggle/Cancel/Apply/GameSave JSON tests, saved-scene renders, Windows build (411,132,437 bytes) and player proof process passed. Logs and on/off images: Logs/Tasks/MINI-165; compiler/build logs: Logs/mini165-*.log. Automated player UI captures were blank and are not visual acceptance evidence; hands-on button layout review remains owed. See Docs/WorkPackets/MINI-165.md.
+## MINI-164 hair continuation — 2026-09-10
+
+Both playable characters now have black wave-textured scalp meshes in GrandBayProof. Franki uses a continuous shell fitted by ray intersections to his existing head; Sacat's fused cap submesh is replaced by a smooth scalp, preserving the live clothes, face, headphones, bone weights and other submeshes. The existing removable wardrobe cap remains available, and real Play Mode verified equip/remove leaves both wave meshes/materials intact.
+
+Unity compile, saved-scene render and Windows build passed. Build: Builds/GrandBayProof/UpIzUpMini.exe (410,853,365 bytes). Evidence and exact commands: Docs/WorkPackets/MINI-164.md; Logs/Tasks/MINI-164/waves-test-build.log and waves-saved-evidence.log.
+
+User visual acceptance is still owed. Existing prototype cap is visibly too low and is not fixed by this hair task. Sacat's forehead/temple seam and original headphones remain rough; existing white eyelashes and garment appearance are unchanged. No complete wardrobe/contact-sheet milestone is claimed.
 # Up Iz Up Mini — Current State
+## MINI-163 — Franki's hair fixed and shipped; Sacat's attempted and rejected (2026-09-08)
+
+Franki's broken/glitchy hair texture is genuinely fixed - own dedicated
+material (no longer sharing the corrupted shared atlas with the
+eyelashes), a wave-textured crown, and a fade band near the hairline.
+Verified by rendering before and after saving, integrated into the live
+scene, Windows build succeeded (409,318,629 bytes), 15s smoke clean.
+`Builds/GrandBayProof/UpIzUpMini.exe` is ready for playtest. Sacat still
+has no real hair - two attempts this pass both caught real problems
+before shipping (a first attempt corrupted his headphones' colour via
+shared-texture pixel reuse; a second attempt, transplanting Franki's hair
+shape via a bounding-box remap, produced a visibly distorted result) and
+neither was integrated. Sacat's `Ch06` is unchanged from before this
+session. See Docs/WorkPackets/MINI-163.md and Characters ledger.
+
+## MINI-162 — Franki neckline finished; hair scoped as real next task (2026-09-08)
+
+Claude took over MINI-162 from Codex (rate-limited, user authorized
+handoff) and finished the collar/neckline fix Codex had started: the
+raised hoodie-shaped bump behind Franki's neck is flattened and the
+jagged collar rim Codex hadn't gotten to is now smoothed, verified by
+rendering. Arms remain intact (MINI-161 unaffected). Investigated the
+user's "don't want bald heads, want short waves + shape-up" request with
+real renders before touching anything: **Sacat has no real hair mesh at
+all** (the "cap" is a dome baked into his head geometry, not a real
+accessory), **Franki has a real hair mesh but a genuinely broken/glitchy
+texture**. Both need real production work, not a toggle - not started,
+honestly scoped rather than rushed. See Docs/WorkPackets/MINI-162.md and
+Characters ledger.
+
+## MINI-161 — Franki arm gap repaired; both characters checked
+
+Applied fresh-source retained-sleeve repaint to Franki Ch28_Hoody only. Both arms of Franki and Sacat inspected in isolated idle/walk/run pose captures; no missing sleeve-to-hand gap observed. Sacat, pants and accessories unchanged. New source: Franki_ArmsRestored.fbx/png/mat. Preview/import checks pass without discarded polygons after triangulation. Build/smoke outcome in WorkPackets/MINI-161.md. Full wardrobe purchasing/swapping and accessory fit are not completed by this repair. Preserve Claude's existing dirty work; no blanket commit or reset.
+
+## MINI-160 — visual vehicle dealer panel: see it, rotate it, buy it (2026-09-08)
+
+New `VisualVehicleDealerPanel.cs` mirrors the wardrobe panel's exact
+pattern - Car Dealer NPC now opens a rotate-and-inspect real 3D vehicle
+preview (the same prefab that actually spawns on purchase) instead of a
+plain number-key text list, with a Buy button that calls the unchanged
+existing purchase pipeline. Compiles clean; real rendered previews of both
+stocked vehicles verified (not assumed). Not yet hands-on played, no build
+made this pass. See Docs/WorkPackets/MINI-160.md and Vehicles ledger.
+
+## MINI-159 CORRECTION — Franki's arm has a real gap, handed to Codex (2026-09-08)
+
+User caught a real defect in the live build: Franki's short sleeve leaves
+the hand floating disconnected from the shoulder. Confirmed with an
+isolated skin-only render: `Ch28_Body` has almost no arm geometry - the
+original asset assumed the arm is always covered by a long sleeve.
+MINI-154's delete-the-sleeve-fabric method was wrong for this reason (an
+assumption never checked down to the arm specifically). Fix path is
+documented in full in the Characters ledger's MINI-159 CORRECTION entry:
+reuse the exact retexture-not-delete method already proven correct for
+Sacat (MINI-157) on Franki's sleeve/collar instead of deleting fabric.
+User asked to hand this specific fix to Codex - released without
+finishing it. Read the Characters ledger entry before starting, the wrong
+assumption and working fix pattern are already known.
+
+## MINI-159 — clothes now live in-game on Sacat and Franki; Windows build ready for playtest (2026-09-08)
+
+The motion-tested, coloured reshaped shirt/pants (MINI-157/158) are wired
+into the actual live `GrandBayProof.unity` Sacat and Franki — not just an
+isolated proof anymore. Integration reused the exact tested mesh/material
+and only remapped each renderer's bones by name onto the live skeleton, so
+nothing else (Animator, other components' references) was touched. Two
+real bugs (an overexposed verification render, then a genuinely missing
+texture reference from MINI-157's FBX export) were caught by rendering and
+looking, then fixed, before the scene was saved. Compile clean, Windows
+build succeeded (403,574,245 bytes), 15s headless smoke shows zero
+exceptions. `Builds/GrandBayProof/UpIzUpMini.exe` is ready for the user's
+playtest. Accessory placement (cap/shades primitives) was investigated but
+NOT redesigned this pass — Franki shows no visible cap/shades under the
+same test that shows something on Sacat, unconfirmed why; flagged as open,
+not fixed. See Docs/WorkPackets/MINI-159.md and Characters ledger.
+
+## MINI-158 — real motion proof: both reshaped garments survive idle/walk/run (2026-09-08)
+
+The blank-headless-render limitation from MINI-154/157 was just the
+`-nographics` flag — dropping it on the identical tool immediately produced
+real screenshots. 132 real motion frames now exist
+(`Logs/Tasks/MINI-158/Franki-*.png`, `Sacat-*.png`): **no shoulder, sleeve,
+collar, or waist tearing on either character through idle/walk/run.** This
+is the first actual motion confirmation either reshaped garment has had.
+Sacat's render is overexposed (lighting/material issue in the proof tool,
+not the mesh — silhouette still reads correctly) — open item. Canonical
+scene verified unchanged. Still no Unity gameplay integration — that's the
+next step once the user reviews this evidence. See Docs/WorkPackets/MINI-158.md
+and Characters ledger.
+
+## MINI-157 — Sacat's shirt/pants (texture-only) + colour on both, awaiting approval (2026-09-07)
+
+Sacat's clothing is fused into one mesh with his skin (no hidden layer
+underneath), so the topology-cut method used on Franki (MINI-154) doesn't
+apply there. Used a texture/UV-repaint method instead: zero geometry
+change, real skin tone (sampled from the character's own Head-bone
+vertices) painted over the newly-short sleeve and lowered collar, garment
+colour painted over the shirt/pants regions. Two real defects (accidentally
+painting over the face) were caught by rendering and looking, then fixed -
+not assumed correct from the code. Franki's already-reshaped garment
+(MINI-154) now has colour too (navy shirt, charcoal pants). Both new FBX
+assets verified to import as valid Humanoid in Unity. Real renders:
+`Logs/Tasks/MINI-157/Sacat-Reshaped-*.png`, `Franki-Colored-*.png`. Motion
+proof still blocked by the same headless-render environment limitation
+MINI-154 hit (not asset-specific) — needs an open Unity Editor session to
+actually capture idle/walk/run screenshots. No Unity gameplay integration
+yet; accessories untouched, still rejected. See Docs/WorkPackets/MINI-157.md
+and Characters ledger.
+
+## MINI-156 — spawn moved to Highland Safehouse; Windows build ready (2026-09-07)
+
+Sacat and Franki now spawn at/beside the Highland Safehouse (the free
+starting property) instead of out in the Lalay area, via a small additive
+live-scene patch (two `Transform.position` writes reading the safehouse's
+own `spawnPoint` field) — not a scene regeneration. Windows build succeeded
+(398,098,421 bytes) with this plus MINI-155's arrow-key camera look; 15-second
+headless smoke shows zero exceptions/errors. `Builds/GrandBayProof/UpIzUpMini.exe`.
+Actual spawn placement and arrow-key feel still need the user's playtest.
+See Docs/WorkPackets/MINI-156.md and Docs/Systems/MapGeneration.md.
+
+## MINI-155 — arrow keys now pan/tilt the camera like the mouse (2026-09-07)
+
+`GameInput.Move` reads WASD directly instead of Unity's default Horizontal/
+Vertical axes (which also bound arrow keys), and `GameInput.Look` adds a new
+arrow-key vector on top of the existing mouse delta with the same sign
+convention. Arrow keys no longer walk the character; held Right/Left/Up/Down
+now pans/tilts the camera the same way moving the mouse does. No
+`ProjectSettings/InputManager.asset` edit; vehicle throttle/steer (still
+reads the raw axis directly) and the camera's own mouse-look code are both
+untouched and unaffected — riding still uses arrow keys to steer, and the
+camera ignores look input entirely while orbit-locked during a ride, so
+there's no conflict. Compile-clean. New `Docs/Systems/Camera.md` ledger.
+Held-arrow pan/tilt rate/feel still needs the user's hands-on check. See
+Docs/WorkPackets/MINI-155.md.
+
+## MINI-154 — shirt/pants: real reshaped preview from existing mesh (Franki, corrected), motion proof blocked by environment (2026-09-07)
+
+Investigated the actual playable meshes two ways: raw Blender re-import was
+non-deterministic (do not trust it), so switched to a Unity batch-mode
+`SkinnedMeshRenderer` dump against the LIVE scene, which is authoritative
+and also caught a real bug: **`Sacat` → `Mainchar.fbx`/`Ch06` (one fused
+mesh) and `Franki` → `Strong.fbx`/`Ch28_*` (six separate mesh objects)** —
+backwards from a stale code comment this session initially trusted. So
+everything below built as "Sacat" this session is actually **Franki's**
+garment. For Franki: edited the existing already-skinned `Ch28_Hoody`/
+`Ch28_Pants` topology directly (short-sleeve + hood/collar removed; jogger
+ankle cuff relaxed) instead of building new isolated geometry, avoiding
+MINI-150's shoulder-gap/cylindrical-sleeve/exposed-hem failures because the
+result is a subset of one already-continuous, already-correctly-skinned
+surface. Real renders (not concept art):
+`Logs/Tasks/MINI-154/Reshaped-Front/Back/ThreeQuarter.png` vs.
+`Baseline-Front/Back.png`. Built a Unity motion-proof tool (idle/walk/run,
+`Up Iz Up Mini/MINI-154/Garment Motion Proof` menu) that runs clean and
+does not touch the canonical scene, but headless `-nographics` screenshot
+capture produces blank output in this environment (proved with a plain
+cube through the same code path) — needs to run inside an open Unity
+Editor for real screenshots. Still owed: user approval of the silhouette,
+Sacat (different method required — fused mesh), motion proof, Unity
+gameplay integration, colour. Accessories untouched per explicit user
+instruction — still rejected, not addressed. See Docs/WorkPackets/MINI-154.md
+and Characters ledger.
+
 ## MINI-153 — shirt/pants request; prototype rejected at fit gate
 
 User says accessories remain wrong but explicitly wants to move on: shirt and pants only, Claude handles rest. Polo-Front.png from MINI-150 inspected and rejected for shoulder gaps/hem exposure. No fitted production pants yet; no garment integration or new EXE. Current EXE is MINI-152. Read Docs/WorkPackets/MINI-153.md for exact blockers and next steps. Do not call current visual wardrobe a clothing swap system; only accessory trials work.

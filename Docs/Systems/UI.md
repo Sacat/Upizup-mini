@@ -1,3 +1,8 @@
+## MINI-165 — Headphones as a removable head accessory (2026-09-10)
+
+Sacat's existing headphones are now a separate skinned accessory. Open the home wardrobe, Accessories, then Headphones / REMOVE or WEAR; Apply keeps the choice, Cancel and Restore opening outfit restore it. Existing game saves capture the selection through sacatUnequippedItems; legacy saves default to wearing the headphones. Franki has no headphone assignment; this task does not add a second fitted asset.
+
+Six disconnected pieces (6,760 triangles) were extracted without changing positions, UVs, normals, weights or materials. The wave scalp, face and repaired clothing remain in the original body mesh. Compile, Play Mode toggle/Cancel/Apply/GameSave JSON tests, saved-scene renders, Windows build (411,132,437 bytes) and player proof process passed. Logs and on/off images: Logs/Tasks/MINI-165; compiler/build logs: Logs/mini165-*.log. Automated player UI captures were blank and are not visual acceptance evidence; hands-on button layout review remains owed. See Docs/WorkPackets/MINI-165.md.
 # UI
 ## MINI-146 — home wardrobe ledger (2026-09-07)
 
@@ -24,6 +29,8 @@ Multiple `Canvas` objects coexist in the scene at different `sortingOrder` value
 - **A `RectTransform` with `sizeDelta=(0,0)` is not automatically a bug** - full-stretch anchors (`anchorMin=(0,0)`, `anchorMax=(1,1)`, zero offsets) legitimately report `sizeDelta=(0,0)` while still correctly filling the parent. Don't flag this as broken without checking the anchor mode first - this cost a wasted diagnosis step this session before the real (sorting order) cause was found.
 
 ## Open items
+
+- MINI-160 (2026-09-08): `VisualVehicleDealerPanel` reuses `VisualWardrobePanel`'s isolated-stage/IMGUI pattern for a rotate-and-buy vehicle preview at the Car Dealer NPC. If this pattern gets reused a third time, consider factoring the shared "hidden-layer render stage + IMGUI panel" scaffolding out of both, rather than a third copy-paste.
 
 - MINI-151 (2026-09-07): VisualWardrobePanel is runtime-only, entered from owned-home E -> 5. Bakes skinned preview; shares GPU-only static meshes without reading vertices; rotate and session-only Apply/Cancel. Hides/restores enabled canvases while paused. Use opaque whiteTexture tinted dark, not blackTexture, for backdrop; keep negative GUI depth rather than resetting it before the event ends. Hidden player screenshot was black: visible built-player proof is required. New garments/colours are explicitly unavailable. Final visual acceptance and actual home-button interaction remain user playtest gates. See WorkPackets/MINI-151.md.
 

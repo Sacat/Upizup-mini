@@ -77,3 +77,7 @@ Gold-chain purchases belong to the active protagonist only and must refresh visi
 ## D-011 — Boss C uses an independent manual body/chain profile
 
 Boss C keeps the existing 1.85 m cast height and front-to-back depth, but his visual root is widened on X to the user's approved scale `(1.4496428, 1, 1)`, producing the same measured 0.4403 m shoulder width as Sacat. His two-piece front/nape chain fit is stored separately as `VA-003` because Boss C's metarig bone axes and scale are not compatible with Sacat's bone-local placement. Future rebuilds must load these profiles rather than recalculate them.
+
+2026-09-10 MINI-164: User requested short black waves beneath removable caps. Use continuous head-weighted scalp surfaces and procedural albedo/normal waves; preserve live clothing and face assets. Visual user acceptance remains pending; no visual lock recorded.
+
+2026-09-10 MINI-165: User explicitly defines headphones as a removable head accessory like a cap. Preserve Sacat's original fitted geometry as a separate skinned accessory; use the existing wardrobe unequipped-item save data, with worn as the legacy default.

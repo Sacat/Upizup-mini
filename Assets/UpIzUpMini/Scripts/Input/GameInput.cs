@@ -56,13 +56,43 @@ namespace UpIzUpMini.InputSystem
             ResetVirtualInput();
         }
 
+        // MINI-155: movement is WASD only. Unity's default "Horizontal"/
+        // "Vertical" axes (still used as-is by vehicle throttle/steer) also
+        // bind the arrow keys, which would otherwise both walk the character
+        // AND pan the camera from the same press. Reading the letter keys
+        // directly here decouples on-foot movement from the arrow keys
+        // without touching the shared ProjectSettings/InputManager.asset.
         public static Vector2 Move => _virtualMoveActive
             ? Vector2.ClampMagnitude(_virtualMove, 1f)
-            : new Vector2(UnityEngine.Input.GetAxisRaw("Horizontal"), UnityEngine.Input.GetAxisRaw("Vertical"));
+            : WasdMove();
 
+        // MINI-155: arrow keys pan/tilt the camera the same way mouse
+        // movement does - held Right/Left/Up/Down behaves like a sustained
+        // mouse delta on that axis, on top of whatever the mouse itself is
+        // doing, so both remain usable together.
         public static Vector2 Look => _virtualLookActive
             ? _virtualLook
-            : new Vector2(UnityEngine.Input.GetAxis("Mouse X"), UnityEngine.Input.GetAxis("Mouse Y"));
+            : new Vector2(UnityEngine.Input.GetAxis("Mouse X"), UnityEngine.Input.GetAxis("Mouse Y")) + ArrowKeyLook();
+
+        private static Vector2 WasdMove()
+        {
+            float x = 0f, y = 0f;
+            if (UnityEngine.Input.GetKey(KeyCode.D)) x += 1f;
+            if (UnityEngine.Input.GetKey(KeyCode.A)) x -= 1f;
+            if (UnityEngine.Input.GetKey(KeyCode.W)) y += 1f;
+            if (UnityEngine.Input.GetKey(KeyCode.S)) y -= 1f;
+            return new Vector2(x, y);
+        }
+
+        private static Vector2 ArrowKeyLook()
+        {
+            float x = 0f, y = 0f;
+            if (UnityEngine.Input.GetKey(KeyCode.RightArrow)) x += 1f;
+            if (UnityEngine.Input.GetKey(KeyCode.LeftArrow)) x -= 1f;
+            if (UnityEngine.Input.GetKey(KeyCode.UpArrow)) y += 1f;
+            if (UnityEngine.Input.GetKey(KeyCode.DownArrow)) y -= 1f;
+            return new Vector2(x, y);
+        }
 
         public static bool WasPressed(GameAction action)
         {

@@ -11,8 +11,11 @@ namespace UpIzUpMini.UI
     {
         static VisualWardrobePanel instance;
         CharacterEquipment wearer;
+        OutfitWardrobe outfit;
+        readonly Dictionary<OutfitSlot,int> pendingColour=new Dictionary<OutfitSlot,int>();
         List<string> original;
         List<string> originalWardrobe;
+        List<OutfitChoice> originalOutfit;
         GameObject stage,model;
         Camera previewCamera;
         RenderTexture texture;
@@ -34,7 +37,7 @@ namespace UpIzUpMini.UI
         }
         void Begin(CharacterEquipment equipment)
         {
-            wearer=equipment;original=wearer.CaptureTrialItems();originalWardrobe=wearer.CaptureWardrobe();
+            wearer=equipment;outfit=wearer.GetComponent<OutfitWardrobe>();original=wearer.CaptureTrialItems();originalWardrobe=wearer.CaptureWardrobe();originalOutfit=outfit!=null?outfit.Capture():null;pendingColour.Clear();
             who=CharacterSwitchManager.Instance?.Active.displayName??"Character";
             oldTime=Time.timeScale;Time.timeScale=0;
             oldCursor=Cursor.visible;oldLock=Cursor.lockState;Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
@@ -107,7 +110,7 @@ namespace UpIzUpMini.UI
         public void Close(bool apply)
         {
             if(wearer==null)return;
-            if(!apply){wearer.RestoreTrialItems(original);wearer.RestoreWardrobe(originalWardrobe);}
+            if(!apply){wearer.RestoreTrialItems(original);wearer.RestoreWardrobe(originalWardrobe);if(outfit!=null)outfit.Restore(originalOutfit);}
             wearer=null;Time.timeScale=oldTime;Cursor.lockState=oldLock;Cursor.visible=oldCursor;
             foreach(var canvas in hiddenCanvases)if(canvas!=null)canvas.enabled=true;
             hiddenCanvases.Clear();
@@ -153,15 +156,54 @@ namespace UpIzUpMini.UI
                     if(GUI.Button(new Rect(470,280+i*68,575,56),CharacterEquipment.TrialItemLabels[i]+"  /  TRY ON",button))Select(i);
                 if(wearer.HeadphonesAvailable && GUI.Button(new Rect(470,484,575,48),"Headphones  /  "+(wearer.HeadphonesEquipped?"REMOVE":"WEAR"),button))
                 {wearer.SetHeadphonesEquipped(!wearer.HeadphonesEquipped);RebuildPreview();}
-                if(GUI.Button(new Rect(470,wearer.HeadphonesAvailable?540:490,575,40),"Restore opening outfit",button)){wearer.RestoreTrialItems(original);wearer.RestoreWardrobe(originalWardrobe);RebuildPreview();}
+                if(GUI.Button(new Rect(470,wearer.HeadphonesAvailable?540:490,575,40),"Restore opening outfit",button)){wearer.RestoreTrialItems(original);wearer.RestoreWardrobe(originalWardrobe);if(outfit!=null)outfit.Restore(originalOutfit);RebuildPreview();}
                 GUI.Label(new Rect(470,wearer.HeadphonesAvailable?584:542,575,30),"Headphone selection is included when you save your game.",small);
             }
             else
             {
                 string[] descriptions={"","Lacos polo / Mike T-shirt","Long jeans / denim shorts / trousers","Lacos curved-brim cap","Mike 90 / Mike 97"};
                 GUI.Label(new Rect(470,235,570,60),descriptions[category],label);
-                GUI.Label(new Rect(470,310,570,110),"IN PRODUCTION\nThe approved new models are not fitted yet. Existing clothes remain on the character.",label);
-                GUI.Label(new Rect(470,445,570,90),"Colour selection will be enabled when these garments have colour masks. This is not a working clothing swap yet.",small);
+                var slot=category switch{1=>OutfitSlot.Shirt,2=>OutfitSlot.Pants,3=>OutfitSlot.Hat,_=>OutfitSlot.Shoes};
+                var pieces=outfit!=null&&outfit.HasSlot(slot)?outfit.ForSlot(slot).ToList():null;
+                if(pieces==null||pieces.Count==0)
+                {
+                    GUI.Label(new Rect(470,310,570,110),"IN PRODUCTION\nThe approved new models are not fitted yet for this character. Existing clothes remain on the character.",label);
+                    GUI.Label(new Rect(470,445,570,90),"Colour selection will be enabled when this garment has a colour mask. This is not a working clothing swap yet.",small);
+                }
+                else
+                {
+                    var current=outfit.Current(slot);
+                    for(int i=0;i<pieces.Count;i++)
+                    {
+                        bool active=current!=null&&current.itemId==pieces[i].id;
+                        var r=new Rect(470,280+i*64,575,52);
+                        var prevBg=GUI.backgroundColor;if(active)GUI.backgroundColor=new Color(.35f,.55f,.9f);
+                        if(GUI.Button(r,pieces[i].label+(active?"  /  WORN":"  /  WEAR"),button))
+                        {
+                            int colour=pendingColour.TryGetValue(slot,out var c)?c:(current?.colour??0);
+                            outfit.Select(pieces[i].id,colour);RebuildPreview();
+                        }
+                        GUI.backgroundColor=prevBg;
+                    }
+                    bool tintable=pieces.Any(p=>p.tintSlots!=null&&p.tintSlots.Length>0);
+                    if(tintable)
+                    {
+                        GUI.Label(new Rect(470,280+pieces.Count*64+10,570,26),"Colour",small);
+                        int colourNow=pendingColour.TryGetValue(slot,out var pc)?pc:(current?.colour??0);
+                        for(int i=0;i<OutfitWardrobe.ColourNames.Length;i++)
+                        {
+                            var cr=new Rect(470+i*96,280+pieces.Count*64+40,90,40);
+                            var prevBg=GUI.backgroundColor;if(i==colourNow)GUI.backgroundColor=new Color(.35f,.55f,.9f);
+                            if(GUI.Button(cr,OutfitWardrobe.ColourNames[i],button))
+                            {
+                                pendingColour[slot]=i;
+                                if(current!=null)outfit.Select(current.itemId,i);
+                                RebuildPreview();
+                            }
+                            GUI.backgroundColor=prevBg;
+                        }
+                    }
+                }
             }
             if(GUI.Button(new Rect(665,622,175,45),"Cancel",button))Close(false);
             if(GUI.Button(new Rect(855,622,190,45),"Apply try-ons",button))Close(true);

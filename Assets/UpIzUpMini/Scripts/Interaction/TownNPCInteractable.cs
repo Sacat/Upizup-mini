@@ -287,11 +287,22 @@ namespace UpIzUpMini.Interaction
                 case NpcRole.FarmShop:
                 case NpcRole.ApparelShop:
                 case NpcRole.LandOffice:
-                case NpcRole.CarDealer:
                 case NpcRole.FoodShop:
                 case NpcRole.Pharmacy:
                     _lastFeedback = ShopDialogueForRole();
                     shop?.Open(transform);
+                    break;
+
+                case NpcRole.CarDealer:
+                    // MINI-160, user: "i want the vehicle buying to be
+                    // just like the wardrobe changing... you can actually
+                    // see the vehicle you want to choose it and buy it."
+                    // Reuses this NPC's own wired shop stock (still the
+                    // real ShopItemDefinition instances/purchase pipeline)
+                    // for a visual rotate-and-buy panel instead of the
+                    // plain number-key text list every other shop keeps.
+                    _lastFeedback = ShopDialogueForRole();
+                    if (shop != null) UI.VisualVehicleDealerPanel.Open(shop, transform);
                     break;
 
                 case NpcRole.BoatMan:

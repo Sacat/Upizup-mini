@@ -25,6 +25,21 @@ namespace UpIzUpMini.Vehicles
     {
         public static VehicleSpawnController Instance { get; private set; }
 
+        /// <summary>MINI-160: the exact prefab SpawnPurchasedVehicle would
+        /// place in the world for this item id, for the visual dealer
+        /// panel's preview - same models, not a separate lower-fidelity
+        /// stand-in. Returns null for anything not sold as a vehicle.</summary>
+        public GameObject GetPreviewPrefab(string itemId)
+        {
+            switch (itemId)
+            {
+                case "koss": return stockDemoBikePrefab;
+                case "tmax_560": return tmaxPrefab;
+                case "range_rova": return roverPrefab;
+                default: return null;
+            }
+        }
+
         [SerializeField] private GameObject tmaxPrefab;
         [Tooltip("MINI-071: the driveable Range Rover. Same one-time spawn treatment as the bike.")]
         [SerializeField] private GameObject roverPrefab;

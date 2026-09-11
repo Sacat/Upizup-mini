@@ -1,4 +1,60 @@
+## MINI-166 checkpoint — 2026-09-11
+
+Added outfit mesh-selection/tint/save foundations and mesh audit; no fitted outfit assets or clothing selector integration yet. Windows checkpoint build succeeded; see Logs/mini166-build.log. Detailed user-requested Claude continuation guide: Docs/CLAUDE-CONTINUE-MINI-166.md. Task remains incomplete.
+
+## MINI-165 — Headphones as a removable head accessory (2026-09-10)
+
+Sacat's existing headphones are now a separate skinned accessory. Open the home wardrobe, Accessories, then Headphones / REMOVE or WEAR; Apply keeps the choice, Cancel and Restore opening outfit restore it. Existing game saves capture the selection through sacatUnequippedItems; legacy saves default to wearing the headphones. Franki has no headphone assignment; this task does not add a second fitted asset.
+
+Six disconnected pieces (6,760 triangles) were extracted without changing positions, UVs, normals, weights or materials. The wave scalp, face and repaired clothing remain in the original body mesh. Compile, Play Mode toggle/Cancel/Apply/GameSave JSON tests, saved-scene renders, Windows build (411,132,437 bytes) and player proof process passed. Logs and on/off images: Logs/Tasks/MINI-165; compiler/build logs: Logs/mini165-*.log. Automated player UI captures were blank and are not visual acceptance evidence; hands-on button layout review remains owed. See Docs/WorkPackets/MINI-165.md.
+## MINI-164 hair continuation — 2026-09-10
+
+Both playable characters now have black wave-textured scalp meshes in GrandBayProof. Franki uses a continuous shell fitted by ray intersections to his existing head; Sacat's fused cap submesh is replaced by a smooth scalp, preserving the live clothes, face, headphones, bone weights and other submeshes. The existing removable wardrobe cap remains available, and real Play Mode verified equip/remove leaves both wave meshes/materials intact.
+
+Unity compile, saved-scene render and Windows build passed. Build: Builds/GrandBayProof/UpIzUpMini.exe (410,853,365 bytes). Evidence and exact commands: Docs/WorkPackets/MINI-164.md; Logs/Tasks/MINI-164/waves-test-build.log and waves-saved-evidence.log.
+
+User visual acceptance is still owed. Existing prototype cap is visibly too low and is not fixed by this hair task. Sacat's forehead/temple seam and original headphones remain rough; existing white eyelashes and garment appearance are unchanged. No complete wardrobe/contact-sheet milestone is claimed.
 # Up Iz Up Mini — Changelog
+## MINI-163 — Franki's hair fixed and shipped; Sacat's attempted and rejected
+
+Franki's glitchy hair texture was reading nonsense pixels from a material shared with the eyelashes - gave it its own material (flat colour + fade band + wave displacement), verified, integrated, built (409,318,629 bytes, 15s smoke clean). Attempted real hair for Sacat (a dome baked into his head, no separate mesh); caught two real problems (a texture repaint that broke the headphones, then a distorted bounding-box hair transplant) and shipped neither - his Ch06 renderer is unchanged. See Docs/WorkPackets/MINI-163.md.
+
+## MINI-162 — Franki neckline fixed (took over from rate-limited Codex); hair scoped
+
+Finished Codex's collar/neckline flatten with a targeted second smoothing pass on the collar rim, re-integrated, re-rendered and confirmed. Arms remain intact. Investigated the hair request with real renders: Sacat has no real hair mesh (a dome baked into his head), Franki's hair mesh has a broken texture. Both need real production work - scoped honestly, not started. See Docs/WorkPackets/MINI-162.md.
+
+## MINI-161 — Franki missing-arm repair
+
+Retained and repainted fresh sleeve geometry rather than deleting it. Narrow live-shirt replacement; isolated arm pose verification on both protagonists. Pants, Sacat clothes and accessories preserved. See Docs/WorkPackets/MINI-161.md.
+
+## MINI-160 — visual vehicle dealer panel
+
+Car Dealer NPC now opens a rotate-and-inspect real vehicle preview (mirrors the wardrobe panel's pattern) instead of a plain text list, then buys through the unchanged existing EconomyManager/VehicleSpawnController pipeline. Compiles clean, real preview renders verified for both stocked vehicles. Not yet hands-on played or built. See Docs/WorkPackets/MINI-160.md.
+
+## MINI-159 — clothes integrated into the live game; Windows build
+
+Reshaped/coloured shirt+pants (MINI-157/158) wired into the live playable Sacat/Franki via a bone-remap technique that reuses the exact tested mesh/material and touches nothing else. Two real bugs (overexposed render, missing texture from MINI-157's FBX export) caught and fixed before saving. Compile clean, build succeeded (403,574,245 bytes), 15s smoke clean. Accessories investigated, not redesigned - open item. See Docs/WorkPackets/MINI-159.md.
+
+## MINI-158 — real motion proof for both reshaped garments
+
+Dropping -nographics (keeping -batchmode) fixed the blank-headless-render issue from MINI-154/157 - proven by rerunning the identical tool and getting real images immediately. 132 real idle/walk/run screenshots: no shoulder/sleeve/collar/waist tearing on either Franki or Sacat. Sacat's render is overexposed (lighting/material config in the proof tool, not the mesh). Canonical scene verified unchanged. New BuildAndVerification.md lesson: a clean batch-mode exit does not mean a render tool actually rendered anything. See Docs/WorkPackets/MINI-158.md.
+
+## MINI-157 — Sacat shirt/pants (texture-only method) + colour on both characters
+
+Sacat's mesh is fused skin+clothing (no separable layer), so used a texture/UV-repaint method instead of Franki's topology cut: zero geometry change, real sampled skin tone revealed at the new short-sleeve/collar lines, garment colour painted over shirt/pants regions. Two real defects (face getting painted over) caught by rendering and fixed. Franki's already-reshaped garment now has colour too. Both FBX assets verified valid Humanoid on Unity import. Motion proof still blocked by the same headless-render environment limitation as MINI-154 - needs an open Editor session. No gameplay integration yet. See Docs/WorkPackets/MINI-157.md.
+
+## MINI-156 — spawn moved to Highland Safehouse; Windows build
+
+Sacat/Franki spawn position moved to the Highland Safehouse via a small additive live-scene patch (two Transform.position writes from the safehouse's own spawnPoint field, not a scene regeneration). Windows build succeeded (398,098,421 bytes) including this and MINI-155's arrow-key camera look; 15s headless smoke clean. See Docs/WorkPackets/MINI-156.md.
+
+## MINI-155 — arrow keys pan/tilt camera like the mouse
+
+GameInput.Move now reads WASD directly (arrow keys no longer walk the character); GameInput.Look adds an arrow-key vector on top of the existing mouse delta. No ProjectSettings edit; vehicle steering and the camera script itself untouched. Compile-clean. New Docs/Systems/Camera.md. See Docs/WorkPackets/MINI-155.md.
+
+## MINI-154 — shirt/pants reshaped-from-existing-mesh preview (Franki, corrected)
+
+Investigated Sacat/Franki's real mesh structure via Unity batch mode against the live scene, which caught a real mislabel: Franki has separate already-skinned Hoody/Pants objects (`Strong.fbx`/`Ch28_*`), Sacat's clothes are fused into one mesh (`Mainchar.fbx`/`Ch06`) — the reverse of an earlier stale comment. Edited Franki's existing Hoody/Pants topology directly into a short-sleeve crew top (hood/tall collar removed) and a relaxed-cuff trouser, avoiding the shoulder-gap/cylindrical-sleeve/exposed-hem failures of MINI-150. Real Blender renders, not concept art. Built a Unity motion-proof tool that runs clean without touching the canonical scene, but headless `-nographics` screenshot capture is blank in this environment (proved with a plain cube) — needs an open Editor session. No Unity Assets, scene, or accessories changed; Sacat not started. Awaiting user visual approval. See Docs/WorkPackets/MINI-154.md.
+
 ## MINI-149 — purchase-free trial foundation
 
 Home wardrobe gains session-only existing accessory trials; no economy/save grants, no scene/art changes. New clothing and colour UI remain pending, not claimed complete.

@@ -27,6 +27,12 @@ namespace UpIzUpMini.Character
         public static readonly string[] ColourNames = { "Navy", "White", "Black", "Red", "Green", "Denim" };
         public static readonly Color[] Colours = { new Color(.09f,.16f,.29f),new Color(.9f,.9f,.87f),new Color(.055f,.06f,.07f),new Color(.55f,.075f,.07f),new Color(.075f,.27f,.17f),new Color(.24f,.39f,.53f) };
         void Start() { if (choices.Count == 0) Restore(null); }
+        // MINI-166 regression found by render: CharacterEquipment blanket-
+        // gated cap_mike/garment-tint off whenever ANY OutfitWardrobe exists,
+        // but slots are wired in one at a time (Shirt first) - that silently
+        // killed the working cap trial system before Hat was ready. Query
+        // per-slot instead of "does this component exist at all".
+        public bool HasSlot(OutfitSlot slot) => bindings != null && System.Array.Exists(bindings, b => b.slot == slot && b.renderer != null);
         public IEnumerable<OutfitPiece> ForSlot(OutfitSlot slot) => pieces.Where(p => p.slot == slot);
         public OutfitChoice Current(OutfitSlot slot) => choices.TryGetValue(slot, out var value) ? new OutfitChoice { itemId=value.itemId, colour=value.colour } : null;
         public bool Select(string id, int colour)
@@ -37,7 +43,22 @@ namespace UpIzUpMini.Character
             if(binding==null || binding.renderer==null)return false;
             choices[piece.slot]=new OutfitChoice{itemId=id,colour=colour};
             var r=binding.renderer;r.enabled=piece.mesh!=null;r.sharedMesh=piece.mesh;
-            if(piece.mesh!=null) { r.sharedMaterials=piece.materials;r.localBounds=piece.mesh.bounds; }
+            if(piece.mesh!=null)
+            {
+                r.sharedMaterials=piece.materials;
+                // MINI-166 bug found by render: piece.mesh.bounds is the raw
+                // SOURCE mesh's own bind-pose bounds, not necessarily in the
+                // space Unity's SkinnedMeshRenderer.localBounds expects
+                // (rootBone-relative) - setting it directly produced a wrong
+                // cull volume that made Unity silently skip drawing an
+                // otherwise-correctly-skinned mesh (looked "invisible" even
+                // though the real vertex positions were fine). updateWhenOffscreen
+                // makes Unity recompute real bounds from live skinned vertices
+                // every frame instead of trusting a static (possibly wrong)
+                // localBounds - more expensive but correct, and outfit pieces
+                // are not numerous enough for this to matter on mobile.
+                r.updateWhenOffscreen=true;
+            }
             // Indexed property blocks keep skin, buttons and shoe soles independent of fabric tint.
             r.SetPropertyBlock(null);
             for(int i=0;i<r.sharedMaterials.Length;i++)

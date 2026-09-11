@@ -1,5 +1,19 @@
 # Map Generation
 
+## MINI-156 — spawn moved to Highland Safehouse (additive patch)
+
+User asked to spawn "by the safe house"; three exist (Highland Safehouse
+free/starting, Lalay House and Lalay Estate purchasable) so asked which -
+Highland confirmed. `Mini156MoveSpawnToSafehouse.cs` opened the live scene,
+read `FarmSafehouse_Rest`'s own `spawnPoint` field (already the correct
+sampled-terrain-height point the generator itself would use), and wrote
+`Sacat.transform.position = spawnPoint` / `Franki.transform.position =
+spawnPoint + (1.4, 0, -1.2)` (the same relative offset
+`Mini011PhaseBSetup.BuildControllableCharacter` uses between them), then
+saved. Nothing else touched - not a `BuildScene()` rerun. Diff is a same-size
+binary scene change (two transforms only). Included in the same build as
+MINI-155's arrow-key camera look. See `Docs/WorkPackets/MINI-156.md`.
+
 ## Current state
 
 Two parallel pipelines exist. **`Mini011PhaseBSetup.cs`** generates the canonical live gameplay scene (`Assets/UpIzUpMini/Scenes/GrandBayProof.unity`) - one very long, hand-written procedural method (terrain, roads, buildings, NPCs, missions, shops, all in one file), NOT yet data-driven in the sense `Combat.md`'s `MeleeMoveLibrary` is, though parts of it already use static data arrays (e.g. `DealerSpecs` for shop items - the pattern to extend, not invent). **The Map Lab / OSM migration pipeline** (`Mini095LalayMapLabSetup.cs` builds a separate, more sourced/accurate `MapLab_LalayHighland.unity`; `Mini100GrandBayMapMigration.cs` migrates approved pieces of it into the canonical scene) is the more rigorous, source-verified path documented in `Docs/WORLD-EXPANSION-WORKFLOW.md` - read that file in full before any terrain/road/anchor work, this file is a ledger, not a substitute.

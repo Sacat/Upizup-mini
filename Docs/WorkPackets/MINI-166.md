@@ -13,3 +13,292 @@ Startup smoke: launched the new EXE with `-batchmode -nographics -logFile "E:\Un
 Incomplete at user's requested EXE/handoff checkpoint. Added OutfitWardrobe selection/tint/capture/restore data model, save fields/hooks, conditional legacy garment bypass, and current-scene mesh audit. No generated outfit geometry, scene attachment or clothing UI integration yet. Earlier acceptance paragraph describes required work, not completed results; no new source mesh/scene backup was created yet because no geometry integration occurred.
 
 Unity Windows build completed successfully: `Logs/mini166-build.log`, marker `MINI-001 BUILD SUCCEEDED`, total packaged size 411,132,245 bytes, 20.55 seconds. Existing compiler warnings remain (VehicleSpawnController unreachable code; CharacterEquipment unused field). Output `Builds/GrandBayProof/UpIzUpMini.exe` with adjacent data files. Full outfit acceptance tests and visual proof remain outstanding. Detailed step-by-step continuation: `Docs/CLAUDE-CONTINUE-MINI-166.md`. Ownership released to None for Claude to claim.
+
+## Shirt slot round 1 — 2026-09-11 (Claude, continued from the checkpoint above)
+
+**Franki: real, verified, working.** `Franki_Shirt_Tee_Mike.fbx` (unmodified
+ArmsRestored mesh/material - preserves MINI-157/161's skin-reveal paint on
+the forearm) and `Franki_Shirt_Polo_Lacos.fbx` (same mesh + a new collar ring
++ placket + 3 buttons, built as real geometry rigid-weighted to
+`mixamorig10:Neck`, joined without touching the original material) both
+integrate onto the live `Ch28_Hoody` renderer via `Mini166IntegrateShirt.cs`
+and render correctly in a full idle pose: collar sits at the neckline,
+placket/buttons on the front chest, original navy fabric/sleeve-cuff shading
+intact. Verified by render, not assumed:
+`Logs/Tasks/MINI-166/Franki-Polo-Full-A.png`, `Franki-Polo-Full-B.png`.
+
+**Real bugs found and fixed this round (both generic, benefit every future
+slot, not just this one):**
+1. First mesh-swap attempt rendered fully invisible (a gap where the torso
+   should be; head/hands/feet floating disconnected in a T-pose-looking
+   arrangement). Root cause: `OutfitWardrobe.Select()` set
+   `SkinnedMeshRenderer.localBounds` directly from the raw source mesh's own
+   bind-pose bounds, which is NOT the space Unity expects (rootBone-
+   relative) - the renderer's cull volume ended up nowhere near the real
+   geometry, so Unity silently skipped drawing an otherwise-correctly-skinned
+   mesh. Fixed generically in `OutfitWardrobe.cs`: `renderer.updateWhenOffscreen
+   = true` on selection, so Unity always recomputes real bounds from live
+   skinned vertices instead of trusting a wrong static value.
+2. First polo material pass wiped the mesh's single material to one flat
+   colour, destroying the already-baked skin-reveal paint on the forearm
+   (MINI-157/161's "repaint the UV region, don't cut geometry" technique
+   lives IN the texture, not as a separate material slot) - the sleeve read
+   as fully long instead of the approved short-sleeve. Fixed: never touch
+   the base tee's original material; the polo's collar/placket get their own
+   NEW material slot only, added via mesh `join()`, original slot untouched.
+3. Collar/placket initially built on the character's BACK, not the chest - a
+   Blender-space "forward" assumption that didn't survive FBX axis
+   conversion into Unity. Fixed empirically (flipped `forward_sign`),
+   confirmed correct in the actual Unity render, not re-guessed from Blender
+   coordinates alone.
+
+**Sacat: NOT working yet, NOT shipped.** `Sacat_Shirt_Polo_Overlay.fbx`
+(collar/placket/buttons sized to Sacat's own neck via the same technique)
+imports and binds without error, but the live renderer reports degenerate
+`bounds.size=(0,0,0)` even with `updateWhenOffscreen=true` - the actual
+skinned vertices appear to be collapsing to a single point, a real skinning
+bug (likely the vertex-group/weight export for this specific standalone
+overlay object), not yet root-caused. Nothing rendered for Sacat's polo.
+Left as an open item rather than shipped broken.
+
+**Not integrated to the live scene.** Everything above ran through
+`Mini166IntegrateShirt.Preview` (no save) only - `GrandBayProof.unity` is
+still unchanged. `Mini166IntegrateShirt.Integrate` (the save variant) has not
+been run.
+
+**Still outstanding for the Shirt slot:** fix Sacat's overlay skinning bug;
+colour-tint currently double-tints the WHOLE texture including the skin-
+reveal region since it's baked into one texture (known limitation, not
+hidden); integrate to the live scene once both characters render clean;
+motion proof (walk/run/crouch, not just idle); then the remaining three
+slots (Pants, Hat, Shoes) per the original sequencing.
+
+Evidence: `Logs/Tasks/MINI-166/Franki-Polo-Full-A.png`,
+`Franki-Polo-Full-B.png` (real, good); `Sacat-Polo-Full-A/B.png`,
+`Sacat-Polo-Chest-A.png` (show Sacat's existing base look only - overlay
+piece did not render). Unity logs: `Logs/mini166_shirt_preview10.log` and
+prior numbered rounds (failed attempts kept, not deleted, per this project's
+diagnostic-tool convention). New files: `Tools/CharacterPipeline/
+mini166_shirt_collar.py`, `Assets/UpIzUpMini/Editor/Mini166IntegrateShirt.cs`,
+`Assets/UpIzUpMini/Art/Characters/Garments/Franki_Shirt_Tee_Mike.fbx`,
+`Franki_Shirt_Polo_Lacos.fbx`, `Sacat_Shirt_Polo_Overlay.fbx`. Modified:
+`Assets/UpIzUpMini/Scripts/Character/OutfitWardrobe.cs` (updateWhenOffscreen
+fix).
+
+### Sacat overlay: three fix attempts, still broken - stopping to report, not to keep guessing
+
+After the two generic bugs above were fixed, Sacat's overlay bounds still
+came back exactly `(0,0,0)`. Two further targeted attempts:
+
+1. Rebuilt the mesh as genuinely single-bone (bones=[Neck], bindposes
+   matching) in C#, bypassing whatever Blender/FBX bone-list ambiguity might
+   exist - verified the source mesh DOES carry correct per-vertex weights
+   and positions before export (checked directly in Blender). Bounds stayed
+   `(0,0,0)`. Also found and fixed a real duplicate-assignment bug along the
+   way (`overlayR.rootBone` was being set to Neck then immediately
+   overwritten back to Hips by a leftover line from before the rewrite) -
+   fixed, no change to the outcome.
+2. Rebaked the mesh's vertices directly into the Neck bone's local space
+   with an identity bindpose (removes matrix composition ambiguity
+   entirely). Result got WORSE, not better: `RecalculateBounds()` now
+   reports every vertex collapsing to the literal same point
+   `(100.82, -7.04, 148.49)` - values in the hundreds, not meters, and zero
+   spread across 832 vertices. This points at something rig-specific to
+   Sacat (his root GameObject carries an unusual ~277.8-degree Y rotation
+   in this scene, confirmed via a separate diagnostic log this round) -
+   possibly a non-uniform or degenerate bone scale on his skeleton
+   specifically, not yet confirmed.
+
+**Stopping here rather than continuing to guess.** This needs a dedicated,
+focused diagnosis (dump Sacat's actual Neck bone lossyScale/rotation and
+compare against Franki's, which worked fine) as its own next step, not more
+blind attempts stacked onto an already long session. Sacat's Shirt slot
+piece is left unshippable/disabled - nothing broken was integrated.
+
+### Sacat overlay: FIXED — real root cause found and resolved
+
+The zero-size bounds traced all the way down to `srcR.sharedMesh` itself
+being degenerate as-imported (vertex0 through vertex828 all reporting
+~(0,0,0.02), confirmed directly - not a Unity-integration-side bug at all).
+Root cause: the Blender script set `collar.parent = arm` before export.
+Assigning `.parent` via Python does NOT auto-compute
+`matrix_parent_inverse` (only Blender's UI "Parent" operator does that) -
+so the FBX exporter had to compensate by baking the armature's own
+transform into the exported vertex data, collapsing the absolute-world-
+authored coordinates this script builds by hand. Fix: removed the parent
+assignment entirely - the Armature modifier alone (`mod.object = arm`) is
+sufficient for skin deformation; Franki's collar never needed parenting
+either, since it was joined directly into an already-correct mesh object.
+
+After the fix: `Sacat_ShirtOverlay` renders with real, correct
+`bounds.size=(0.35, 0.20, 0.34)` at the right world position, verified by
+render - a visible collar band appears at Sacat's neckline in both
+Full-A/B screenshots (`Logs/Tasks/MINI-166/Sacat-Polo-Full-A.png`,
+`Sacat-Polo-Full-B.png`). Open cosmetic item, not a bug: the collar
+currently reads lighter than intended and sits close to his EXISTING
+baked hoodie collar, so the two visually compete rather than reading as one
+clean garment - worth a fit/colour pass before final visual sign-off, but
+it is real, positioned, non-broken geometry.
+
+**Integrated and saved.** `Mini166IntegrateShirt.Integrate` ran successfully
+(`MINI166_SHIRT_INTEGRATE_PASS saved`, `Logs/mini166_shirt_integrate.log`).
+A full project recompile after the save is clean (`Logs/mini166_final_compile.log`,
+exit 0). `GrandBayProof.unity` now has:
+- Both Franki and Sacat carrying an `OutfitWardrobe` component with a real
+  Shirt slot (Tee/Polo for Franki bound to `Ch28_Hoody`; Tee(base)/Polo for
+  Sacat bound to a new `Sacat_ShirtOverlay` child renderer, `Ch06` itself
+  untouched).
+- Default selection on both is Tee (existing proven look, unchanged) -
+  nothing visually changes until a player actually selects Polo through
+  wardrobe UI (which doesn't exist yet - see below).
+
+**Shirt slot status: functionally complete for both characters, not yet
+player-facing.** Still outstanding before the Shirt slot can be called
+fully done: wire `VisualWardrobePanel` selection UI so a player can actually
+choose Tee/Polo in-game; motion proof (walk/run/crouch, not just idle);
+Sacat's collar fit/colour polish noted above; then the remaining three slots
+(Pants, Hat, Shoes) per the original sequencing.
+
+Windows build after this round: `MINI-001 BUILD SUCCEEDED:
+Builds/GrandBayProof/UpIzUpMini.exe (412,037,349 bytes)`, `Logs/mini166_shirt_build.log`.
+No hands-on smoke/playtest run this pass yet (batch-mode build only).
+
+## Accessory fit fix (cap too high, watch position check) — 2026-09-11
+
+User-reported: "the accessories are not on the player correctly like the
+watch is too high in the wrong position, hat too high". Investigated with
+real measurement/render rather than guessing, and found two separate issues:
+
+1. **My own regression, found and fixed**: `CharacterEquipment.Refresh()`
+   gated `cap_mike` (and the shirt/shorts/shoes tint garments) off entirely
+   whenever `GetComponent<OutfitWardrobe>() != null` - but slots are being
+   migrated one at a time (Shirt only, so far), so this blanket check
+   silently killed the cap trial/purchase system and pants/shoes tints
+   before their real replacements existed. Fixed with a proper per-slot
+   check (`OutfitWardrobe.HasSlot(slot)`), so each old system stays alive
+   until its own slot is actually wired.
+2. **A real, pre-existing fit bug**: the first diagnostic attempt (pure
+   Editor edit-mode) found NOTHING spawned at all for either accessory -
+   traced to `CharacterEquipment.Refresh()` early-returning when
+   `EconomyManager.Instance` is null outside Play Mode, so the tool was
+   never exercising the real code path. Rebuilt as a proper Play-Mode batch
+   check (`Mini166PlayModeAccessoryFit.cs`, following the proven
+   `Mini165HeadphoneValidation.cs` SessionState+InitializeOnLoad pattern) -
+   a first render attempt hijacked the live gameplay camera and produced a
+   bird's-eye map screenshot instead of the character (a CameraFollow-style
+   script was fighting the direct transform write every frame) - fixed by
+   spawning a dedicated temporary camera instead, same as every other render
+   tool this session.
+
+With the real code path finally exercised: the cap's placement (`+10cm`
+straight up from the `Head` bone) put the crown-sphere primitive's own
+BOTTOM only ~4cm above Head - the actual hairline sits much higher (measured
+`HeadTop_End` ~21cm above `Head` on this rig) - so it was floating with a
+visible gap, never resting on the skull. Raised to `+16cm`, confirmed by a
+real Play Mode render on both characters:
+`Logs/Tasks/MINI-166/Sacat-PM-Head-Side.png`, `Franki-PM-Head-Side.png` - cap
+now sits on the head correctly, front-to-back, no gap. The watch was checked
+the same way and found to already be correctly placed (1.8cm from the hand
+bone along the forearm axis, wraps the wrist properly in the render,
+`Sacat-PM-Wrist.png`/`Franki-PM-Wrist.png`) - not changed; whatever the user
+saw as "too high" may have been from a build predating MINI-152's wrist-
+lowering fix, or a different in-game pose/angle not reproduced here.
+
+Did not use external reference images this pass - real skeleton measurement
+plus a real render (the technique already proven throughout this whole
+project) was faster and more directly verifiable than sourcing photo
+references for a rig-relative placement problem.
+
+Files: `Assets/UpIzUpMini/Scripts/Character/CharacterEquipment.cs` (per-slot
+gate fix + cap offset), `Assets/UpIzUpMini/Scripts/Character/OutfitWardrobe.cs`
+(new `HasSlot` query), `Assets/UpIzUpMini/Editor/Mini166CheckAccessoryFit.cs`
+(edit-mode attempt, kept for the record - found nothing, see above for why),
+`Assets/UpIzUpMini/Editor/Mini166PlayModeAccessoryFit.cs` (the real, working
+check).
+
+Windows build after the accessory fit fix: `MINI-001 BUILD SUCCEEDED:
+Builds/GrandBayProof/UpIzUpMini.exe (412,037,349 bytes)`,
+`Logs/mini166_accfix_build.log`. Compile clean, no scene save needed (pure
+C# logic change).
+
+## Pants slot round 1 — 2026-09-11
+
+Given how long Shirt's real bugs took to find and fix, scoped this round
+down deliberately: **Jeans and Trousers for Franki only** - both pure
+colour clones of the existing, already motion-proven `Ch28_Pants` mesh
+(same mesh, cloned material, no new geometry, no Blender/FBX step at all).
+Verified by render: `Logs/Tasks/MINI-166/Franki-Jeans-Full.png` (indigo),
+`Franki-Trousers-Full.png` (charcoal, matches the current approved default
+look) - both read clearly distinct and connected correctly in a full idle
+pose. Integrated and saved (`MINI166_PANTS_INTEGRATE_PASS`), full recompile
+clean, Windows build succeeded (412,039,429 bytes,
+`Logs/mini166_pants_build.log`).
+
+Also fixed a real latent bug found while wiring this in:
+`Mini166IntegrateShirt.MergeDefaults` was wholesale REPLACING the whole
+`defaults` array instead of merging per-slot - harmless the first time
+(Shirt was the only slot), but would have silently wiped Pants' default the
+next time Shirt integration re-runs. Fixed to resolve each existing
+default's slot via the piece it names and only replace that slot's entry.
+
+**Denim Shorts deliberately NOT attempted this round.** Before cutting a
+knee-length hem, spent real effort trying to verify lower-leg skin coverage
+exists under Franki's pants (the exact same class of gap MINI-159 found on
+his arms) - a direct Blender inspection confirms `Ch28_Body`'s vertex data
+DOES extend the full height range (0.06m to 1.76m world Z, 170/9012 verts
+below knee height), but repeated render attempts to actually SEE that
+region cleanly all missed (camera framing kept catching hands/arms instead
+of legs - a `Sample()`-not-actually-posing-the-idle-clip quirk that also
+showed up in this session's other render tools, still not root-caused).
+Rather than cut a hem into geometry I haven't actually looked at, shorts are
+deferred - flagged as a real open item, not silently dropped.
+
+**Sacat's Pants slot also NOT wired this round.** Confirmed by render
+(`Logs/Tasks/MINI-166/Sacat-LegSkin-Thigh.png`, only `Ch06` enabled) that his
+leg is real continuous body-shaped geometry under the current paint - NOT
+missing like Franki's arms were - so a texture-repaint approach (MINI-157's
+proven technique) should work safely for jeans/trousers/shorts colour. Not
+done this round because `Ch06` is his ENTIRE body in one renderer -
+binding OutfitWardrobe's generic Pants slot to it directly would let
+`Select()`'s `mesh==null → renderer.enabled=false` rule disable his whole
+body by mistake. Needs a small, careful, Sacat-specific integration (tint
+material index only, never touch `sharedMesh`/`enabled`), not a blind reuse
+of Franki's pattern.
+
+**Pants slot status: 2 of 3 planned designs shipped for 1 of 2 characters.**
+Remaining before Pants can be called done: Sacat's jeans/trousers tint,
+Denim Shorts for both (needs the leg-skin question actually resolved, not
+re-guessed), wardrobe UI wiring, motion proof. Then Hat and Shoes slots
+remain untouched.
+
+## Wardrobe UI wired to the real safehouse E -> 5 path — 2026-09-11
+
+User: "for the wardrobe the fittings should be the same when i press E in
+the safehouse and 5." Confirmed the actual call path first
+(`SafehouseInteractable.cs:89`, pressing 5 in the safehouse menu calls
+`VisualWardrobePanel.Open(WardrobeEquipment)` - the exact same entry point
+used everywhere) - the fittings just weren't reachable from that panel yet,
+which was still showing the old "IN PRODUCTION" placeholder for Shirts/
+Pants/Hats/Shoes regardless of what OutfitWardrobe actually had.
+
+`VisualWardrobePanel.cs` now reads `wearer.GetComponent<OutfitWardrobe>()`
+and, per tab, lists the real pieces for that slot (`WORN`/`WEAR` buttons)
+plus colour swatches for any piece with tintable slots - falling back to
+the old "IN PRODUCTION" message only for slot/character combinations that
+genuinely aren't built yet (Hat, Shoes, and Sacat's Pants). Cancel now also
+restores the `OutfitWardrobe` selection (was previously only restoring
+trial accessories/legacy wardrobe, not the new outfit system) via a
+captured `originalOutfit` snapshot on open.
+
+Validated with a real Play Mode check
+(`Mini166WardrobeUIValidation.cs`, `MINI166_WARDROBE_UI_PASS`) that opens
+the panel through the IDENTICAL `VisualWardrobePanel.Open()` call
+`SafehouseInteractable` makes, confirms Franki's Shirt/Pants slots are
+listed, selects Polo, confirms it took, Cancels and confirms it reverted to
+the opening Tee, reopens, selects Jeans, Applies, confirms the selection
+persisted after close. `GameSave.sacatOutfit`/`frankiOutfit` (already wired
+in an earlier checkpoint, `SaveLoadSystem.cs:152-153,221-222`) was not
+re-tested this pass since it was already covered separately.
+
+Compile clean, Windows build succeeded (412,040,965 bytes,
+`Logs/mini166_ui_build.log`).

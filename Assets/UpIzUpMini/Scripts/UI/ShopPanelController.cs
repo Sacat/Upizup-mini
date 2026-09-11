@@ -45,6 +45,12 @@ namespace UpIzUpMini.UI
 
         public bool IsOpen => panel != null && panel.activeSelf;
 
+        /// <summary>MINI-160: lets the visual vehicle-dealer panel reuse this
+        /// shop's actual wired stock (the same ShopItemDefinition instances
+        /// Mini011PhaseBSetup embeds in the scene) rather than duplicating
+        /// item id/name/price data in a second place.</summary>
+        public ShopItemDefinition[] Stock => stock;
+
         private void Awake()
         {
             if (panel != null) panel.SetActive(false);

@@ -30,6 +30,7 @@ Introduced 2026-08-29 at the user's explicit request: "a modular system that det
 | gangs, Dog Life, Not Ah Word, rival crews, territory/block behaviour, recruitment | `Gang.md` |
 | Editor tools, batch verification, builds, the diagnostic-tool pattern itself | `BuildAndVerification.md` |
 | menus, pause screen, HUD, canvas layering/sorting, panels not appearing/rendering behind other UI | `UI.md` |
+| camera orbit/follow/look, mouse/arrow-key look input, keyboard move bindings | `Camera.md` |
 | "what's the current state", "what's next", session handoff to a fresh agent | this file, then `../NEXT-CHATGPT-PLUS-HANDOFF.md` |
 
 If a system doesn't exist yet as a file below, create it using the template - don't let a real system stay undocumented because it wasn't on the original list.
@@ -76,3 +77,4 @@ Exact paths.
 - [Gang](Gang.md)
 - [Build & Verification](BuildAndVerification.md)
 - [UI](UI.md)
+- [Camera](Camera.md)

@@ -1,4 +1,15 @@
+## MINI-165 — Headphones as a removable head accessory (2026-09-10)
+
+Sacat's existing headphones are now a separate skinned accessory. Open the home wardrobe, Accessories, then Headphones / REMOVE or WEAR; Apply keeps the choice, Cancel and Restore opening outfit restore it. Existing game saves capture the selection through sacatUnequippedItems; legacy saves default to wearing the headphones. Franki has no headphone assignment; this task does not add a second fitted asset.
+
+Six disconnected pieces (6,760 triangles) were extracted without changing positions, UVs, normals, weights or materials. The wave scalp, face and repaired clothing remain in the original body mesh. Compile, Play Mode toggle/Cancel/Apply/GameSave JSON tests, saved-scene renders, Windows build (411,132,437 bytes) and player proof process passed. Logs and on/off images: Logs/Tasks/MINI-165; compiler/build logs: Logs/mini165-*.log. Automated player UI captures were blank and are not visual acceptance evidence; hands-on button layout review remains owed. See Docs/WorkPackets/MINI-165.md.
+MINI-164 hair continuation: both characters now show black waves beneath removable caps. Compile, saved renders, cap-removal Play Mode test, Windows build and 15-second smoke passed. User visual review remains pending; existing cap placement needs separate repair.
+
 # Up Iz Up Mini — Project Handoff
+
+MINI-161: Franki arm continuity repair, both-character isolated checks; see Characters ledger and Docs/WorkPackets/MINI-161.md. Use Mini161ArmRepair, not broad regeneration. Existing Claude dirty changes preserved.
+
+2026-09-07 MINI-154: Characters — real reshaped shirt/pants preview from Franki's existing already-skinned Hoody/Pants mesh (short sleeve + hood/collar removed, ankle cuff relaxed) — CORRECTED from an initial "Sacat" mislabel caused by a stale code comment; Sacat needs a different method (fused `Ch06` mesh). Unity motion-proof tool built but blocked by a headless-render environment limitation (needs an open Editor session to run). Awaiting user visual approval before Sacat/motion/Unity work. See Docs/WorkPackets/MINI-154.md and Docs/Systems/Characters.md. Accessories untouched, still rejected.
 
 MINI-153: latest shirt/pants-only scope and rejected fit evidence; see Docs/WorkPackets/MINI-153.md and Characters ledger. No garment integration. Accessory placement remains user-rejected.
 
@@ -25,7 +36,7 @@ MINI-148: first Blender polo shell rejected internally; no game changes. Clean g
 - Reference project: `E:\Unity\Up iz up` — read-only
 - Status: See `Docs/CURRENT.md` for the compact current state, and `Docs/Systems/README.md` for per-system detail. This file is the full audit history through the latest task entries and should be searched by task/system rather than treated as a current summary.
 - Current owner: None
-- Active task: None
+- Active task: MINI-166
 - Last verified change: `MINI-000`; `MINI-001` implemented pending confirmation; `MINI-011` Phase C, `MINI-012`, `MINI-013` built and statically/headlessly verified, pending user playtest. `MINI-014` through `MINI-030` built and verified in the same way (compile/scene-builder/build clean), all still awaiting a hands-on playtest per each entry. `MINI-031` (reusable Humanoid Animation Manager foundation) built, compile/scene/build clean, zero console errors in a 15s headless run, idle pose confirmed intact via a rendered snapshot; melee-while-moving blending not yet hands-on confirmed. `MINI-050` (banana real model) and `MINI-051` (real Zeb strain bud/cola/pistil/frost visuals — fixed a genuine zero-fruit-renderer bug that meant no weed strain's colour ever rendered) built and visually verified via rendered snapshots, no EXE build made for either. `MINI-052` (NavMesh-based steering + reusable 4-rung stuck recovery for the companion/villagers/police, layered onto the existing CharacterController scripts rather than a full NavMeshAgent swap) built, compile/scene-build clean, and NavMesh coverage/obstacle-exclusion verified by a batch-mode check — but its actual runtime steering behaviour has **not** been exercised by any run (Play Mode is broken in batch mode here, and no EXE was built per this session's instruction), so this one specifically still needs a real Play Mode look. `MINI-053` (mission-name added to the persistent objective card, reading-time-scaled banner/dialogue hold durations, and a new data-driven dialogue foundation — DialogueCondition/DialogueLine/DialogueSet — demonstrated on the ambient villager NPC) built and verified via a real validation harness proving conditional-line selection/tie-cycling/live re-evaluation, plus a scene-build/regression check; content-light by design, full dialogue writing is MINI-054. `MINI-054` (Docs/DIALECT-LEXICON.md cataloguing all 17 supplied terms with honest per-term confidence — 5 remain genuinely Unconfirmed and unused — plus an 8-line scripted opening conversation between Franki and Sacat hitting every beat from the brief) built and verified via compile/scene-build/regression checks and a validation harness proving the timing math and the deferred-banner sequencing; not yet watched/listened to in Play Mode. `awa wii` corrected per the user's direct confirmation (disbelief/"impossible" slang, not the earlier "our own" guess). `MINI-055` (Boss K/M/P/Q consolidated to two display-named bosses — Boss J and Boss C, the latter offering three strains from one NPC via a new multi-crop path — with chain/SUV visual flourishes, both fixed after real rendered checks caught wrong placement) built and verified via a 6-scenario validation harness against live progression state, plus scene-build/regression checks and final visual proof; not yet hands-on played. `MINI-056` (Rasta mentor NPC teaching advanced-strain congratulations, four dialogue tiers reusing the MINI-053 foundation) built and verified via a validation harness against the real built scene, with the same "Strong" ambiguity from MINI-055's brief confirmed with the user first (descriptive, not a strain). `MINI-057` (Normy — a crooked, non-representative officer with a working bribe-for-heat-reduction relationship mechanic and vague foreshadowing dialogue) built and verified via a validation harness; also found and fixed a genuine pre-existing bug from MINI-012 along the way (every officer's cap was floating on the chest, not the head). `MINI-058` (Not Ah Word recruitment — a pooled 4-member roster with real combat-driven Unavailable/injured state — and Dog Life's distance-pooled territorial presence in Lalay) built and verified via a validation harness against the real saved-and-reloaded scene, which caught a genuinely serious bug: the Dog Life pool had no `[SerializeField]` and would have been empty in any real game boot, not just this editor session. Same-day follow-up fixed three user-reported issues (Rasta mentor moved off the farm plots onto the access road, Dog Life's four members randomised instead of moving in lockstep, Chevy moved to a standalone respect-gated recruit by Boss C instead of a paid pool member mixed in with Dog Life). `MINI-059` (plantation theft risk — an away-timer, probability roll scaled by GrandBayGangs reputation, and a real GuardPlantation-assignment prevention, with no faction named per the roadmap's own "create suspicion first" instruction) built and verified via a validation harness that caught two real test-construction bugs (a reputation-delta mistake, and the same Awake/OnEnable-outside-Play-Mode limitation seen in earlier tasks) before passing cleanly. `MINI-060` (Gardey Zafeh — a $1000 reveal naming Dog Life as the plantation thief, feeding both PlantationTheftController's notification text and a new hostile Dog Life dialogue line, plus four random 10-minute "reading" buffs verified to hook the real systems they claim to — HealthBoost genuinely blocks damage, DoubleMoney genuinely doubles gains but never costs) built and verified via a validation harness that passed on the first run, following a clarifying question to the user (same as MINI-055/056's "Strong" ambiguity) rather than guessing at an undefined character. User-requested Windows build succeeded and ran clean headlessly. Known honest gap: she's modeled on a male body (the only kind this project's character pack has) despite being written as "she/her" - flagged for a sourced/generated female model as a follow-up, not solved. `MINI-060 follow-up-2` (companion/gang-member following reverted from MINI-052's NavMesh steering back to direct-line steering per a hill-glitching report; fixed a real bug where the boat man never returned from a trip - root cause was SetActive(false) killing its own coroutine mid-flight; gang recruiter repositioned from Dog Life's block to Boss C/Chevy's cluster and repriced $150→$2000/member; the Gardey Zafeh reveal repriced $1000→$3000; and a new "000000" cheat code for invincibility/$100k/heat-lock/600s time-skip) built and verified via three passing validation harnesses plus a numeric position check (visual snapshot rendering crashed environment-wide this run, confirmed not a regression), Windows build succeeded clean.
 - Last known good gameplay commit: `3adb5c0` (`MINI-093` police melee retaliation; focused validation passed, no new Windows build)
 
@@ -34,7 +45,7 @@ MINI-148: first Blender polo shell rejected internally; no game changes. Clean g
 Before editing, set:
 
 ```yaml
-current_owner: Codex | Claude | User
+current_owner: None | Claude | User
 active_task: MINI-###
 claimed_at: ISO-8601 timestamp
 reserved_files:
@@ -44,19 +55,135 @@ reserved_files:
 ### Current claim
 
 ```yaml
-current_owner: None
-active_task: None
-claimed_at: 2026-09-07
-reserved_files:
-  - Docs/WorkPackets/MINI-152.md
+current_owner: Claude
+active_task: MINI-166
+claimed_at: 2026-09-11
+continuation: Docs/CLAUDE-CONTINUE-MINI-166.md
+status: Claimed. Runtime foundations (OutfitWardrobe, save fields, legacy bypass, mesh audit) already compile from the prior checkpoint. Proposing a slot-by-slot production sequence (Shirt first, both characters) rather than attempting all 4 slots x 8 designs x 2 characters in one uncontrolled batch - matches this project's own established one-bounded-slice-at-a-time convention (see e.g. MINI-154/157/159's single-garment passes). Reserved files below; scene/audit checkpoint preserved from the prior Claude/Codex session.
+released_task: MINI-165
+released_reason: MINI-165 headphone head accessory implemented and built; on/off renders and Play Mode wardrobe/save-data tests pass. User button-layout review remains; automated UI captures were blank. See Docs/WorkPackets/MINI-165.md.
+claimed_at: 2026-09-10
+prev_scope_note: MINI-164 - (1) wardrobe-combination contact sheet on live Sacat/Franki; (2) make BOTH characters' hair BLACK (user: "no one hair should be white. black hair"), starting with Franki's pale fade band + shattered crown and Sacat's glossy baked dome.
+prev_reserved_files:
+  - Tools/CharacterPipeline/mini164_franki_hair.py
+  - Tools/CharacterPipeline/mini164_sacat_hair.py
+  - Assets/UpIzUpMini/Editor/Mini164WardrobeCombos.cs
+  - Assets/UpIzUpMini/Editor/Mini164IntegrateHair.cs
+  - Assets/UpIzUpMini/Art/Characters/Garments/Franki_Hair.fbx
+  - Assets/UpIzUpMini/Art/Characters/Garments/Sacat_Hair.fbx
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Docs/WorkPackets/MINI-164.md
   - Docs/Systems/Characters.md
   - Docs/CURRENT.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
   - CHANGELOG.md
-  - Assets/UpIzUpMini/Scripts/UI/VisualWardrobePanel.cs
-  - Assets/UpIzUpMini/Scripts/Character/CharacterEquipment.cs
-  - Assets/UpIzUpMini/Scripts/Interaction/SafehouseInteractable.cs
-  - Docs/WorkPackets/MINI-151.md
+  - Logs/Tasks/MINI-164/
+released_task: MINI-163
+scope_note: Franki's broken hair texture fixed (own dedicated material, no longer sharing the corrupted shared atlas) and integrated into the live scene - verified good. Windows build succeeded (409,318,629 bytes), 15s smoke clean. Attempted real hair geometry for Sacat (transplanting Franki's hair shape onto his head) but the result was visibly broken (distorted, overlapping the face) - rejected before integration, NOT saved to the live scene or shipped. Sacat still has no real hair; needs a properly-fitted approach as separate follow-up work.
+claimed_at: 2026-09-08
+released_task: MINI-162
+transferred_from: Codex (rate-limited, user authorized handoff)
+scope_note: Finished Codex's collar/neckline flatten (added a targeted collar-rim smoothing pass, re-integrated, re-rendered, verified). Arms remain intact. Windows build succeeded (409,310,549 bytes), 15s smoke clean. Hair investigated with real renders - Sacat has no real hair mesh (baked-in dome, not a real cap), Franki's hair mesh has a broken texture. Both need real production work for "short waves + shape-up" - honestly scoped, not started.
+reserved_files:
+  - Tools/CharacterPipeline/mini162_flatten_hood.py
+  - Tools/CharacterPipeline/mini162_smooth_collar.py
+  - Assets/UpIzUpMini/Editor/Mini162CheckHair.cs
+  - Assets/UpIzUpMini/Editor/Mini162RenderHeads.cs
+  - Logs/Tasks/MINI-162/
+  - Docs/WorkPackets/MINI-162.md
+  - Tools/CharacterPipeline/mini161_franki_arms.py
+  - Assets/UpIzUpMini/Editor/Mini161ArmRepair.cs
+  - Assets/UpIzUpMini/Art/Characters/Garments/Franki_ArmsRestored.fbx
+  - Assets/UpIzUpMini/Art/Characters/Garments/Franki_ArmsRestored.png
+  - Assets/UpIzUpMini/Art/Characters/Garments/Franki_ArmsRestored.mat
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Docs/WorkPackets/MINI-161.md
+  - Assets/UpIzUpMini/Scripts/UI/VisualVehicleDealerPanel.cs
+  - Assets/UpIzUpMini/Scripts/UI/ShopPanelController.cs
+  - Assets/UpIzUpMini/Scripts/Vehicles/VehicleSpawnController.cs
+  - Assets/UpIzUpMini/Scripts/Interaction/TownNPCInteractable.cs
+  - Docs/WorkPackets/MINI-160.md
+  - Docs/Systems/Vehicles.md
   - Docs/Systems/UI.md
+  - Docs/CURRENT.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
+  - Builds/GrandBayProof/
+  - Logs/Tasks/MINI-160/
+scope_note: New visual vehicle-dealer panel mirroring VisualWardrobePanel.cs's isolated-stage preview pattern - rotate/inspect a real vehicle prefab before buying, reusing the existing ShopItemDefinition/EconomyManager purchase pipeline and VehicleSpawnController.SpawnPurchasedVehicle. Car Dealer NPC opens this instead of the generic text ShopPanelController.
+previous_claim_reserved_files:
+released_task: MINI-159
+reserved_files:
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Assets/UpIzUpMini/Editor/Mini159IntegrateGarments.cs
+  - Assets/UpIzUpMini/Editor/Mini159DiagnoseMaterial.cs
+  - Assets/UpIzUpMini/Editor/Mini159FixSacatTexture.cs
+  - Assets/UpIzUpMini/Editor/Mini159CheckAccessories.cs
+  - Assets/UpIzUpMini/Art/Characters/Garments/Ch06_1001_Diffuse_Reshaped.png
+  - Docs/WorkPackets/MINI-159.md
+  - Docs/Systems/Characters.md
+  - Docs/CURRENT.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
+  - Builds/GrandBayProof/
+  - Logs/Tasks/MINI-159/
+scope_note: Clothes are now live in-game on Sacat/Franki (bone-remap integration, two real bugs found+fixed before saving). Windows build succeeded, smoke clean. Accessories investigated (cap/shades placement) but NOT redesigned - Franki showed nothing in the same test that showed something on Sacat, unconfirmed why. CORRECTION found after: user caught Franki's arm floating disconnected in the live build - confirmed real via Mini159DiagnoseArmGap.cs (Ch28_Body has almost no arm geometry, MINI-154's delete-based sleeve cut was wrong). Fix path fully documented in Docs/Systems/Characters.md's MINI-159 CORRECTION entry - reuse Sacat's retexture-not-delete method on Franki. User is handing this fix to Codex; not completed here.
+previous_claim_reserved_files:
+reserved_files:
+  - Assets/UpIzUpMini/Editor/Mini154GarmentMotionProof.cs
+  - Logs/Tasks/MINI-158/
+  - Docs/WorkPackets/MINI-158.md
+  - Docs/Systems/Characters.md
+  - Docs/Systems/BuildAndVerification.md
+  - Docs/CURRENT.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
+scope_note: Real idle/walk/run motion evidence now exists for both reshaped garments (132 screenshots) - dropping -nographics fixed the earlier blank-render issue. No tearing observed. Sacat's render is overexposed (tool lighting, not the mesh) - open item. Canonical scene verified unchanged. Still no Unity gameplay integration.
+previous_claim_reserved_files:
+reserved_files:
+  - Tools/CharacterPipeline/mini157_sacat_garment.py
+  - Tools/CharacterPipeline/mini157_franki_color.py
+  - Assets/UpIzUpMini/Art/Characters/Garments/
+  - Assets/UpIzUpMini/Editor/Mini157VerifyReshaped.cs
+  - Logs/Tasks/MINI-157/
+  - Docs/WorkPackets/MINI-157.md
+  - Docs/Systems/Characters.md
+  - Docs/CURRENT.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
+scope_note: Sacat (Ch06/Mainchar.fbx, fused single-mesh) shirt/pants via texture/UV repaint (zero topology change) - a genuinely different method from Franki's since Sacat has no separable skin layer. Colour added to both characters. Both FBX assets verified valid Humanoid on Unity import. Motion proof still blocked by the same headless-render environment limitation MINI-154 hit. No Unity gameplay integration; accessories untouched.
+previous_claim_reserved_files:
+reserved_files:
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Assets/UpIzUpMini/Editor/Mini156FindSafehouses.cs
+  - Assets/UpIzUpMini/Editor/Mini156MoveSpawnToSafehouse.cs
+  - Docs/WorkPackets/MINI-156.md
+  - Docs/Systems/MapGeneration.md
+  - Docs/CURRENT.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
+  - Builds/GrandBayProof/
+scope_note: Moved Sacat/Franki's live-scene spawn position to the Highland (free starting) Safehouse, per direct user choice. Small additive live-scene edit (two Transform.position writes from the safehouse's own spawnPoint), not a scene regeneration. Windows build succeeded (398,098,421 bytes) with this plus MINI-155's arrow-key-look; 15s headless smoke clean.
+previous_claim_reserved_files:
+  - Docs/WorkPackets/MINI-154.md
+  - Docs/Systems/Characters.md
+  - Docs/CURRENT.md
+  - PROJECT-HANDOFF.md
+  - TASKS.md
+  - CHANGELOG.md
+  - Tools/CharacterPipeline/mini154_garment_from_existing.py
+  - Logs/Tasks/MINI-154/
+  - Assets/UpIzUpMini/Art/Characters/Garments/
+  - Assets/UpIzUpMini/Editor/Mini154InspectGarmentSource.cs
+  - Assets/UpIzUpMini/Editor/Mini154FindRealSource.cs
+  - Assets/UpIzUpMini/Editor/Mini154GarmentMotionProof.cs
+scope_note: Corrected a character-identity mislabel mid-session (the reshaped garment is Franki's mesh, not Sacat's - see MINI-154 packet). Motion-proof tool built and verified not to touch the canonical scene, but blocked by a headless-render environment limitation; needs to run inside an open Unity Editor. Accessories untouched per explicit user instruction. Sacat's own garment (fused Ch06 mesh) not started.
 completed_mini150_files:
   - Tools/CharacterPipeline/mini150_polo_shell.py
   - Docs/WorkPackets/MINI-150.md
@@ -2868,3 +2995,5 @@ built with both the radio and the missions included.
 - Verification: compile clean (`Logs/MINI-086-Chain-Compile-1.log`); capture succeeded (`Logs/MINI-086-CaptureApprovedChain.log`); scene rebuilt (`Logs/MINI-086-Chain-Rebuild.log`); chain transaction/distribution PASS (`Logs/MINI-086-Chain-Validation.log`); static scene PASS (`Logs/MINI-086-Chain-StaticValidation-2.log`); Windows build SUCCEEDED at 407,518,747 bytes (`Logs/MINI-086-Chain-WindowsBuild.log`); 12-second built-player smoke had no error/exception/assert/crash/null-reference (`Logs/MINI-086-Chain-PlayerSmoke.log`).
 - Honest limitation: runtime construction and ownership are proven, but the chain's visibility and swing while walking/running require the user's visual playtest; headless validation cannot prove motion or subjective readability.
 - Next action: user runs the updated build, uses the purchasing protagonist, and checks idle/walk/run. Open a new bounded adjustment only if fit or swing needs revision.
+
+MINI-165 scoped checkpoint: 8b1e2d8 (runtime code, editor tools, headphone assets and packet). Earlier scene/shared-document changes remain unstaged. Unity-generated YAML/meta whitespace warnings were retained; runtime C# diff check passed.

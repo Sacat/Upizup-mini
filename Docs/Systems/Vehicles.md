@@ -1,5 +1,23 @@
 # Vehicles (Riding & Driving)
 
+## MINI-160 — visual dealer panel: see/rotate/buy, mirrors the wardrobe panel
+
+User: "vehicle buying to be just like the wardrobe changing... see the
+vehicle you want, choose it and buy it." New `VisualVehicleDealerPanel.cs`
+mirrors `VisualWardrobePanel.cs`'s exact proven pattern (pause, hide
+canvases, isolated hidden-layer render stage, orthographic camera to a
+RenderTexture, IMGUI overlay) rather than a new UI approach. Talking to the
+Car Dealer NPC now opens this instead of the plain number-key text list.
+Reuses the dealer's already-wired `ShopPanelController.Stock` (new one-line
+getter) for item data and the exact prefab
+`VehicleSpawnController.SpawnPurchasedVehicle` would place in the world
+(new `GetPreviewPrefab(itemId)` lookup over existing prefab fields) for the
+preview - no duplicated data, no new asset references. Buying still calls
+the unmodified `EconomyManager.TryPurchase` + `SpawnPurchasedVehicle`
+pipeline. Verified with real rendered previews of both stocked vehicles
+(`Logs/Tasks/MINI-160/Preview-*.png`) - not assumed from code. See
+`Docs/WorkPackets/MINI-160.md`. Not yet hands-on played.
+
 ## Current state
 
 TMAX (MINI-066) riding/wheelie/pillion and Range Rover driving/passengers are shipped and long-stable. MINI-124 adds evidence-ready black SuperMoto-reference tyre meshes plus a synchronized visual fork/handlebar pivot to the TMAX without changing its physics; MINI-125 temporarily spawns that upgraded TMAX alone beside the active character for the pending visual/ride check. SuperMoto shipped end-to-end in MINI-119 (mount/ride/wheelie with real hand/foot IK, pillion) and is user-confirmed via real exe play. On top of that: the SuperMoto is now purchasable at the Car Dealer as the "Koss" ($2,500, cheapest vehicle), reusing the exact same wiring as the dev spawn via a shared helper. Auto-mount-on-spawn is off again. A wheelie back-clip damping fix is shipped but not yet visually confirmed at the exact right value. **MINI-140 (evidence-ready, awaiting playtest):** vehicle mount/enter/dismount is now **E** (the world interact key) for the TMAX, SuperMoto and Range Rover; the bike **wheelie is Q**; F is the melee Attack key only. The phone's Q call-partner action is suppressed while the active character is mounted.

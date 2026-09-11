@@ -1,4 +1,52 @@
+## MINI-165 — Headphones as a removable head accessory (2026-09-10)
+
+Sacat's existing headphones are now a separate skinned accessory. Open the home wardrobe, Accessories, then Headphones / REMOVE or WEAR; Apply keeps the choice, Cancel and Restore opening outfit restore it. Existing game saves capture the selection through sacatUnequippedItems; legacy saves default to wearing the headphones. Franki has no headphone assignment; this task does not add a second fitted asset.
+
+Six disconnected pieces (6,760 triangles) were extracted without changing positions, UVs, normals, weights or materials. The wave scalp, face and repaired clothing remain in the original body mesh. Compile, Play Mode toggle/Cancel/Apply/GameSave JSON tests, saved-scene renders, Windows build (411,132,437 bytes) and player proof process passed. Logs and on/off images: Logs/Tasks/MINI-165; compiler/build logs: Logs/mini165-*.log. Automated player UI captures were blank and are not visual acceptance evidence; hands-on button layout review remains owed. See Docs/WorkPackets/MINI-165.md.
+## MINI-164 hair continuation — 2026-09-10
+
+Both playable characters now have black wave-textured scalp meshes in GrandBayProof. Franki uses a continuous shell fitted by ray intersections to his existing head; Sacat's fused cap submesh is replaced by a smooth scalp, preserving the live clothes, face, headphones, bone weights and other submeshes. The existing removable wardrobe cap remains available, and real Play Mode verified equip/remove leaves both wave meshes/materials intact.
+
+Unity compile, saved-scene render and Windows build passed. Build: Builds/GrandBayProof/UpIzUpMini.exe (410,853,365 bytes). Evidence and exact commands: Docs/WorkPackets/MINI-164.md; Logs/Tasks/MINI-164/waves-test-build.log and waves-saved-evidence.log.
+
+User visual acceptance is still owed. Existing prototype cap is visibly too low and is not fixed by this hair task. Sacat's forehead/temple seam and original headphones remain rough; existing white eyelashes and garment appearance are unchanged. No complete wardrobe/contact-sheet milestone is claimed.
 # Up Iz Up Mini — Task Board
+## MINI-163 — Franki hair fixed/shipped; Sacat hair attempted, rejected, next up
+
+Franki's broken hair texture is genuinely fixed (own material, wave+fade), verified, integrated, built. Sacat still has no real hair - two attempts this pass caught real problems (headphones corruption, then a distorted transplant) and neither shipped. Needs a better-fitted approach next. See Docs/WorkPackets/MINI-163.md.
+
+## MINI-162 — Franki neckline fixed; hair is next real task
+
+Claude finished Codex's collar/neckline flatten (jagged rim smoothed, verified by render). Hair investigated: Sacat has no real hair mesh (baked-in dome), Franki's hair mesh has a broken texture. Real production work needed for both, not started. See Docs/WorkPackets/MINI-162.md.
+
+## MINI-160 — visual vehicle dealer panel; not yet built/played
+
+Car Dealer now opens a wardrobe-panel-style rotate/see/buy preview instead of a text list. Reuses existing stock data and purchase pipeline unchanged. Real preview renders verified. See Docs/WorkPackets/MINI-160.md.
+
+## MINI-159 — clothes live in-game; Windows build ready for playtest
+
+Reshaped/coloured shirt+pants now on the live Sacat/Franki (bone-remap technique, nothing else touched). Two real bugs found+fixed before saving. Build succeeded, smoke clean. Accessories investigated but not redesigned (Franki's cap/shades didn't render in the same test that showed something on Sacat - unconfirmed why). See Docs/WorkPackets/MINI-159.md.
+
+## MINI-158 — real motion proof passes for both characters; awaiting approval
+
+Dropping -nographics (keeping -batchmode) fixed the blank-render issue from MINI-154/157. 132 real idle/walk/run screenshots show no tearing at the sleeve/collar/waist on either Franki or Sacat. Sacat's render is overexposed (tool lighting issue, not the mesh). Next: Unity gameplay integration once approved. See Docs/WorkPackets/MINI-158.md.
+
+## MINI-157 — Sacat shirt/pants (texture-only) + colour on both; awaiting approval
+
+Sacat's fused mesh needed a different method than Franki's (texture/UV repaint, zero geometry change, real sampled skin tone revealed at sleeve/collar). Colour added to both characters (navy shirt, charcoal pants). Two real defects caught by rendering + fixed. Both FBX assets verified Humanoid-valid in Unity. Motion proof still blocked by the same headless-render limitation as MINI-154. See Docs/WorkPackets/MINI-157.md.
+
+## MINI-156 — spawn at Highland Safehouse; Windows build ready
+
+Sacat/Franki now spawn at the Highland Safehouse (additive scene patch, not a regeneration). Windows build succeeded with this + MINI-155's arrow-key look; 15s headless smoke clean. See Docs/WorkPackets/MINI-156.md.
+
+## MINI-155 — arrow-key camera look; awaiting user feel check
+
+Arrow keys now pan/tilt the camera like the mouse; WASD-only for movement (freed arrow keys from Unity's default Horizontal/Vertical axes without editing InputManager.asset). Vehicle steering and camera mouse-look code untouched. Compile-clean. See Docs/WorkPackets/MINI-155.md.
+
+## MINI-154 — shirt/pants real preview (Franki, corrected); motion proof needs an open Editor
+
+Existing already-skinned Ch28_Hoody/Ch28_Pants — verified against the live scene to be **Franki's** mesh, not Sacat's (a stale code comment had it backwards) — reshaped in place into a short-sleeve crew top and relaxed-cuff trouser. No new isolated geometry, no scan/decimate. Real renders in Logs/Tasks/MINI-154. Sacat needs a different method (fused `Ch06` mesh). Motion-proof tool built (menu: Up Iz Up Mini/MINI-154/Garment Motion Proof) but headless batch rendering is blank in this environment — must run inside an open Unity Editor. See Docs/WorkPackets/MINI-154.md.
+
 ## MINI-147 — clothing style approval next
 
 Polo/tee, jeans/shorts/trousers, cap and trainers with per-item colours; concept shown, no game integration. See Docs/WorkPackets/MINI-147.md. User accepts MINI-146 watch as good for now. First fitted shirt is next after reference approval, not a whole unverified outfit/body swap.

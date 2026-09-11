@@ -230,7 +230,9 @@ namespace UpIzUpMini.Character
                 if (pair.Key != null) pair.Key.sharedMaterials = pair.Value;
             }
 
-            Apply("cap_mike", HumanBodyBones.Head, GetComponent<OutfitWardrobe>() == null && (_trialItems.Contains("cap_mike") || Has(economy, "cap_mike")),
+            var outfit = GetComponent<OutfitWardrobe>();
+            bool hatSlotOwnsCap = outfit != null && outfit.HasSlot(OutfitSlot.Hat);
+            Apply("cap_mike", HumanBodyBones.Head, !hatSlotOwnsCap && (_trialItems.Contains("cap_mike") || Has(economy, "cap_mike")),
                 () => BuildCap(new Color(0.85f, 0.15f, 0.15f)));
 
             Apply("shades_ray", HumanBodyBones.Head, _trialItems.Contains("shades_ray") || Has(economy, "shades_ray"),
@@ -244,12 +246,18 @@ namespace UpIzUpMini.Character
 
             // Clothing recolours the character's own garments rather than
             // adding geometry - the models default to black, so a bought
-            // item visibly changes their outfit.
-            if (GetComponent<OutfitWardrobe>() != null) return;
-            ApplyGarment("shirt_lacos", new[] { "top", "tshirt", "shirt" }, new Color(0.90f, 0.94f, 0.96f));
-            ApplyGarment("shorts_adibas", new[] { "bottom", "pants", "trouser" }, new Color(0.25f, 0.32f, 0.62f));
-            ApplyGarment("shoes_mike", new[] { "shoes" }, new Color(0.95f, 0.95f, 0.95f));
-            ApplyGarment("shoes_pumba", new[] { "shoes" }, new Color(0.85f, 0.25f, 0.20f));
+            // item visibly changes their outfit. Same MINI-166 regression as
+            // cap_mike above: suppress per-slot as OutfitWardrobe takes over
+            // each one, not all-or-nothing on component presence.
+            if (outfit == null || !outfit.HasSlot(OutfitSlot.Shirt))
+                ApplyGarment("shirt_lacos", new[] { "top", "tshirt", "shirt" }, new Color(0.90f, 0.94f, 0.96f));
+            if (outfit == null || !outfit.HasSlot(OutfitSlot.Pants))
+                ApplyGarment("shorts_adibas", new[] { "bottom", "pants", "trouser" }, new Color(0.25f, 0.32f, 0.62f));
+            if (outfit == null || !outfit.HasSlot(OutfitSlot.Shoes))
+            {
+                ApplyGarment("shoes_mike", new[] { "shoes" }, new Color(0.95f, 0.95f, 0.95f));
+                ApplyGarment("shoes_pumba", new[] { "shoes" }, new Color(0.85f, 0.25f, 0.20f));
+            }
         }
 
         private readonly System.Collections.Generic.Dictionary<Renderer, Material[]> _originalMaterials
@@ -447,7 +455,22 @@ namespace UpIzUpMini.Character
                 // bone-local transform so animation still carries the accessory.
                 var anchor=t.parent;
                 t.rotation=transform.rotation;
-                t.position=anchor.position+transform.up*(itemId=="cap_mike"?.10f:.025f)
+                // MINI-166: measured against the real skeleton (a render
+                // showed the cap floating above the skull with a visible
+                // gap) - the Head bone sits near ear/jaw level, not the
+                // crown (HeadTop_End is ~0.21m above Head on this rig), and
+                // the cap's own crown-sphere mesh has a further ~0.06m
+                // downward radius before its surface even reaches the
+                // placement point. .10f only got the sphere's BOTTOM to
+                // ~0.04m above Head, well short of the real hairline - was
+                // never actually resting on the head. Raised to .16f and
+                // confirmed by a real Play Mode render on both characters
+                // (Logs/Tasks/MINI-166/Sacat-PM-Head-Side.png, Franki-PM-
+                // Head-Side.png) - cap now reads as sitting on the head, no
+                // gap. Watch checked in the same pass and found already
+                // correct (1.8cm from the hand, wraps the wrist properly in
+                // the render) - not changed.
+                t.position=anchor.position+transform.up*(itemId=="cap_mike"?.16f:.025f)
                     +transform.forward*(itemId=="cap_mike"?.0f:.105f);
                 var s=anchor.lossyScale;
                 t.localScale=new Vector3(1f/Mathf.Max(.0001f,Mathf.Abs(s.x)),1f/Mathf.Max(.0001f,Mathf.Abs(s.y)),1f/Mathf.Max(.0001f,Mathf.Abs(s.z)));
