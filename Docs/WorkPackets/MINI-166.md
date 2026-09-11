@@ -357,3 +357,34 @@ Windows build succeeded (412,098,293 bytes, `Logs/mini166_shoes_build.log`).
 remains on legacy systems for Pants/Hat (Shirt is done for him). Real
 distinct Mike 90 vs 97 panel geometry (not just colour) is future work, same
 honest scoping as jeans/trousers.
+
+## Correction — Sacat's "Hat placement bug" was a render-tool bug, not a real one (2026-09-11)
+
+Retracting part of the "three open Sacat placement bugs" finding above.
+Investigated further per the user's request to continue: the Hat bake was
+already proven pose-independent (`head.localToWorldMatrix * head.
+worldToLocalMatrix = identity` at bake time), and a direct diagnostic
+confirmed the combined mesh's HEAD-LOCAL bounds were byte-for-byte
+equivalent between Franki and Sacat (`Center: (0.00, 0.17, 0.04), Extents:
+~(0.10-0.11, 0.06, 0.14)` for both). The actual bug: the render tool's
+camera used a FIXED world-space offset for "Front"/"Side" shots, which
+doesn't account for Sacat's root object carrying a ~277.8-degree Y rotation
+in this scene - his "Front" camera was actually viewing the BACK of his
+head at a steep angle, and a correctly-placed cap looked wrong from that
+angle. Fixed the render tool to use `root.transform.forward`/`right`
+instead of fixed world axes (first attempt had the direction sign backwards
+too - camera must stand where the face is looking TOWARD, not behind it).
+With the fixed camera, Sacat's cap renders correctly at the hairline,
+matching Franki's: `Logs/Tasks/MINI-166/Sacat-Hat-Front.png`.
+
+**Hat slot is now real for BOTH characters** - integrated and saved,
+compile clean, Windows build succeeded (412,208,613 bytes,
+`Logs/mini166_hat2_build.log`).
+
+This also means his remaining "Shirt-overlay parenting bug" (genuinely
+confirmed and fixed via Blender vertex data, unrelated to camera framing)
+stays a real, separate finding - only the Hat "bug" turns out to have been
+a diagnosis artifact. Sacat's Pants slot remains the one still-open item
+for him, and it hasn't been re-investigated with this same "check the
+render tool's camera, not just the data" lens yet - worth revisiting before
+assuming it's a real placement bug too.

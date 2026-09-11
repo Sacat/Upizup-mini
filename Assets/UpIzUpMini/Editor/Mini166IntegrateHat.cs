@@ -33,29 +33,29 @@ namespace UpIzUpMini.EditorTools
             Directory.CreateDirectory(Out);
             EditorSceneManager.OpenScene(Scene, OpenSceneMode.Single);
 
-            // Sacat's Hat deliberately NOT wired this round: the identical
-            // technique (baked into the Head bone's local space, matching
-            // this session's proven Sacat Shirt-overlay fix) rendered
-            // correctly for Franki but put the cap at ear height for Sacat -
-            // a third Sacat-specific placement quirk this session, still
-            // unexplained (the bake math is provably pose-independent, so
-            // this points at something particular to his transform chain,
-            // same family as the earlier 277.8-degree root rotation finding).
-            // Not shipping it broken - see MINI-166.md.
-            var characters = new[] { "Franki" };
+            // Sacat's Hat initially looked broken (cap at ear height) in a
+            // first render - traced to the RENDER TOOL, not the placement:
+            // a fixed world-space camera offset doesn't account for his
+            // ~277.8-degree root rotation, so "Front" was actually viewing
+            // the back of his head at a steep angle. The bake itself was
+            // already proven pose-independent and produced IDENTICAL
+            // head-local bounds for both characters. Fixed the camera to use
+            // root.transform.forward/right, confirmed the cap sits correctly
+            // on both. See MINI-166.md for the full trace.
+            var characters = new[] { "Franki", "Sacat" };
             foreach (var name in characters)
                 IntegrateCharacter(GameObject.Find(name), name);
 
             if (save)
             {
                 EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
-                Debug.Log("MINI166_HAT_INTEGRATE_PASS saved (Franki only)");
+                Debug.Log("MINI166_HAT_INTEGRATE_PASS saved");
             }
             else
             {
                 foreach (var name in characters)
                     RenderPreview(GameObject.Find(name), name);
-                Debug.Log("MINI166_HAT_PREVIEW_PASS not saved (Franki only)");
+                Debug.Log("MINI166_HAT_PREVIEW_PASS not saved");
             }
 
             if (Application.isBatchMode) EditorApplication.Exit(0);
@@ -88,6 +88,8 @@ namespace UpIzUpMini.EditorTools
             combined.CombineMeshes(combine, false, true); // false = keep submeshes separate (crown/peak stay distinct materials)
             combined.RecalculateBounds();
             combined.RecalculateNormals();
+            Debug.Log($"MINI166HAT: {tag} head.position={head.position} head.rotation={head.rotation.eulerAngles} head.lossyScale={head.lossyScale} capRootWorld.pos={capRootWorld.GetColumn(3)} combined.bounds(head-local)={combined.bounds} root.rotation={root.transform.rotation.eulerAngles}");
+            Debug.Log($"MINI166HAT: {tag} animator.hasTransformHierarchy={animator.hasTransformHierarchy} head.parent={head.parent?.name} head.childCount={head.childCount} head active={head.gameObject.activeInHierarchy} bodyR.rootBone={bodyR.rootBone?.name} bodyR.bones.Length={bodyR.bones.Length}");
 
             var crownMat = new Material(Shader.Find("Standard")) { name = $"{tag}_HatCrown", color = new Color(0.08f, 0.16f, 0.30f) };
             var peakMat = new Material(Shader.Find("Standard")) { name = $"{tag}_HatPeak", color = new Color(0.08f, 0.16f, 0.30f) * 0.8f };
@@ -167,8 +169,18 @@ namespace UpIzUpMini.EditorTools
             Capture(camera, root.transform.position + Vector3.up * 2f, root.transform.position, $"{Out}/_warmup5_{tag}.png");
 
             var head = animator.GetBoneTransform(HumanBodyBones.Head);
-            Capture(camera, head.position + new Vector3(0, 0.05f, -0.45f), head.position + Vector3.up * 0.03f, $"{Out}/{tag}-Hat-Front.png");
-            Capture(camera, head.position + new Vector3(-0.45f, 0.05f, 0), head.position + Vector3.up * 0.03f, $"{Out}/{tag}-Hat-Side.png");
+            // BUG FOUND: fixed world-space offsets don't account for a
+            // rotated root (Sacat's is ~277.8deg on Y) - "Front" ended up
+            // viewing the BACK of his head at a steep angle, making a
+            // correctly-placed cap look wrong (misdiagnosed as a placement
+            // bug the first time). Use root.transform.forward/right so
+            // "Front" actually means front for any character.
+            // Second attempt still showed the back of the head - sign was
+            // backwards: to SEE a face you stand where it's looking TOWARD
+            // (further along +forward from the focus point), not behind it.
+            var focus = head.position + Vector3.up * 0.03f;
+            Capture(camera, focus + root.transform.forward * 0.45f + Vector3.up * 0.05f, focus, $"{Out}/{tag}-Hat-Front.png");
+            Capture(camera, focus + root.transform.right * 0.45f + Vector3.up * 0.05f, focus, $"{Out}/{tag}-Hat-Side.png");
 
             root.transform.position = originalPos;
             Object.DestroyImmediate(camera.gameObject);
