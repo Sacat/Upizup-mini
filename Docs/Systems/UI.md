@@ -1,3 +1,7 @@
+## MINI-166 revision — visibly individual wardrobe (2026-09-12)
+
+Wardrobe now states that changes apply only to its named wearer. Added distinct character starting outfits without replacing saved selections. Expanded actual Play Mode regression verifies the other character's choices, renderer meshes and indexed colours stay unchanged through menu selection/Restore/Cancel/Apply, plus the existing two-character save/load round trip. Built-player proof now shows each character's own default outfit instead of dressing both in the same test outfit. See `Docs/WorkPackets/MINI-166.md`.
+
 ## MINI-166 — complete wardrobe and matching portraits (Codex repair, 2026-09-12)
 
 Safehouse E -> 5 now exposes all eight clothing designs on both characters, with seven colours and per-character persistence. Fixed front orientation, width-aware framing, indexed material-property-block copying, and immediate paused-pose mesh baking. Skin/soles/buttons are never tinted. Watch/shades have Wear/Remove buttons; headphones retain their toggle; the obsolete duplicate cap trial moved out of Accessories (use Hats). Cancel and Restore opening restore clothes plus accessories and pending colour state; Apply retains choices, F5 saves clothes/headphones. Free unowned accessory try-ons remain session-only.

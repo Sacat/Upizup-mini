@@ -1,5 +1,9 @@
 # Up Iz Up Mini — Decisions
 
+## MINI-166 revision — distinct clothing and fuller shoulders (2026-09-12)
+
+User requests individually dressed characters and a muscular shoulder/trapezius transition closer to the original fit. Keep both selectable catalogues and independent saved choices; give Franki navy tee/denim jeans/black Mike 90 defaults and Sacat green polo/black trousers/white Mike 97 defaults. Do not overwrite existing deliberate saved selections or forbid the user choosing matching clothes. Add a localized, smooth upper-shoulder volume adjustment to both shirt designs without changing skeletons, faces, sleeve ends or signature accessory transforms. Rejected the first steep trap lift after close-up inspection; refine before final build. User visual acceptance remains owed.
+
 ## MINI-166 — independent fitted garment surfaces (2026-09-12)
 
 User authorized completing and correcting the rejected wardrobe. Use separate skinned clothing bindings with explicit material tint regions and preserved original character rigs/faces. Fit the repaired continuous garment topology through corresponding rest-bone matrices; a fused material index is not a reason to leave Sacat's wardrobe absent. Use clean skin geometry below shorts, distinct shoe panel meshes, and a curved cap. Preserve existing save IDs and free access. Treat generated visual evidence as verification, not as user acceptance of final styling.

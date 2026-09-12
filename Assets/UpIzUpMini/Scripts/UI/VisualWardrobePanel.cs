@@ -160,7 +160,7 @@ namespace UpIzUpMini.UI
             GUI.color=Color.white;
             GUI.matrix=Matrix4x4.TRS(new Vector3(safe.x+(safe.width-1100*scale)/2,Screen.height-safe.yMax+(safe.height-700*scale)/2,0),Quaternion.identity,new Vector3(scale,scale,1));
             GUI.Label(new Rect(30,20,700,45),"WARDROBE  /  "+who.ToUpperInvariant(),title);
-            GUI.Label(new Rect(30,66,1040,28),"Choose a fit and colour. Apply keeps it; F5 saves your clothes and headphone choice.",small);
+            GUI.Label(new Rect(30,66,1040,28),"Changes apply only to "+who+". Apply keeps this outfit; F5 saves both characters' choices.",small);
             GUI.DrawTexture(new Rect(30,112,410,500),texture,ScaleMode.ScaleToFit);
             if(GUI.Button(new Rect(55,620,165,40),"Rotate left",button)){yaw-=30;RebuildPreview();}
             if(GUI.Button(new Rect(245,620,165,40),"Rotate right",button)){yaw+=30;RebuildPreview();}
@@ -245,7 +245,8 @@ namespace UpIzUpMini.UI
                 yield return new WaitForSecondsRealtime(.4f);
                 var equipment=CharacterSwitchManager.Instance?.Active.root.GetComponent<CharacterEquipment>();
                 if(equipment==null){Debug.LogError("WARDROBE_PROOF_NO_CHARACTER");Application.Quit(1);yield break;}
-                Begin(equipment);ChoosePiece("shirt_polo_lacos",0);ChoosePiece("pants_shorts_denim",5);ChoosePiece("shoes_mike97",6);ChoosePiece("hat_lacos",4);
+                Begin(equipment);
+                foreach(var choice in outfit.defaults)ChoosePiece(choice.itemId,choice.colour);
                 yield return new WaitForSecondsRealtime(.3f);
                 string prefix=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path),System.IO.Path.GetFileNameWithoutExtension(path)+"-"+equipment.name);
                 WriteTexture(texture,prefix+"-portrait.png");

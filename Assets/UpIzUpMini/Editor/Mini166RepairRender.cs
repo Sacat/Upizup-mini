@@ -8,6 +8,7 @@ using UnityEngine.Animations;
 using UpIzUpMini.Character;
 namespace UpIzUpMini.EditorTools {
 public static partial class Mini166Repair {
+ public static void ShoulderBaseline(){UnityEditor.SceneManagement.EditorSceneManager.OpenScene(Scene);RenderAll();Debug.Log("MINI166_SHOULDER_BASELINE_PASS");EditorApplication.Exit(0);}
  static void RenderAll(){
   RenderSettings.fog=false;RenderSettings.ambientMode=UnityEngine.Rendering.AmbientMode.Flat;RenderSettings.ambientLight=new Color(.55f,.55f,.55f);
   foreach(var light in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None))light.enabled=false;
@@ -21,6 +22,9 @@ public static partial class Mini166Repair {
    var animator=root.GetComponentInChildren<Animator>(true);animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;animator.applyRootMotion=false;animator.Rebind();
    var graph=PlayableGraph.Create("Wardrobe proof");graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);var p=AnimationClipPlayable.Create(graph,idle);var output=AnimationPlayableOutput.Create(graph,"pose",animator);output.SetSourcePlayable(p);graph.Play();p.SetTime(.7);graph.Evaluate(.01f);
    var wardrobe=root.GetComponent<OutfitWardrobe>();wardrobe.Restore(null);
+   Capture(camera,root,new Vector3(0,.9f,4),new Vector3(0,.9f,0),who+"-Individual-Default");
+   wardrobe.Select("shirt_tee_mike",1);wardrobe.Select("pants_jeans",5);
+   camera.orthographicSize=.36f;Capture(camera,root,new Vector3(0,1.4f,4),new Vector3(0,1.4f,0),who+"-Shoulders-Front");Capture(camera,root,new Vector3(2,1.5f,-3),new Vector3(0,1.4f,0),who+"-Shoulders-Back");camera.orthographicSize=.96f;
    Capture(camera,root,new Vector3(0,.9f,4),new Vector3(0,.9f,0),who+"-Tee-Jeans-Front");
    wardrobe.Select("shirt_polo_lacos",0);wardrobe.Select("pants_trousers",2);wardrobe.Select("shoes_mike97",1);wardrobe.Select("hat_lacos",4);
    Capture(camera,root,new Vector3(0,.9f,4),new Vector3(0,.9f,0),who+"-Polo-Trousers-Cap-Front");

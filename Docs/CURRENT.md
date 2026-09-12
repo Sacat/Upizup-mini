@@ -1,3 +1,7 @@
+## MINI-166 revision — individual outfits and fuller shoulders (2026-09-12)
+
+Franki starts in navy tee/jeans/Mike 90; Sacat in green polo/black trousers/Mike 97. Existing saves preserve their selected clothes. UI clearly identifies the individual wearer; tests prove the other character's mesh/colour stays untouched. Both shirt designs have a fuller shoulder/trapezius slope. Compile, Play Mode, motion and final EXE proof pass; Windows build 420,366,933 bytes. User styling review remains. Details: Docs/WorkPackets/MINI-166.md revision section.
+
 ## MINI-167 — bikes 50% harder to crash (2026-09-12)
 
 `BikeCrashEjectionController.hardImpactSpeed` raised 16.5 -> 24.75 m/s

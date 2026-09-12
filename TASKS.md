@@ -1,3 +1,7 @@
+## MINI-166 revision — distinct outfits and muscular shoulders (2026-09-12)
+
+Implemented and rebuilt: different character starting outfits, wearer-only UI hint, stronger independent-selection/save tests, fuller shoulder/trapezius geometry on both shirt designs. Static/motion/runtime checks pass; user visual review pending. See Docs/WorkPackets/MINI-166.md revision section.
+
 ## MINI-166 — fitted wardrobe implemented for both characters (2026-09-12)
 
 Eight designs, seven colours, four independent slots, clean shorts/legs, distinct 90/97 shoe meshes, curved cap and preserved removable headphones/waves. Play Mode selection/save/load/UI/accessory tests pass; walk/run/deep-flex evidence captured. Final exact styling awaits the user's in-game review. Latest build/evidence and commands: `Docs/WorkPackets/MINI-166.md`.

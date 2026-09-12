@@ -1,3 +1,7 @@
+## MINI-166 revision — individual defaults and fuller shoulders (2026-09-12)
+
+Matching clothing came from identical starting choices, not shared runtime selections. Franki now starts in navy Mike tee, denim jeans and black Mike 90; Sacat in green Lacos polo, black trousers and white Mike 97. Existing saves retain their chosen clothes. Both shirt designs now have a localized, smoothly blended shoulder/trapezius lift and depth, preserving bone weights, topology and accessories. Front/back close-ups and 432 motion frames regenerated; initial excessive trap lift rejected before the final refinement. Details and build evidence: `Docs/WorkPackets/MINI-166.md` revision section. Exact muscular styling awaits user review.
+
 ## MINI-166 — complete fitted capsule on both characters (Codex repair, 2026-09-12)
 
 Both Franki and Sacat now have all eight designs across four independent skinned slots: Mike tee, Lacos polo, jeans, trousers, denim shorts, Lacos cap, Mike 90 and Mike 97. Seven colours; No Hat exposes existing waves; Sacat headphones remain removable. New assets: `Assets/UpIzUpMini/Art/Characters/Garments/Outfits166`. Fitted clothing reuses repaired continuous topology and explicit rest-bone retargeting; body/head/rig identity preserved. Shorts have clean cut hems and actual lower-leg surfaces. Shoes have distinct panel/sole/window geometry. Original hidden shoe fragments and fused hoodie skirt removed from the visible outfit.

@@ -65,10 +65,11 @@ reserved_files:
   - Docs/CURRENT.md
   - PROJECT-HANDOFF.md
   - CHANGELOG.md
-concurrent_claim_below: MINI-166 (Codex) completed and released below; MINI-167 ownership above is unchanged.
+concurrent_claim_below: MINI-166 (Codex) individual outfits and shoulder revision completed and released; MINI-167 ownership above is unchanged.
 ---
 current_owner: None
 active_task: None
+scope_followup: Completed 2026-09-12: distinct individual starting outfits and fuller shoulder/trapezius geometry; independent mesh/colour/save tests, motion and actual EXE proof pass. Build 420366933 bytes. User styling review remains. See Docs/WorkPackets/MINI-166.md revision section. No vehicle edits.
 completed_task: MINI-166
 completed_at: 2026-09-12
 completion: All eight fitted wardrobe designs for both characters implemented, tested and rebuilt. Final build 420322677 bytes; actual player/portrait proof passed. Exact appearance ready for user review. See Docs/WorkPackets/MINI-166.md latest section. This completion supersedes the historical handoff notes below.

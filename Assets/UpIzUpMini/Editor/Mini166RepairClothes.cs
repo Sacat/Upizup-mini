@@ -71,7 +71,9 @@ public static partial class Mini166Repair {
   var shoeMats=new[]{Matte("ShoeUpper",Color.white,.14f),Matte("Sole",new Color(.8f,.8f,.76f)),Matte("Rubber",new Color(.035f,.04f,.044f)),Matte("ShoeAccent",new Color(.55f,.035f,.04f),.2f),Matte("Laces",new Color(.78f,.79f,.77f))};
   Piece("shoes_mike90","Mike 90",OutfitSlot.Shoes,Shoes(shoes,false),shoeMats,new[]{0});
   Piece("shoes_mike97","Mike 97",OutfitSlot.Shoes,Shoes(shoes,true),shoeMats,new[]{0});
-  w.pieces=pieces.ToArray();w.bindings=bindings.ToArray();w.defaults=new[]{new OutfitChoice{itemId="shirt_tee_mike",colour=1},new OutfitChoice{itemId="pants_jeans",colour=5},new OutfitChoice{itemId="hat_none",colour=4},new OutfitChoice{itemId="shoes_mike90",colour=2}};w.Restore(null);EditorUtility.SetDirty(w);
+  w.pieces=pieces.ToArray();w.bindings=bindings.ToArray();w.defaults=sacat
+   ?new[]{new OutfitChoice{itemId="shirt_polo_lacos",colour=4},new OutfitChoice{itemId="pants_trousers",colour=2},new OutfitChoice{itemId="hat_none",colour=2},new OutfitChoice{itemId="shoes_mike97",colour=1}}
+   :new[]{new OutfitChoice{itemId="shirt_tee_mike",colour=0},new OutfitChoice{itemId="pants_jeans",colour=5},new OutfitChoice{itemId="hat_none",colour=2},new OutfitChoice{itemId="shoes_mike90",colour=2}};w.Restore(null);EditorUtility.SetDirty(w);
   File.WriteAllLines(Out+"/"+root.name+"-budget.txt",pieces.Select(p=>p.id+" vertices="+(p.mesh?p.mesh.vertexCount:0)+" triangles="+(p.mesh?p.mesh.triangles.Length/3:0)+" materials="+p.materials.Length));
  }
  static Shape Shirt(Surface s,List<List<V>> faces,bool polo){
@@ -81,6 +83,15 @@ public static partial class Mini166Repair {
    var f=face.Select(v=>{
     if(v.p.y>opening&&Mathf.Abs(v.p.x)<.15f&&new Vector2(v.p.x,v.p.z-neck.z).magnitude>.062f){var p=v.p;p.y=opening;v.p=p;}
     if(v.p.y<neck.y-.12f&&Mathf.Abs(v.p.x)<.205f){float t=Mathf.InverseLerp(s.Rest("Hips").y,neck.y-.12f,v.p.y);float rx=Mathf.Lerp(.151f,.20f,t),rz=Mathf.Lerp(.088f,.112f,t);float angle=Mathf.Atan2(v.p.x/rx,(v.p.z+.01f)/rz);v.p=new Vector3(Mathf.Sin(angle)*rx,v.p.y,Mathf.Cos(angle)*rz-.01f);v.n=new Vector3(Mathf.Sin(angle),0,Mathf.Cos(angle)).normalized;}
+    // Restore a convex neck-to-deltoid transition after the legacy hood flatten.
+    // Keep the neckline, sleeve ends, weights and topology intact.
+    var before=v.p;v.p=ShoulderForm(before,s);
+    const float step=.0001f;
+    var jac=Matrix4x4.identity;
+    jac.SetColumn(0,(ShoulderForm(before+Vector3.right*step,s)-ShoulderForm(before-Vector3.right*step,s))/(2*step));
+    jac.SetColumn(1,(ShoulderForm(before+Vector3.up*step,s)-ShoulderForm(before-Vector3.up*step,s))/(2*step));
+    jac.SetColumn(2,(ShoulderForm(before+Vector3.forward*step,s)-ShoulderForm(before-Vector3.forward*step,s))/(2*step));
+    v.n=jac.inverse.transpose.MultiplyVector(v.n).normalized;
     return v;}).ToList();
    var arms=Clip(f,p=>Mathf.Abs(p.x)-sleeve,true);result.Poly(arms,1);var torso=Clip(f,p=>Mathf.Abs(p.x)-sleeve,false);
    // Only the neck opening exposes skin. A horizontal cut across the whole
@@ -104,6 +115,18 @@ public static partial class Mini166Repair {
   // Small stitched chest wordmark geometry, separate from tint/skin.
   Word(result,polo?"LACOS":"MIKE",new Vector3(.065f,opening-.145f,Front(s,.065f,opening-.145f)+.003f),.007f,2);
   return result;
+ }
+ static Vector3 ShoulderForm(Vector3 p,Surface s){
+  var neck=s.Rest("Neck");var arm=s.Rest("LeftArm");float x=Mathf.Abs(p.x),width=Mathf.Abs(arm.x);
+  float inner=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.07f,.125f,x));
+  float outer=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(width*.82f,width*1.45f,x));
+  float height=Mathf.SmoothStep(0,1,Mathf.InverseLerp(arm.y-.095f,arm.y+.055f,p.y));
+  float shoulder=inner*outer*height;
+  float traps=Mathf.Exp(-Mathf.Pow((x-width*.55f)/(width*.38f),2));
+  p.y+=shoulder*(.005f+.016f*traps);
+  p.z+=(p.z-neck.z)*shoulder*.12f;
+  p.x+=Mathf.Sign(p.x)*shoulder*.006f*(1-traps);
+  return p;
  }
  static float Front(Surface s,float x,float y){var nearby=s.vertices.Where(v=>Mathf.Abs(v.p.x-x)<.028f&&Mathf.Abs(v.p.y-y)<.035f).ToArray();return nearby.Length>0?nearby.Max(v=>v.p.z):.12f;}
  static Shape Pants(Surface s,List<List<V>> faces,int style){

@@ -19,7 +19,7 @@ public static partial class Mini166Repair {
    var root=GameObject.Find(who);root.SetActive(true);var pos=root.transform.position;var rotation=root.transform.rotation;root.transform.SetPositionAndRotation(new Vector3(0,300,0),Quaternion.identity);foreach(var r in root.GetComponentsInChildren<Renderer>(true))r.gameObject.layer=31;
    var animator=root.GetComponentInChildren<Animator>(true);animator.applyRootMotion=false;animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;var w=root.GetComponent<OutfitWardrobe>();
    for(int outfit=0;outfit<3;outfit++){
-    w.Restore(null);if(outfit==1){w.Select("shirt_polo_lacos",0);w.Select("pants_trousers",2);w.Select("shoes_mike97",1);w.Select("hat_lacos",4);}if(outfit==2)w.Select("pants_shorts_denim",5);
+    w.Restore(null);w.Select("shirt_tee_mike",1);if(outfit==1){w.Select("shirt_polo_lacos",0);w.Select("pants_trousers",2);w.Select("shoes_mike97",1);w.Select("hat_lacos",4);}if(outfit==2)w.Select("pants_shorts_denim",5);
     for(int clipIndex=0;clipIndex<clipNames.Length;clipIndex++){
      var clip=AssetDatabase.LoadAllAssetsAtPath("Assets/UpIzUpMini/Art/Animations/"+clipNames[clipIndex]).OfType<AnimationClip>().First(c=>!c.name.StartsWith("__"));animator.Rebind();
      var graph=PlayableGraph.Create("Wardrobe motion");graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);var playable=AnimationClipPlayable.Create(graph,clip);var output=AnimationPlayableOutput.Create(graph,"animation",animator);output.SetSourcePlayable(playable);graph.Play();

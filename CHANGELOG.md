@@ -1,3 +1,7 @@
+## MINI-166 individual outfits and shoulder revision — 2026-09-12
+
+Distinct starting clothing for Franki and Sacat; preserved individual saved choices and verified that wardrobe edits never change the other character's visible mesh or colour. Both shirt designs now have fuller, smoothly blended shoulder/trapezius geometry. Close-up and motion verification passed; rebuilt and inspected actual EXE captures. Windows output total 420,366,933 bytes. See Docs/WorkPackets/MINI-166.md revision section; exact styling awaits user review.
+
 ## MINI-166 completed wardrobe repair — 2026-09-12
 
 Completed all eight fitted designs for both characters with independent colours, proper skin masks, smooth shorts legs, distinct 90/97 shoes and a curved cap. Fixed portrait colour/pose framing, offscreen hair/headphone updates, accessory removal and menu restoration. Actual save/load, menu and animation checks pass; rebuilt Windows player and inspected its real character/portrait outputs. Final build total 420,322,677 bytes. Evidence and exact commands: Docs/WorkPackets/MINI-166.md. Exact styling awaits user playtest; no vehicle edits included.
