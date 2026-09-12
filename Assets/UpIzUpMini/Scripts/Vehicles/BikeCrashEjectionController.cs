@@ -128,20 +128,13 @@ namespace UpIzUpMini.Vehicles
             bool hitNpc,
             bool wheelieActive)
         {
-            // MINI-167: "just remove crashing from wheelieing for now" -
-            // no ejection at all while a wheelie is active, full stop.
-            // wheelieImpactMultiplier is now unused for gating (kept, not
-            // deleted, in case wheelie crashes are reinstated later at a
-            // tuned value instead of fully disabled).
-            if (wheelieActive) return false;
-            if (ShouldIgnoreGroundContact(contactNormal)) return false;
-            if (ImpactSpeedFor(relativeVelocity, contactNormal)
-                < ImpactThreshold(hitNpc, wheelieActive)) return false;
-
-            // The forced lift can give the tail a large contact-relative
-            // velocity even when the bike itself is travelling slowly. A
-            // wheelie crash therefore also needs genuine Rigidbody speed.
-            return !wheelieActive || linearSpeed >= hardImpactSpeed;
+            // MINI-167: "remove the crashing on the bike for now whether
+            // wheelie or regular riding" - collision-based ejection is fully
+            // disabled, full stop, for both upright riding and wheelies.
+            // hardImpactSpeed/wheelieImpactMultiplier/ImpactThreshold are
+            // left in place, unused for gating, in case tuned crash ejection
+            // is wanted back later instead of fully disabled.
+            return false;
         }
 
         public float ImpactSpeedFor(Vector3 relativeVelocity, Vector3 contactNormal) =>

@@ -38,24 +38,18 @@ namespace UpIzUpMini.EditorTools
                 Require(!crash.ShouldEjectForTilt(89f, 8f), "89-degree wheelie ejects");
                 Require(!crash.ShouldEjectForTilt(95f, 8f), "past-vertical wheelie ejects");
                 Require(!crash.ShouldEjectForTilt(180f, 30f), "extreme tilt ejects without a collision");
-                // MINI-167: hardImpactSpeed raised 16.5 -> 24.75 (+50%), then
-                // still too easy -> 43.31 (+75% further, "bikes crash too
-                // easily") - these fixed test speeds are scaled up again to
-                // match, same discipline as every prior crash-tuning pass.
-                // NOTE: 43.31 m/s (156 km/h) exceeds the TMAX's own 150 km/h
-                // (41.67 m/s) top speed - a dead-on wall hit at full throttle
-                // no longer reaches this threshold at all. Flagged to the
-                // user, not silently shipped - see Vehicles.md.
-                Require(crash.ShouldEjectForImpact(
-                        Vector3.forward * 50f, Vector3.back, 50f, false, false),
-                    "normal high-speed wall collision no longer ejects");
+                // MINI-167: "remove the crashing on the bike for now whether
+                // wheelie or regular riding" - collision-based ejection is
+                // fully disabled. No impact, however hard, ejects the rider,
+                // upright or wheelieing.
+                Require(!crash.ShouldEjectForImpact(
+                        Vector3.forward * 200f, Vector3.back, 200f, false, false),
+                    "regular riding crashing was supposed to be fully disabled");
                 Require(!crash.ShouldEjectForImpact(
                         Vector3.forward * 30f, Vector3.back, 5.36f, false, true),
                     "12 mph wheelie tail contact ejects from rotational velocity");
                 Require(crash.ImpactThreshold(false, true) > crash.ImpactThreshold(false, false),
                     "wheelie collision threshold is not higher than normal riding");
-                // MINI-167: "just remove crashing from wheelieing for now" -
-                // no impact, however hard, ejects while a wheelie is active.
                 Require(!crash.ShouldEjectForImpact(
                         Vector3.forward * 200f, Vector3.back, 200f, false, true),
                     "wheelie crashing was supposed to be fully disabled");
