@@ -1,9 +1,15 @@
 ---
 name: upizup-blender-modeling
-description: Model and refine stylized game assets for Up Iz Up Mini using Blender Python, inspectable previews, measured budgets, and verified Unity integration. Use for houses, props, vegetation and scoped mesh improvements.
+description: General precision workflow for modeling ANY item for Up Iz Up Mini - houses, props, vehicles, vegetation, character bodies/clothing - using Blender Python, real reference research, precise measured specs, and staged part-to-whole inspection. Use for every modeling task; see upizup-building-modeling for building-specific detail and upizup-wardrobe-repair for character-specific detail.
 ---
 
-# Up Iz Up Mini — Blender Modeling Skill
+# Up Iz Up Mini — General Modeling Workflow
+
+This is the general, cross-cutting skill for modeling any item at a
+consistent, professional level of precision. `upizup-building-modeling`
+holds building/architecture-specific technique and specs;
+`upizup-wardrobe-repair` holds character-body-specific technique. Both
+point back here for the process itself.
 
 ## Purpose
 
@@ -12,6 +18,46 @@ Produce recognizable, well-proportioned, editable 3D assets that look correct in
 Use the user's references and existing approved work. Do not substitute arbitrary primitive arrangements, unverified exports or attractive studio renders for finished game assets.
 
 This skill guides modeling decisions. It does not authorize unrelated changes, purchases or replacement of approved assets.
+
+## The precision workflow, in order
+
+This is the standing default for every modeling task, not a special
+procedure for when something has already gone wrong. Established across
+a real session's worth of course-correction on a Highland mansion concept
+- each numbered rule below has a genuine caught mistake behind it.
+
+1. **If the request is genuinely ambiguous, produce a small set of options
+   WITH IMAGES and let the user choose** before investing in one full
+   build. Don't silently commit to one interpretation of an open-ended ask
+   and hope it's what was wanted.
+2. **Research real reference before building anything** - see "Research
+   real reference before modeling anything" below for the exact tool
+   combination (`WebSearch`/`WebFetch` for facts, `curl`+`Read` for
+   actually seeing an image).
+3. **Get PRECISE numeric specs from real tutorials/standards for anything
+   measurable** - a roof pitch, a proportion ratio, a real-world dimension
+   - don't guess a coefficient and eyeball it. Compute the actual result
+   your model produces (an angle, a ratio, a length) and state it next to
+   the spec you're checking it against. A mansion roof that "looked about
+   right" measured out at 19 degrees against a real 25-35 degree standard.
+4. **Reuse proven, already-tested code/techniques first.** Don't write new
+   experimental geometry logic (custom bmesh, novel procedural math) when
+   an existing, shipped technique already solves the same kind of problem.
+   If new logic is genuinely required, validate it against a small, cheap
+   test case before building the full asset with it - an untested custom
+   hip-roof function once produced a wildly broken, oversized, off-centre
+   roof that could have been caught in five minutes with a simpler test.
+5. **Inspect in stages, part-to-whole, like an engineer or architect would**
+   - not one hero-angle screenshot at the end. See "Staged, incremental
+   inspection" below.
+6. **After any structural edit, recheck every dependent measurement/
+   variable that referenced the changed piece.** A leftover offset from a
+   since-removed component is a classic invisible bug - it floated an
+   entire roof 1.9m above its wall while the wide-angle render still
+   looked plausible.
+7. **State exactly what you checked** - which angles, whether a flat/
+   wireframe pass was used, which specific junction was inspected, what
+   measurement was verified against what spec - not just "looks good."
 
 ## Project and tools
 
@@ -55,6 +101,21 @@ These guides contain the actual source files, commands, failures and evidence.
 Read only the sections relevant to the current asset.
 
 Do not run Unity integration while another task owns the scene or imports.
+
+## When the request is ambiguous, offer options with images first
+
+Direct standing user instruction: "sometimes give me options with images
+to start with if you are unclear and then let me choose." When a request
+leaves a real design decision open (which of several plausible styles,
+which reference to follow, how elaborate a feature should be) and picking
+wrong means redoing real work, don't silently commit to one interpretation
+and build the whole thing before finding out it wasn't wanted. Instead:
+research 2-3 real reference options quickly (images via `curl`+`Read`, or
+quick low-cost concept renders), show them together, and let the user pick
+before investing in the full build. This is not a license to ask before
+every small decision - routine details should still be resolved from
+existing approved examples per "Establish the modeling target" below;
+reserve this for choices that are genuinely open AND expensive to reverse.
 
 ## Choose the correct modeling approach
 
@@ -295,6 +356,95 @@ Check:
 
 Do not accept a render because the script exited successfully.
 Reject visible failures yourself and make a targeted correction.
+
+## Inspection workflow - not just for houses, for every model
+
+Standing rule, researched from professional practice (TurboSquid's
+submission checklist, general 3D-modeling QA guidance), and reinforced by
+a real project mistake: a full-shaded, single-hero-angle render is not
+enough to certify a model, for ANY asset type this skill covers - houses,
+props, vehicles, vegetation, character work. Adapt the specifics to the
+asset, but always do more than one pretty screenshot before calling
+something done:
+
+1. **Multiple fixed angles, every time** - at minimum a hero 3/4 view,
+   a straight-on front elevation, and one side/back view. TurboSquid's own
+   minimum for a finished asset is 5 product angles plus a wireframe/clay
+   pass and a turntable; this project's batch pipeline doesn't need that
+   many, but "one 3/4 angle and done" is well below even a hobbyist bar.
+2. **A flat/clay pass, not just the final materials.** Full shading,
+   texture and warm lighting visually smooth over exactly the defects that
+   matter most - floating geometry, gaps, z-fighting, misaligned joins.
+   Either render one pass with plain grey materials (no per-part colour
+   variation) or check Blender's wireframe/solid viewport shading before
+   the final Cycles render. A gap that is `pixels of matching-toned shadow`
+   in a warm-lit hero shot can be `impossible to miss` in flat grey.
+3. **Zoom the actual junction you just touched**, not just the whole
+   object from a distance. A new roof, a new floor level, a new door - crop
+   or re-camera onto exactly where two parts of the model meet before
+   trusting the wide shot. This project's own case study: a mansion's roof
+   was rebuilt after a floor was removed, but a leftover offset variable
+   (the old floor's height, no longer used anywhere else in the script)
+   was still added into the roof's base height - the wide hero-angle render
+   looked plausible at a glance, and the gap was only obviously wrong once
+   someone looked at the wall-to-roof junction specifically. **When you
+   remove or restructure a piece of geometry, grep the script for every
+   variable that piece used to feed into, not just the code that built the
+   piece itself** - a leftover reference is exactly this kind of bug.
+4. **Check dependent measurements after any structural edit.** If a
+   height/width/offset was computed from a component that no longer exists
+   or changed shape, recompute it explicitly - don't assume an old formula
+   still means what it used to.
+5. **State what you actually checked**, not just "looks good" - which
+   angles, whether a clay/wireframe pass was used, and what specifically
+   was verified at the touched junction. This makes it possible to tell a
+   real inspection from an assumption.
+
+This generalizes past this one mansion - apply the same discipline (multi-
+angle, flat-pass-or-wireframe, junction close-up, dependent-measurement
+check) to the next house, prop, vehicle or character edit, not just when a
+mistake has just been pointed out.
+
+## Staged, incremental inspection - part to whole, like an engineer
+
+Direct standing user instruction: build confidence in a compound asset the
+way an engineer or architect would - verify a component alone, then that
+component combined with its nearest neighbour, then progressively larger
+sub-assemblies, then the complete whole. Never jump straight from
+"nothing" to "the finished assembly" and call one render at the end
+sufficient, for any multi-part asset (a building's floors/roof/attic
+features, a vehicle's body/chassis/wheels/interior, a character's
+body/clothing/accessories, a prop with moving or attached parts).
+
+**How to implement in a Blender batch script:** tag every object into a
+named group as it's created - either append the return value directly
+(`GROUPS['roof'].append(cube(...))`) or snapshot `set(bpy.data.objects)`
+before and after each construction block and diff the two sets to find
+what's new. Define your stages as which groups are visible at each step
+(e.g. `[('feature',), ('feature','frame'), ('frame','core'), ...]`), then
+for each stage set `obj.hide_render = True` on every object NOT in that
+stage's visible groups and render a REAL separate image. Do not fake a
+stage by cropping the final render - a cropped image still contains
+occluded-but-present geometry and won't reveal a part that's actually
+missing, mis-scaled, or floating on its own.
+
+Worked example from an actual session (a Highland mansion concept):
+groups were `base` (foundation+shell), `lower`/`upper` (per-floor windows/
+veranda/door), `roof` (pitched planes/ribs/fascia/gables/downpipe), and
+`attic` (dormers/cupola). Stages rendered: attic alone (floating - checked
+each dormer/cupola's own shape and proportion with nothing else present),
+attic+roof, roof+upper floor, attic+roof+upper floor, +lower floor,
+everything together. The attic-alone stage caught nothing wrong that time,
+but it is exactly the kind of check that would have caught the mansion's
+earlier cupola looking like "a little house on the roof" sooner, since
+that defect was fully visible with the cupola in isolation - no need to
+build the whole mansion first to see it.
+
+Combine this with real measurements at each meaningful stage where
+possible (see "Get PRECISE numeric specs" above) - a stage render plus a
+computed number (a pitch angle, a width ratio, a span percentage) checked
+against a researched spec is a genuine inspection; a stage render alone is
+only half of one.
 
 ## Export for Unity
 
