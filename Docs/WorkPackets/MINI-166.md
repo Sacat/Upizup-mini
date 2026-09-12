@@ -1,5 +1,15 @@
 # MINI-166 — Fitted selectable outfits
 
+## Anatomy reference gap close (Claude), 2026-09-12
+
+User: "close that gap you found now and make the rest of the adjustments you found, you can even do this for the entire characters' bodies (main characters)" - direct follow-up to the reference-research finding (see `character-shape-reference-comparison` memory / the `upizup-blender-modeling` skill's reference-research section) that real anatomy has the deltoid inserting ~1/3 down the upper arm with NO gap before the bicep belly starts, while the shipped `DeltoidForm`/`BicepForm` left a flat, undefined stretch from ~t=.24 to ~t=.52 along the shoulder-elbow segment.
+
+Also researched pectoral/chest anatomy (origin near mid-clavicle, fanning down to the underarm) looking for a comparable actionable gap in `ChestForm` - found the existing shipped placement is already broadly consistent with that description, so chest was left untouched rather than inventing an unresearched change. Leg/pants shape was not researched this round (no anatomical claim to check against) and is untouched; "the entire characters' bodies" authorization is noted but only acted on where an actual researched gap existed.
+
+Fix: rather than re-tuning `DeltoidForm`'s already-user-approved shape (its "dropped edge" from the previous round), widened only the rising/inner side of `BicepForm`'s Gaussian (asymmetric sigma: .24 inner vs .12 outer, peak unchanged at t=.52) so it starts picking up earlier and meets the deltoid's fading tail, without moving the actual peak off exposed skin - keeping the peak on skin is what avoided the earlier fabric-ballooning bug, so only the low-magnitude rising tail now reaches slightly under the fabric near the sleeve hem, not the full-strength peak.
+
+Verified by an actual re-render (not just the formula): `Logs/Tasks/MINI-166/Repair/ClaudeAnatomyGapClose/Franki-Arm-CloseUp-After.png` shows a continuous shoulder-to-bicep silhouette with no flat dead zone, and no reintroduction of the sleeve-ballooning artifact. Compile clean, `Mini166Repair.Integrate` (`Logs/mini166-claude-gap-integrate.log`), `Mini166RepairValidation.Run` (`Logs/mini166-claude-gap-tests.log`, REPAIR_TEST_PASS), `Mini166Repair.Motion` (`Logs/mini166-claude-gap-motion.log`, REPAIR_MOTION_PASS), Windows build (`Logs/mini166-claude-gap-build.log`, BUILD SUCCEEDED, 420,400,325 bytes).
+
 ## Muscle definition (Claude), 2026-09-12
 
 User: "i want to make the characters look more muscular" -> "well just alittle more defined and muscular" -> (after seeing a subtle-vs-exaggerated comparison) "the subtle version is better" -> "the shoulders and still too straight, drop the edges of the shoulders some more like the round parts towards the end, leave the the other parts up".

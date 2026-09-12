@@ -172,12 +172,22 @@ public static partial class Mini166Repair {
   if(Mathf.Abs(x1-x0)<.001f)return p;
   float t=Mathf.InverseLerp(x0,x1,x);
   if(t<-.1f||t>1.1f)return p;
-  // Peak at t=.52 (just past the ~.46 sleeve hem, on EXPOSED skin) with a
-  // tight spread - an earlier attempt centred at t=.32 sat entirely under
-  // the sleeve fabric and, at any magnitude large enough to see, ballooned
-  // the whole cap sleeve into a sphere instead of defining the arm.
-  // Confirmed by an exaggerated diagnostic render before settling here.
-  float belly=Mathf.Exp(-Mathf.Pow((t-.52f)/.12f,2));
+  // Peak stays at t=.52 (just past the ~.46 sleeve hem, on EXPOSED skin) -
+  // an earlier attempt centred at t=.32 sat entirely under the sleeve
+  // fabric and, at any magnitude large enough to see, ballooned the whole
+  // cap sleeve into a sphere. Confirmed by an exaggerated diagnostic render.
+  // Real anatomy (Proko/Artists Network): the deltoid inserts ~1/3 down the
+  // upper arm with NO gap before the bicep belly starts - but DeltoidForm's
+  // own approved shape (its user-requested "dropped edge") already fades
+  // out by ~t=.24-.28. Rather than re-tune the approved deltoid shape,
+  // widen only the RISING (inner, t<.52) side of this Gaussian so it picks
+  // up earlier and meets the deltoid's tail - the peak itself, and its
+  // falloff toward the elbow, are unchanged, so the balloon risk above is
+  // not reintroduced (only a partial, not peak, value now reaches under
+  // the fabric near the sleeve hem).
+  float sigmaIn=.24f,sigmaOut=.12f;
+  float sigma=t<.52f?sigmaIn:sigmaOut;
+  float belly=Mathf.Exp(-Mathf.Pow((t-.52f)/sigma,2));
   float taper=Mathf.SmoothStep(0,1,Mathf.InverseLerp(-.05f,.08f,t))*(1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.88f,1.05f,t)));
   float bulge=belly*taper;
   // More mass on top/front (biceps proper) than underneath (triceps get a
