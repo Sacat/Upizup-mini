@@ -1,5 +1,7 @@
 # Codex continuation — MINI-166 (2026-09-11, handed off from Claude)
 
+**Current consolidated Claude handoff:** [CLAUDE-WARDROBE-COMPLETE-HANDOFF-MINI-166.md](CLAUDE-WARDROBE-COMPLETE-HANDOFF-MINI-166.md). Includes revision 9c2b91c, actual tools/skills, implementation, safe workflow, commands, known failures and final evidence. Sections below remain historical.
+
 **Historical handoff, superseded by the completed Codex repair on 2026-09-12.** Read the latest section of `Docs/WorkPackets/MINI-166.md` and the new Characters/UI ledger entries. All eight designs are now integrated for both characters; the blockers below are historical, not current instructions.
 
 Claude worked MINI-166 through several rounds this session (Shirt, Pants,
