@@ -78,20 +78,38 @@ Blender/FBX bugs are why this switch happened originally.
 
 For anything that changes anatomy (shoulder slope, bicep/deltoid/chest
 bulges, body proportions in general - not garment cut), don't tune purely by
-iterating against the model's own renders in isolation. Pull in real
-reference (an actual muscular-build photo, or an existing approved character
-reference if one exists) and explicitly note what's similar and what
-differs (e.g. "a real deltoid cap tapers over roughly 25% of upper-arm
-length before blending into the bicep; ours does X"). Call this comparison
-out in the response, not just internally.
+iterating against the model's own renders in isolation. Look up real
+reference BEFORE tuning coefficients, using both of these together:
+
+- `WebSearch` / `WebFetch` for anatomical proportions and facts (figure-
+  drawing/anatomy-for-artists sources are reliably concrete about landmarks
+  and fractional proportions - e.g. Proko, Artists Network, Loomis-method
+  references). `WebFetch` only reads/summarizes page text, it does not let
+  you look at an image.
+- To actually SEE a reference image: download it with `curl`/`Bash` to a
+  local file, then `Read` it - `Read` displays images, `WebFetch` does not.
+  This combination is the real "image search" capability; there is no
+  single dedicated tool for it.
+
+Then explicitly state the comparison as a table or clear before/after in
+the response - not just "looks more muscular now" - e.g.: "the deltoid
+inserts ~1/3 of the way down the upper arm in real anatomy and the bicep
+belly starts right there with no gap; the shipped version fades the
+deltoid out by ~21% and doesn't pick the bicep up until ~52%, leaving an
+undefined stretch a real arm doesn't have."
 
 This is a direct user request (`character-shape-reference-comparison`
-memory): the MINI-166 muscle-definition pass needed several correction
-rounds precisely because early attempts were tuned by trial-and-error
-against the model's own output rather than checked against real anatomical
-proportions first - a bicep bulge ballooned the sleeve fabric, a chest
-bulge looked like implants. A reference comparison up front would have
-caught both faster.
+memory, reinforced with "get [live web/image search] at all cost, put all
+that into your workflow"): the MINI-166 muscle-definition pass needed
+several correction rounds precisely because early attempts were tuned by
+trial-and-error against the model's own output rather than checked against
+real anatomical proportions first - a bicep bulge ballooned the sleeve
+fabric, a chest bulge looked like implants. A reference comparison up front
+would have caught both faster, and a follow-up search after shipping
+(Proko's deltoid-insertion-at-~1/3-of-upper-arm figure) found the shipped
+deltoid/bicep placement still leaves a real, nameable gap - see that
+task's work packet entry for the exact numbers before touching the
+coefficients again.
 
 Also use the diagnostic-log + exaggerated-render technique when a new
 displacement function's effect isn't visible at the intended magnitude:
