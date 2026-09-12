@@ -74,6 +74,33 @@ Blender/FBX bugs are why this switch happened originally.
   in `Mini166RepairAccessories.cs`), not textures. Mirroring bugs here are
   about local-axis/view orientation, not UVs - see "Known failure patterns" below.
 
+## Body-shape/muscle-definition work: compare against real reference
+
+For anything that changes anatomy (shoulder slope, bicep/deltoid/chest
+bulges, body proportions in general - not garment cut), don't tune purely by
+iterating against the model's own renders in isolation. Pull in real
+reference (an actual muscular-build photo, or an existing approved character
+reference if one exists) and explicitly note what's similar and what
+differs (e.g. "a real deltoid cap tapers over roughly 25% of upper-arm
+length before blending into the bicep; ours does X"). Call this comparison
+out in the response, not just internally.
+
+This is a direct user request (`character-shape-reference-comparison`
+memory): the MINI-166 muscle-definition pass needed several correction
+rounds precisely because early attempts were tuned by trial-and-error
+against the model's own output rather than checked against real anatomical
+proportions first - a bicep bulge ballooned the sleeve fabric, a chest
+bulge looked like implants. A reference comparison up front would have
+caught both faster.
+
+Also use the diagnostic-log + exaggerated-render technique when a new
+displacement function's effect isn't visible at the intended magnitude:
+temporarily log the computed displacement's peak value to confirm the
+function is actually reaching the vertices you expect, and render one
+deliberately oversized test pass to see the true shape/location before
+tuning the magnitude down - cheaper than guessing coefficients blind.
+Remove the diagnostic logging before finalizing.
+
 ## Known failure patterns (do not repeat)
 
 1. **Mirrored text/asymmetric geometry on a front-facing panel.** A quad strip
