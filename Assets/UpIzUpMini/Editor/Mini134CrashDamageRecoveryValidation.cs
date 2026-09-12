@@ -28,7 +28,7 @@ namespace UpIzUpMini.EditorTools
                     "NPC launch force is bounded");
                 Require(damage.DamageForSpeed(5f) <= 0.001f, "low-speed vehicle scrape is harmless");
                 Require(damage.DamageForSpeed(20f) <= 62.01f, "vehicle collision damage is capped");
-                Require(crash.HardImpactSpeed >= 24f, "hard-crash threshold is too sensitive"); // MINI-167: was >=16f at the old 16.5 baseline
+                Require(crash.HardImpactSpeed >= 40f, "hard-crash threshold is too sensitive"); // MINI-167: was >=16f at the original 16.5 baseline, then >=24f after the first +50%
                 Require(BikeCrashEjectionController.MaximumWheelieDegrees == 89f,
                     "shared wheelie ceiling is not 89 degrees");
                 Require(Mathf.Approximately(BikeCrashEjectionController.ClampWheelieDegrees(140f), 89f),
@@ -38,11 +38,16 @@ namespace UpIzUpMini.EditorTools
                 Require(!crash.ShouldEjectForTilt(89f, 8f), "89-degree wheelie ejects");
                 Require(!crash.ShouldEjectForTilt(95f, 8f), "past-vertical wheelie ejects");
                 Require(!crash.ShouldEjectForTilt(180f, 30f), "extreme tilt ejects without a collision");
-                // MINI-167: hardImpactSpeed raised 16.5 -> 24.75 (+50%, "bikes
-                // crash too easily") - these fixed test speeds are scaled up
-                // to match, same discipline as every prior crash-tuning pass.
+                // MINI-167: hardImpactSpeed raised 16.5 -> 24.75 (+50%), then
+                // still too easy -> 43.31 (+75% further, "bikes crash too
+                // easily") - these fixed test speeds are scaled up again to
+                // match, same discipline as every prior crash-tuning pass.
+                // NOTE: 43.31 m/s (156 km/h) exceeds the TMAX's own 150 km/h
+                // (41.67 m/s) top speed - a dead-on wall hit at full throttle
+                // no longer reaches this threshold at all. Flagged to the
+                // user, not silently shipped - see Vehicles.md.
                 Require(crash.ShouldEjectForImpact(
-                        Vector3.forward * 30f, Vector3.back, 30f, false, false),
+                        Vector3.forward * 50f, Vector3.back, 50f, false, false),
                     "normal high-speed wall collision no longer ejects");
                 Require(!crash.ShouldEjectForImpact(
                         Vector3.forward * 30f, Vector3.back, 5.36f, false, true),
@@ -50,7 +55,7 @@ namespace UpIzUpMini.EditorTools
                 Require(crash.ImpactThreshold(false, true) > crash.ImpactThreshold(false, false),
                     "wheelie collision threshold is not higher than normal riding");
                 Require(crash.ShouldEjectForImpact(
-                        Vector3.forward * 35f, Vector3.back, 30f, false, true),
+                        Vector3.forward * 55f, Vector3.back, 44f, false, true),
                     "genuine high-speed wheelie wall collision cannot eject");
                 Require(crash.ShouldIgnoreGroundContact(Vector3.up), "ground bumps can eject riders");
                 Require(!crash.ShouldIgnoreGroundContact(Vector3.forward), "vertical wall is ignored");
