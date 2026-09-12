@@ -128,6 +128,12 @@ namespace UpIzUpMini.Vehicles
             bool hitNpc,
             bool wheelieActive)
         {
+            // MINI-167: "just remove crashing from wheelieing for now" -
+            // no ejection at all while a wheelie is active, full stop.
+            // wheelieImpactMultiplier is now unused for gating (kept, not
+            // deleted, in case wheelie crashes are reinstated later at a
+            // tuned value instead of fully disabled).
+            if (wheelieActive) return false;
             if (ShouldIgnoreGroundContact(contactNormal)) return false;
             if (ImpactSpeedFor(relativeVelocity, contactNormal)
                 < ImpactThreshold(hitNpc, wheelieActive)) return false;
