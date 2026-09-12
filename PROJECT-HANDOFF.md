@@ -65,10 +65,13 @@ reserved_files:
   - Docs/CURRENT.md
   - PROJECT-HANDOFF.md
   - CHANGELOG.md
-concurrent_claim_below: MINI-166 (Codex) remains active and untouched by this task.
+concurrent_claim_below: MINI-166 (Codex) completed and released below; MINI-167 ownership above is unchanged.
 ---
-current_owner: Codex
-active_task: MINI-166
+current_owner: None
+active_task: None
+completed_task: MINI-166
+completed_at: 2026-09-12
+completion: All eight fitted wardrobe designs for both characters implemented, tested and rebuilt. Final build 420322677 bytes; actual player/portrait proof passed. Exact appearance ready for user review. See Docs/WorkPackets/MINI-166.md latest section. This completion supersedes the historical handoff notes below.
 current_scope: User-authorized full wardrobe repair and completion on both characters; meshes, tint isolation, UI, persistence, motion verification and EXE.
 current_reserved_files: Assets/UpIzUpMini/Editor/Mini166*; Assets/UpIzUpMini/Art/Characters/Garments/Outfits166; Assets/UpIzUpMini/Scripts/Character/OutfitWardrobe.cs; Assets/UpIzUpMini/Scripts/Character/CharacterEquipment.cs; Assets/UpIzUpMini/Scripts/UI/VisualWardrobePanel.cs; Assets/UpIzUpMini/Scripts/SaveLoadSystem.cs; Assets/UpIzUpMini/Scenes/GrandBayProof.unity; MINI-166 documentation and evidence.
 continuation: Docs/CODEX-CONTINUE-MINI-166.md

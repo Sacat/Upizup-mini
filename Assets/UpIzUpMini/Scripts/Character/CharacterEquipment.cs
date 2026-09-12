@@ -46,6 +46,14 @@ namespace UpIzUpMini.Character
             RefreshEquipment();return true;
         }
         public void ClearTrialItems(){_trialItems.Clear();RefreshEquipment();}
+        public bool AccessoryEquipped(string id) => !_unequippedItems.Contains(id) && (_trialItems.Contains(id) || Has(EconomyManager.Instance,id));
+        public void SetAccessoryEquipped(string id,bool wear)
+        {
+            if(System.Array.IndexOf(TrialItemIds,id)<0)return;
+            if(wear){_unequippedItems.Remove(id);_trialItems.Add(id);}
+            else{_trialItems.Remove(id);_unequippedItems.Add(id);}
+            RefreshEquipment();
+        }
         public List<string> CaptureTrialItems()=>new List<string>(_trialItems);
         public void RestoreTrialItems(IEnumerable<string> ids)
         {
@@ -235,7 +243,7 @@ namespace UpIzUpMini.Character
             Apply("cap_mike", HumanBodyBones.Head, !hatSlotOwnsCap && (_trialItems.Contains("cap_mike") || Has(economy, "cap_mike")),
                 () => BuildCap(new Color(0.85f, 0.15f, 0.15f)));
 
-            Apply("shades_ray", HumanBodyBones.Head, _trialItems.Contains("shades_ray") || Has(economy, "shades_ray"),
+            Apply("shades_ray", HumanBodyBones.Head, AccessoryEquipped("shades_ray"),
                 () => BuildShades());
 
             Apply("chain_gold", HumanBodyBones.Chest, Has(economy, "chain_gold"),

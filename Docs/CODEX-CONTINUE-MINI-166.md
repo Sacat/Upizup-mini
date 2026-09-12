@@ -1,5 +1,7 @@
 # Codex continuation — MINI-166 (2026-09-11, handed off from Claude)
 
+**Historical handoff, superseded by the completed Codex repair on 2026-09-12.** Read the latest section of `Docs/WorkPackets/MINI-166.md` and the new Characters/UI ledger entries. All eight designs are now integrated for both characters; the blockers below are historical, not current instructions.
+
 Claude worked MINI-166 through several rounds this session (Shirt, Pants,
 Hat, Shoes, Denim Shorts, accessory-fit fixes, wardrobe UI wiring). Full
 detail is already written up in `Docs/Systems/Characters.md` and

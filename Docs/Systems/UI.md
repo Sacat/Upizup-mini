@@ -1,3 +1,9 @@
+## MINI-166 — complete wardrobe and matching portraits (Codex repair, 2026-09-12)
+
+Safehouse E -> 5 now exposes all eight clothing designs on both characters, with seven colours and per-character persistence. Fixed front orientation, width-aware framing, indexed material-property-block copying, and immediate paused-pose mesh baking. Skin/soles/buttons are never tinted. Watch/shades have Wear/Remove buttons; headphones retain their toggle; the obsolete duplicate cap trial moved out of Accessories (use Hats). Cancel and Restore opening restore clothes plus accessories and pending colour state; Apply retains choices, F5 saves clothes/headphones. Free unowned accessory try-ons remain session-only.
+
+The new Play Mode test exercises the same ChoosePiece and RestoreOpeningOutfit methods as the buttons and verifies the portrait's material colour against the live renderer. Built-player proof captures actual GPU-skinned players and portrait textures separately, avoiding the old blank ScreenCapture result. Evidence and remaining human appearance review: `Docs/WorkPackets/MINI-166.md`, latest section.
+
 ## MINI-166 — VisualWardrobePanel wired to OutfitWardrobe (2026-09-11)
 
 `VisualWardrobePanel`'s Shirts/Pants/Hats/Shoes tabs used to be a hardcoded

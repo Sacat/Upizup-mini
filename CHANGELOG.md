@@ -1,3 +1,7 @@
+## MINI-166 completed wardrobe repair — 2026-09-12
+
+Completed all eight fitted designs for both characters with independent colours, proper skin masks, smooth shorts legs, distinct 90/97 shoes and a curved cap. Fixed portrait colour/pose framing, offscreen hair/headphone updates, accessory removal and menu restoration. Actual save/load, menu and animation checks pass; rebuilt Windows player and inspected its real character/portrait outputs. Final build total 420,322,677 bytes. Evidence and exact commands: Docs/WorkPackets/MINI-166.md. Exact styling awaits user playtest; no vehicle edits included.
+
 ## MINI-166 checkpoint — 2026-09-11
 
 Added outfit mesh-selection/tint/save foundations and mesh audit; no fitted outfit assets or clothing selector integration yet. Windows checkpoint build succeeded; see Logs/mini166-build.log. Detailed user-requested Claude continuation guide: Docs/CLAUDE-CONTINUE-MINI-166.md. Task remains incomplete.

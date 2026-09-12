@@ -1,3 +1,7 @@
+## MINI-166 — fitted wardrobe implemented for both characters (2026-09-12)
+
+Eight designs, seven colours, four independent slots, clean shorts/legs, distinct 90/97 shoe meshes, curved cap and preserved removable headphones/waves. Play Mode selection/save/load/UI/accessory tests pass; walk/run/deep-flex evidence captured. Final exact styling awaits the user's in-game review. Latest build/evidence and commands: `Docs/WorkPackets/MINI-166.md`.
+
 ## MINI-165 — Headphones as a removable head accessory (2026-09-10)
 
 Sacat's existing headphones are now a separate skinned accessory. Open the home wardrobe, Accessories, then Headphones / REMOVE or WEAR; Apply keeps the choice, Cancel and Restore opening outfit restore it. Existing game saves capture the selection through sacatUnequippedItems; legacy saves default to wearing the headphones. Franki has no headphone assignment; this task does not add a second fitted asset.

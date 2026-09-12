@@ -7,6 +7,10 @@ succeeded (420,321,141 bytes). Done in parallel with Codex's concurrent
 MINI-166 wardrobe work (non-overlapping files). See
 `Docs/Systems/Vehicles.md`'s MINI-167 entry.
 
+## MINI-166 — wardrobe complete and rebuilt (2026-09-12)
+
+Both characters have eight fitted clothing designs, seven colours, independent slots, clean shorts/legs, distinct Mike 90/97 shoes and a curved cap. Removable Sacat headphones and waves preserved. Play Mode save/load/menu tests, animated deformation checks, final Windows build (420,322,677 bytes total) and actual EXE player/portrait captures passed. Safehouse E -> 5; Apply retains choices, F5 saves. Exact styling is ready for the user's in-game review. See `Docs/WorkPackets/MINI-166.md` latest section. This supersedes the historical incomplete wardrobe entries below; concurrent MINI-167 vehicle work remains separate.
+
 ## MINI-166 handed off to Codex (2026-09-11)
 
 User is switching this task from Claude to Codex. See

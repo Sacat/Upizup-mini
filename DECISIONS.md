@@ -1,5 +1,9 @@
 # Up Iz Up Mini — Decisions
 
+## MINI-166 — independent fitted garment surfaces (2026-09-12)
+
+User authorized completing and correcting the rejected wardrobe. Use separate skinned clothing bindings with explicit material tint regions and preserved original character rigs/faces. Fit the repaired continuous garment topology through corresponding rest-bone matrices; a fused material index is not a reason to leave Sacat's wardrobe absent. Use clean skin geometry below shorts, distinct shoe panel meshes, and a curved cap. Preserve existing save IDs and free access. Treat generated visual evidence as verification, not as user acceptance of final styling.
+
 ## D-013 — Bike wheelie ceiling and collision-only rider ejection
 
 - Date: 2026-08-31

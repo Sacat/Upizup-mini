@@ -24,8 +24,8 @@ namespace UpIzUpMini.Character
         public OutfitBinding[] bindings = Array.Empty<OutfitBinding>();
         public OutfitChoice[] defaults = Array.Empty<OutfitChoice>();
         readonly Dictionary<OutfitSlot, OutfitChoice> choices = new Dictionary<OutfitSlot, OutfitChoice>();
-        public static readonly string[] ColourNames = { "Navy", "White", "Black", "Red", "Green", "Denim" };
-        public static readonly Color[] Colours = { new Color(.09f,.16f,.29f),new Color(.9f,.9f,.87f),new Color(.055f,.06f,.07f),new Color(.55f,.075f,.07f),new Color(.075f,.27f,.17f),new Color(.24f,.39f,.53f) };
+        public static readonly string[] ColourNames = { "Navy", "White", "Black", "Red", "Green", "Denim", "Silver" };
+        public static readonly Color[] Colours = { new Color(.09f,.16f,.29f),new Color(.9f,.9f,.87f),new Color(.055f,.06f,.07f),new Color(.55f,.075f,.07f),new Color(.075f,.27f,.17f),new Color(.24f,.39f,.53f),new Color(.56f,.59f,.62f) };
         void Start() { if (choices.Count == 0) Restore(null); }
         // MINI-166 regression found by render: CharacterEquipment blanket-
         // gated cap_mike/garment-tint off whenever ANY OutfitWardrobe exists,
@@ -33,13 +33,13 @@ namespace UpIzUpMini.Character
         // killed the working cap trial system before Hat was ready. Query
         // per-slot instead of "does this component exist at all".
         public bool HasSlot(OutfitSlot slot) => bindings != null && System.Array.Exists(bindings, b => b.slot == slot && b.renderer != null);
-        public IEnumerable<OutfitPiece> ForSlot(OutfitSlot slot) => pieces.Where(p => p.slot == slot);
+        public IEnumerable<OutfitPiece> ForSlot(OutfitSlot slot) => (pieces ?? Array.Empty<OutfitPiece>()).Where(p => p != null && p.slot == slot);
         public OutfitChoice Current(OutfitSlot slot) => choices.TryGetValue(slot, out var value) ? new OutfitChoice { itemId=value.itemId, colour=value.colour } : null;
         public bool Select(string id, int colour)
         {
-            var piece=pieces.FirstOrDefault(p=>p.id==id);
+            var piece=(pieces ?? Array.Empty<OutfitPiece>()).FirstOrDefault(p=>p!=null && p.id==id);
             if(piece==null || colour<0 || colour>=Colours.Length)return false;
-            var binding=bindings.FirstOrDefault(b=>b.slot==piece.slot);
+            var binding=(bindings ?? Array.Empty<OutfitBinding>()).FirstOrDefault(b=>b!=null && b.slot==piece.slot);
             if(binding==null || binding.renderer==null)return false;
             choices[piece.slot]=new OutfitChoice{itemId=id,colour=colour};
             var r=binding.renderer;r.enabled=piece.mesh!=null;r.sharedMesh=piece.mesh;
@@ -64,7 +64,7 @@ namespace UpIzUpMini.Character
             for(int i=0;i<r.sharedMaterials.Length;i++)
             {
                 var block=new MaterialPropertyBlock();
-                if(piece.tintSlots.Contains(i)){block.SetColor("_Color",Colours[colour]);block.SetColor("_BaseColor",Colours[colour]);}
+                if(piece.tintSlots!=null && piece.tintSlots.Contains(i)){block.SetColor("_Color",Colours[colour]);block.SetColor("_BaseColor",Colours[colour]);}
                 r.SetPropertyBlock(block,i);
             }
             return true;
@@ -72,7 +72,7 @@ namespace UpIzUpMini.Character
         public List<OutfitChoice> Capture() => choices.Values.Select(c=>new OutfitChoice{itemId=c.itemId,colour=c.colour}).ToList();
         public void Restore(IEnumerable<OutfitChoice> saved)
         {
-            choices.Clear();foreach(var value in defaults)Select(value.itemId,value.colour);
+            choices.Clear();foreach(var value in defaults ?? Array.Empty<OutfitChoice>())if(value!=null)Select(value.itemId,value.colour);
             if(saved!=null)foreach(var value in saved)if(value!=null)Select(value.itemId,value.colour);
         }
     }

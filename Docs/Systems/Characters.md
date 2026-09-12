@@ -1,3 +1,9 @@
+## MINI-166 — complete fitted capsule on both characters (Codex repair, 2026-09-12)
+
+Both Franki and Sacat now have all eight designs across four independent skinned slots: Mike tee, Lacos polo, jeans, trousers, denim shorts, Lacos cap, Mike 90 and Mike 97. Seven colours; No Hat exposes existing waves; Sacat headphones remain removable. New assets: `Assets/UpIzUpMini/Art/Characters/Garments/Outfits166`. Fitted clothing reuses repaired continuous topology and explicit rest-bone retargeting; body/head/rig identity preserved. Shorts have clean cut hems and actual lower-leg surfaces. Shoes have distinct panel/sole/window geometry. Original hidden shoe fragments and fused hoodie skirt removed from the visible outfit.
+
+Save/load, all selections, skin-safe masks, preview matching, Cancel/Apply/Restore and accessory toggles pass the new Play Mode validator. Walk/run and manual deep-flex sequences rendered and inspected; see `Docs/WorkPackets/MINI-166.md` latest section for exact logs, limits, budgets and build evidence. `Mini166Repair` is the repeatable current generator; old integration scripts below document superseded attempts and should not be rerun onto the repaired scene. Final exact appearance awaits user playtest; no new visual approval is assumed.
+
 ## MINI-166 — OutfitWardrobe: Shirt/Pants/Hat/Shoes slots real for Franki, partial for Sacat (2026-09-11)
 
 `OutfitWardrobe` (slot/piece/binding/tint model, scaffolded in an earlier

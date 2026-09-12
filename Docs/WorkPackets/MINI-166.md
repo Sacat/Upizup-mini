@@ -1,5 +1,47 @@
 # MINI-166 — Fitted selectable outfits
 
+## Latest implemented state — Codex repair, 2026-09-12
+
+This section supersedes the incomplete/failed attempts recorded below. Both characters now have all eight approved clothing designs: Mike crew tee, Lacos polo, straight jeans, tailored trousers, denim shorts, Lacos curved cap, Mike 90 and Mike 97. No Hat is a ninth menu entry, not a ninth design. Seven independent slot colours include Silver. All four bindings are separate skinned renderers with persistent asset references in GrandBayProof. No purchases or ownership grants were added.
+
+### Repairs and source contract
+
+- Replaced Sacat's collar-only implementation with complete fitted shirt and pants bindings. His fused material index was not an unsolvable blocker: preserve head/hands/waves in WardrobeBody, mask covered geometry, and fit the repaired continuous Franki garment topology through matching rest-bone matrices to Sacat's own bone palette. Never transplant the original body, face, rig, or Animator controller.
+- Built distinct shoe meshes: angular Mike 90 panels with heel air windows, flowing Mike 97 strips with longer windows; separate upper/sole/rubber/accent/lace materials. Replaced primitive cap with a curved brim and panelled crown fitted to referenced scalp vertices. Headphones remain independently removable on Sacat; Franki has no headphone asset assignment.
+- Replaced jagged triangle-centroid shorts cuts with interpolated boundaries; actual smoothly skinned lower-leg surfaces replace cloth-shaped painted legs. Trousers and jeans differ in shaping, not just colour. Cotton/denim have small generated weave textures. Fabric tint never reaches skin, buttons, soles or laces.
+- Fixed stale native mesh buffers during repeat asset generation by assigning mesh channels explicitly instead of CopySerialized for Mesh. Same-frame preview baking now uses current bone matrices for readable meshes, with BakeMesh fallback for imported GPU-only assets. The actual game still uses SkinnedMeshRenderer normally.
+- Fixed portrait indexed material-property blocks, initial front orientation, width-aware framing, and Restore opening colour state. Added Wear/Remove for watch/shades, kept headphone toggle, removed duplicate prototype-cap button (caps belong in Hats). Reused the real E -> 5 safehouse menu. Apply retains; F5 persists clothes/headphones; unowned watch/shades remain session try-ons.
+- Set the two playable Animators to AlwaysAnimate and enabled offscreen skin updates on active character renderers, including hair/headphones, so the wardrobe camera does not depend on the gameplay camera's visibility. No Animator controller, avatar, locomotion clip, watch profile, chain profile, or vehicle file was replaced.
+
+### Verification completed
+
+- Final Windows build: `Logs/mini166-repair-build-final.log`, BUILD SUCCEEDED, 420,322,677 bytes total packaged output; 11.15 seconds. `Builds/GrandBayProof/UpIzUpMini.exe` plus adjacent data folder/DLLs. Scene payload and Assembly-CSharp.dll refreshed on 2026-09-12. The launcher file's own timestamp is not build freshness evidence.
+- Final actual EXE proof: `Logs/mini166-repair-player-final.log`, WARDROBE_LIVE_PROOF_COMPLETE; process exited, no Exception/Error matches. Visually inspected `Repair/Final-Franki-player.png`, `Final-Franki-portrait.png`, `Final-Sacat-player.png`, `Final-Sacat-portrait.png`. Real GPU player and UI portrait now match clothing and headphone visibility; animation no longer depends on offscreen culling. Initial Built-* captures are superseded by Final-*.
+
+- `Logs/mini166-repair-integrate.log`: MINI166_REPAIR_INTEGRATE_PASS and PREVIEW_PASS; saved scene integration, not just temporary previews.
+- `Logs/mini166-repair-tests.log`: MINI166_REPAIR_TEST_PASS in actual Play Mode. All pieces/bindings/weights/bounds; distinct shoe meshes; fabric-only tint; actual SaveLoadSystem.Save/Load for both characters; legacy defaults; UI ChoosePiece, portrait colour, Restore/Cancel/Apply; accessory removal; character isolation. Existing PlayerPrefs save restored after testing.
+- `Logs/mini166-repair-motion-final.log`: MINI166_REPAIR_MOTION_PASS, 432 frames across two characters, three outfits, walking/running/motorcycle-idle clips and a manual deep-knee-flex sweep. Inspected running, walking and deepest flex frames. The motorcycle idle clip is NOT a seated gameplay proof; the flex sweep tests deformation and does not add a crouch mechanic. Older files named Seated came from the initial mislabeled motorcycle-idle check and are superseded.
+- Fixed views: `Logs/Tasks/MINI-166/Repair/*-Front.png`, `*-Side.png`, `*-Back.png`, and shoe closeups. Moving comparison: `Logs/Tasks/MINI-166/Repair/Shorts-Run-Comparison.mp4`. These are rendered animation samples, not human-played locomotion certification.
+- `Logs/mini166-repair-visibility.log`: MINI166_VISIBILITY_PASS. Final Windows build and post-build proof results are recorded below when complete.
+
+### Exact tool entry points
+
+Use `C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Unity.exe` with `-batchmode -projectPath "E:\Unity\Up Iz Up Mini" -executeMethod <method> -logFile <absolute log path>`. One Editor at a time; no `-nographics` for renders. Each method exits itself.
+
+Methods: `UpIzUpMini.EditorTools.Mini166Repair.Audit`, `.Preview`, `.Integrate`, `.FinalizeVisibility`, `.Motion`; `UpIzUpMini.EditorTools.Mini166RepairValidation.Run`; `UpIzUpMini.EditorTools.Mini001Build.BuildWindowsPlayer`. Preview generates/replaces task assets but does not save the scene; Integrate saves. Source renderers are retained disabled, so generation remains repeatable. Baseline scene backup: `Logs/Tasks/MINI-166/Repair/GrandBayProof-before.unity`.
+
+Built-player verification uses `Builds/GrandBayProof/UpIzUpMini.exe -batchmode -wardrobe-proof "E:\Unity\Up Iz Up Mini\Logs\Tasks\MINI-166\Repair\Built" -logFile <absolute player log>`. The explicit proof flag captures both real GPU-skinned players and the actual portrait textures, then exits. It never runs during normal play.
+
+### Content budget and remaining human check
+
+Per character: shirts about 8.7k triangles (includes preserved arms); jeans about 8k; trousers 7.9k; shorts 5.5k including legs; cap 2.4k; Mike 90 pair 2.8k; Mike 97 pair 6.1k. Exact counts in `Repair/Franki-budget.txt` and `Sacat-budget.txt`. These exceed the older aspirational low-poly capsule targets; no phone performance certification is claimed. Four to five material slots per garment, some empty; two 128x128 generated fabric textures, no cloth physics or new gameplay lights/colliders. Original high-detail face/hair/accessory assets retained. Zero external credits or uploads.
+
+User should review exact styling and fit in the delivered EXE at safehouse E -> 5. Automated functional and animation checks do not imply the user has visually approved this final appearance. Concurrent MINI-167 vehicle work was preserved and is not part of the wardrobe checkpoint.
+
+## Codex repair continuation — 2026-09-11
+
+User rejects the partial wardrobe and authorizes completing the approved capsule now. Codex claims the same MINI-166. Audit all eight designs and four independent slots on both characters, replace colour-only footwear and crude cap, isolate skin from fabric colour, repair preview colour/rotation/accessory controls and verify save/cancel/apply. Use existing rigged surfaces in rest space, split fused Sacat geometry into dedicated renderers; one material index is not a blocker to classifying triangles. Preserve original head/wave/headphone/watch/chain geometry. Baseline Git is clean at takeover. Zero external spending. Finish with saved-scene visual evidence, sampled animation sequences, runtime validation and Windows build; report hands-on limitations honestly.
+
 User authorizes implementing the approved wardrobe: Lacostes polo, Mike tee, jeans, denim shorts, trousers, Lacos cap, Mike 90 and Mike 97, fitted for both characters with independent colours. Build from the current repaired, skinned characters. Preserve wave hair, removable headphones, faces, hands, watch and chain placement.
 
 Owner: Codex. Scope: new OutfitWardrobe runtime/data/editor tools and generated outfit meshes/materials; VisualWardrobePanel; CharacterEquipment; SaveLoadSystem; GrandBayProof scene; task and system documentation. No paid assets or external uploads. Budget: local mesh production and focused Unity verification. Existing free wardrobe access continues; no ownership grants.

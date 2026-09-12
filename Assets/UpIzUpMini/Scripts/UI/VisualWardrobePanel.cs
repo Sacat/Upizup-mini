@@ -41,7 +41,7 @@ namespace UpIzUpMini.UI
             who=CharacterSwitchManager.Instance?.Active.displayName??"Character";
             oldTime=Time.timeScale;Time.timeScale=0;
             oldCursor=Cursor.visible;oldLock=Cursor.lockState;Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
-            category=0;yaw=180;
+            category=0;yaw=0;
             foreach(var canvas in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
                 if(canvas.enabled){hiddenCanvases.Add(canvas);canvas.enabled=false;}
             stage=new GameObject("Wardrobe render stage");stage.transform.position=new Vector3(10000,-10000,10000);
@@ -67,7 +67,7 @@ namespace UpIzUpMini.UI
                 var group=r.GetComponentInParent<LODGroup>();
                 if(group!=null&&group.GetLODs().Length>0&&!group.GetLODs()[0].renderers.Contains(r))continue;
                 Mesh mesh=null;
-                if(r is SkinnedMeshRenderer skinned){mesh=new Mesh();skinned.BakeMesh(mesh);}
+                if(r is SkinnedMeshRenderer skinned){mesh=WardrobePreviewMesh.Bake(skinned);}
                 else
                 {
                     var filter=r.GetComponent<MeshFilter>();
@@ -80,7 +80,7 @@ namespace UpIzUpMini.UI
                         partStatic.transform.localPosition=transformMatrix.GetColumn(3);partStatic.transform.localRotation=transformMatrix.rotation;partStatic.transform.localScale=transformMatrix.lossyScale;
                         partStatic.AddComponent<MeshFilter>().sharedMesh=filter.sharedMesh;
                         var staticRenderer=partStatic.AddComponent<MeshRenderer>();staticRenderer.sharedMaterials=r.sharedMaterials;
-                        var block=new MaterialPropertyBlock();r.GetPropertyBlock(block);staticRenderer.SetPropertyBlock(block);
+                        CopyProperties(r,staticRenderer);
                     }
                     continue;
                 }
@@ -91,7 +91,7 @@ namespace UpIzUpMini.UI
                 meshes.Add(mesh);
                 var part=new GameObject(r.name);part.layer=31;part.transform.SetParent(model.transform,false);part.AddComponent<MeshFilter>().sharedMesh=mesh;
                 var renderer=part.AddComponent<MeshRenderer>();renderer.sharedMaterials=r.sharedMaterials;
-                var properties=new MaterialPropertyBlock();r.GetPropertyBlock(properties);renderer.SetPropertyBlock(properties);
+                CopyProperties(r,renderer);
                 if(!found){bounds=mesh.bounds;found=true;}else bounds.Encapsulate(mesh.bounds);
             }
             if(!found)return;
@@ -99,13 +99,31 @@ namespace UpIzUpMini.UI
             model.transform.localRotation=Quaternion.Euler(0,yaw,0);
             // Rotate around body centre, not world feet.
             model.transform.localPosition=-(model.transform.localRotation*bounds.center);
-            previewCamera.orthographic=true;previewCamera.orthographicSize=Mathf.Max(.8f,bounds.size.y*.58f);
+            float radians=yaw*Mathf.Deg2Rad;
+            float width=Mathf.Abs(Mathf.Cos(radians))*bounds.size.x+Mathf.Abs(Mathf.Sin(radians))*bounds.size.z;
+            previewCamera.orthographic=true;previewCamera.orthographicSize=Mathf.Max(.8f,Mathf.Max(bounds.size.y*.58f,width*.58f/((float)texture.width/texture.height)));
             previewCamera.transform.localPosition=new Vector3(0,0,4);previewCamera.transform.LookAt(stage.transform.position);
-            previewCamera.Render();
+            previewCamera.Render();previewCamera.Render();
+        }
+        static void CopyProperties(Renderer source,Renderer target)
+        {
+            var block=new MaterialPropertyBlock();source.GetPropertyBlock(block);target.SetPropertyBlock(block);
+            for(int i=0;i<source.sharedMaterials.Length;i++){block.Clear();source.GetPropertyBlock(block,i);target.SetPropertyBlock(block,i);}
         }
         void Select(int item)
         {
             wearer.SetTrialItem(CharacterEquipment.TrialItemIds[item],true);RebuildPreview();
+        }
+        public bool ChoosePiece(string id,int colour)
+        {
+            if(outfit==null||!outfit.Select(id,colour))return false;
+            RebuildPreview();return true;
+        }
+        public void RestoreOpeningOutfit()
+        {
+            if(wearer==null)return;
+            wearer.RestoreTrialItems(original);wearer.RestoreWardrobe(originalWardrobe);
+            if(outfit!=null)outfit.Restore(originalOutfit);pendingColour.Clear();RebuildPreview();
         }
         public void Close(bool apply)
         {
@@ -142,7 +160,7 @@ namespace UpIzUpMini.UI
             GUI.color=Color.white;
             GUI.matrix=Matrix4x4.TRS(new Vector3(safe.x+(safe.width-1100*scale)/2,Screen.height-safe.yMax+(safe.height-700*scale)/2,0),Quaternion.identity,new Vector3(scale,scale,1));
             GUI.Label(new Rect(30,20,700,45),"WARDROBE  /  "+who.ToUpperInvariant(),title);
-            GUI.Label(new Rect(30,66,950,28),"FREE TEST MODE  •  No purchases needed  •  Changes last for this session",small);
+            GUI.Label(new Rect(30,66,1040,28),"Choose a fit and colour. Apply keeps it; F5 saves your clothes and headphone choice.",small);
             GUI.DrawTexture(new Rect(30,112,410,500),texture,ScaleMode.ScaleToFit);
             if(GUI.Button(new Rect(55,620,165,40),"Rotate left",button)){yaw-=30;RebuildPreview();}
             if(GUI.Button(new Rect(245,620,165,40),"Rotate right",button)){yaw+=30;RebuildPreview();}
@@ -152,12 +170,13 @@ namespace UpIzUpMini.UI
             if(category==0)
             {
                 GUI.Label(new Rect(470,220,570,45),"Choose an available accessory to see it on your character.",label);
-                for(int i=0;i<CharacterEquipment.TrialItemIds.Length;i++)
-                    if(GUI.Button(new Rect(470,280+i*68,575,56),CharacterEquipment.TrialItemLabels[i]+"  /  TRY ON",button))Select(i);
-                if(wearer.HeadphonesAvailable && GUI.Button(new Rect(470,484,575,48),"Headphones  /  "+(wearer.HeadphonesEquipped?"REMOVE":"WEAR"),button))
+                string[] ids={"watch_rollie","shades_ray"};string[] names={"Gold watch","Shades"};
+                for(int i=0;i<ids.Length;i++)
+                    if(GUI.Button(new Rect(470,280+i*68,575,56),names[i]+"  /  "+(wearer.AccessoryEquipped(ids[i])?"REMOVE":"WEAR"),button)){wearer.SetAccessoryEquipped(ids[i],!wearer.AccessoryEquipped(ids[i]));RebuildPreview();}
+                if(wearer.HeadphonesAvailable && GUI.Button(new Rect(470,416,575,48),"Headphones  /  "+(wearer.HeadphonesEquipped?"REMOVE":"WEAR"),button))
                 {wearer.SetHeadphonesEquipped(!wearer.HeadphonesEquipped);RebuildPreview();}
-                if(GUI.Button(new Rect(470,wearer.HeadphonesAvailable?540:490,575,40),"Restore opening outfit",button)){wearer.RestoreTrialItems(original);wearer.RestoreWardrobe(originalWardrobe);if(outfit!=null)outfit.Restore(originalOutfit);RebuildPreview();}
-                GUI.Label(new Rect(470,wearer.HeadphonesAvailable?584:542,575,30),"Headphone selection is included when you save your game.",small);
+                if(GUI.Button(new Rect(470,500,575,40),"Restore opening outfit",button))RestoreOpeningOutfit();
+                GUI.Label(new Rect(470,550,575,50),"Caps are in Hats. Watch and shades try-ons are free for this session.",small);
             }
             else
             {
@@ -181,24 +200,23 @@ namespace UpIzUpMini.UI
                         if(GUI.Button(r,pieces[i].label+(active?"  /  WORN":"  /  WEAR"),button))
                         {
                             int colour=pendingColour.TryGetValue(slot,out var c)?c:(current?.colour??0);
-                            outfit.Select(pieces[i].id,colour);RebuildPreview();
+                            ChoosePiece(pieces[i].id,colour);
                         }
                         GUI.backgroundColor=prevBg;
                     }
-                    bool tintable=pieces.Any(p=>p.tintSlots!=null&&p.tintSlots.Length>0);
+                    bool tintable=current!=null&&pieces.Any(p=>p.id==current.itemId&&p.tintSlots!=null&&p.tintSlots.Length>0);
                     if(tintable)
                     {
                         GUI.Label(new Rect(470,280+pieces.Count*64+10,570,26),"Colour",small);
                         int colourNow=pendingColour.TryGetValue(slot,out var pc)?pc:(current?.colour??0);
                         for(int i=0;i<OutfitWardrobe.ColourNames.Length;i++)
                         {
-                            var cr=new Rect(470+i*96,280+pieces.Count*64+40,90,40);
+                            var cr=new Rect(470+i*82,280+pieces.Count*64+40,78,40);
                             var prevBg=GUI.backgroundColor;if(i==colourNow)GUI.backgroundColor=new Color(.35f,.55f,.9f);
                             if(GUI.Button(cr,OutfitWardrobe.ColourNames[i],button))
                             {
                                 pendingColour[slot]=i;
-                                if(current!=null)outfit.Select(current.itemId,i);
-                                RebuildPreview();
+                                if(current!=null)ChoosePiece(current.itemId,i);
                             }
                             GUI.backgroundColor=prevBg;
                         }
@@ -206,8 +224,8 @@ namespace UpIzUpMini.UI
                 }
             }
             if(GUI.Button(new Rect(665,622,175,45),"Cancel",button))Close(false);
-            if(GUI.Button(new Rect(855,622,190,45),"Apply try-ons",button))Close(true);
-            GUI.matrix=old;GUI.color=previousColor;
+            if(GUI.Button(new Rect(855,622,190,45),"Apply outfit",button))Close(true);
+            GUI.matrix=old;GUI.color=previousColor;GUI.depth=depth;
         }
         // Explicit automated LIVE player evidence path; never runs during normal play.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -221,13 +239,29 @@ namespace UpIzUpMini.UI
         IEnumerator CaptureProof(string path)
         {
             yield return new WaitForSecondsRealtime(3);
-            var equipment=CharacterSwitchManager.Instance?.Active.root.GetComponent<CharacterEquipment>();
-            if(equipment==null){Debug.LogError("WARDROBE_PROOF_NO_CHARACTER");Application.Quit(1);yield break;}
-            Begin(equipment);Select(0);Select(1);Select(2);yaw=90;RebuildPreview();
-            yield return new WaitForSecondsRealtime(1);
-            ScreenCapture.CaptureScreenshot(path);
-            yield return new WaitForSecondsRealtime(2);
-            Close(false);Debug.Log("WARDROBE_LIVE_PROOF_COMPLETE");Application.Quit();
+            for(int index=0;index<2;index++)
+            {
+                CharacterSwitchManager.Instance.SwitchTo(index);
+                yield return new WaitForSecondsRealtime(.4f);
+                var equipment=CharacterSwitchManager.Instance?.Active.root.GetComponent<CharacterEquipment>();
+                if(equipment==null){Debug.LogError("WARDROBE_PROOF_NO_CHARACTER");Application.Quit(1);yield break;}
+                Begin(equipment);ChoosePiece("shirt_polo_lacos",0);ChoosePiece("pants_shorts_denim",5);ChoosePiece("shoes_mike97",6);ChoosePiece("hat_lacos",4);
+                yield return new WaitForSecondsRealtime(.3f);
+                string prefix=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path),System.IO.Path.GetFileNameWithoutExtension(path)+"-"+equipment.name);
+                WriteTexture(texture,prefix+"-portrait.png");
+                // Also capture the actual GPU-skinned player, not the baked UI model.
+                var renderers=equipment.GetComponentsInChildren<Renderer>(true);var layers=renderers.Select(r=>r.gameObject.layer).ToArray();foreach(var r in renderers)r.gameObject.layer=31;
+                var camera=new GameObject("Live wardrobe proof camera").AddComponent<Camera>();camera.cullingMask=1<<31;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.12f,.15f,.18f);camera.orthographic=true;camera.orthographicSize=1.05f;camera.nearClipPlane=.01f;camera.farClipPlane=10;
+                camera.transform.position=equipment.transform.position+equipment.transform.forward*4+Vector3.up*.9f;camera.transform.LookAt(equipment.transform.position+Vector3.up*.9f);
+                var target=new RenderTexture(640,800,24);camera.targetTexture=target;camera.Render();camera.Render();WriteTexture(target,prefix+"-player.png");camera.targetTexture=null;target.Release();Destroy(target);Destroy(camera.gameObject);
+                for(int i=0;i<renderers.Length;i++)renderers[i].gameObject.layer=layers[i];
+                Close(false);
+            }
+            Debug.Log("WARDROBE_LIVE_PROOF_COMPLETE");Application.Quit();
+        }
+        static void WriteTexture(RenderTexture target,string path)
+        {
+            var old=RenderTexture.active;RenderTexture.active=target;var image=new Texture2D(target.width,target.height,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,target.width,target.height),0,0);image.Apply();System.IO.File.WriteAllBytes(path,image.EncodeToPNG());Destroy(image);RenderTexture.active=old;
         }
     }
 }
