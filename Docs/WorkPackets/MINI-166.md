@@ -1,5 +1,15 @@
 # MINI-166 — Fitted selectable outfits
 
+## Cap brim size fix (Claude), 2026-09-12
+
+User request: "fix the cap brim size" - the specific defect flagged but not fixed in the logo-mirror round above. The Lacos cap's `Brim()` function in `Mini166RepairAccessories.cs` projected the bill .108f forward and drooped it .022f down per unit t, with a x^2*.012f edge-lift curvature - the combined result put the bill's visible edge at eye/nose height instead of above the brow, and in side profile the tip reached past the nose.
+
+Reduced forward reach .108f -> .058f (~46% shorter), droop .022f -> .008f, and edge-lift curvature .012f -> .006f, in two iterations - re-rendered and re-cropped after each change rather than trusting the coefficient edit alone. Attachment height (`bottom-.008f`, now `-.006f`) and width (`x*rx*1.04f`) were left essentially unchanged.
+
+Side-profile result is unambiguous: the bill no longer reaches the nose and now reads as a normal-length cap bill (`Logs/Tasks/MINI-166/Repair/ClaudeBrimFix/Franki-Brim-After-Side.png` vs the original `Logs/Tasks/MINI-166/Repair/Franki-Polo-Trousers-Cap-Side.png`). Front-view result is a smaller, real improvement (bill sits at brow/eye height instead of extending to the nose) but a brim attached at brow height will always show as a band across roughly that height in a straight-on view - that's inherent to any cap silhouette, not a residual bug, and further iteration on this coefficient set showed diminishing returns. Stopped there rather than chasing sub-millimeter changes without better reference.
+
+Verification: compile clean (`Logs/mini166-claude-brim-compile.log`), `Mini166Repair.Integrate` (`Logs/mini166-claude-brim-integrate.log`, INTEGRATE_PASS/PREVIEW_PASS), `Mini166RepairValidation.Run` (`Logs/mini166-claude-brim-tests.log`, REPAIR_TEST_PASS, actual Play Mode), Windows build (`Logs/mini166-claude-brim-build.log`, BUILD SUCCEEDED, 420,366,933 bytes - unchanged size, no new geometry/materials). Crown shape, LACOS text, shirt logo and shoulder geometry untouched. Motion not re-sampled - cap geometry change doesn't affect skinning/deformation, only a static accessory shape.
+
 ## Logo mirror fix (Claude), 2026-09-12
 
 User feedback: "your wardrobe and accessories building are poor". Per AGENTS.md ("inspect actual rendered results before claiming a visual fix"), inspected the actual Codex-repair evidence PNGs under `Logs/Tasks/MINI-166/Repair/` before touching anything, and cropped/enlarged the chest logo area of `Franki-Shoulders-Front.png`. Found a real, confirmed bug: the "MIKE"/"LACOS" chest wordmark and the cap's "LACOS" crown text render as a horizontal mirror image ("MIKE" appeared as "3XIM"). Not a style complaint - the shared `Word()` glyph-quad generator in `Mini166RepairAccessories.cs` lays pixel columns out along +local-x on a front-facing quad strip, which this project's view setup renders backwards on screen for that panel.

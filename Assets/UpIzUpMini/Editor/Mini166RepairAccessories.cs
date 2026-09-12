@@ -11,7 +11,12 @@ public static partial class Mini166Repair {
   Vector3 Crown(float a,float t)=>new Vector3(rx*Mathf.Cos(t)*Mathf.Sin(a),bottom+.106f*Mathf.Sin(t),cz+rz*Mathf.Cos(t)*Mathf.Cos(a));
   for(int ring=0;ring<8;ring++)for(int i=0;i<36;i++){float a=i*Mathf.PI/18,b=(i+1)*Mathf.PI/18,t=ring*Mathf.PI/16,u=(ring+1)*Mathf.PI/16;result.Quad(Crown(a,t),Crown(a,u),Crown(b,u),Crown(b,t),0,head,true);}
   for(int seam=0;seam<6;seam++){var points=Enumerable.Range(0,10).Select(i=>Crown(seam*Mathf.PI/3,i*Mathf.PI/20)+Vector3.up*.0008f).ToList();result.Tube(points,.0007f,1,head,4);}
-  Vector3 Brim(float x,float t,float thick){float inner=cz+rz*Mathf.Sqrt(Mathf.Max(0,1-x*x*.8f));return new Vector3(x*rx*1.04f,bottom-.008f-t*.022f+x*x*.012f+thick,inner+t*.108f*(1-x*x*.32f));}
+  // MINI-166: "fix the cap brim size" - the bill projected .108f forward
+  // and drooped .022f down per unit t, which put its outer edge at eye/
+  // nose height instead of above the brow. Shortened the forward reach
+  // and flattened the droop; width (x*rx) and attachment height (bottom)
+  // are unchanged.
+  Vector3 Brim(float x,float t,float thick){float inner=cz+rz*Mathf.Sqrt(Mathf.Max(0,1-x*x*.8f));return new Vector3(x*rx*1.04f,bottom-.006f-t*.008f+x*x*.006f+thick,inner+t*.058f*(1-x*x*.32f));}
   for(int i=0;i<18;i++)for(int j=0;j<5;j++){float a=-1+2*i/18f,b=-1+2*(i+1)/18f,t=j/5f,u=(j+1)/5f;result.Quad(Brim(a,t,0),Brim(b,t,0),Brim(b,u,0),Brim(a,u,0),0,head,true);result.Quad(Brim(a,t,-.003f),Brim(a,u,-.003f),Brim(b,u,-.003f),Brim(b,t,-.003f),0,head,true);}
   Word(result,"LACOS",new Vector3(-.022f,bottom+.026f,cz+rz*.96f+.003f),.007f,2,head);
   return result;

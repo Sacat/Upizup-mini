@@ -52,6 +52,8 @@ reserved_files:
   - exact/path
 ```
 
+Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/CLAUDE-HOUSES-MAP-COMPLETE-HANDOFF-MINI-142.md consolidates house modeling, map repair, tools, tests and workflow; MapGeneration ledger/work packet link it. Eight PowerShell examples parsed, 38 project paths verified, district migration metadata valid. No Unity, scene, asset, package or gameplay edits/build; other ownership below is unchanged.
+
 ### Current claim
 
 ```yaml
@@ -59,7 +61,7 @@ current_owner: None
 active_task: None
 released_task: MINI-166
 claimed_at: 2026-09-12
-released_reason: User feedback - "your wardrobe and accessories building are poor". Inspected the actual Codex-repair evidence images (Logs/Tasks/MINI-166/Repair/*.png) before claiming a visual fix, per AGENTS.md. Confirmed a real bug, not a style complaint - the chest logo ("MIKE"/"LACOS") and cap brand text render horizontally mirrored ("MIKE" showed as "3XIM" when cropped/enlarged). Root cause: Mini166RepairAccessories.cs's shared Word() glyph-quad generator. First attempt (mirror the placement offset only) was incomplete - re-rendering caught that asymmetric glyphs (K/E) were still internally mirrored. Final fix feeds Word() a pre-mirrored source pattern (reversed character order + column-reversed glyph bits) instead of touching position/winding math, verified correct by re-rendering and re-cropping both characters' chest logos. Compile, Integrate (regenerate+save scene), Mini166RepairValidation.Run (actual Play Mode), and Windows build (420,366,933 bytes, unchanged size) all pass. Shoulder geometry (ShoulderForm) untouched - still awaiting the user's styling approval from the prior round. Also found, NOT fixed (separate, out of scope): the Lacos cap brim is oversized and droops over the eyes. See Docs/WorkPackets/MINI-166.md "Logo mirror fix" section for full evidence. MINI-167 (vehicles, committed 940cbb4) remains separate and untouched.
+released_reason: User request - "fix the cap brim size". Follow-up to the logo-mirror fix (commit da325c5), which flagged but did not fix this. Reduced the Lacos cap Brim() generator's forward reach (~46%), downward droop and edge-lift curvature in Mini166RepairAccessories.cs, re-rendering/re-cropping after each iteration. Side profile no longer reaches the nose (clear fix); front view improved to brow/eye height (a bill attached at brow height inherently reads as a band across that height head-on, not a further bug - stopped iterating there). Compile, Integrate (regenerate+save scene), Mini166RepairValidation.Run (actual Play Mode), and Windows build (420,366,933 bytes, unchanged size) all pass. Crown shape, LACOS text, shirt logo and shoulder geometry untouched. See Docs/WorkPackets/MINI-166.md "Cap brim size fix" section for full evidence.
 reserved_files:
   - Assets/UpIzUpMini/Editor/Mini166RepairAccessories.cs
   - Assets/UpIzUpMini/Art/Characters/Garments/Outfits166/

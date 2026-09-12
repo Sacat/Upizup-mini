@@ -1,3 +1,7 @@
+## MINI-166 — cap brim size fix (Claude, 2026-09-12)
+
+User request: "fix the cap brim size". Reduced the Lacos cap bill's forward projection, droop and edge-lift curvature; side profile no longer reaches the nose, front view improved to brow/eye height. Compile, Integrate, Play Mode validator and Windows build (420,366,933 bytes) all pass. Details: `Docs/WorkPackets/MINI-166.md` "Cap brim size fix" section.
+
 ## MINI-166 — chest/cap logo mirror fix (Claude, 2026-09-12)
 
 User reported "your wardrobe and accessories building are poor". Inspected the actual rendered evidence and found the "MIKE"/"LACOS" chest wordmark and cap crown text rendering horizontally mirrored ("MIKE" -> "3XIM"). Fixed the shared `Word()` glyph generator; re-rendered and confirmed both characters' chest logos now read correctly. Compile, Integrate, Play Mode validator and Windows build (420,366,933 bytes, unchanged size) all pass. Shoulder geometry untouched, still awaiting user styling approval. Also flagged, not fixed: the Lacos cap brim is oversized and droops over the eyes. Details: `Docs/WorkPackets/MINI-166.md` "Logo mirror fix" section.
