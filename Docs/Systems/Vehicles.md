@@ -1,5 +1,30 @@
 # Vehicles (Riding & Driving)
 
+## MINI-167 — bikes crash too easily, raised 50% harder to trigger ejection (2026-09-12)
+
+User: "the bikes crashes too easily still make it like 50% harder to
+crash." `BikeCrashEjectionController.hardImpactSpeed` (the single source of
+truth for hard-crash ejection - see MINI-134/135/138's own ledger entries)
+raised 16.5 -> 24.75 m/s (+50%). The NPC-hit (1.5x) and wheelie (1.15x)
+gates are both expressed as ratios of this same base field, so they scaled
+with it automatically - no separate edits needed, no prefab overrides exist
+for this value (the component is only ever added at runtime via
+`BikeCrashEjectionController.Ensure()`, never baked into a prefab, so the
+C# default change alone is sufficient - checked, not assumed, per MINI-140's
+own "prefab beats C# default" lesson).
+
+Updated the standing `Mini134CrashDamageRecoveryValidation`'s hardcoded test
+speeds to match the new threshold (they were tuned against the old 16.5
+baseline and would have failed otherwise) - same discipline as every prior
+crash-tuning pass (MINI-135/136/138/139) updating its own tests alongside
+the numbers. Focused validation re-run and passes
+(`[MINI-138] PASS: 89-degree cap, wheelie real-speed crash filtering,
+collision-only ejection, and seller impact validated.`). Compile clean,
+Windows build succeeded (420,321,141 bytes, `Logs/mini167_build.log`).
+Applies to both TMAX and SuperMoto (shared component). Live crash-feel
+confirmation from the user is still the real final gate, same as every
+prior crash-sensitivity round.
+
 ## MINI-160 — visual dealer panel: see/rotate/buy, mirrors the wardrobe panel
 
 User: "vehicle buying to be just like the wardrobe changing... see the

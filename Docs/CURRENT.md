@@ -1,3 +1,12 @@
+## MINI-167 — bikes 50% harder to crash (2026-09-12)
+
+`BikeCrashEjectionController.hardImpactSpeed` raised 16.5 -> 24.75 m/s
+(+50%) per the user's direct request. Applies to both TMAX and SuperMoto.
+Standing MINI-134 crash validator updated and re-passing. Windows build
+succeeded (420,321,141 bytes). Done in parallel with Codex's concurrent
+MINI-166 wardrobe work (non-overlapping files). See
+`Docs/Systems/Vehicles.md`'s MINI-167 entry.
+
 ## MINI-166 handed off to Codex (2026-09-11)
 
 User is switching this task from Claude to Codex. See

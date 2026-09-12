@@ -17,7 +17,10 @@ namespace UpIzUpMini.Vehicles
 
         public static float ClampWheelieDegrees(float requestedDegrees) =>
             Mathf.Clamp(requestedDegrees, 0f, MaximumWheelieDegrees);
-        [SerializeField] private float hardImpactSpeed = 16.5f;
+        // MINI-167: user reported bikes crash too easily - raised 50%
+        // (16.5 -> 24.75 m/s). NPC-hit (1.5x) and wheelie (1.15x) gates are
+        // both ratios of this same base, so they scale with it automatically.
+        [SerializeField] private float hardImpactSpeed = 24.75f;
         [SerializeField] private float wheelieImpactMultiplier = 1.15f;
         [SerializeField] private float mountGraceSeconds = 0.45f;
         [SerializeField] private float repeatCooldown = 2.5f;
