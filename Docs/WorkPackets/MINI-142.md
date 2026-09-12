@@ -1,5 +1,9 @@
 # MINI-142 — Integrate approved house, grass and crop art; inspect Dog Life road seam
 
+## Documentation follow-up — 2026-09-12
+
+User requested complete tools/skills/modeling/map-repair/testing workflow for Claude. Added Docs/CLAUDE-HOUSES-MAP-COMPLETE-HANDOFF-MINI-142.md and a MapGeneration ledger pointer, based on the actual scripts, export manifest and historical apply/build logs. Read-only district migration metadata validation passed with zero errors. Historical integration remains f5ba411; no new scene/asset/gameplay edits or build. Guide explicitly prohibits replaying the old promotion over the current game and distinguishes isolated MB proofs from live repair. Claude's current wardrobe integration ownership preserved.
+
 Owner: Codex. Status implementing, 2026-09-06. Approval: user accepted all MINI-141 previews as VA-009 and requested continuation. Credits 0.
 Final status: applied and Windows build succeeded after explicit user request to continue/build. Earlier staged-status entries below are chronological evidence, not current blockers.
 

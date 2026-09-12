@@ -1,5 +1,9 @@
 # Map Generation
 
+## Complete house/map tool handoff — 2026-09-12
+
+User-requested consolidated guide: [CLAUDE-HOUSES-MAP-COMPLETE-HANDOFF-MINI-142.md](../CLAUDE-HOUSES-MAP-COMPLETE-HANDOFF-MINI-142.md). Covers actual Blender house construction, JSON/palette/LOD export, fitting 86 generic residences, measured Dog Life road repair, isolated spline proofs, testing and safe continuation commands. Documentation audit verified district metadata at migration (zero errors); this is not new gameplay/runtime acceptance. Old graybox wording below is stale relative to the current manifest; runtimeStatus still requires retest. No scene or art regenerated for this handoff.
+
 ## MINI-156 — spawn moved to Highland Safehouse (additive patch)
 
 User asked to spawn "by the safe house"; three exist (Highland Safehouse
