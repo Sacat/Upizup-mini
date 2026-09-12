@@ -89,6 +89,41 @@ If Blender is genuinely needed:
 Never assume a hidden complete body exists underneath clothing.
 Deleting Franki's sleeve geometry previously left floating hands.
 
+## Research real reference before modeling anything
+
+Applies to every asset this skill covers - houses, props, vegetation,
+character bodies/clothing, vehicles - not just muscle definition. Don't
+design or tune purely by iterating against your own renders/exports in
+isolation. Look up real reference FIRST, then build, then compare the
+result back against it explicitly.
+
+Two tools, used together (there is no single bundled "image search" tool
+in this environment - this combination IS the capability):
+
+- `WebSearch` / `WebFetch` for facts, proportions and named references -
+  house/architecture style guides, anatomy-for-artists proportion rules
+  (Proko, Artists Network, Loomis method), vehicle reference specs, plant
+  growth-stage references, etc. `WebFetch` only reads and summarizes page
+  TEXT - it cannot look at an image.
+- To actually SEE a reference image: download it with `curl` via `Bash`
+  to a local file, then `Read` it - `Read` displays images, `WebFetch`
+  does not. Use this whenever a visual (not just a numeric fact) is
+  needed - a real house facade, a muscle's silhouette, a vehicle's stance.
+
+State the comparison explicitly in your response, as a concrete
+before/after or a small table - not just "this looks better now". Example
+from actual project history: researching real arm anatomy (Proko: the
+deltoid inserts ~1/3 of the way down the upper arm, with no gap before
+the bicep belly starts) found that a shipped muscle-definition pass faded
+its deltoid out by ~21% and didn't pick the bicep up until ~52% - a real,
+nameable gap that pure self-iteration had missed across several rounds.
+A reference check up front, not after the fact, is the goal.
+
+This is a direct, standing user instruction ("i want you to use this
+workflow for general skill in character modeling and modeling in general,
+references are great") - apply it by default for new modeling work in
+this project, not only when asked.
+
 ## Establish the modeling target
 
 Before building, record:

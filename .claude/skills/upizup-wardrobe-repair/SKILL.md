@@ -76,6 +76,10 @@ Blender/FBX bugs are why this switch happened originally.
 
 ## Body-shape/muscle-definition work: compare against real reference
 
+This is the wardrobe-specific case of `upizup-blender-modeling`'s general
+"research real reference before modeling anything" rule - read that
+section for the full tool workflow; the wardrobe-specific detail follows.
+
 For anything that changes anatomy (shoulder slope, bicep/deltoid/chest
 bulges, body proportions in general - not garment cut), don't tune purely by
 iterating against the model's own renders in isolation. Look up real
