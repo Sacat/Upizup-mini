@@ -54,8 +54,11 @@ namespace UpIzUpMini.EditorTools
                     "12 mph wheelie tail contact ejects from rotational velocity");
                 Require(crash.ImpactThreshold(false, true) > crash.ImpactThreshold(false, false),
                     "wheelie collision threshold is not higher than normal riding");
+                // MINI-167: wheelieImpactMultiplier raised 1.15 -> 2.185
+                // (+90%, "90% harder to crash when wheelieing") - threshold
+                // is now ~94.6 m/s; test speed raised to match.
                 Require(crash.ShouldEjectForImpact(
-                        Vector3.forward * 55f, Vector3.back, 44f, false, true),
+                        Vector3.forward * 100f, Vector3.back, 95f, false, true),
                     "genuine high-speed wheelie wall collision cannot eject");
                 Require(crash.ShouldIgnoreGroundContact(Vector3.up), "ground bumps can eject riders");
                 Require(!crash.ShouldIgnoreGroundContact(Vector3.forward), "vertical wall is ignored");

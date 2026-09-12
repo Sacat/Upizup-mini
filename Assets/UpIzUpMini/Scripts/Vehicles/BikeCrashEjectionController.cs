@@ -23,7 +23,13 @@ namespace UpIzUpMini.Vehicles
         // and wheelie (1.15x) gates are both ratios of this same base, so
         // they scale with it automatically.
         [SerializeField] private float hardImpactSpeed = 43.31f;
-        [SerializeField] private float wheelieImpactMultiplier = 1.15f;
+        // MINI-167: "make it 90% harder to crash when wheelieing" - raised
+        // 1.15 -> 2.185 (+90%). Combined with hardImpactSpeed=43.31, the
+        // wheelie impact-speed gate is now ~94.6 m/s (340 km/h) - on top of
+        // the separate, already-strict linearSpeed>=hardImpactSpeed gate
+        // below (itself already above the TMAX's own top speed). Wheelie
+        // crashes from a wall hit are now extremely rare by design.
+        [SerializeField] private float wheelieImpactMultiplier = 2.185f;
         [SerializeField] private float mountGraceSeconds = 0.45f;
         [SerializeField] private float repeatCooldown = 2.5f;
 
