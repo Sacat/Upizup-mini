@@ -55,20 +55,24 @@ reserved_files:
 ### Current claim
 
 ```yaml
-current_owner: Claude
-active_task: MINI-167
+current_owner: None
+active_task: None
+released_task: MINI-166
 claimed_at: 2026-09-12
-scope_note: Vehicles - "the bikes crashes too easily still make it like 50% harder to crash". Raising BikeCrashEjectionController's hardImpactSpeed threshold (16.5 -> 24.75 m/s, +50%) so ejection requires a proportionally harder hit; NPC-hit and wheelie multipliers stay ratios of that same base so they scale with it automatically. Non-overlapping with Codex's concurrent MINI-166 wardrobe work below (different files entirely: Assets/UpIzUpMini/Scripts/Vehicles/* vs Character/Outfit*/UI/Scene) - parallel work per AGENTS.md, no scene/prefab/package touched.
+released_reason: User feedback - "your wardrobe and accessories building are poor". Inspected the actual Codex-repair evidence images (Logs/Tasks/MINI-166/Repair/*.png) before claiming a visual fix, per AGENTS.md. Confirmed a real bug, not a style complaint - the chest logo ("MIKE"/"LACOS") and cap brand text render horizontally mirrored ("MIKE" showed as "3XIM" when cropped/enlarged). Root cause: Mini166RepairAccessories.cs's shared Word() glyph-quad generator. First attempt (mirror the placement offset only) was incomplete - re-rendering caught that asymmetric glyphs (K/E) were still internally mirrored. Final fix feeds Word() a pre-mirrored source pattern (reversed character order + column-reversed glyph bits) instead of touching position/winding math, verified correct by re-rendering and re-cropping both characters' chest logos. Compile, Integrate (regenerate+save scene), Mini166RepairValidation.Run (actual Play Mode), and Windows build (420,366,933 bytes, unchanged size) all pass. Shoulder geometry (ShoulderForm) untouched - still awaiting the user's styling approval from the prior round. Also found, NOT fixed (separate, out of scope): the Lacos cap brim is oversized and droops over the eyes. See Docs/WorkPackets/MINI-166.md "Logo mirror fix" section for full evidence. MINI-167 (vehicles, committed 940cbb4) remains separate and untouched.
 reserved_files:
-  - Assets/UpIzUpMini/Scripts/Vehicles/BikeCrashEjectionController.cs
-  - Docs/Systems/Vehicles.md
+  - Assets/UpIzUpMini/Editor/Mini166RepairAccessories.cs
+  - Assets/UpIzUpMini/Art/Characters/Garments/Outfits166/
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Docs/WorkPackets/MINI-166.md
+  - Docs/Systems/Characters.md
   - Docs/CURRENT.md
   - PROJECT-HANDOFF.md
-  - CHANGELOG.md
-concurrent_claim_below: MINI-166 (Codex) individual outfits and shoulder revision completed and released; MINI-167 ownership above is unchanged.
+concurrent_claim_below: none active.
 ---
 current_owner: None
 active_task: None
+documentation_scope: Completed 2026-09-12: Docs/CLAUDE-WARDROBE-COMPLETE-HANDOFF-MINI-166.md consolidates tools, skills, implementation, workflow, commands and evidence; old pointer updated. No game edits/build. This documentation claim is released; Claude's top MINI-166 wordmark repair remains active.
 scope_followup: Completed 2026-09-12: distinct individual starting outfits and fuller shoulder/trapezius geometry; independent mesh/colour/save tests, motion and actual EXE proof pass. Build 420366933 bytes. User styling review remains. See Docs/WorkPackets/MINI-166.md revision section. No vehicle edits.
 completed_task: MINI-166
 completed_at: 2026-09-12

@@ -44,7 +44,19 @@ public static partial class Mini166Repair {
  }
  static void Word(Shape shape,string text,Vector3 origin,float height,int slot,int bone=-1){
   var glyphs=new Dictionary<char,string>{['M']="101111111101101",['I']="111010010010111",['K']="101101110101101",['E']="111100110100111",['L']="100100100100111",['A']="010101111101101",['C']="111100100100111",['O']="111101101101111",['S']="111100111001111"};float pixel=height/5;
-  for(int c=0;c<text.Length;c++){if(!glyphs.TryGetValue(text[c],out string glyph))continue;for(int row=0;row<5;row++)for(int col=0;col<3;col++){if(glyph[row*3+col]!='1')continue;var p=origin+new Vector3((c*4+col)*pixel,-row*pixel,0);shape.Quad(p,p+Vector3.down*pixel*.85f,p+new Vector3(pixel*.85f,-pixel*.85f,0),p+Vector3.right*pixel*.85f,slot,bone,true);}}
+  // MINI-166: "your wardrobe and accessories building are poor" - inspected
+  // the actual rendered evidence and found the chest/cap logo text was
+  // rendering as a horizontal mirror ("MIKE" -> "3XIM"). This quad strip
+  // faces the viewer front-on, so the original position/winding math
+  // (unchanged below) reads backwards on screen. Rather than touch that
+  // position/quad-winding code - which risks flipping face normals and
+  // culling the text entirely - feed it a pre-mirrored *source* picture:
+  // characters in reverse order and each glyph's bits reversed column-
+  // wise (col -> 2-col). Mirroring the source picture is exactly undone
+  // by the view's own mirror, restoring correct on-screen reading order.
+  // Verified by an actual re-render (not just compile), see
+  // Docs/WorkPackets/MINI-166.md.
+  for(int c=0;c<text.Length;c++){char ch=text[text.Length-1-c];if(!glyphs.TryGetValue(ch,out string glyph))continue;for(int row=0;row<5;row++)for(int col=0;col<3;col++){if(glyph[row*3+(2-col)]!='1')continue;var p=origin+new Vector3((c*4+col)*pixel,-row*pixel,0);shape.Quad(p,p+Vector3.down*pixel*.85f,p+new Vector3(pixel*.85f,-pixel*.85f,0),p+Vector3.right*pixel*.85f,slot,bone,true);}}
  }
 }
 }
