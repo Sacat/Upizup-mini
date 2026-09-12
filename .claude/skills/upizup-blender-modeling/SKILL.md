@@ -582,3 +582,65 @@ At completion report:
 Stop when the requested defect is resolved.
 Do not keep redesigning approved work merely because additional changes
 are possible.
+
+## Organic/consumer-product detail modeling - hard lessons (sneaker case study)
+
+A concept sneaker (a stylized Air Jordan 1 homage) took many rounds to get
+even structurally right, and never reached full parity with the real
+reference. These are the concrete, hard-won lessons - apply them BEFORE
+the next organic/branded/consumer-product attempt, not after the same
+mistakes repeat.
+
+1. **A checklist inspection beats a glance, every time.** "Looks roughly
+   shoe-shaped" let three genuinely broken results through in a row. Before
+   presenting ANY result being compared to a real reference, list the
+   reference's actual visible features one by one (for a shoe: toe cap
+   boundary shape, vamp/panel colours and where they actually sit, eyelet
+   count/spacing/line, lace crossing pattern, tongue, collar, heel, sole)
+   and check each one off against the candidate individually. A vague
+   "does this look right" pass is not an inspection.
+2. **Fixed angle/degree-range panel partitioning does not match real
+   product seams.** A real object's colour/material boundaries follow
+   actual seam CURVES (e.g. a lace throat that is narrow at the toe and
+   widens toward the collar), not arbitrary constant angle ranges per
+   row-band. Derive the boundary as a function of position along the
+   model (`boundary(row) -> angle`, or equivalent), matching what the
+   reference actually shows, instead of guessing static thresholds.
+3. **Subsurf requires ONE welded, multi-material mesh - not separate
+   objects glued at their edges.** Applying a Subdivision Surface modifier
+   to adjacent-but-separate mesh objects makes each one shrink toward its
+   own centre at the open boundary, visibly pulling the panels apart. Build
+   one shared vertex grid, assign `face.material_index` per region, and
+   put the modifier on that single object.
+4. **For a swept/lofted mesh, verify which axis is "length" before placing
+   the camera.** A camera aimed down the model's own length axis produces
+   a nonsensical cone/tunnel view that can look catastrophically broken
+   even when the underlying geometry is structurally fine - check the
+   parametrization (which trig term drives which axis) before assuming the
+   camera bug is a modeling bug, and vice versa.
+5. **Small discrete detail objects (eyelets, rivets, buttons, laces)
+   placed by procedural math without interactive visual placement are a
+   real, repeatable failure mode.** Verify analytically that consecutive
+   placement points are genuinely separated (e.g., print/compute the actual
+   angular or spatial gap the formula produces) before rendering - a
+   formula that returns the same or a near-zero value for several inputs
+   (like a clamped boundary function returning 0 for multiple early rows)
+   will silently cluster objects on top of each other.
+6. **If a detail has failed three real attempts, remove it rather than
+   ship a fourth broken version.** A clean model without laces is a more
+   honest and more useful result than a model with a tangled mess where
+   laces should be. State plainly what was removed and why.
+7. **A persistent rendering artifact that survives multiple targeted fix
+   attempts should be reported as unresolved, not hidden by cropping
+   around it in a comparison image.** Cropping a known defect out of what
+   you show the user is not the same as fixing it, and reads as concealment
+   once noticed.
+8. **Procedural headless scripting has a real ceiling for this asset
+   class.** Professional shoe/organic-product modeling relies on
+   interactive sculpting, boolean panel cutting with visual feedback, and
+   tracing over a reference image plane by eye - none of which a batch
+   Blender script can do. Structural/proportional/colour-block correctness
+   is achievable this way; fine surface detail (stitching, discrete
+   hardware, precise seam tracing) is a genuine capability gap, not a
+   coefficient to keep tuning. Say so explicitly rather than imply the gap
+   will close with more iteration.
