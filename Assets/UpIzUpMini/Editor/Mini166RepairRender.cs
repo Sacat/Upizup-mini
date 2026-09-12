@@ -9,6 +9,51 @@ using UpIzUpMini.Character;
 namespace UpIzUpMini.EditorTools {
 public static partial class Mini166Repair {
  public static void ShoulderBaseline(){UnityEditor.SceneManagement.EditorSceneManager.OpenScene(Scene);RenderAll();Debug.Log("MINI166_SHOULDER_BASELINE_PASS");EditorApplication.Exit(0);}
+ // User: "compare them with the orgininal characters of the game". Opens the
+ // immutable backup taken before ANY MINI-166 wardrobe/body work ever ran
+ // (captured by the very first Produce() call) and renders Franki/Sacat
+ // exactly as they originally shipped - no OutfitWardrobe selection calls
+ // (that system didn't exist yet in this scene), no scene save. Read-only:
+ // switches the Editor's open scene in memory only, never writes back to
+ // either this backup file or the live GrandBayProof.unity.
+ public static void OriginalBaseline(){
+  // EditorSceneManager.OpenScene only accepts a scene that is a recognized
+  // project asset (under Assets/), not an arbitrary file under Logs/. Copy
+  // the immutable backup into a temporary Assets-relative path, open THAT,
+  // then delete the temp copy afterward - the original backup file and the
+  // live scene are both left untouched throughout.
+  const string temp="Assets/UpIzUpMini/Scenes/_TempOriginalBaseline.unity";
+  try{
+   File.Copy(Out+"/GrandBayProof-before.unity",temp,true);
+   AssetDatabase.Refresh();
+   UnityEditor.SceneManagement.EditorSceneManager.OpenScene(temp);
+   RenderSettings.fog=false;RenderSettings.ambientMode=UnityEngine.Rendering.AmbientMode.Flat;RenderSettings.ambientLight=new Color(.55f,.55f,.55f);
+   foreach(var light in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None))light.enabled=false;
+   var key=new GameObject("Proof Key").AddComponent<Light>();key.type=LightType.Directional;key.intensity=.85f;key.transform.rotation=Quaternion.Euler(35,-35,0);key.cullingMask=1<<31;
+   var fill=new GameObject("Proof Fill").AddComponent<Light>();fill.type=LightType.Directional;fill.intensity=.3f;fill.transform.rotation=Quaternion.Euler(25,150,0);fill.cullingMask=1<<31;
+   var camera=new GameObject("Proof Camera").AddComponent<Camera>();camera.cullingMask=1<<31;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.23f,.26f,.29f);camera.orthographic=true;camera.orthographicSize=.96f;camera.nearClipPlane=.01f;camera.farClipPlane=15;
+   foreach(string who in new[]{"Franki","Sacat"}){
+    var root=GameObject.Find(who);
+    if(root==null){Debug.LogWarning("MINI166_ORIGINAL_BASELINE_MISSING:"+who);continue;}
+    root.SetActive(true);var originalPos=root.transform.position;var originalRot=root.transform.rotation;root.transform.SetPositionAndRotation(new Vector3(0,300,0),Quaternion.identity);
+    foreach(var r in root.GetComponentsInChildren<Renderer>(true))r.gameObject.layer=31;
+    var animator=root.GetComponentInChildren<Animator>(true);
+    if(animator!=null){animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;animator.Rebind();animator.Update(0f);}
+    Capture(camera,root,new Vector3(0,.9f,4),new Vector3(0,.9f,0),who+"-OriginalBaseline-Front");
+    Capture(camera,root,new Vector3(3,.9f,2),new Vector3(0,.9f,0),who+"-OriginalBaseline-Side");
+    root.transform.SetPositionAndRotation(originalPos,originalRot);foreach(var r in root.GetComponentsInChildren<Renderer>(true))r.gameObject.layer=0;
+   }
+   Debug.Log("MINI166_ORIGINAL_BASELINE_PASS");
+  }catch(Exception e){
+   Debug.LogException(e);
+   if(File.Exists(temp)){AssetDatabase.DeleteAsset(temp);}
+   EditorApplication.Exit(1);return;
+  }
+  // Always remove the temp scene asset - this tool must not leave a stray
+  // file in Assets/ regardless of success.
+  if(File.Exists(temp)){AssetDatabase.DeleteAsset(temp);}
+  EditorApplication.Exit(0);
+ }
  static void RenderAll(){
   RenderSettings.fog=false;RenderSettings.ambientMode=UnityEngine.Rendering.AmbientMode.Flat;RenderSettings.ambientLight=new Color(.55f,.55f,.55f);
   foreach(var light in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None))light.enabled=false;

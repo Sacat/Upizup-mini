@@ -1,5 +1,11 @@
 # MINI-166 — Fitted selectable outfits
 
+## Original-baseline comparison tool (Claude), 2026-09-12
+
+User: "compare them with the orgininal characters of the game". Added `Mini166Repair.OriginalBaseline` to `Mini166RepairRender.cs` - opens the immutable pre-MINI-166 scene backup (`Logs/Tasks/MINI-166/Repair/GrandBayProof-before.unity`, captured before any wardrobe/body work ever ran) via a temporary Assets-relative copy (Unity's `EditorSceneManager.OpenScene` requires an asset path; the temp copy is deleted immediately after, in both the success and exception paths), renders Franki/Sacat exactly as they originally shipped, and never saves either the backup or the live scene. Read-only tooling, no gameplay/wardrobe/body code changed.
+
+Produced `Franki-OriginalBaseline-Front.png` / `Sacat-OriginalBaseline-Front.png`, compared side-by-side against the current build. Findings reported to the user: original torso is a straight-taper silhouette with no shoulder/arm shaping (the muscle-definition work's actual delta); other differences visible (tighter original tee cut, different pants/shoes, Franki's original bald-cap-like hair texture) predate this session's work and are unrelated to the muscle-definition change specifically.
+
 ## Anatomy reference gap close (Claude), 2026-09-12
 
 User: "close that gap you found now and make the rest of the adjustments you found, you can even do this for the entire characters' bodies (main characters)" - direct follow-up to the reference-research finding (see `character-shape-reference-comparison` memory / the `upizup-blender-modeling` skill's reference-research section) that real anatomy has the deltoid inserting ~1/3 down the upper arm with NO gap before the bicep belly starts, while the shipped `DeltoidForm`/`BicepForm` left a flat, undefined stretch from ~t=.24 to ~t=.52 along the shoulder-elbow segment.

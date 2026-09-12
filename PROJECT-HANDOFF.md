@@ -61,14 +61,11 @@ current_owner: None
 active_task: None
 released_task: MINI-166
 claimed_at: 2026-09-12
-released_reason: User - "close that gap you found now and make the rest of the adjustments you found, you can even do this for the entire characters' bodies (main characters)". Closed the researched deltoid-to-bicep gap (Proko/Artists Network: real deltoid inserts ~1/3 down the upper arm with no gap before the bicep belly) by widening only BicepForm's rising/inner side (asymmetric sigma, peak unchanged at t=.52 on exposed skin) to meet DeltoidForm's already-approved tail, rather than re-tuning the approved deltoid shape. Verified by re-render: continuous shoulder-to-bicep silhouette, no reintroduced fabric-ballooning. Also researched chest/pec anatomy for a comparable gap - none found, ChestForm left untouched rather than inventing an unresearched change. Legs/pants not researched this round, untouched. Compile, Integrate, Mini166RepairValidation.Run (actual Play Mode), Mini166Repair.Motion (432 frames), and Windows build (420,400,325 bytes) all pass. See Docs/WorkPackets/MINI-166.md "Anatomy reference gap close" section.
+released_reason: User - "compare them with the orgininal characters of the game". Added a read-only render tool (Mini166Repair.OriginalBaseline) that opens the immutable pre-MINI-166 scene backup via a temporary Assets-relative copy (deleted after, success or failure) and renders Franki/Sacat exactly as they originally shipped - no scene save, live scene/assets untouched. Compared against the current build and reported findings to the user. See Docs/WorkPackets/MINI-166.md "Original-baseline comparison tool" section.
 reserved_files:
-  - Assets/UpIzUpMini/Editor/Mini166RepairClothes.cs
-  - Assets/UpIzUpMini/Art/Characters/Garments/Outfits166/
-  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Assets/UpIzUpMini/Editor/Mini166RepairRender.cs
   - Docs/WorkPackets/MINI-166.md
   - Docs/Systems/Characters.md
-  - Docs/CURRENT.md
   - PROJECT-HANDOFF.md
 concurrent_claim_below: none active.
 ---

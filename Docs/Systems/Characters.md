@@ -1,3 +1,7 @@
+## MINI-166 — original-baseline comparison tool (Claude, 2026-09-12)
+
+User: "compare them with the orgininal characters of the game". Added `Mini166Repair.OriginalBaseline` - opens the immutable pre-MINI-166 scene backup via a temp Assets-relative copy (cleaned up after, success or failure), renders Franki/Sacat as originally shipped, never saves anything. Confirmed the muscle-definition work's real delta: original torso/arms are a straight taper with no shape change; current build adds a modest, confirmed-subtle shoulder/arm shaping. Read-only tooling. See `Docs/WorkPackets/MINI-166.md`.
+
 ## MINI-166 — anatomy reference gap close (Claude, 2026-09-12)
 
 User: "close that gap you found now... you can even do this for the entire characters' bodies." Real anatomy (Proko/Artists Network) has the deltoid inserting ~1/3 down the upper arm with no gap before the bicep belly starts; the shipped shapes left a flat stretch between them. Closed it by widening only the rising/inner side of `BicepForm`'s curve to meet `DeltoidForm`'s tail, keeping the peak on exposed skin (avoids re-triggering the earlier fabric-ballooning bug) and leaving the already-approved deltoid shape untouched. Also checked pec/chest anatomy for a comparable gap - none found, `ChestForm` left as-is. Compile, Integrate, Play Mode validator, Motion and Windows build (420,400,325 bytes) all pass. See `Docs/WorkPackets/MINI-166.md` "Anatomy reference gap close" section.
