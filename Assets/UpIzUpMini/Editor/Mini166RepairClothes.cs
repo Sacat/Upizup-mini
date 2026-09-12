@@ -126,6 +126,80 @@ public static partial class Mini166Repair {
   p.y+=shoulder*(.005f+.016f*traps);
   p.z+=(p.z-neck.z)*shoulder*.12f;
   p.x+=Mathf.Sign(p.x)*shoulder*.006f*(1-traps);
+  p=DeltoidForm(p,s);
+  p=BicepForm(p,s);
+  p=ChestForm(p,s,neck);
+  return p;
+ }
+ // User: "the shoulders and still too straight" - the trapezius slope above
+ // handles the NECK-to-shoulder transition (small x, near the spine); the
+ // sleeve cap itself (outer shoulder, at the arm bone's own root, t near 0
+ // along the shoulder-elbow segment) was still a straight cone down to the
+ // sleeve hem with no deltoid roundness. Peaks early (t=.08) and fades out
+ // well before BicepForm's peak (t=.52) so the two don't overlap/compound.
+ static Vector3 DeltoidForm(Vector3 p,Surface s){
+  var shoulder=s.Rest("LeftArm");var elbow=s.Rest("LeftForeArm");
+  float x=Mathf.Abs(p.x);float x0=Mathf.Abs(shoulder.x),x1=Mathf.Abs(elbow.x);
+  if(Mathf.Abs(x1-x0)<.001f)return p;
+  float t=Mathf.InverseLerp(x0,x1,x);
+  if(t<-.1f||t>.5f)return p;
+  // User: "drop the edges of the shoulders some more, like the round parts
+  // towards the end, leave the other parts up" - the inner side (toward the
+  // neck/shoulder point, t<.08) keeps its original wide falloff; the outer
+  // side (toward the elbow, t>.08 - the round "end" of the cap) decays
+  // faster so that part sits lower, without touching the peak itself.
+  float sigma=t<.08f?.11f:.065f;
+  float belly=Mathf.Exp(-Mathf.Pow((t-.08f)/sigma,2));
+  float taper=Mathf.SmoothStep(0,1,Mathf.InverseLerp(-.08f,.02f,t));
+  float bulge=belly*taper;
+  p.y+=bulge*.016f;
+  p.x+=Mathf.Sign(p.x)*bulge*.014f;
+  p.z+=bulge*.012f;
+  return p;
+ }
+ // MINI-166: "i want to make the characters look more muscular" / "just a
+ // little more defined and muscular". Subtle bicep bulge on the exposed
+ // short-sleeve arm skin - centred about a third of the way from shoulder
+ // to elbow (the visual peak of a flexed/built bicep), tapered to zero at
+ // both the shoulder seam and the elbow so it blends into unmoved geometry
+ // rather than creating a visible seam. Deliberately small: the shoulder
+ // round's own history (an initial steep trap lift was rejected) is the
+ // reason to start conservative here too.
+ static Vector3 BicepForm(Vector3 p,Surface s){
+  var shoulder=s.Rest("LeftArm");var elbow=s.Rest("LeftForeArm");
+  float sign=Mathf.Sign(p.x);float x=Mathf.Abs(p.x);
+  float x0=Mathf.Abs(shoulder.x),x1=Mathf.Abs(elbow.x);
+  if(Mathf.Abs(x1-x0)<.001f)return p;
+  float t=Mathf.InverseLerp(x0,x1,x);
+  if(t<-.1f||t>1.1f)return p;
+  // Peak at t=.52 (just past the ~.46 sleeve hem, on EXPOSED skin) with a
+  // tight spread - an earlier attempt centred at t=.32 sat entirely under
+  // the sleeve fabric and, at any magnitude large enough to see, ballooned
+  // the whole cap sleeve into a sphere instead of defining the arm.
+  // Confirmed by an exaggerated diagnostic render before settling here.
+  float belly=Mathf.Exp(-Mathf.Pow((t-.52f)/.12f,2));
+  float taper=Mathf.SmoothStep(0,1,Mathf.InverseLerp(-.05f,.08f,t))*(1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.88f,1.05f,t)));
+  float bulge=belly*taper;
+  // More mass on top/front (biceps proper) than underneath (triceps get a
+  // smaller share) for a rounder, slightly flexed silhouette.
+  float upFront=p.y>shoulder.y?1f:.6f;
+  p.y+=bulge*.028f*upFront;
+  p.z+=bulge*.024f;
+  return p;
+ }
+ // Subtle pec/chest fullness under the shirt fabric - two shallow lobes
+ // either side of the sternum line, well below the collar and above the
+ // stomach, so it does not interact with the collar/neckline geometry.
+ static Vector3 ChestForm(Vector3 p,Surface s,Vector3 neck){
+  // First pass at .6 magnitude / neck.y-.10 centre (confirmed reachable by
+  // an exaggerated diagnostic render) produced two round, high, breast-like
+  // lobes near the collarbone - wrong shape and too high. Moved the centre
+  // lower/wider (flatter pec, not a sphere) and cut magnitude by ~85%.
+  float x=Mathf.Abs(p.x);
+  float lobe=Mathf.Exp(-Mathf.Pow((x-.08f)/.06f,2));
+  float height=Mathf.Exp(-Mathf.Pow((p.y-(neck.y-.135f))/.075f,2));
+  float chest=lobe*height;
+  p.z+=(p.z-neck.z)*chest*.09f;
   return p;
  }
  static float Front(Surface s,float x,float y){var nearby=s.vertices.Where(v=>Mathf.Abs(v.p.x-x)<.028f&&Mathf.Abs(v.p.y-y)<.035f).ToArray();return nearby.Length>0?nearby.Max(v=>v.p.z):.12f;}

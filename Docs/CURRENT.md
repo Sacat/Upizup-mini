@@ -1,3 +1,7 @@
+## MINI-166 — muscle definition (Claude, 2026-09-12)
+
+User: "i want to make the characters look more muscular", confirmed subtle over exaggerated, then "the shoulders and still too straight" (rounded the deltoid/sleeve cap, asymmetric so only the outer edge dropped, per follow-up). Added deltoid/bicep/chest procedural displacement to both characters' shirts. Compile, Integrate, Play Mode validator, Motion and Windows build (420,400,501 bytes) all pass. Details: `Docs/WorkPackets/MINI-166.md` "Muscle definition" section.
+
 ## MINI-166 — cap brim size fix (Claude, 2026-09-12)
 
 User request: "fix the cap brim size". Reduced the Lacos cap bill's forward projection, droop and edge-lift curvature; side profile no longer reaches the nose, front view improved to brow/eye height. Compile, Integrate, Play Mode validator and Windows build (420,366,933 bytes) all pass. Details: `Docs/WorkPackets/MINI-166.md` "Cap brim size fix" section.
