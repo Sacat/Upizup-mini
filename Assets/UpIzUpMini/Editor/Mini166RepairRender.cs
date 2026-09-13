@@ -77,7 +77,12 @@ public static partial class Mini166Repair {
    wardrobe.Select("pants_shorts_denim",5);wardrobe.Select("hat_none",4);wardrobe.Select("shirt_tee_mike",1);
    Capture(camera,root,new Vector3(0,.9f,4),new Vector3(0,.9f,0),who+"-Shorts-Front");
    Capture(camera,root,new Vector3(0,.9f,-4),new Vector3(0,.9f,0),who+"-Shorts-Back");
-   camera.orthographicSize=.26f;Capture(camera,root,new Vector3(2,.2f,2),new Vector3(0,.15f,0),who+"-Mike97-Feet");wardrobe.Select("shoes_mike90",2);Capture(camera,root,new Vector3(2,.2f,2),new Vector3(0,.15f,0),who+"-Mike90-Feet");camera.orthographicSize=.96f;
+   camera.orthographicSize=.26f;Capture(camera,root,new Vector3(2,.2f,2),new Vector3(0,.15f,0),who+"-Mike97-Feet");wardrobe.Select("shoes_mike90",2);Capture(camera,root,new Vector3(2,.2f,2),new Vector3(0,.15f,0),who+"-Mike90-Feet");wardrobe.Select("shoes_mike270",2);Capture(camera,root,new Vector3(2,.2f,2),new Vector3(0,.15f,0),who+"-Mike270-Feet");
+   // Wider full-profile side elevation (not just the ankle close-up) -
+   // needed to actually verify the toe/heel rounding fix on the real
+   // in-game mesh, not just assume the ported formula worked. Same proven
+   // offset/target direction as the feet close-up above, just pulled back.
+   camera.orthographicSize=.5f;Capture(camera,root,new Vector3(2,.2f,2),new Vector3(0,.15f,0),who+"-Mike270-SideProfile");camera.orthographicSize=.96f;
    graph.Destroy();root.transform.SetPositionAndRotation(originalPos,originalRot);foreach(var r in root.GetComponentsInChildren<Renderer>(true))r.gameObject.layer=0;
   }
  }

@@ -1,5 +1,17 @@
 # MINI-166 — Fitted selectable outfits
 
+## Mike 270 shoe + rounded toe/heel fix for all three shoe designs (Claude), 2026-09-13
+
+User: "integrate Mike270 into the wardrobe too", then (after being told the shipped Mike90/97 are real distinct ring-sweep geometry via `Shoes(Surface,bool)` in `Mini166RepairAccessories.cs`, not a flat recolor as first assumed, and asked to pick fast-recolor vs. real-geometry-fitting) chose "match existing precedent" - which turned out to mean extending that SAME already-shipped generator, not a new recolor path. Then: "can you get the 90 and 97 and add them in as well?" - apply the same fix to the existing designs too, not just the new one.
+
+`Shoes(Surface,bool wave)` became `Shoes(Surface,int mode)` (0=Mike90, 1=Mike97, 2=Mike270 new), keeping a `bool` overload for source compatibility. Mike270 keeps 90's simpler wing-panel upper but gets one oversized single-piece heel Air window (no internal rib tubes) and a taller heel wedge, matching the concept `Tools/ArtPreview/mike_airmax_style_shoes.py` explored earlier this session.
+
+Real bug ported and fixed across ALL THREE designs at once, since they share one `Ring()` function: the same plain-ellipse toe/heel pinch diagnosed and fixed in the Blender concept pass (a `Sin(a)`/`Cos(a)` cross-section pinches to a sharp point at the parameter extremes - a canoe bow/stern, not a rounded shoe last) was present in the shipped in-game generator too. Fixed with the same superellipse exponent technique (mild at the toe, blunt at the heel) confirmed working in the concept pass - one function change, all three shoe designs benefit.
+
+`Mini166RepairValidation.cs`'s piece-count check updated 9->10 designs; added a Mike270-vs-Mike90 distinct-geometry check alongside the existing 90-vs-97 one. `Mini166RepairRender.cs`'s `RenderAll()` gained a Mike270 feet close-up plus a new wider full-profile side-elevation capture (the existing captures were tight ankle close-ups, not enough to actually verify a toe/heel taper fix).
+
+Verified: compile clean, `Mini166Repair.Preview` produced real renders (`Franki`/`Sacat`-`Mike270`-`Feet`/`SideProfile`.png under `Logs/Tasks/MINI-166/Repair/` - NOT `Logs/Tasks/MINI-166/` directly, a real path mix-up caught mid-session by checking file timestamps rather than assuming the new renders existed) showing the rounded toe/heel on both characters, `Mini166Repair.Integrate` saved cleanly, full `Mini166RepairValidation` Play Mode pass (`MINI166_REPAIR_TEST_PASS`), Windows build succeeded (421,412,021 bytes).
+
 ## Lacos Cap back strap + eyelets (Claude), 2026-09-13
 
 User: "build the NY hat's back strap and eyelets into the in-game wardrobe" - carrying the shape language from the concept "DA" snapback cap (`Tools/ArtPreview/da_snapback_cap_preview.py`, Blender concept only, never itself integrated) into the shipped `hat_lacos` piece's real Unity geometry.

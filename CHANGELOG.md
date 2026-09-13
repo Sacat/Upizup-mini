@@ -1,3 +1,7 @@
+## MINI-166 Mike 270 shoe + rounded toe/heel fix — 2026-09-13
+
+Added Mike 270 as a third selectable Shoes design (one oversized heel Air window), extending the existing in-game shoe generator. Also fixed a real toe/heel pinch-to-a-point bug shared by all three shoe designs (Mike90/97/270), ported from this session's Blender concept work. Compile clean, Integrate saved, full Play Mode wardrobe regression passed, Windows build succeeded (421,412,021 bytes). See Docs/WorkPackets/MINI-166.md "Mike 270 shoe + rounded toe/heel fix" section.
+
 ## MINI-166 Lacos Cap back strap + eyelets — 2026-09-13
 
 Added a real back adjustment strap (with two snap details) and four side eyelets to the shipped in-game Lacos Cap, carrying over the shape language from a concept "DA" snapback cap render. Pure C# combined geometry, no Blender/FBX round trip. Compile clean, Integrate saved, full Play Mode wardrobe regression passed, Windows build succeeded (419,987,381 bytes). See Docs/WorkPackets/MINI-166.md "Lacos Cap back strap + eyelets" section.

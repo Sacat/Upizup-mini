@@ -193,3 +193,54 @@ Report at completion:
 Stop when the requested defect is resolved or the real capability ceiling
 is reached and stated. Do not keep redesigning an already-correct
 silhouette merely because more changes are possible.
+
+## CONFIRMED FIX for low-top running shoes: station-table profile, not an ellipse
+
+After the Air Max 90 attempt above was dropped (rated 1/100, "a boat
+hull"), a second attempt using the corrected technique below succeeded -
+Mike90, Mike97 and a new Mike270 concept all read as real, correctly-
+proportioned running shoes on first full render. Root cause and fix,
+confirmed by direct comparison (own code both times, only this one
+change):
+
+- **The actual bug**: `Ring(a,...)` used `sin(a)`/`cos(a)` directly to
+  build BOTH the horizontal cross-section AND the longitudinal length at
+  every angle - a plain ellipse. An ellipse parametrized this way pinches
+  to a mathematically sharp POINT at its two axis extremes (a=0, a=pi) -
+  exactly a canoe bow/stern, not a rounded shoe toe/heel - and keeps an
+  IDENTICAL plan-view proportion at every height since only one `scale`
+  factor varies per row. Tuning the collar-height curve, the toe-spring,
+  or the camera did nothing for this, because none of those touch the
+  base cross-section shape.
+- **The fix**: build the shoe from an explicit STATION TABLE - a list of
+  `(x_mm, value_mm)` control points sampled along the shoe's length for
+  both width and top-height, interpolated with a smooth spline (Catmull-
+  Rom/Hermite, not linear) via an `interp(x, POINTS)` helper. Past the
+  last real station, switch to an elliptic END-CAP function
+  (`width_end*sqrt(max(0,1-((x-last)/radius)**2))`) so the toe/heel
+  rounds off smoothly instead of pinching to zero. This is real reference
+  tracing (a per-station "ruler" measurement down the shoe), not a
+  closed-form shape formula - treat it the same as a Bezier profile curve
+  read off a reference photo.
+- **Also required**: explicit closed END CAPS (a small fan of triangles
+  at the very heel and toe tips) - a bare swept tube's ends are open
+  rings, not solid last tips, and this stayed wrong through several
+  earlier tuning passes without being the thing actually fixed.
+- **Air cavity**: cut a real cavity into the midsole with a Boolean
+  DIFFERENCE modifier (`solver='EXACT'`) against a temporary cutter cube,
+  then model the visible Air bladder as its own transparent mesh sitting
+  in that real cavity - not a coloured inset disc glued to the surface.
+  This is what makes the Air window read as a genuine recess with depth
+  from every angle, including Top/Front, not just the Side hero shot.
+- **Panels stay separate, on the shared surface**: mudguard, toe overlay,
+  ripple bands etc. are each their own `patch()` call sampling the SAME
+  `surf(x, angle, side, offset)` function the main upper uses (with a
+  small outward `offset`) - keeps them flush and prevents the "parallel
+  offset stripes on one hull" look from the failed attempt.
+
+See `Tools/ArtPreview/mike_airmax_style_shoes.py` for the working
+implementation (own code; informed by, but not copied from, a parallel
+reference delivery that used the same class of technique - see
+[[air-max-90-concept-dropped]] memory for that history). Reuse this
+station-table technique for any future low-top running-shoe silhouette
+instead of falling back to the ellipse.

@@ -1,3 +1,7 @@
+## MINI-166 — Mike 270 shoe + rounded toe/heel fix for all shoe designs (Claude, 2026-09-13)
+
+User: "integrate Mike270 into the wardrobe too" then "can you get the 90 and 97 and add them in as well?". Added Mike270 as a third Shoes-slot design (extending the already-shipped `Shoes(Surface,int mode)` generator) and fixed a real toe/heel-pinch bug in the shared `Ring()` function used by all three shoe designs, ported from this session's Blender concept work. Compile clean, Integrate saved, `Mini166RepairValidation` Play Mode pass, Windows build succeeded (421,412,021 bytes). Details: `Docs/WorkPackets/MINI-166.md`.
+
 ## MINI-166 — Lacos Cap back strap + eyelets (Claude, 2026-09-13)
 
 User: "build the NY hat's back strap and eyelets into the in-game wardrobe". Real Unity geometry (4 eyelets, a back strap, 2 snaps) added directly into the shipped Lacos Cap's combined mesh in `Mini166IntegrateHat.cs`, carrying over the shape language from the concept "DA" snapback cap. Compile clean, Integrate saved, `Mini166RepairValidation` Play Mode regression passed, Windows build succeeded (419,987,381 bytes). Details: `Docs/WorkPackets/MINI-166.md`.

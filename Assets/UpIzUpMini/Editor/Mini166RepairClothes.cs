@@ -69,8 +69,9 @@ public static partial class Mini166Repair {
   Piece("hat_lacos","Lacos Curved Cap",OutfitSlot.Hat,Cap(head),new[]{fabric,Matte("CapSeams",new Color(.17f,.19f,.18f)),detail,trim},new[]{0});
   bindings.Add(new OutfitBinding{slot=OutfitSlot.Shoes,renderer=Bind(root,"WardrobeShoes",shoes)});
   var shoeMats=new[]{Matte("ShoeUpper",Color.white,.14f),Matte("Sole",new Color(.8f,.8f,.76f)),Matte("Rubber",new Color(.035f,.04f,.044f)),Matte("ShoeAccent",new Color(.55f,.035f,.04f),.2f),Matte("Laces",new Color(.78f,.79f,.77f))};
-  Piece("shoes_mike90","Mike 90",OutfitSlot.Shoes,Shoes(shoes,false),shoeMats,new[]{0});
-  Piece("shoes_mike97","Mike 97",OutfitSlot.Shoes,Shoes(shoes,true),shoeMats,new[]{0});
+  Piece("shoes_mike90","Mike 90",OutfitSlot.Shoes,Shoes(shoes,0),shoeMats,new[]{0});
+  Piece("shoes_mike97","Mike 97",OutfitSlot.Shoes,Shoes(shoes,1),shoeMats,new[]{0});
+  Piece("shoes_mike270","Mike 270",OutfitSlot.Shoes,Shoes(shoes,2),shoeMats,new[]{0});
   w.pieces=pieces.ToArray();w.bindings=bindings.ToArray();w.defaults=sacat
    ?new[]{new OutfitChoice{itemId="shirt_polo_lacos",colour=4},new OutfitChoice{itemId="pants_trousers",colour=2},new OutfitChoice{itemId="hat_none",colour=2},new OutfitChoice{itemId="shoes_mike97",colour=1}}
    :new[]{new OutfitChoice{itemId="shirt_tee_mike",colour=0},new OutfitChoice{itemId="pants_jeans",colour=5},new OutfitChoice{itemId="hat_none",colour=2},new OutfitChoice{itemId="shoes_mike90",colour=2}};w.Restore(null);EditorUtility.SetDirty(w);

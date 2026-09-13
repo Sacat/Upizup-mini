@@ -21,21 +21,41 @@ public static partial class Mini166Repair {
   Word(result,"LACOS",new Vector3(-.022f,bottom+.026f,cz+rz*.96f+.003f),.007f,2,head);
   return result;
  }
- static Shape Shoes(Surface s,bool wave){
+ static Shape Shoes(Surface s,bool wave)=>Shoes(s,wave?1:0);
+ static Shape Shoes(Surface s,int mode){
+  // mode 0=Mike90 (heel-only Air window, diagonal wing side panel),
+  // 1=Mike97 (full-length Air window, wave ribs), 2=Mike270 NEW (station-
+  // table lesson from the concept pass reused here: the 270's whole
+  // identity is one oversized heel Air unit, so it keeps 90's simpler
+  // wing-panel upper but gets a much taller/wider single window with no
+  // internal rib tubes, plus a taller heel wedge - see
+  // Tools/ArtPreview/mike_airmax_style_shoes.py for the concept this
+  // matches; this is a separate, from-scratch parametrization of the
+  // SAME already-shipped Shoes() technique, not new risk.
+  bool wave=mode==1;bool big=mode==2;
   var result=new Shape(s,5);
   foreach(int sign in new[]{-1,1}){
    string side=sign<0?"Left":"Right";Vector3 foot=s.Rest(side+"Foot"),toe=s.Rest(side+"ToeBase");int bone=s.Bone(side+"Foot");
    float cx=(foot.x+toe.x)/2,cz=(foot.z+toe.z)/2+.008f;float length=Mathf.Max(.14f,(toe.z-foot.z)*.5f+.075f);float width=wave?.064f:.069f;float ground=.003f;
-   Vector3 Ring(float a,float y,float scale){float z=Mathf.Cos(a);float w=width*(z>0?1:.79f);return new Vector3(cx+Mathf.Sin(a)*w*scale,ground+y,cz+z*length*scale);}
-   float[] ys=wave?new[]{0f,.012f,.023f,.046f,.061f}:new[]{0f,.013f,.022f,.048f,.061f};float[] scales={.95f,1.025f,1.035f,1.02f,.96f};
+   // ROUNDED per the concept-pass lesson (Tools/ArtPreview/mike_airmax_style_shoes.py):
+   // a plain Sin(a)/Cos(a) ellipse pinches to a sharp point at the toe/heel
+   // parameter extremes - a canoe bow/stern, not a shoe last. A superellipse
+   // exponent (mild at the toe, blunt at the heel) keeps the toe genuinely
+   // tapered while rounding the heel off instead of pinching it - applies to
+   // all three modes since they share this one Ring() function.
+   Vector3 Ring(float a,float y,float scale){float z=Mathf.Cos(a),s=Mathf.Sin(a);float w=width*(z>0?1:.79f);float p=z>=0?2.3f:5.5f;float sx=Mathf.Sign(s)*Mathf.Pow(Mathf.Abs(s),2f/p);float sz=Mathf.Sign(z)*Mathf.Pow(Mathf.Abs(z),2f/p);return new Vector3(cx+sx*w*scale,ground+y,cz+sz*length*scale);}
+   float[] ys=big?new[]{0f,.016f,.030f,.055f,.068f}:(wave?new[]{0f,.012f,.023f,.046f,.061f}:new[]{0f,.013f,.022f,.048f,.061f});float[] scales={.95f,1.025f,1.035f,1.02f,.96f};
    for(int row=0;row<4;row++)for(int i=0;i<28;i++){float a=i*Mathf.PI/14,b=(i+1)*Mathf.PI/14;int slot=row==0?2:1;result.Quad(Ring(a,ys[row],scales[row]),Ring(b,ys[row],scales[row]),Ring(b,ys[row+1],scales[row+1]),Ring(a,ys[row+1],scales[row+1]),slot,bone,true);}
-   Vector3 Upper(float a,float t){float z=Mathf.Cos(a),baseHeight=.061f;float height=Mathf.Lerp(.06f,.103f,(1-z)*.5f);float taper=Mathf.Cos(t*Mathf.PI/2);Vector3 p=Ring(a,baseHeight+height*Mathf.Sin(t*Mathf.PI/2),.96f*taper);p.z+=.006f*t;return p;}
+   Vector3 Upper(float a,float t){float z=Mathf.Cos(a),baseHeight=ys[4];float height=Mathf.Lerp(.06f,.103f,(1-z)*.5f);float taper=Mathf.Cos(t*Mathf.PI/2);Vector3 p=Ring(a,baseHeight+height*Mathf.Sin(t*Mathf.PI/2),.96f*taper);p.z+=.006f*t;return p;}
    for(int row=0;row<7;row++)for(int i=0;i<28;i++){float a=i*Mathf.PI/14,b=(i+1)*Mathf.PI/14;float t=row/7f,u=(row+1)/7f;result.Quad(Upper(a,t),Upper(b,t),Upper(b,u),Upper(a,u),0,bone,true);}
-   // Air window: full-length on 97, heel-only on 90, inset beneath sole trim.
+   // Air window: full-length on 97, heel-only on 90, one oversized heel
+   // bubble on 270 (taller/wider, no internal ribs - a real recess is a
+   // bigger lift here than more surface detail).
    for(int sideSign=-1;sideSign<=1;sideSign+=2){
-    float z0=cz-length*.7f,z1=cz+length*(wave?.68f:-.15f),x=cx+sideSign*width*.97f;
-    result.Quad(new Vector3(x,ground+.023f,z0),new Vector3(x,ground+.023f,z1),new Vector3(x,ground+.043f,z1),new Vector3(x,ground+.043f,z0),2,bone,true);
-    for(int i=0;i<(wave?7:3);i++){float z=Mathf.Lerp(z0,z1,(i+.5f)/(wave?7:3));result.Tube(new List<Vector3>{new Vector3(x+sideSign*.001f,ground+.025f,z),new Vector3(x+sideSign*.001f,ground+.041f,z)},.002f,wave?4:3,bone,4);}
+    float z0=cz-length*.7f,z1=cz+length*(wave?.68f:(big?.05f:-.15f)),x=cx+sideSign*width*.97f;
+    float yLo=big?.019f:.023f,yHi=big?.058f:.043f;
+    result.Quad(new Vector3(x,ground+yLo,z0),new Vector3(x,ground+yLo,z1),new Vector3(x,ground+yHi,z1),new Vector3(x,ground+yHi,z0),2,bone,true);
+    if(!big)for(int i=0;i<(wave?7:3);i++){float z=Mathf.Lerp(z0,z1,(i+.5f)/(wave?7:3));result.Tube(new List<Vector3>{new Vector3(x+sideSign*.001f,ground+.025f,z),new Vector3(x+sideSign*.001f,ground+.041f,z)},.002f,wave?4:3,bone,4);}
    }
    if(wave){for(int band=0;band<4;band++){float t=.07f+band*.115f;var points=Enumerable.Range(0,41).Select(i=>Upper(i*Mathf.PI/20,t)+Vector3.up*.0015f).ToList();result.Tube(points,.0019f,4,bone,5);}}
    else{
