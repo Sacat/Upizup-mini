@@ -659,3 +659,43 @@ mistakes repeat.
    hardware, precise seam tracing) is a genuine capability gap, not a
    coefficient to keep tuning. Say so explicitly rather than imply the gap
    will close with more iteration.
+
+The next two lessons were confirmed on a SECOND asset (a "DA" snapback
+cap) after the sneaker - they generalize past footwear:
+
+9. **`Vector.to_track_quat('-Z','Y')` degenerates whenever a fixed
+   camera's view direction is close to parallel to world Z** - Blender's
+   internal up-reference axis for that call - producing an unstable/wrong
+   roll. This happened TWICE independently (the sneaker's straight-down top
+   camera, then the cap's straight-on front camera) and both times produced
+   a render that looked exactly like a structurally broken model (upside-
+   down, or a nonsense cone/tunnel view - see lesson 4) when the mesh was
+   actually fine. **Check this FIRST** whenever a fixed-camera render looks
+   wrong along one specific axis: compute `(target - campos)` and see how
+   close it is to parallel with world Z before assuming the geometry is
+   broken. Fix by setting `cam.rotation_euler` explicitly for that
+   axis-aligned view instead of trusting the computed quaternion (e.g.
+   `(0,0,0)` for a camera parked on +Z looking down -Z, `(-pi/2,0,0)` for
+   straight down -Y).
+10. **Placing small raised/inset detail (a logo, rivets, a decal pattern)
+    on a curved surface needs ONE flat local tangent frame with genuinely
+    EQUAL physical spacing on both axes** - not two independently-derived
+    per-axis step sizes (e.g. one scaled by a radius, the other by a
+    height) pushed through the surface's own non-linear parametrization.
+    Mismatched units there silently turns a regular pixel grid into an
+    illegible, unevenly-spaced blob even though every individual point is
+    technically "on the surface." Fix: pick the surface normal at the
+    detail's centre point, build `right`/`up` tangent vectors from it,
+    place every point in that flat plane with real equal spacing, then push
+    the whole group out along the single shared normal. This is a
+    legitimate small-planar-patch approximation (sub-millimetre deviation
+    for a logo much smaller than the surface's radius of curvature) and is
+    NOT the camera-facing billboard trick rejected in lesson-adjacent
+    guidance - the frame is fixed in object space, not camera space, so it
+    survives rotation to any fixed inspection camera.
+    Also double-check which way your tangent vector actually points before
+    choosing sign-dependent offsets (e.g. `dx` per letter) - `cross()`
+    order can silently point "right" toward world -X instead of +X for a
+    given surface normal, which will mirror every glyph and reverse reading
+    order at once. Verify by reasoning through the actual cross-product
+    components (or a quick printed test point), not by assumption.

@@ -326,6 +326,17 @@ These distinguish:
 Check the camera before judging a confusing render.
 Then check the geometry; do not blame the camera without evidence.
 
+Confirmed twice (a shoe's top camera, then a cap's front camera - see
+[[camera-axis-singularity-and-flat-decal-frame]] and
+upizup-blender-modeling's hard-lessons section): a fixed Blender camera
+built with `Vector.to_track_quat('-Z','Y')` degenerates whenever its view
+direction is close to parallel to world Z, producing an unstable/flipped
+roll that looks EXACTLY like broken geometry. Before concluding a
+confusing render means the mesh is wrong, compute `target - campos` for
+that camera and check how close it is to parallel with world Z; if it is,
+replace the computed rotation with an explicit `rotation_euler` for that
+axis-aligned view instead of re-touching the mesh.
+
 ## 9. Compare against references honestly
 
 Use comparable orientation, framing and perspective.

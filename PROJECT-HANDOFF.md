@@ -60,6 +60,21 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 current_owner: None
 active_task: None
 released_task: MINI-166
+claimed_at: 2026-09-13
+released_reason: User - "build the NY hat's back strap and eyelets into the in-game wardrobe". Added real Unity geometry (eyelets, back strap, 2 snaps) to the shipped Lacos Cap's combined mesh in Mini166IntegrateHat.cs, carrying over the DA-cap concept's shape language. Compile clean, Integrate saved, Mini166RepairValidation Play Mode pass, Windows build succeeded (419,987,381 bytes). See Docs/WorkPackets/MINI-166.md "Lacos Cap back strap + eyelets" section.
+reserved_files:
+  - Assets/UpIzUpMini/Editor/Mini166IntegrateHat.cs
+  - Docs/WorkPackets/MINI-166.md
+  - Docs/Systems/Characters.md
+  - PROJECT-HANDOFF.md
+concurrent_claim_below: none active.
+```
+
+Previous claim history:
+```yaml
+current_owner: None
+active_task: None
+released_task: MINI-166
 claimed_at: 2026-09-12
 released_reason: User - "compare them with the orgininal characters of the game". Added a read-only render tool (Mini166Repair.OriginalBaseline) that opens the immutable pre-MINI-166 scene backup via a temporary Assets-relative copy (deleted after, success or failure) and renders Franki/Sacat exactly as they originally shipped - no scene save, live scene/assets untouched. Compared against the current build and reported findings to the user. See Docs/WorkPackets/MINI-166.md "Original-baseline comparison tool" section.
 reserved_files:

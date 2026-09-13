@@ -1,3 +1,7 @@
+## MINI-166 Lacos Cap back strap + eyelets — 2026-09-13
+
+Added a real back adjustment strap (with two snap details) and four side eyelets to the shipped in-game Lacos Cap, carrying over the shape language from a concept "DA" snapback cap render. Pure C# combined geometry, no Blender/FBX round trip. Compile clean, Integrate saved, full Play Mode wardrobe regression passed, Windows build succeeded (419,987,381 bytes). See Docs/WorkPackets/MINI-166.md "Lacos Cap back strap + eyelets" section.
+
 ## MINI-166 individual outfits and shoulder revision — 2026-09-12
 
 Distinct starting clothing for Franki and Sacat; preserved individual saved choices and verified that wardrobe edits never change the other character's visible mesh or colour. Both shirt designs now have fuller, smoothly blended shoulder/trapezius geometry. Close-up and motion verification passed; rebuilt and inspected actual EXE captures. Windows output total 420,366,933 bytes. See Docs/WorkPackets/MINI-166.md revision section; exact styling awaits user review.

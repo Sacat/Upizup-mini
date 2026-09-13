@@ -153,6 +153,32 @@ gap in this environment, not a coefficient to keep tuning indefinitely.
 State this plainly when it's the actual limiting factor, rather than imply
 more iteration alone will close it.
 
+**A second, more specific ceiling, confirmed on an Air Max 90 concept
+(rated 1/100 after multiple real fix passes - toe spring, superellipse
+taper, front-camera-centring bug, collar-height flattening all genuinely
+landed and were verified, and it STILL read as a boat/canoe hull):** pure
+ring-sweep with material-coloured bands on ONE continuous swept tube
+works for a shoe whose upper is itself basically one smooth wrapped
+surface (a high-top like the Jordan concept, where the collar/vamp/toe
+are all naturally one continuous form). It does NOT work for a low-top
+running-shoe archetype whose defining secondary forms - a toe overlay cap
+that bulges independently of the mesh underneath it, a heel counter patch
+that's its own raised shape, a midsole "wrap" with its own scalloped
+edge - are genuinely SEPARATE, independently-shaped pieces on a real shoe,
+not just different colours painted on the same underlying curve. Colouring
+regions of one shared swept tube can only ever produce parallel offset
+copies of that tube's own silhouette, which reads as generic hull/boat
+striping no matter how well the base curve, taper, or camera framing are
+tuned - the fix is BUILDING those parts as separate welded/attached
+geometry (the same technique already proven for the Jordan's eyestay
+flaps and the DA cap's brim - see
+[[camera-axis-singularity-and-flat-decal-frame]] for the brim's real-weld
+technique), not tuning the shared tube's colour bands or profile curve
+further. Diagnose which asset class you're in (one-continuous-surface vs.
+independently-shaped-overlays) BEFORE choosing pure ring-sweep-with-bands,
+per `reference-driven-game-asset-production`'s classification step - don't
+assume the Jordan's technique generalizes to every shoe silhouette.
+
 ## Verification and completion
 
 Report at completion:

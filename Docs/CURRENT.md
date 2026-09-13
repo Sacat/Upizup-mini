@@ -1,3 +1,7 @@
+## MINI-166 — Lacos Cap back strap + eyelets (Claude, 2026-09-13)
+
+User: "build the NY hat's back strap and eyelets into the in-game wardrobe". Real Unity geometry (4 eyelets, a back strap, 2 snaps) added directly into the shipped Lacos Cap's combined mesh in `Mini166IntegrateHat.cs`, carrying over the shape language from the concept "DA" snapback cap. Compile clean, Integrate saved, `Mini166RepairValidation` Play Mode regression passed, Windows build succeeded (419,987,381 bytes). Details: `Docs/WorkPackets/MINI-166.md`.
+
 ## MINI-166 — anatomy reference gap close (Claude, 2026-09-12)
 
 User: "close that gap you found now... you can even do this for the entire characters' bodies." Closed the researched deltoid-to-bicep gap (real anatomy has no gap; shipped shapes left a flat stretch) by widening the bicep curve's rising side to meet the deltoid's tail, without touching the already-approved deltoid shape or re-triggering the earlier fabric-ballooning bug. Chest anatomy checked, no comparable gap found, left as-is. Compile, Integrate, validator, motion and build (420,400,325 bytes) all pass. Details: `Docs/WorkPackets/MINI-166.md`.
