@@ -5,6 +5,57 @@ description: Research, model, inspect, optimize and integrate recognizable 3D ga
 
 # General Game-Asset Production Skill
 
+## Mandatory sequence (diagnosed and required after a real failure pattern)
+
+A concept sneaker session repeatedly showed this failure pattern: starting
+construction before understanding the object, detailing (eyelets/laces)
+while the main form (the upper's openings/silhouette) stayed unresolved,
+changing several variables at once instead of isolating one cause,
+confusing VISIBILITY with correct geometry (a camera-facing billboard made
+something visible without making it correct - it would not survive
+rotation), turning one technique into an unsupported universal rule,
+replacing a failed technique before understanding why it failed, running
+experiments too large (rebuilding a whole lace arrangement instead of
+proving one segment), letting a successful script run stand in for
+inspection, and letting the quality bar drift down under difficulty. This
+sequence is mandatory for every asset - shoes, clothing, houses, vehicles,
+props - not optional for easy ones:
+
+1. **Define the target** - asset, references, style, physical scale,
+   gameplay viewing distance, animation/interaction needs.
+2. **Analyze before building** - list silhouette landmarks, major
+   components, openings, attachment points, defining features. State what
+   the references do NOT establish.
+3. **Choose construction per component** - explain why each part uses
+   polygon modeling, curves, sculpting, procedural generation, or
+   textures. Never force every asset/component into the same method.
+4. **Build a plain blockout** - compare front/side/top/three-quarter views
+   against references; fix proportions before any small detail.
+5. **Establish construction** - build the actual openings, thicknesses,
+   joints, overlaps, attachments needed for the object to make physical
+   sense.
+6. **Prove difficult elements individually** - validate ONE lace crossing
+   / roof junction / door hinge / garment seam before repeating the
+   pattern.
+7. **Inspect consistently** - keep comparison cameras and lighting FIXED
+   across iterations; add diagnostic/isolated/wireframe views when needed;
+   never change presentation to conceal a defect.
+8. **Correct the largest visible errors first** - name the three most
+   consequential discrepancies before polish.
+9. **Test the game asset** - check the exported result in Unity at actual
+   scale/viewing distance; check rotation, materials, shading, collision,
+   deformation.
+10. **Save evidence and memory** - record what was tested, what failed,
+    what fixed it, where the method applies; label unverified explanations
+    as HYPOTHESES, not facts.
+
+Do not call a result successful merely because it rendered without
+errors. State which visual/technical checks passed and which remain
+unresolved, every time. When a hard element (lacing, a roof junction, a
+garment seam) has failed a real attempt, return to steps 1-5 for that
+component - re-examine its construction and attachment - before another
+full rebuild of the failing detail itself.
+
 ## Purpose
 
 Create recognizable, well-proportioned, usable game assets from the

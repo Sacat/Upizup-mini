@@ -83,7 +83,9 @@ def rod(name, a, b, r, m, n=8):
     d = Vector(b) - Vector(a)
     bpy.ops.mesh.primitive_cone_add(vertices=n, radius1=r, radius2=r * .9, depth=d.length, location=(Vector(a) + Vector(b)) / 2)
     o = bpy.context.object; o.name = name; o.rotation_euler = d.to_track_quat('Z', 'Y').to_euler(); o.data.materials.append(m); return o
-def setup(campos, target, scale):
+def setup_lighting():
+    # Called ONCE - lights/world only, no camera. Kept separate so multiple
+    # FIXED cameras can be created without duplicating lights each time.
     sc = bpy.context.scene; sc.render.engine = 'CYCLES'; sc.cycles.samples = 64
     sc.cycles.use_denoising = True; sc.view_settings.exposure = .4
     sc.render.resolution_x = 1600; sc.render.resolution_y = 1200; sc.render.resolution_percentage = 100
@@ -91,10 +93,19 @@ def setup(campos, target, scale):
     sc.world.node_tree.nodes['Background'].inputs[1].default_value = 1.0
     bpy.ops.object.light_add(type='AREA', location=(-.3, -.5, .45)); bpy.context.object.data.energy = 60; bpy.context.object.data.size = .5
     bpy.ops.object.light_add(type='SUN', location=(0, 0, .6)); sun = bpy.context.object; sun.rotation_euler = (.5, -.2, .5); sun.data.energy = 1.6; sun.data.angle = .1
-    bpy.ops.object.camera_add(location=campos); cam = bpy.context.object; cam.rotation_euler = (Vector(target) - cam.location).to_track_quat('-Z', 'Y').to_euler()
-    cam.data.type = 'ORTHO'; cam.data.ortho_scale = scale; cam.data.clip_start = .001; cam.data.clip_end = 5
-    sc.camera = cam
     sc.view_settings.view_transform = 'AgX'
+def make_camera(name, campos, target, scale):
+    # A named, reusable camera - the user's instruction is explicit: "Keep
+    # these cameras unchanged between iterations." Once a view's numbers
+    # are set here, later passes must not touch them just to make a
+    # result look better.
+    bpy.ops.object.camera_add(location=campos); cam = bpy.context.object; cam.name = name
+    cam.rotation_euler = (Vector(target) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+    cam.data.type = 'ORTHO'; cam.data.ortho_scale = scale; cam.data.clip_start = .001; cam.data.clip_end = 5
+    return cam
+def render_view(cam, name):
+    bpy.context.scene.camera = cam
+    render_to(name)
 def render_to(name):
     bpy.context.scene.render.filepath = str(OUT / (name + '.png')); bpy.ops.render.render(write_still=True)
 def count_group(name, objects):
@@ -226,37 +237,106 @@ def shoe():
     sub = body.modifiers.new('Subsurf', 'SUBSURF'); sub.levels = 2; sub.render_levels = 2
     before = snap('upper', before)  # sole+upper are one object now; keep 'sole' group for the staged-inspection API but leave it empty (nothing to hide separately anymore)
 
-    # No wing-accent panel this round - the previous attempt used an
-    # arbitrary floating quad unrelated to the throat/panel geometry and
-    # read as a random unattached triangle in the checklist comparison.
-    # Removing it rather than leaving a known-bad element in.
+    # User correction: camera-facing billboard decals were REJECTED - they
+    # are a presentation trick, not real geometry, and would not survive
+    # rotation. Rebuilding the throat as an actual assembly instead:
+    # eyestays (raised flaps along the throat edge) with the tongue
+    # recessed BEHIND/BELOW them, all oriented purely from the shoe's own
+    # geometry (never the camera).
+    # First construction pass pushed the eyestay/tongue outward using a
+    # crude 2D radial guess from a fixed axis (cx,cz) - a real diagnosis
+    # (fixed front/side/3-4 views, not a glance) showed this pointed the
+    # wrong way near the collar, where the clamped-taper geometry has
+    # genuinely diverged from that assumption, making the flap jut out at
+    # a disconnected angle. Replaced with the ACTUAL local surface normal,
+    # computed from Upper()'s own tangent vectors - this is correct
+    # wherever the surface actually is, not just where a simple radial
+    # guess happens to match it.
+    def surface_normal(a, t):
+        eps = .015
+        t0, t1 = max(t - eps, 0.0), min(t + eps, 1.0)
+        da = Upper(a + eps, t) - Upper(a - eps, t)
+        dt = Upper(a, t1) - Upper(a, t0)
+        n = da.cross(dt)
+        if n.length < 1e-9: return Vector((0, 1, 0))
+        n.normalize()
+        # Ensure it points AWAY from the shoe's central axis, not inward -
+        # the cross product's sign depends on winding, not on which way is
+        # actually "outward".
+        p = Upper(a, t)
+        if n.dot(Vector((p.x - cx, p.y - cz, 0))) < 0: n = -n
+        return n
 
-    # ---- Tongue: a raised flap sitting INSIDE the same throat opening the
-    # panel colouring now actually defines (aadeg < throat_half_angle),
-    # not a guessed fixed-angle strip disconnected from it. ----
-    tongue_vs, tongue_fs = [], []
-    tongue_rows = [3, 4.5, 6, 7]
-    for row in tongue_rows:
+    eyestay_rows = [2.3, 3.4, 4.5, 5.6, 6.7, 7.6]
+    eyestay_rise = .014  # how far the eyestay flap stands proud of the vamp
+    def eyestay_pt(row, side, raised):
         t = row / 8
-        half = math.radians(throat_half_angle(row) * .7)  # narrower than the full throat, sits inside it
+        half = math.radians(throat_half_angle(row) + 2)
+        a = side * half
+        p = Upper(a, t)
+        if raised:
+            p += surface_normal(a, t) * eyestay_rise
+        return p
+
+    # Eyestay: a real raised ribbon (base on the vamp, top standing proud
+    # of it) running the length of the throat on each side - not a flat
+    # decal, an actual 3D flap with the same "sweep between rows" quad
+    # technique already proven for the sole/roof/tongue in this project.
+    eyestay_objs = {}
+    for side in (-1, 1):
+        vs, fs = [], []
+        for row in eyestay_rows:
+            vs.append(tuple(eyestay_pt(row, side, False)))
+            vs.append(tuple(eyestay_pt(row, side, True)))
+        for i in range(len(eyestay_rows) - 1):
+            k = i * 2
+            fs.append((k, k + 2, k + 3, k + 1))
+        eyestay_objs[side] = mesh(f'Eyestay {side}', vs, fs, black)
+
+    # Tongue: recessed both inward (narrower half-angle, sits BEHIND the
+    # eyestay in the gap) and lower (raised less than the eyestay's rise)
+    # so there is a real, visible stepped gap between them, not a flush
+    # co-planar seam.
+    tongue_vs, tongue_fs = [], []
+    for row in eyestay_rows:
+        t = row / 8
+        half = math.radians(throat_half_angle(row) * .55)
         for side in (-1, 1):
-            p = Upper(side * half, t); p.z += .008
+            a = side * half
+            p = Upper(a, t) + surface_normal(a, t) * (eyestay_rise * .45)
             tongue_vs.append(tuple(p))
-    for row in range(len(tongue_rows) - 1):
-        k = row * 2
+    for i in range(len(eyestay_rows) - 1):
+        k = i * 2
         tongue_fs.append((k, k + 1, k + 3, k + 2))
     mesh('Tongue', tongue_vs, tongue_fs, white)
 
-    # Eyelets/laces deliberately REMOVED this round. Three straight attempts
-    # (cube eyelets + rod cross, torus eyelets + rod cross, cube eyelets +
-    # curve laces with corrected spacing) all produced a tangled, broken-
-    # looking cluster rather than a clean lace line - a real, repeated
-    # failure mode for procedural discrete-object detail at this scale
-    # without interactive placement/preview, not something to keep
-    # guessing coefficients at. Shipping the correct body/silhouette/
-    # colour-blocking honestly rather than a known-broken detail on top of
-    # it. See upizup-blender-modeling's "known failure patterns" for this
-    # written up as a standing lesson.
+    # ---- Prove ONE lace segment before extending the pattern. ----
+    # A real flat lace: a ribbon lying in the shoe's own tangent plane
+    # (perpendicular to both its travel direction and the local outward
+    # surface direction), offset outward by a real thickness - not
+    # billboarded to the camera. Basis is entirely shoe-relative.
+    def approx_outward(p):
+        # A cruder radial approximation is acceptable HERE only - it sets
+        # a small ribbon-thickness offset direction, not the actual
+        # attachment geometry (which now uses the real surface_normal
+        # above after that crude approximation was found wrong for it).
+        d = Vector((p.x - cx, p.y - cz, 0))
+        return d.normalized() if d.length > 1e-6 else Vector((0, 1, 0))
+    def lace_ribbon(p0, p1, width, thickness, m, z_bump=0.0):
+        trav = p1 - p0
+        if trav.length < 1e-6: return None
+        trav_n = trav.normalized()
+        outn = ((approx_outward(p0) + approx_outward(p1)) * .5).normalized()
+        widen = trav_n.cross(outn)
+        widen = widen.normalized() if widen.length > 1e-6 else Vector((0, 0, 1))
+        off = outn * thickness + Vector((0, 0, z_bump))
+        a, b = p0 - widen * width / 2 + off, p0 + widen * width / 2 + off
+        c, d_ = p1 + widen * width / 2 + off, p1 - widen * width / 2 + off
+        return mesh(m[1], [tuple(a), tuple(b), tuple(c), tuple(d_)], [(0, 1, 2, 3)], m[0])
+
+    eyestay_top = {side: [eyestay_pt(r, side, True) for r in eyestay_rows] for side in (-1, 1)}
+    # ONE proof segment only this pass - the lowest crossing pair.
+    lace_ribbon(eyestay_top[-1][0], eyestay_top[1][0], .009, .003, (black, 'Lace proof segment 0'))
     before = snap('laces', before)
 
     count_group('jordan_style_shoe', GROUPS['sole'] + GROUPS['upper'] + GROUPS['laces'])
@@ -270,24 +350,43 @@ def set_stage(*visible_groups):
 
 cube('Ground', (0, 0, -.005), (3.0, 3.0, .008), mat('Backdrop', (.86, .85, .82)))
 L = shoe()
-# User: shoe was "0.1/100" partly because the camera stared straight down
-# the shoe's own length axis (Y), producing a cone-on-end view instead of
-# a recognizable side profile. The shoe's length runs along Y, width
-# along X - so the camera needs its dominant offset along X (side-on),
-# matching how the real reference photo is framed (a 3/4 side profile).
-setup((0.55, -.14, .10), (0.13, 0, .045), .32)
-
-# Sole+upper are now one welded continuous body (required for Subsurf to
-# work across the colour seams), so the staged inspection is body-alone
-# then body+details rather than the old separate sole/upper split.
-stages = [
-    ('Stage1-Body', ('upper',)),
-    ('Stage2-Everything', ('upper', 'laces')),
-]
-for name, groups in stages:
-    set_stage(*groups)
-    render_to(name)
+setup_lighting()
 set_stage('sole', 'upper', 'laces')
+
+# User: "Show fixed front, top, side and three-quarter views. Keep these
+# cameras unchanged between iterations." These four numbers are now the
+# fixed reference frame for every future pass on this shoe - do not tune
+# them to flatter a result.
+CENTER = Vector((0, 0, .06))
+# Diagnosed: the first Front camera aimed at z=.075 (collar height) looked
+# almost straight into the open top of the collar, showing the hollow
+# inside - a camera-aim bug, not a geometry defect. Retargeted at the
+# vamp/toe body height instead.
+cam_front = make_camera('Cam_Front', (0, .5, .06), (0, 0, .045), .34)   # looking -Y, toe/throat toward camera
+cam_side = make_camera('Cam_Side', (.55, 0, .07), (0, 0, .06), .34)      # looking -X, pure lateral profile
+# Diagnosed: a perfectly vertical target direction is a known singularity
+# for to_track_quat's up-hint (Y becomes ambiguous when looking straight
+# down Z), which produced the unexpectedly off-centre framing - not the
+# shoe's actual position. Setting rotation directly (identity = looking
+# down -Z with +Y as screen-up) avoids the singularity.
+cam_top = make_camera('Cam_Top', (0, 0, .55), (0, 0, .06), .38)
+cam_top.rotation_euler = (0, 0, 0)
+cam_3q = make_camera('Cam_ThreeQuarter', (.42, -.34, .16), (.13, 0, .06), .34)
+# Isolated close-up on the throat assembly specifically (eyestays, tongue,
+# proof lace segment) - same 3/4 angle, tighter framing, not a different
+# angle chosen to make the detail look better.
+cam_throat = make_camera('Cam_ThroatCloseup', (.30, -.24, .13), (.02, .04, .11), .11)
+
+for name, cam in [('View-Front', cam_front), ('View-Side', cam_side), ('View-Top', cam_top), ('View-ThreeQuarter', cam_3q)]:
+    render_view(cam, name)
+render_view(cam_throat, 'ThroatCloseup-WithBody')
+
+# Isolated throat-only view (body hidden) to check attachment/orientation
+# without the rest of the shoe's shading confusing the read.
+for o in GROUPS['upper']: o.hide_render = True
+render_view(cam_throat, 'ThroatCloseup-IsolatedThroat')
+for o in GROUPS['upper']: o.hide_render = False
+
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'JordanStyleShoe.blend'))
-render_to('JordanStyleShoe-Preview')
+render_view(cam_3q, 'JordanStyleShoe-Preview')
 print('JORDAN_STYLE_SHOE_DONE ' + json.dumps(stats))
