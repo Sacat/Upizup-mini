@@ -119,6 +119,21 @@ reserve this for choices that are genuinely open AND expensive to reverse.
 
 ## Choose the correct modeling approach
 
+### Footwear/shoes
+
+Use `upizup-shoe-modeling` for any shoe/footwear work - ring-sweep
+technique (not box-stacking), real seam-curve panel boundaries, the one-
+welded-multi-material-mesh requirement for Subsurf, and the mandatory
+checklist-inspection step all live there, distilled from a real, hard
+session getting a concept sneaker right.
+
+### Buildings/structures
+
+Use `upizup-building-modeling` for houses, mansions, shops and other
+structures - Codex's proven `house()` technique, researched architectural
+proportions/specs, and the staged inspection sequence for a building
+specifically live there.
+
 ### Static houses and props
 
 Prefer Blender modeling with reusable Python helpers and named parts.
