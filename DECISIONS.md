@@ -1,3 +1,7 @@
+## 2026-09-13 — MINI-166 approved shoe integration
+
+User: "put these on the main characters". Integrate the supplied Codex Air Max90/97 previews as replacements for existing 90/97 wardrobe entries, not additional duplicate designs. Use Franki90/Sacat97 fresh defaults, preserve existing saved choices and Mike270, retain independent selection/tint. Low collars require ankle skin below existing hems; preserve other clothing/body meshes. Detailed source models remain editable; reduced palette meshes and a transparent Standard bladder material supply the current PC version. Mobile profiling/LODs and exact Cycles shading parity remain unverified. Details: Docs/WorkPackets/MINI-166-AirMax-Integration.md.
+
 # Up Iz Up Mini — Decisions
 
 ## MINI-166 revision — distinct clothing and fuller shoulders (2026-09-12)

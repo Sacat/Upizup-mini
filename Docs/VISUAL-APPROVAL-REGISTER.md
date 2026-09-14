@@ -1,3 +1,7 @@
+## MINI-166 Air Max source selection — 2026-09-13
+
+User explicitly requested the displayed Codex 90/97 shoe previews be put on the main characters. This authorizes source selection and integration: thinner soles, physical Air cavities, distinct 90 panel/97 ripple construction. Source: Tools/CharacterPipeline/AirMax166Source. Final integrated evidence: Logs/Tasks/MINI-166/AirMaxIntegration/Main-Characters.jpg and Shoe-Fit.jpg; built GPU proof Built-Franki-player.png / Built-Sacat-player.png. Final in-game styling is submitted for review, not silently declared separately approved. Preserve these replacements during generic wardrobe regeneration; intentional revisions need the user's direction.
+
 # Up Iz Up Mini — Visual Approval Register
 
 ## VA-009 - Round gold watch cuff-fit preview

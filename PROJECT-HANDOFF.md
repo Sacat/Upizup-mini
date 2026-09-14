@@ -61,16 +61,9 @@ current_owner: None
 active_task: None
 released_task: MINI-166
 claimed_at: 2026-09-13
-released_reason: User - "integrate Mike270 into the wardrobe too" then "can you get the 90 and 97 and add them in as well?". Added Mike270 as a third Shoes design (extending the shipped Shoes(Surface,int mode) generator) and fixed a real toe/heel pinch-to-a-point bug in the shared Ring() function used by all three shoe designs, ported from this session's Blender concept work. Compile clean, Integrate saved, Mini166RepairValidation Play Mode pass, Windows build succeeded (421,412,021 bytes). See Docs/WorkPackets/MINI-166.md "Mike 270 shoe + rounded toe/heel fix" section.
-reserved_files:
-  - Assets/UpIzUpMini/Editor/Mini166RepairAccessories.cs
-  - Assets/UpIzUpMini/Editor/Mini166RepairClothes.cs
-  - Assets/UpIzUpMini/Editor/Mini166RepairValidation.cs
-  - Assets/UpIzUpMini/Editor/Mini166RepairRender.cs
-  - Docs/WorkPackets/MINI-166.md
-  - Docs/Systems/Characters.md
-  - PROJECT-HANDOFF.md
-concurrent_claim_below: none active.
+released_reason: Codex integrated the user-approved 90/97 models on both main characters; Franki90/Sacat97 defaults, selectable independent saved shoes, ankle continuity, Mike270/non-shoe pieces preserved. Compile, shoe-specific and full wardrobe Play Mode regression, sampled motion/static evidence, Windows build (437302389 bytes) and actual EXE player/portrait proof passed. See Docs/WorkPackets/MINI-166-AirMax-Integration.md.
+reserved_files: []
+concurrent_claim_below: none active
 ```
 
 Previous claim history:

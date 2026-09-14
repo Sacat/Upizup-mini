@@ -1,3 +1,7 @@
+## MINI-166 — Codex Air Max 90/97 fitted to both characters (2026-09-13)
+
+User approved the new Blender previews for the main characters. Franki defaults to the 90 and Sacat to the 97; both remain selectable per character under existing IDs, with saved selections/colours preserved. Real Air cavities, reduced combined geometry and fitted ankle skin replace the tall legacy footwear; Mike270 and all non-shoe outfits/accessories are preserved. Shoe UI/save tests, full wardrobe regression, sampled idle/walk/run, final static renders, Windows build (437,302,389 bytes) and actual built-player/portrait proof pass. Exact process, source, measurements and remaining mobile/material limits: `Docs/WorkPackets/MINI-166-AirMax-Integration.md`.
+
 ## MINI-166 — Mike 270 shoe + rounded toe/heel fix for all shoe designs (Claude, 2026-09-13)
 
 User: "integrate Mike270 into the wardrobe too" then "can you get the 90 and 97 and add them in as well?". Added Mike270 as a third Shoes-slot design (extending the already-shipped `Shoes(Surface,int mode)` generator) and fixed a real toe/heel-pinch bug in the shared `Ring()` function used by all three shoe designs, ported from this session's Blender concept work. Compile clean, Integrate saved, `Mini166RepairValidation` Play Mode pass, Windows build succeeded (421,412,021 bytes). Details: `Docs/WorkPackets/MINI-166.md`.

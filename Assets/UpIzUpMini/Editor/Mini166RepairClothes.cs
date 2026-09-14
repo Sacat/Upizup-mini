@@ -74,7 +74,7 @@ public static partial class Mini166Repair {
   Piece("shoes_mike270","Mike 270",OutfitSlot.Shoes,Shoes(shoes,2),shoeMats,new[]{0});
   w.pieces=pieces.ToArray();w.bindings=bindings.ToArray();w.defaults=sacat
    ?new[]{new OutfitChoice{itemId="shirt_polo_lacos",colour=4},new OutfitChoice{itemId="pants_trousers",colour=2},new OutfitChoice{itemId="hat_none",colour=2},new OutfitChoice{itemId="shoes_mike97",colour=1}}
-   :new[]{new OutfitChoice{itemId="shirt_tee_mike",colour=0},new OutfitChoice{itemId="pants_jeans",colour=5},new OutfitChoice{itemId="hat_none",colour=2},new OutfitChoice{itemId="shoes_mike90",colour=2}};w.Restore(null);EditorUtility.SetDirty(w);
+   :new[]{new OutfitChoice{itemId="shirt_tee_mike",colour=0},new OutfitChoice{itemId="pants_jeans",colour=5},new OutfitChoice{itemId="hat_none",colour=2},new OutfitChoice{itemId="shoes_mike90",colour=2}};KeepInstalledAirMax(root,w);w.Restore(null);EditorUtility.SetDirty(w);
   File.WriteAllLines(Out+"/"+root.name+"-budget.txt",pieces.Select(p=>p.id+" vertices="+(p.mesh?p.mesh.vertexCount:0)+" triangles="+(p.mesh?p.mesh.triangles.Length/3:0)+" materials="+p.materials.Length));
  }
  static Shape Shirt(Surface s,List<List<V>> faces,bool polo){

@@ -1,0 +1,101 @@
+[
+  {
+    "model": "90",
+    "air_cavity_checks": [
+      {
+        "x_mm": -98,
+        "z_mm": 16,
+        "foam_blocks_tunnel": false
+      }
+    ],
+    "finite_vertices": true,
+    "source_bounds_m": [
+      [
+        -0.14649999141693115,
+        -0.05229862406849861,
+        -0.000750000006519258
+      ],
+      [
+        0.14526066184043884,
+        0.05229862406849861,
+        0.11179646104574203
+      ]
+    ],
+    "evaluated_triangles": 92964,
+    "near_zero_area_triangles": 2,
+    "collar_opening_ray": {
+      "hit": "Inset footbed",
+      "height_m": 0.049000002443790436
+    },
+    "lace_vertices_above_tongue_tested": 920,
+    "minimum_lace_clearance_mm": 0.7333457469940186,
+    "export_meshes": 535,
+    "export_triangles": 92964,
+    "export_bounds_m": [
+      [
+        -0.14649999141693115,
+        -0.05229862406849861,
+        -0.000750000006519258
+      ],
+      [
+        0.14526066184043884,
+        0.05229862406849861,
+        0.11179646104574203
+      ]
+    ],
+    "export_bounds_max_error_mm": 0.0,
+    "status": "PASS"
+  },
+  {
+    "model": "97",
+    "air_cavity_checks": [
+      {
+        "x_mm": -127,
+        "z_mm": 15,
+        "foam_blocks_tunnel": false
+      },
+      {
+        "x_mm": 3,
+        "z_mm": 13.5,
+        "foam_blocks_tunnel": false
+      }
+    ],
+    "finite_vertices": true,
+    "source_bounds_m": [
+      [
+        -0.14564105868339539,
+        -0.04969869554042816,
+        -0.000750000006519258
+      ],
+      [
+        0.1454654037952423,
+        0.04969869554042816,
+        0.11949999630451202
+      ]
+    ],
+    "evaluated_triangles": 111348,
+    "near_zero_area_triangles": 5,
+    "collar_opening_ray": {
+      "hit": "Inset footbed",
+      "height_m": 0.049000002443790436
+    },
+    "lace_vertices_above_tongue_tested": 920,
+    "minimum_lace_clearance_mm": 0.9040981531143188,
+    "export_meshes": 468,
+    "export_triangles": 111348,
+    "export_bounds_m": [
+      [
+        -0.14564105868339539,
+        -0.04969869554042816,
+        -0.000750000006519258
+      ],
+      [
+        0.1454654037952423,
+        0.04969869554042816,
+        0.11949999630451202
+      ]
+    ],
+    "export_bounds_max_error_mm": 0.0,
+    "status": "PASS"
+  }
+]

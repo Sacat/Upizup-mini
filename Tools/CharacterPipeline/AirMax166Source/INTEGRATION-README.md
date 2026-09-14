@@ -1,0 +1,3 @@
+# Current game integration
+
+The adjacent source files/skill describe the preserved authoring previews. They are not the current integration status. Read Docs/WorkPackets/MINI-166-AirMax-Integration.md in the Mini project for the current editor exporter, bone fitting, ankle connector, palette/transparency, tests, build, evidence and continuation instructions. Do not rerun the authoring generator over approved source without a backup. Use Tools/CharacterPipeline/mini166_airmax_export.py for the runtime export and Mini166Repair.AirMaxInstall for the narrow integration; do not use a broad character rebuild to refit shoes.
