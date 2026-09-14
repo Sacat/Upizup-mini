@@ -1,21 +1,24 @@
 {
   "schemaVersion": 1,
   "mapId": "dm-dom-grand-bay-expansion-v1",
-  "displayName": "Grand Bay — Full Settlement Expansion",
-  "workflowStage": "scaffold",
+  "displayName": "Grand Bay — Berekua to High School Review Copy",
+  "workflowStage": "graybox",
   "identity": { "country": "Dominica", "island": "Dominica", "region": "Saint Patrick" },
   "coordinateSystem": {
     "sourceCrs": "EPSG:4326",
-    "workingCrs": "pending",
-    "originLatitude": null,
-    "originLongitude": null,
+    "workingCrs": "existing local equirectangular approximation: 107500 m/longitude degree, 110650 m/latitude degree",
+    "originLatitude": 15.2450638,
+    "originLongitude": -61.3181049,
     "metresPerUnityUnit": 1.0,
     "travelCompression": 0.3333333
   },
-  "bounds": { "south": null, "west": null, "north": null, "east": null },
-  "sources": [],
-  "anchorsFile": "pending",
-  "connections": [],
+  "bounds": { "south": 15.236, "west": -61.326, "north": 15.252, "east": -61.306 },
+  "sources": [
+    {"id":"osm-overpass-2026-08-20","type":"roads_waterways_coast","licence":"ODbL","notesFile":"Docs/MAP-SOURCE-NOTES.md"},
+    {"id":"copernicus-glo30-2021","type":"elevation","licence":"Copernicus DEM licence and attribution","notesFile":"Docs/MAP-SOURCE-NOTES.md"}
+  ],
+  "anchorsFile": "Docs/MAP-ANCHORS.json",
+  "connections": ["berekua_to_school_area", "residential_loop", "artistic_campus_entrance"],
   "grading": {
     "mainRoadMaximumGradePercent": 6.0,
     "secondaryRoadMaximumGradePercent": 10.0,
@@ -24,8 +27,8 @@
   },
   "passability": {
     "roadsContinuous": false,
-    "roadRootCount": 0,
-    "roadColliderCount": 0,
+    "roadRootCount": 8,
+    "roadColliderCount": 8,
     "buildingsClearDrivableRoads": false,
     "requiredConnectionsPresent": false,
     "edgeAndFallRecoveryPlanned": false
@@ -45,10 +48,10 @@
     "runtimeStatus": "not_tested"
   },
   "migration": {
-    "rollbackCommit": "pending",
+    "rollbackCommit": "651536a",
     "roleMappingFile": "pending",
     "saveCompatibilityReviewed": false,
-    "authoritativeBuilder": "pending"
+    "authoritativeBuilder": "Assets/UpIzUpMini/Editor/Mini168Expansion.cs"
   },
   "mobileBudget": {
     "maximumActiveBuildings": 100,

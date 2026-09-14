@@ -1,3 +1,7 @@
+## 2026-09-14 — MINI-168 simplified corridor copy
+
+User authorized expanding from Berekua to the high-school area and simplifying roads, with images and continuous Claude documentation. Use the existing Pierre Charles Secondary School anchor, one-third horizontal compression, selected source roads, approved MINI142 house art and a separate scene. Broad artistic settlement grading is permitted for this proposal; the source DEM is retained. School geometry is approximate. No gameplay integration or EXE build. Retain rejected evidence and require final visual/junction/runtime review before any later integration.
+
 ## 2026-09-13 — MINI-166 approved shoe integration
 
 User: "put these on the main characters". Integrate the supplied Codex Air Max90/97 previews as replacements for existing 90/97 wardrobe entries, not additional duplicate designs. Use Franki90/Sacat97 fresh defaults, preserve existing saved choices and Mike270, retain independent selection/tint. Low collars require ankle skin below existing hems; preserve other clothing/body meshes. Detailed source models remain editable; reduced palette meshes and a transparent Standard bladder material supply the current PC version. Mobile profiling/LODs and exact Cycles shading parity remain unverified. Details: Docs/WorkPackets/MINI-166-AirMax-Integration.md.

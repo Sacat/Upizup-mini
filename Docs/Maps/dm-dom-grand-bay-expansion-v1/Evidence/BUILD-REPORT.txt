@@ -1,0 +1,13 @@
+MINI168 Berekua to high school - first visual review copy
+Source: OSM 2026-08-20; Copernicus GLO30; one-third horizontal compression.
+Selected roads preserve OSM samples; outer Grand Bay Road truncated at z=90 and x=180 game metres.
+School campus buildings and residential lots are artistic massing, not surveyed footprints.
+way/361079570 samples=211
+way/132984917 samples=107
+way/132984918 samples=71
+way/180962509 samples=96
+way/548578022 samples=70
+way/180962510 samples=72
+way/132984928 samples=42
+New houses=52; campus approximate; road surfaces collidable; driving NOT TESTED.
+Road grade model: final continuous 5.5 percent northward plane and broad settlement terrace. Nearest-old-road blending was rejected after measuring a 21.49 percent spike. Final measured maximum is 5.50 percent. Old-to-new junction traversal QA remains pending.

@@ -1,3 +1,7 @@
+## MINI-168 — Berekua to high school review expansion (2026-09-14)
+
+Built an isolated expansion with seven selected OSM road sections, an approximate campus entrance, 52 approved-family houses and school massing. Three terrain passes, four inspected renders, matching road colliders and a maximum measured 5.50% centreline grade. Source and live scene hashes unchanged; copy excluded from builds. School appearance, junction traversal, waterways, navigation and mobile performance remain review/follow-up items. Complete commands, corrections and evidence: Docs/Maps/dm-dom-grand-bay-expansion-v1/CLAUDE-CONTINUE.md.
+
 ## MINI-166 — Codex Air Max 90/97 fitted to both characters (2026-09-13)
 
 User approved the new Blender previews for the main characters. Franki defaults to the 90 and Sacat to the 97; both remain selectable per character under existing IDs, with saved selections/colours preserved. Real Air cavities, reduced combined geometry and fitted ankle skin replace the tall legacy footwear; Mike270 and all non-shoe outfits/accessories are preserved. Shoe UI/save tests, full wardrobe regression, sampled idle/walk/run, final static renders, Windows build (437,302,389 bytes) and actual built-player/portrait proof pass. Exact process, source, measurements and remaining mobile/material limits: `Docs/WorkPackets/MINI-166-AirMax-Integration.md`.

@@ -1,10 +1,12 @@
-# Grand Bay — Full Settlement Expansion — Map District Packet
+# Grand Bay — Berekua to High School — Map District Packet
+
+Current result (2026-09-14): isolated first review copy, eight new road sections including the artistic campus lane, 52 houses, approximate school and broad settlement grading. Four inspected images are in Evidence. Final measured maximum road grade is 5.50%; source and live hashes remain unchanged. Main work packet: Docs/WorkPackets/MINI-168.md. Exact workflow, commands, failures and continuation: CLAUDE-CONTINUE.md. Generic unchecked items below remain future migration/runtime requirements, not completed work.
 
 ```yaml
 map_id: dm-dom-grand-bay-expansion-v1
-task_id: MINI-###
-workflow_stage: scaffold
-integrator: None
+task_id: MINI-168
+workflow_stage: graybox
+integrator: Codex
 approval_class: C
 country: Dominica
 island: Dominica

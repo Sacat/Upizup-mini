@@ -5,7 +5,7 @@ task_id: MINI-168
 title: Expand the approved Lalay/Highland/By-the-Bay map system across the rest of Grand Bay in an isolated copy
 request_owner: User
 integrator: Codex
-status: implementing
+status: evidence_ready
 approval_class: C
 budget:
   codex_time: one complete map-truth and isolated graybox cycle, with bounded visual correction passes
@@ -35,6 +35,10 @@ depends_on:
 ```
 
 ## Intent
+
+2026-09-14 result: first Berekua-to-high-school review copy built and visually inspected. Seven selected mapped road sections plus an approximate campus entrance lane, 52 new MINI142-family houses, broad graded settlement terrain and approximate school wings/courtyard. Final saved-mesh audit: maximum centreline grade 5.50%, eight matching road mesh colliders, 208604 triangles across extension meshes including repeated house instances. No gameplay migration. Final overview, neighbourhood, school and 1.75-metre eye-height street images are retained in the district Evidence folder. This is a reviewable expansion layout, not runtime acceptance.
+
+Scope correction from user, 2026-09-14: expand from Berekua to the high-school area (interpreted as Pierre Charles Secondary School, the existing named school anchor). The user explicitly permits simplifying roads. Prior wording about the rest of Grand Bay is bounded by this corridor; do not silently extend to the whole settlement. Preserve principal connections and recognizable junction order while simplifying minor spurs and redundant routes. Keep source geometry separately from the simplified game network and document every retained, simplified or omitted route.
 
 Create a geographically recognizable, compressed 3D map-lab copy that expands the existing Lalay, Highland and church/By-the-Bay area into the remaining Grand Bay road network. The copy must use the same terrain, road, settlement, house-family and landmark language as the accepted area while keeping every live gameplay scene and approved source unchanged.
 
@@ -78,7 +82,7 @@ Create a geographically recognizable, compressed 3D map-lab copy that expands th
 - [ ] Coast, waterways, institutions, residential density and gateways remain recognizable at compressed scale.
 - [ ] Fixed overview, town, coast and inland player-height images are captured.
 - [ ] Geometry/material/collider budgets are recorded.
-- [ ] Unity compile and task-specific validation pass.
+- [x] Unity compile and task-specific mesh/collider/grade/protected-hash validation pass; full junction/passability tests remain.
 - [x] Source scene and live gameplay scene hashes remain unchanged at the copy checkpoint.
 - [x] Expansion remains absent from the player build at the copy checkpoint.
 
@@ -106,9 +110,15 @@ Create a geographically recognizable, compressed 3D map-lab copy that expands th
 
 ## Handoff
 
+Current next action: user reviews the saved images for route simplification, density and campus location. Follow with junction continuity and old-to-new connection testing, terrain-conforming waterways, landscaping and campus refinement as directed. Do not migrate to gameplay. Current render images were inspected; no driving/NPC/mobile acceptance is claimed.
+
+Exact current command: Unity 6000.3.10f1 with -batchmode -quit -projectPath pointing to E:/Unity/Up Iz Up Mini, -executeMethod UpIzUpMini.EditorTools.Mini168Expansion.FinalReview, and -logFile Logs/Tasks/MINI-168/final-review.log. Build source: Mini168Expansion.BuildAndCapture. No -nographics on render passes. Three generation iterations retained; rejected passes are under Evidence/Rejected-Pass1 and Rejected-Pass2. Full measurements, failures and correction history are in CLAUDE-CONTINUE.md.
+
+Persistent user instruction, 2026-09-14: log the work during and after development for Claude. Current continuation guide, tool record and known hazards: `Docs/Maps/dm-dom-grand-bay-expansion-v1/CLAUDE-CONTINUE.md`.
+
 - Files changed: task/claim records, valid district scaffold, idempotent copy/validator tool, and `MapLab_GrandBayExpansionCopy.unity`.
 - Decisions made: expand from the approved spline proof as an isolated copy; protect the live and approved source scenes; keep the copy out of build settings.
 - Visual locks added/changed: none; VA-005 remains protected.
 - Known limitations: exact local names, entrances and some institutional footprints still need user/local verification; OSM coverage is source data rather than automatic gameplay scope.
 - Next action: classify the full-road catalogue, define the expansion boundary and sectors, then build the labelled overhead expansion preview before detailed terrain/road generation.
-- Ownership released: No; MINI-168 remains active.
+- Ownership released: Yes; review-copy checkpoint is ready. Claim MINI-168 again before further edits.

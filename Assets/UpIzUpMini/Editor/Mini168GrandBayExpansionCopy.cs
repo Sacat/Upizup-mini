@@ -16,7 +16,7 @@ namespace UpIzUpMini.EditorTools
         const string Live = "Assets/UpIzUpMini/Scenes/GrandBayProof.unity";
         const string Copy = "Assets/UpIzUpMini/Scenes/MapLab_GrandBayExpansionCopy.unity";
         const string Evidence = "Logs/Tasks/MINI-168";
-        const string Baseline = Evidence + "/protected-scene-hashes.txt";
+        const string Baseline = "Docs/Maps/dm-dom-grand-bay-expansion-v1/Evidence/protected-scene-hashes.txt";
 
         [MenuItem("Up Iz Up Mini/MINI-168/Create Grand Bay Expansion Copy")]
         public static void Build()
@@ -25,7 +25,11 @@ namespace UpIzUpMini.EditorTools
             Directory.CreateDirectory(Evidence);
             string sourceHash = Hash(Source), liveHash = Hash(Live);
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(Copy) != null)
-                Need(AssetDatabase.DeleteAsset(Copy), "Could not replace expansion copy.");
+            {
+                Validate();
+                Debug.Log("MINI-168 COPY EXISTS: retained all current expansion work.");
+                return;
+            }
             Need(AssetDatabase.CopyAsset(Source, Copy), "Could not copy accepted spline proof.");
             AssetDatabase.Refresh();
 
