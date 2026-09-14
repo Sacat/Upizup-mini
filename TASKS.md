@@ -1995,3 +1995,7 @@ Upgraded the isolated MB proof without touching the live game: both spline piece
 # MINI-123 — Complete remaining MB road proof (evidence ready; awaiting network approval)
 
 The isolated combined proof now converts all nine remaining phase-one roads: eight mapped routes plus the measured gap connector. Paved roads remain line-free and 6.2m wide; the Highland farm spur remains a 4.8m dirt track; no sidewalks are generated outside the already-approved Lalay main road. Both bridge ends have terrain-aware, collidable transitions. Nine originals remain disabled for rollback. Focused Unity validation and the approved-graybox map gate pass; show `Logs/Tasks/MINI-123/MBRoad-Complete-Remaining-Network-Overhead-1280x720.png` before any live migration.
+
+# MINI-168 — Rest-of-Grand-Bay isolated expansion copy (implementing)
+
+Expand the approved Lalay/Highland/By-the-Bay map system across the remaining Grand Bay network in a new data package and `MapLab_GrandBayExpansionCopy.unity`. The live `GrandBayProof.unity`, accepted source map-lab and accepted combined spline proof are protected. Build map truth, an overhead proposal, a repeatable graybox and validation evidence, then stop before gameplay migration. Full packet: `Docs/WorkPackets/MINI-168.md`.

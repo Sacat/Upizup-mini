@@ -57,12 +57,28 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 ### Current claim
 
 ```yaml
-current_owner: None
-active_task: None
-released_task: MINI-166
-claimed_at: 2026-09-13
-released_reason: Codex integrated the user-approved 90/97 models on both main characters; Franki90/Sacat97 defaults, selectable independent saved shoes, ankle continuity, Mike270/non-shoe pieces preserved. Compile, shoe-specific and full wardrobe Play Mode regression, sampled motion/static evidence, Windows build (437302389 bytes) and actual EXE player/portrait proof passed. See Docs/WorkPackets/MINI-166-AirMax-Integration.md.
-reserved_files: []
+current_owner: Codex
+active_task: MINI-168
+released_task: None
+claimed_at: 2026-09-14
+released_reason: In progress. User requested an isolated expansion of the existing Lalay/Highland/By-the-Bay map system to the rest of Grand Bay, with no gameplay integration yet.
+reserved_files:
+  - Docs/WorkPackets/MINI-168.md
+  - Docs/Maps/dm-dom-grand-bay-expansion-v1/
+  - Assets/UpIzUpMini/Maps/Regions/dm-dom-grand-bay-expansion-v1/
+  - Assets/UpIzUpMini/Editor/Mini168GrandBayExpansionCopy.cs
+  - Assets/UpIzUpMini/Scenes/MapLab_GrandBayExpansionCopy.unity
+  - Logs/Tasks/MINI-168/
+  - TASKS.md
+  - PROJECT-HANDOFF.md
+  - CHANGELOG.md
+  - DECISIONS.md
+protected_files:
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Assets/UpIzUpMini/Scenes/MapLab_LalayHighland.unity
+  - Assets/UpIzUpMini/Scenes/MapLab_MBRoad_LalayHighlandProof.unity
+  - Assets/UpIzUpMini/Maps/GrandBayPhase1MapData.json
+  - Assets/UpIzUpMini/Maps/GrandBayPhase1Height.json
 concurrent_claim_below: none active
 ```
 
