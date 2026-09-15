@@ -2,6 +2,10 @@
 
 User approved the new Blender previews for the main characters. Franki defaults to the 90 and Sacat to the 97; both remain selectable per character under existing IDs, with saved selections/colours preserved. Real Air cavities, reduced combined geometry and fitted ankle skin replace the tall legacy footwear; Mike270 and all non-shoe outfits/accessories are preserved. Shoe UI/save tests, full wardrobe regression, sampled idle/walk/run, final static renders, Windows build (437,302,389 bytes) and actual built-player/portrait proof pass. Exact process, source, measurements and remaining mobile/material limits: `Docs/WorkPackets/MINI-166-AirMax-Integration.md`.
 
+## MINI-169 — Highland/Farm Safehouse walkable interior; more houses/mansion pending (Claude, 2026-09-14)
+
+User: "fix up the first safehouse into a walkable house... then make other houses purchasable, walkable and usable as a safehouse" + "the mansion you build earlier should be implemented with a two car garage". Part 1 done: the Highland/Farm Safehouse was already a real 3-walled room with a bed, just open-fronted - added a real front wall + doorway matching its existing construction. Compile clean, scene saved, renders confirmed, Windows build succeeded (437,304,133 bytes). Parts 2 (Lalay House/Estate interiors) and 3 (Highland Mansion garage + first Unity integration) not started. Details: `Docs/WorkPackets/MINI-169.md`.
+
 ## MINI-166 — Mike 270 shoe + rounded toe/heel fix for all shoe designs (Claude, 2026-09-13)
 
 User: "integrate Mike270 into the wardrobe too" then "can you get the 90 and 97 and add them in as well?". Added Mike270 as a third Shoes-slot design (extending the already-shipped `Shoes(Surface,int mode)` generator) and fixed a real toe/heel-pinch bug in the shared `Ring()` function used by all three shoe designs, ported from this session's Blender concept work. Compile clean, Integrate saved, `Mini166RepairValidation` Play Mode pass, Windows build succeeded (421,412,021 bytes). Details: `Docs/WorkPackets/MINI-166.md`.

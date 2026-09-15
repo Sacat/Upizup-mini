@@ -57,9 +57,29 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 ### Current claim
 
 ```yaml
+current_owner: Claude
+active_task: MINI-169
+claimed_at: 2026-09-14
+reserved_files:
+  - Assets/UpIzUpMini/Editor/Mini169SurveySafehouses.cs
+  - Assets/UpIzUpMini/Scenes/GrandBayProof.unity
+  - Assets/UpIzUpMini/Scripts/Interaction/SafehouseInteractable.cs
+  - Docs/WorkPackets/MINI-169.md
+  - Docs/Systems/Characters.md
+  - Docs/Systems/Economy.md
+  - PROJECT-HANDOFF.md
+concurrent_claim_below: none active (MINI-168 stays with Codex, non-overlapping files).
+```
+
+Scope: real walkable interiors (small attached rooms, same scene, no loading screen) for the three existing safehouses - Highland/Farm Safehouse (free), Lalay House and Lalay Estate (both already purchasable via existing `prop_safehouse`/`prop_lalay_estate` economy items) - plus the Highland Mansion's two-car garage and its first-ever Unity integration. Sequenced as separate verified checkpoints, not one pass.
+
+Previous claim history:
+
+```yaml
 current_owner: None
 active_task: None
 released_task: MINI-168
+current_revision_owner: Codex
 claimed_at: 2026-09-14
 released_reason: Berekua-to-high-school first review copy built with 8 road sections, 52 houses and approximate campus. Four inspected images, mesh/collision/5.50-percent grade checks and protected scene hashes pass. No gameplay integration. User layout review and junction/runtime checks remain. See Docs/Maps/dm-dom-grand-bay-expansion-v1/CLAUDE-CONTINUE.md.
 reserved_files:
