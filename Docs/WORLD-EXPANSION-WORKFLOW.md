@@ -128,6 +128,17 @@ MINI-099 established the default method for later Grand Bay districts, the rest 
 
 This recipe is parameterized by each district manifest: road widths, grade caps, density classes, coast polygons, travel compression, materials, budgets and progression visibility change per map; the sequence and gates do not.
 
+## Real hazards confirmed in a district expansion pass (MINI-168, 2026-09-14)
+
+Full process record and exact commands: `Docs/Maps/dm-dom-grand-bay-expansion-v1/CLAUDE-CONTINUE.md`. Distilled skill: `upizup-map-district-expansion`. These were caught across three real generation passes on one corridor - check them first before assuming a new bug:
+
+1. **An idempotent-copy tool that unconditionally deletes-and-recreates its target will erase expansion work on a second run.** Once real generation has happened inside a district copy, the copy tool must become a no-op (or require an explicit separate reset) instead of silently rebuilding from the source proof again.
+2. **Disabling the source terrain collider before finishing lot/road height sampling buries new geometry.** Keep it live and queryable through the ENTIRE generation pass; disable it only at the very end, after every height sample that needed it is done.
+3. **"Blend road height to the nearest old-road sample" is unstable near junctions** - two disagreeing grade regimes meeting can spike to extreme grades (21%+ was observed) exactly where they should be smoothest. Grade new roads from ONE continuous, explicitly-authored slope function toward the existing network instead, blended across a defined distance band.
+4. **A scene copy is not asset isolation.** New/altered meshes and materials belong under the district's own Generated/Staging directory; duplicating a scene still points at the same external asset files as its source unless you deliberately break that.
+5. **Keep every rejected pass's evidence** (`Evidence/Rejected-PassN/`) rather than overwriting it with the next attempt's renders - a later pass in a district expansion is not itself proof the earlier failure mode can't recur elsewhere in the same corridor.
+6. **A passing grade/collider/hash validator is not gameplay, passability, or visual acceptance** - state plainly which of those remain untested rather than let a static PASS read as more than it checked.
+
 ## Stage 6 — Migration into gameplay
 
 Migration is a separate Class C task with its own rollback commit.
