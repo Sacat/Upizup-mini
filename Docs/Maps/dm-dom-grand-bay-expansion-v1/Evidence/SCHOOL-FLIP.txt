@@ -1,0 +1,5 @@
+User: flip school so open courtyard faces main road.
+Open side now +Z/north; rear wing moved from centroid Z+10 to Z-10.
+Main road: ExpansionRoad_4 (way/548578022). School centroid and side wings retained.
+Entrance width 4.8m; measured grade percent=5.42
+Road connection=(105.866, 18.632, 63.685) courtyard endpoint=(106.527, 17.906, 50.297)

@@ -1,0 +1,1 @@
+PASS: school/coast exact shared endpoint; ring/approach joins <5cm; 63 field support samples within18cm; school rear south; road centre terrain clearance; protected hashes/build exclusion. Static checks only.

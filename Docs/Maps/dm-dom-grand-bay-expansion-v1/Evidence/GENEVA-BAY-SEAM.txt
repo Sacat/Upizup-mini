@@ -1,0 +1,1 @@
+Source bay mesh clipped at world X250; seam (250.00, 3.11, -100.25) to (250.00, 2.98, -90.03); centre (250.00, 3.04, -95.14); original disabled, shared mesh retained.

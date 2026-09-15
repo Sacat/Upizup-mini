@@ -2,11 +2,14 @@ ExpansionRoad_0 maximum centreline grade percent=5.50
 ExpansionRoad_1 maximum centreline grade percent=5.50
 ExpansionRoad_2 maximum centreline grade percent=5.50
 ExpansionRoad_3 maximum centreline grade percent=5.50
-ExpansionRoad_4 maximum centreline grade percent=3.49
 ExpansionRoad_5 maximum centreline grade percent=5.48
 ExpansionRoad_6 maximum centreline grade percent=5.48
-ExpansionRoad_7 maximum centreline grade percent=5.50
-Triangles in expansion meshes, counting house instances=208604
-Source/live hashes unchanged; eight road colliders match rendered meshes.
+ExpansionRoad_7 maximum centreline grade percent=5.42
+ExpansionRoad_4 maximum centreline grade percent=6.91
+ExpansionRoad_8 maximum centreline grade percent=7.96
+ExpansionRoad_9 maximum centreline grade percent=0.00
+ExpansionRoad_10 maximum centreline grade percent=0.00
+Triangles in expansion meshes, counting house instances=217480
+Protected operation hashes unchanged; eleven road colliders match rendered meshes.
 Actual walking, driving, NPC navigation and mobile performance NOT TESTED.
-Maximum observed road grade percent=5.50
+Maximum observed road grade percent=7.96

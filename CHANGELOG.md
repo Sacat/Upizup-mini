@@ -1,3 +1,6 @@
+## MINI-168 — Geneva playing field and coastal loop (2026-09-15)
+
+Separate expansion copy now connects the bay through a roundabout and coastal stretch back to PCSS; school courtyard faces the road. Added simplified Geneva football pitch, goals, markings, benches and graded terrain. Fresh-session renders and static validation pass;11 road colliders,7.96% maximum grade,217480 extension triangles. Live game untouched; runtime testing/visual acceptance pending. Full instructional record: Docs/Maps/dm-dom-grand-bay-expansion-v1/GENEVA-WORKFLOW.md.
 ## MINI-168 — Berekua to high school review expansion (2026-09-14)
 
 Built an isolated expansion with seven selected OSM road sections, an approximate campus entrance, 52 approved-family houses and school massing. Three terrain passes, four inspected renders, matching road colliders and a maximum measured 5.50% centreline grade. Source and live scene hashes unchanged; copy excluded from builds. School appearance, junction traversal, waterways, navigation and mobile performance remain review/follow-up items. Complete commands, corrections and evidence: Docs/Maps/dm-dom-grand-bay-expansion-v1/CLAUDE-CONTINUE.md.

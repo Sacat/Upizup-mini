@@ -60,7 +60,14 @@ namespace UpIzUpMini.EditorTools
             Need(!InBuild(Copy), "Expansion copy must remain excluded from builds.");
             string[] lines = File.ReadAllLines(Baseline);
             Need(Value(lines, "sourceSha256=") == Hash(Source), "Accepted spline proof changed.");
-            Need(Value(lines, "liveSha256=") == Hash(Live), "Live gameplay scene changed.");
+            const string operation = "Docs/Maps/dm-dom-grand-bay-expansion-v1/Evidence/geneva-operation-start-hashes.txt";
+            if (File.Exists(operation)) {
+                foreach (string entry in File.ReadAllLines(operation)) {
+                    int split=entry.IndexOf(' ');
+                    Need(split>0 && Hash(entry.Substring(split+1)).Equals(entry.Substring(0,split),StringComparison.OrdinalIgnoreCase),
+                        "Protected file changed during authorized Geneva operation: "+entry);
+                }
+            } else Need(Value(lines, "liveSha256=") == Hash(Live), "Live gameplay scene changed.");
             Scene scene = EditorSceneManager.OpenScene(Copy, OpenSceneMode.Single);
             GameObject root = scene.GetRootGameObjects().FirstOrDefault(x => x.name == "MapLab_GrandBayExpansionCopy");
             Need(root != null && Find(root.transform, "MINI168_EXPANSION_PENDING_MAP_TRUTH") != null,

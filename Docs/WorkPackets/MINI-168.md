@@ -110,6 +110,8 @@ Create a geographically recognizable, compressed 3D map-lab copy that expands th
 
 ## Handoff
 
+2026-09-15 school-facing revision: source change prepared in Mini168Expansion.cs; not yet compiled/applied/rendered because Claude holds the Unity session for MINI-169. See CLAUDE-CONTINUE.md school-facing revision. Requested correction is open courtyard toward the main road, with entrance lane moved accordingly.
+
 Current next action: user reviews the saved images for route simplification, density and campus location. Follow with junction continuity and old-to-new connection testing, terrain-conforming waterways, landscaping and campus refinement as directed. Do not migrate to gameplay. Current render images were inspected; no driving/NPC/mobile acceptance is claimed.
 
 Exact current command: Unity 6000.3.10f1 with -batchmode -quit -projectPath pointing to E:/Unity/Up Iz Up Mini, -executeMethod UpIzUpMini.EditorTools.Mini168Expansion.FinalReview, and -logFile Logs/Tasks/MINI-168/final-review.log. Build source: Mini168Expansion.BuildAndCapture. No -nographics on render passes. Three generation iterations retained; rejected passes are under Evidence/Rejected-Pass1 and Rejected-Pass2. Full measurements, failures and correction history are in CLAUDE-CONTINUE.md.
@@ -122,3 +124,13 @@ Persistent user instruction, 2026-09-14: log the work during and after developme
 - Known limitations: exact local names, entrances and some institutional footprints still need user/local verification; OSM coverage is source data rather than automatic gameplay scope.
 - Next action: classify the full-road catalogue, define the expansion boundary and sectors, then build the labelled overhead expansion preview before detailed terrain/road generation.
 - Ownership released: Yes; review-copy checkpoint is ready. Claim MINI-168 again before further edits.
+
+2026-09-15 Geneva loop: saved OSM field/roundabout/coastal-road source extraction, generated labelled research diagram, and prepared road-tail/coast/ring source changes. No scene changes or Unity validation yet: Claude's MINI-169 scene claim remains active. Full source IDs, coordinates, drawing failure/fix, unapplied-script hazards and ordered completion checks are in CLAUDE-CONTINUE.md, section Geneva loop continuation. Field modeling, safe ring approaches, grade matching, school application and fresh 3D evidence remain outstanding. The diagram is not a rendered game update.
+
+## Geneva revision applied — 2026-09-15
+
+User explicitly authorized the Unity session and clarified that the Claude documentation is instructional. Implemented bay seam clipping, restored Grand Bay Road tail, coastal Berekua connector, roundabout and trimmed roadside pieces; created Geneva grass pitch/goals/markings/benches and supporting terrain; applied PCSS open-courtyard flip. Retained52 existing extension houses. Copy only, live/source/build-settings hashes unchanged during operation.
+
+Compile/build and fresh-process FinalReview return0: Logs/Tasks/MINI-168/geneva-build-final.log and geneva-final-saved-review.log. Task validators pass11 road collider matches, maxgrade7.96%, exact school/coast endpoint, ring joins within5cm,63 field support samples and build exclusion. Extension217480 triangles including repeated instances. District scaffold validator passes0errors. No dedicated Test Framework assemblies found under Assets; project-style task validators were executed. Runtime driving/NPC/mobile tests remain unperformed.
+
+Final images personally inspected: Evidence/01-Overview.png,03-High-School.png,06-Geneva-Playing-Field.png,07-Roundabout.png,08-Coast-School-Loop.png. Before/rejected images retained. Process lesson, source measurements, tools, commands, fresh-process render hazard, terrain coverage failure and correction: Docs/Maps/dm-dom-grand-bay-expansion-v1/GENEVA-WORKFLOW.md. School/field remain artistic massing. Next step: user visual review, not gameplay migration.

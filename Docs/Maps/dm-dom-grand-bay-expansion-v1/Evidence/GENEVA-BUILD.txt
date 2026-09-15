@@ -1,0 +1,6 @@
+Geneva copy revision; real source topology, artistic sports details.
+Bay seam elevation=3.042918 school/coastal junction elevation=13.68575 field elevation=12.88575
+Roundabout centre=(279.14, 0.00, -66.62) centreline radius8.5m width7m; 64segments.
+Field marked pitch34x56m, goals6x2.44m; compressed artistic dimensions.
+Road4 eastern tail restored; coast8, ring9, bay approach10. Source bay disabled with unmodified shared asset.
+Actual walking/driving/NPC/mobile tests NOT performed.

@@ -64,3 +64,7 @@ The live `GrandBayProof.unity` scene has NO Unity `Terrain` component - ground i
 - `Docs/WORLD-EXPANSION-WORKFLOW.md` (mandatory reading for terrain/road/anchor work)
 - `Docs/MAP-ANCHORS.json`, `Docs/MAP-STRATEGY.md`
 - `Assets/UpIzUpMini/Scenes/GrandBayProof.unity` (generated - do not hand-edit as source of truth), `MapLab_LalayHighland.unity`
+
+## MINI-168 — Geneva loop / field applied (2026-09-15)
+
+Research-backed bay-roundabout-coast-school connection and simplified Geneva football field now in isolated copy; PCSS courtyard opens toward Grand Bay Road.11 road colliders,7.96% maximum saved grade,63 field-support checks; fresh-process render inspection and protected operation hashes pass. Reusable method, source IDs, measurements, exact tools/commands and observed failures: Docs/Maps/dm-dom-grand-bay-expansion-v1/GENEVA-WORKFLOW.md. Runtime acceptance and gameplay integration remain out of scope.

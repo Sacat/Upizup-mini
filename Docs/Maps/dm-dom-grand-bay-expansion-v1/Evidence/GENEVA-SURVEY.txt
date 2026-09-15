@@ -1,0 +1,1 @@
+MBRoad_way_22917921 bounds=Center: (108.96, 5.68, -135.62), Extents: (169.70, 3.22, 70.14) collider=True

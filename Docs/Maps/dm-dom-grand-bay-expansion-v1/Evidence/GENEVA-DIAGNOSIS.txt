@@ -1,0 +1,27 @@
+ROAD (173.28, 17.94, 53.33) normal=(0.06, 1.00, -0.01)
+ hit ExpansionTerrain (173.28, 17.76, 53.33) enabled=True
+ hit ExpansionRoad_4 (173.28, 17.94, 53.33) enabled=True
+ROAD (183.21, 17.30, 52.25) normal=(0.06, 1.00, -0.01)
+ hit ExpansionTerrain (183.21, 17.12, 52.25) enabled=True
+ hit ExpansionRoad_4 (183.21, 17.30, 52.25) enabled=True
+ROAD (192.10, 16.71, 51.29) normal=(0.07, 1.00, 0.00)
+ hit ExpansionTerrain (192.10, 16.53, 51.29) enabled=True
+ hit ExpansionRoad_4 (192.10, 16.71, 51.29) enabled=True
+ROAD (200.07, 16.18, 52.70) normal=(0.06, 1.00, 0.02)
+ hit ExpansionTerrain (200.07, 16.00, 52.70) enabled=True
+ hit ExpansionRoad_4 (200.07, 16.18, 52.70) enabled=True
+ROAD (207.38, 15.63, 56.95) normal=(0.06, 1.00, 0.04)
+ hit ExpansionTerrain (207.38, 15.46, 56.95) enabled=True
+ hit ExpansionRoad_4 (207.38, 15.63, 56.95) enabled=True
+ROAD (214.66, 15.00, 63.40) normal=(0.05, 1.00, 0.04)
+ hit ExpansionTerrain (214.66, 14.82, 63.40) enabled=True
+ hit ExpansionRoad_4 (214.66, 15.00, 63.40) enabled=True
+ROAD (222.10, 14.36, 69.84) normal=(0.05, 1.00, 0.04)
+ hit ExpansionTerrain (222.10, 14.18, 69.84) enabled=True
+ hit ExpansionRoad_4 (222.10, 14.36, 69.84) enabled=True
+ROAD (229.50, 13.81, 73.83) normal=(0.06, 1.00, 0.03)
+ hit ExpansionRoad_8 (229.50, 13.67, 73.83) enabled=True
+ hit ExpansionTerrain (229.50, 13.63, 73.83) enabled=True
+ hit ExpansionRoad_4 (229.50, 13.81, 73.83) enabled=True
+RENDERER ExpansionTerrain bounds=Center: (107.50, 23.84, -60.25), Extents: (232.50, 23.84, 170.25) material=ExpansionGround collider=ExpansionTerrain (UnityEngine.MeshCollider) staticBatch=False
+RENDERER ExpansionRoad_4 bounds=Center: (140.11, 16.84, 69.70), Extents: (92.49, 3.16, 21.50) material=ExpansionAsphalt collider=ExpansionRoad_4 (UnityEngine.MeshCollider) staticBatch=False

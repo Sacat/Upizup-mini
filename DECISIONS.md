@@ -1,3 +1,6 @@
+## 2026-09-15 — MINI-168 Geneva loop in review copy
+
+User authorized applying/rendering the researched Geneva road loop and field and clarified documentation is for Claude to learn. Keep existing geographic anchors and bay/coast/school route order; enlarge compressed roundabout for drivable width; interpret field sports details artistically; flip PCSS courtyard toward main road. Match existing bay seam and use bounded connected grade profiles. Protect live/source/build settings, use fresh-process render verification after generated-mesh edits, retain original hash history and record operation-specific integrity. No gameplay migration or EXE.
 ## 2026-09-14 — MINI-168 simplified corridor copy
 
 User authorized expanding from Berekua to the high-school area and simplifying roads, with images and continuous Claude documentation. Use the existing Pierre Charles Secondary School anchor, one-third horizontal compression, selected source roads, approved MINI142 house art and a separate scene. Broad artistic settlement grading is permitted for this proposal; the source DEM is retained. School geometry is approximate. No gameplay integration or EXE build. Retain rejected evidence and require final visual/junction/runtime review before any later integration.

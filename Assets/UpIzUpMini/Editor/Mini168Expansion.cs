@@ -10,7 +10,7 @@ using UnityEngine.Rendering;
 using Object=UnityEngine.Object;
 
 namespace UpIzUpMini.EditorTools {
-public static class Mini168Expansion {
+public static partial class Mini168Expansion {
  const string Scene="Assets/UpIzUpMini/Scenes/MapLab_GrandBayExpansionCopy.unity";
  const string Out="Docs/Maps/dm-dom-grand-bay-expansion-v1/Evidence";
  const string Art="Assets/UpIzUpMini/Maps/Regions/dm-dom-grand-bay-expansion-v1/Generated";
@@ -74,7 +74,9 @@ public static class Mini168Expansion {
    if(i>0){int k=i*2;t.AddRange(new[]{k-2,k,k-1,k-1,k,k+1});}}
   MeshObject(name,SaveMesh(name,v,t),asphalt,root,true);
  }
- public static void BuildAndCapture() {
+ public static void BuildAndCapture() { BuildGeneva(); }
+ // Historical first-pass constructor. Geneva revisions patch the saved review copy instead.
+ static void BuildInitialAndCapture() {
   Directory.CreateDirectory(Out);Directory.CreateDirectory(Art);AssetDatabase.Refresh();
   Mini168GrandBayExpansionCopy.Validate();
   var scene=EditorSceneManager.OpenScene(Scene);
@@ -93,10 +95,17 @@ public static class Mini168Expansion {
   var data=JsonUtility.FromJson<Data>(File.ReadAllText("Assets/UpIzUpMini/Maps/GrandBayPhase1MapData.json"));
   var report=new List<string>{"MINI168 Berekua to high school - first visual review copy","Source: OSM 2026-08-20; Copernicus GLO30; one-third horizontal compression.","Selected roads preserve OSM samples; outer Grand Bay Road truncated at z=90 and x=180 game metres.","School campus buildings and residential lots are artistic massing, not surveyed footprints."};
   foreach(string id in IDs){var road=data.roads.First(r=>r.id==id);var pts=road.points.Select(p=>new Vector3(p.x*data.compression,0,p.z*data.compression)).ToList();
-   if(id=="way/548578022"){pts=pts.Where(p=>p.z<=90&&p.x<=180).ToList();}
+   if(id=="way/548578022"){pts=pts.Where(p=>p.z<=90).ToList();}
    var line=Resample(pts);routes.Add(line);report.Add(id+" samples="+line.Length);}
   // Explicit approximate entrance lane from the mapped main road to the campus gate.
-  var gate=new Vector3(school.x,0,school.z-14);var near=routes[0].OrderBy(p=>(p-gate).sqrMagnitude).First();routes.Add(Resample(new[]{near,new Vector3(school.x,0,near.z),gate}));
+  var gate=new Vector3(school.x,0,school.z+13);var near=routes[4].OrderBy(p=>(p-gate).sqrMagnitude).First();routes.Add(Resample(new[]{near,gate}));
+  // Mapped coast continuation joins the restored school-road endpoint exactly.
+  var coast=data.roads.First(r=>r.id=="way/440101884");
+  routes.Add(Resample(coast.points.Select(p=>new Vector3(p.x*data.compression,0,p.z*data.compression))));
+  // Ring enlargement is deliberate at compressed scale; approach joins need saved-scene QA.
+  var ring=new List<Vector3>();
+  for(int i=0;i<=64;i++){float a=i*Mathf.PI*2/64;ring.Add(new Vector3(279.14f+8.5f*Mathf.Cos(a),0,-66.62f+8.5f*Mathf.Sin(a)));}
+  routes.Add(ring.ToArray());
   asphalt=Mat("ExpansionAsphalt",new Color(.16f,.17f,.17f));ground=Mat("ExpansionGround",new Color(.24f,.38f,.19f));concrete=Mat("ExpansionConcrete",new Color(.59f,.57f,.49f));roof=Mat("CampusRoof",new Color(.26f,.38f,.42f));wall=Mat("CampusWall",new Color(.86f,.79f,.62f));green=Mat("Vegetation",new Color(.18f,.36f,.14f));
   // Replace only the copy's terrain with a distinct generated mesh; original remains disabled for rollback.
   var bounds=originalGround.bounds;float minX=Mathf.Min(bounds.min.x,-125),maxX=Mathf.Max(bounds.max.x,230),minZ=bounds.min.z,maxZ=Mathf.Max(bounds.max.z,110);
@@ -110,8 +119,9 @@ public static class Mini168Expansion {
   Box("SchoolCourtyard",new Vector3(school.x,sy-.02f,school.z),new Vector3(40,.12f,26),concrete,root);
   for(int wing=0;wing<2;wing++){float x=school.x+(wing==0?-14:14);Box("SchoolTeachingWing_"+wing,new Vector3(x,sy+2.2f,school.z),new Vector3(8,4.4f,21),wall,root);Box("SchoolMetalRoof_"+wing,new Vector3(x,sy+4.5f,school.z),new Vector3(9,.3f,22),roof,root);
    for(int row=0;row<7;row++)Box("SchoolWindow",new Vector3(x+(wing==0?4.05f:-4.05f),sy+2.5f,school.z-8+row*2.6f),new Vector3(.12f,1.2f,1.6f),asphalt,root);}
-  Box("SchoolRearWing",new Vector3(school.x,sy+2.2f,school.z+10),new Vector3(23,4.4f,6),wall,root);
-  Box("SchoolRearRoof",new Vector3(school.x,sy+4.5f,school.z+10),new Vector3(24,.3f,7),roof,root);
+  Box("SchoolRearWing",new Vector3(school.x,sy+2.2f,school.z-10),new Vector3(23,4.4f,6),wall,root);
+  Box("SchoolRearRoof",new Vector3(school.x,sy+4.5f,school.z-10),new Vector3(24,.3f,7),roof,root);
+  OrientSchoolToMainRoad(root);
   var palette=AssetDatabase.LoadAssetAtPath<Material>(Houses+"/Palette.mat");
   int count=0;
   foreach(var line in routes.Take(7)) {
@@ -150,9 +160,17 @@ public static class Mini168Expansion {
   foreach(var c in Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))c.enabled=false;
   RenderSettings.fog=false;RenderSettings.ambientLight=new Color(.65f,.68f,.72f);
   var camera=new GameObject("MINI168_RenderCamera").AddComponent<Camera>();camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.64f,.78f,.86f);camera.farClipPlane=1600;camera.nearClipPlane=.1f;
-  Shot(camera,"01-Overview",new Vector3(370,380,-430),new Vector3(65,10,-65),true,245);
+  Shot(camera,"01-Overview",new Vector3(440,410,-490),new Vector3(100,12,-55),true,270);
   Shot(camera,"02-Expansion-Neighbourhood",new Vector3(180,105,-90),new Vector3(35,15,5),false,52);
-  Shot(camera,"03-High-School",new Vector3(155,68,2),new Vector3(107,20,49),false,48);
+  Shot(camera,"03-High-School",new Vector3(145,65,105),new Vector3(107,17,49),false,48);
+  var field=GameObject.Find("GenevaPlayingSurface");
+  if(field){
+   var centre=field.transform.position;
+   Shot(camera,"06-Geneva-Playing-Field",centre+new Vector3(85,95,-90),centre,false,48);
+   var island=GameObject.Find("GenevaRoundaboutIsland").transform.position;
+   Shot(camera,"07-Roundabout",island+new Vector3(35,40,-47),island,false,48);
+   Shot(camera,"08-Coast-School-Loop",new Vector3(425,260,-210),new Vector3(205,12,5),false,53);
+  }
   var road=GameObject.Find("ExpansionRoad_0");var rv=road.GetComponent<MeshFilter>().sharedMesh.vertices;
   int index=Mathf.Clamp(rv.Length/2,2,rv.Length-24);index-=index%2;
   var eye=(rv[index]+rv[index+1])*.5f+Vector3.up*1.75f;
@@ -169,7 +187,7 @@ public static class Mini168Expansion {
   var lines=new List<string>();
   foreach(var filter in expansion.GetComponentsInChildren<MeshFilter>()){
    var mesh=filter.sharedMesh;if(!mesh)throw new Exception("Missing mesh "+filter.name);
-   foreach(var v in mesh.vertices)if(float.IsNaN(v.x)||float.IsInfinity(v.y)||float.IsNaN(v.z))throw new Exception("Invalid vertex "+filter.name);
+   foreach(var v in mesh.vertices)if(float.IsNaN(v.x)||float.IsNaN(v.y)||float.IsNaN(v.z)||float.IsInfinity(v.x)||float.IsInfinity(v.y)||float.IsInfinity(v.z))throw new Exception("Invalid vertex "+filter.name);
    triangles+=mesh.triangles.Length/3;
    if(!filter.name.StartsWith("ExpansionRoad_"))continue;
    roadCount++;
@@ -178,16 +196,64 @@ public static class Mini168Expansion {
    for(int i=2;i<vertices.Length;i+=2){var a=(vertices[i-2]+vertices[i-1])*.5f;var b=(vertices[i]+vertices[i+1])*.5f;float length=Vector2.Distance(new Vector2(a.x,a.z),new Vector2(b.x,b.z));if(length>.01f)grade=Mathf.Max(grade,Mathf.Abs(a.y-b.y)/length*100);}
    maximumGrade=Mathf.Max(maximumGrade,grade);lines.Add(filter.name+" maximum centreline grade percent="+grade.ToString("F2"));
   }
-  if(roadCount!=8)throw new Exception("Expected eight expansion road colliders");
+  if(roadCount!=11)throw new Exception("Expected eleven expansion road colliders");
   if(maximumGrade>8)throw new Exception("Expansion road grade exceeds 8 percent: "+maximumGrade);
   lines.Add("Triangles in expansion meshes, counting house instances="+triangles);
-  lines.Add("Source/live hashes unchanged; eight road colliders match rendered meshes.");
+  lines.Add("Protected operation hashes unchanged; eleven road colliders match rendered meshes.");
   lines.Add("Actual walking, driving, NPC navigation and mobile performance NOT TESTED.");
   lines.Add("Maximum observed road grade percent="+maximumGrade.ToString("F2"));
   File.WriteAllLines(Out+"/GEOMETRY-VALIDATION.txt",lines);
   Debug.Log("MINI168_GEOMETRY_CHECK_PASS roads="+roadCount+" triangles="+triangles+" maxGrade="+maximumGrade);
  }
- public static void FinalReview() {ValidateGeometry();Capture();Debug.Log("MINI168_FINAL_REVIEW_PASS");}
+ public static void FinalReview() {ValidateGeometry();ValidateGeneva();Capture();Debug.Log("MINI168_FINAL_REVIEW_PASS");}
+ // Idempotent 180-degree courtyard flip. The symmetric teaching wings stay in place.
+ // Rebuild the campus-only entrance instead of rotating the surrounding road network.
+ static void OrientSchoolToMainRoad(Transform expansion) {
+  var courtyard=expansion.Find("SchoolCourtyard");
+  if(!courtyard)throw new Exception("School courtyard missing");
+  foreach(string name in new[]{"SchoolRearWing","SchoolRearRoof"}) {
+   var part=expansion.Find(name);if(!part)throw new Exception(name+" missing");
+   var p=part.position;p.z=school.z-10;part.position=p;
+  }
+  var main=expansion.Find("ExpansionRoad_4").GetComponent<MeshFilter>();
+  var mv=main.sharedMesh.vertices;Vector3 start=Vector3.zero;float nearest=float.MaxValue;
+  for(int i=0;i<mv.Length;i+=2){
+   var p=main.transform.TransformPoint((mv[i]+mv[i+1])*.5f);
+   float d=new Vector2(p.x-school.x,p.z-(school.z+13)).sqrMagnitude;
+   if(d<nearest){nearest=d;start=p;}
+  }
+  var end=new Vector3(school.x,courtyard.GetComponent<Renderer>().bounds.max.y+.025f,school.z+1);
+  var delta=end-start;delta.y=0;
+  if(delta.magnitude<1)throw new Exception("School approach too short");
+  float grade=Mathf.Abs(end.y-start.y)/delta.magnitude*100;
+  if(grade>8)throw new Exception("School entrance grade exceeds 8 percent: "+grade);
+  var side=Vector3.Cross(Vector3.up,delta.normalized)*2.4f;
+  var vertices=new List<Vector3>{start-side,start+side,end-side,end+side};
+  var mesh=SaveMesh("ExpansionRoad_7",vertices,new List<int>{0,2,1,1,2,3});
+  var lane=expansion.Find("ExpansionRoad_7");
+  lane.GetComponent<MeshFilter>().sharedMesh=mesh;lane.GetComponent<MeshCollider>().sharedMesh=mesh;
+  File.WriteAllLines(Out+"/SCHOOL-FLIP.txt",new[]{
+   "User: flip school so open courtyard faces main road.",
+   "Open side now +Z/north; rear wing moved from centroid Z+10 to Z-10.",
+   "Main road: ExpansionRoad_4 (way/548578022). School centroid and side wings retained.",
+   "Entrance width 4.8m; measured grade percent="+grade.ToString("F2"),
+   "Road connection="+start.ToString("F3")+" courtyard endpoint="+end.ToString("F3")});
+ }
+ public static void FlipSchool() {
+  // The live scene may legitimately change under another task. Verify this operation
+  // against its own before/after hash, never overwrite the historical source baseline.
+  const string live="Assets/UpIzUpMini/Scenes/GrandBayProof.unity";
+  const string source="Assets/UpIzUpMini/Scenes/MapLab_MBRoad_LalayHighlandProof.unity";
+  var liveBefore=File.ReadAllBytes(live);var sourceBefore=File.ReadAllBytes(source);
+  var scene=EditorSceneManager.OpenScene(Scene);
+  var expansion=GameObject.Find("MINI168_Expansion").transform;
+  OrientSchoolToMainRoad(expansion);
+  EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);AssetDatabase.SaveAssets();
+  if(!liveBefore.SequenceEqual(File.ReadAllBytes(live))||!sourceBefore.SequenceEqual(File.ReadAllBytes(source)))
+   throw new Exception("Protected scene changed during school revision");
+  Capture();
+  Debug.Log("MINI168_SCHOOL_FLIP_PASS: open courtyard faces main road; protected scenes unchanged during operation.");
+ }
  static void Shot(Camera c,string name,Vector3 p,Vector3 target,bool ortho,float size) {
   c.transform.position=p;c.transform.LookAt(target);c.orthographic=ortho;c.orthographicSize=size;c.fieldOfView=ortho?50:size;
   var rt=new RenderTexture(1600,1000,24);c.targetTexture=rt;c.Render();RenderTexture.active=rt;var tex=new Texture2D(1600,1000,TextureFormat.RGB24,false);tex.ReadPixels(new Rect(0,0,1600,1000),0,0);tex.Apply();File.WriteAllBytes(Out+"/"+name+".png",tex.EncodeToPNG());c.targetTexture=null;RenderTexture.active=null;Object.DestroyImmediate(rt);Object.DestroyImmediate(tex);
