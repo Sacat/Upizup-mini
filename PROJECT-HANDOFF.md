@@ -59,6 +59,20 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 ```yaml
 current_owner: None
 active_task: None
+released_task: MINI-170
+released_at: 2026-09-15
+released_reason: User - "i said no crashing when riding or wheelieing and the character still crashes so fix this". Two real root causes found and fixed (SuperMotoUprightAssist disabling roll correction during wheelie; SuperMotoWheelieAssist's stale pitch measurement breaking auto-recovery), plus a test-harness gap. Verified via the project's own real-scene regression test: roll went from climbing to 87.7deg stuck, to holding 1-2deg through a full 8s wheelie. Compile clean, Windows build succeeded (437,304,645 bytes). See Docs/Systems/Vehicles.md.
+reserved_files:
+  - Assets/UpIzUpMini/Scripts/Vehicles/SuperMotoUprightAssist.cs
+  - Assets/UpIzUpMini/Scripts/Vehicles/SuperMotoWheelieAssist.cs
+  - Assets/UpIzUpMini/Editor/Mini119RealSceneWheelieTest.cs
+  - Docs/Systems/Vehicles.md
+
+Previous claim history:
+
+```yaml
+current_owner: None
+active_task: None
 released_task: MINI-168
 released_at: 2026-09-15
 reserved_files:

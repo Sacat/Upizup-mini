@@ -405,8 +405,31 @@ namespace UpIzUpMini.Vehicles
             _wheelieYawLatched = false;
         }
 
-        private float MeasurePitch() =>
-            transform == null ? 0f : Mathf.Asin(Mathf.Clamp(transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+        // MINI-170: user reported the bike still crashes/tips over while
+        // wheelieing and gets stuck there. Root cause: this used
+        // Mathf.Asin(transform.forward.y), the EXACT technique already
+        // diagnosed and replaced in the sibling SuperMotoUprightAssist.
+        // TruePitchDeg() ("folds back past 90deg... a bad reading got
+        // physically baked in and re-asserted every frame") - but that fix
+        // was never ported here. Since ApplyAutoRecover()'s fallenOver
+        // check (autoRecoverRollLimitDeg=60deg) depends entirely on
+        // ComputeTrueRollDeg(), which depends on this, a bad pitch reading
+        // here can silently make the auto-recovery safety net never
+        // trigger once the bike is rolled over 60+ degrees - measured
+        // directly: Mini119RealSceneWheelieTest showed roll climb to
+        // 78.7deg and stay stuck there for 6+ real seconds with
+        // isCrashed=False, well past the 0.35s auto-recover window. Same
+        // signed-angle fix, ported verbatim.
+        private float MeasurePitch()
+        {
+            if (transform == null) return 0f;
+            Vector3 flatForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+            if (flatForward.sqrMagnitude < 0.0001f) flatForward = Vector3.ProjectOnPlane(-transform.up, Vector3.up);
+            if (flatForward.sqrMagnitude < 0.0001f) return 0f;
+            flatForward.Normalize();
+            Vector3 right = Vector3.Cross(Vector3.up, flatForward);
+            return Vector3.SignedAngle(flatForward, transform.forward, right);
+        }
 
         private Quaternion ZeroRollTarget(float pitchDeg) =>
             Quaternion.Euler(0f, StableYawDegrees(), 0f) * Quaternion.Euler(-pitchDeg, 0f, 0f);

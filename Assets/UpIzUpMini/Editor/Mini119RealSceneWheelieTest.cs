@@ -57,6 +57,15 @@ namespace UpIzUpMini.EditorTools
             var remap = instance.GetComponent<SuperMotoWheelieKeyRemap>();
             var assist = instance.GetComponent<SuperMotoWheelieAssist>();
             var trike = instance.GetComponent<SuperMotoTrikeStabilizer>();
+            // MINI-170: this test never invoked SuperMotoUprightAssist's
+            // FixedUpdate, even though WireSuperMotoInstance (called by
+            // SpawnStockDemoBikeAndDisableOurCharacter above, confirmed by
+            // reading the actual call chain, not assumed) DOES attach it
+            // to this exact instance - a real harness gap, not evidence
+            // the component doesn't run in the live game (Unity's normal
+            // lifecycle calls it automatically there). Added so this batch
+            // test actually reflects what the real game runs.
+            var upright = instance.GetComponent<SuperMotoUprightAssist>();
             var anytimeReset = instance.GetComponent<SuperMotoAnytimeReset>();
             var rb = instance.GetComponent<Rigidbody>();
             var gadd = instance.GetComponent<RB_Controller>();
@@ -97,6 +106,7 @@ namespace UpIzUpMini.EditorTools
             InvokeIfExists(assist, "Awake");
             InvokeIfExists(trike, "Awake");
             InvokeIfExists(anytimeReset, "Awake");
+            InvokeIfExists(upright, "Awake");
 
             FieldInfo wheelieField = typeof(Input_Manager).GetField("wheelieInput", BindingFlags.NonPublic | BindingFlags.Instance);
             FieldInfo vInputField = typeof(Input_Manager).GetField("vInput", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -134,6 +144,7 @@ namespace UpIzUpMini.EditorTools
                 InvokeIfExists(autoLevel, "FixedUpdate");
                 InvokeIfExists(assist, "FixedUpdate");
                 InvokeIfExists(trike, "FixedUpdate");
+                InvokeIfExists(upright, "FixedUpdate");
                 Physics.Simulate(dt);
 
                 if (i >= settleSteps && (i - settleSteps) % 50 == 0) // every 1.0s of hold

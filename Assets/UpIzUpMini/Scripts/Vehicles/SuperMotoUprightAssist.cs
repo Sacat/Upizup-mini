@@ -35,6 +35,18 @@ namespace UpIzUpMini.Vehicles
     {
         [Tooltip("Max degrees/second the roll correction steers at. Higher = snaps upright faster after a hit; too high can look unnatural mid-turn.")]
         public float correctionDegPerSecond = 60f;
+        // MINI-170: measured (Mini119RealSceneWheelieTest, real scene, real
+        // spawn) that a sustained wheelie makes roll climb ~63deg in the
+        // FIRST SECOND alone (5.5 -> 68.6deg), then settle stuck at
+        // 78.7deg - visually the bike lying on its side / the rider
+        // "falling off". A flat 60deg/sec correction cannot win that race.
+        // Mirrors TmaxBikeControllerCustom's own wheelieRollAssist, which
+        // already strengthens (not disables) roll correction the deeper a
+        // wheelie goes - same fix family, ported to this bike.
+        [Tooltip("Multiplier applied to correctionDegPerSecond while a wheelie is active, so roll correction can actually win against wheelie-coupled roll growth instead of just barely keeping pace.")]
+        public float wheelieCorrectionMultiplier = 4f;
+        [Tooltip("Fraction (0-1) of the Rigidbody's roll-axis (forward-axis) angular velocity removed every physics step, independent of the MoveRotation snap. MoveRotation alone corrects the visible ORIENTATION but does not stop the underlying spin that produced it - next step's physics integration keeps re-adding it. This directly removes energy from the roll spin (never adds any), so it cannot resonate the way the earlier torque-based attempts did.")]
+        [Range(0f, 1f)] public float rollSpinDamping = 0.6f;
 
         private RB_Controller _rb;
         private Rigidbody _body;
@@ -58,15 +70,38 @@ namespace UpIzUpMini.Vehicles
         private void FixedUpdate()
         {
             if (_rb == null || _body == null || _rb.isCrashed) return; // let a real crash/ragdoll moment play out unopposed
-            if (_wheelieAssist != null && _wheelieAssist.CurrentRampDeg > 0.01f) return;
-
+            // MINI-170: user reported the bike still crashes/tips over
+            // while wheelieing. Root cause: this early-return disabled ALL
+            // roll correction the instant any wheelie started, leaving the
+            // bike with zero protection against tipping sideways at
+            // exactly its most vulnerable moment - a real, confirmed
+            // asymmetry with TmaxBikeControllerCustom's own controller,
+            // which instead STRENGTHENS roll correction during a wheelie
+            // via wheelieRollAssist rather than turning it off. Safe to run
+            // unconditionally: zeroRollTarget below is built from the
+            // CURRENT measured pitch (TruePitchDeg()) and reapplies it
+            // unchanged, so this only ever corrects unwanted ROLL - it
+            // never fights or overrides the wheelie system's own pitch.
             float pitchDeg = TruePitchDeg();
             Quaternion zeroRollTarget = Quaternion.Euler(0f, StableYawDegrees(), 0f) * Quaternion.Euler(-pitchDeg, 0f, 0f);
 
+            bool wheelieing = _wheelieAssist != null && _wheelieAssist.CurrentRampDeg > 0.01f;
+            float effectiveSpeed = correctionDegPerSecond * (wheelieing ? wheelieCorrectionMultiplier : 1f);
             Quaternion newRot = Quaternion.RotateTowards(
-                transform.rotation, zeroRollTarget, correctionDegPerSecond * Time.fixedDeltaTime);
+                transform.rotation, zeroRollTarget, effectiveSpeed * Time.fixedDeltaTime);
 
             _body.MoveRotation(newRot);
+
+            // Remove the underlying roll-axis spin too, not just the
+            // visible orientation - see rollSpinDamping's own tooltip for
+            // why MoveRotation alone isn't enough against a sustained
+            // roll-inducing coupling.
+            if (rollSpinDamping > 0f)
+            {
+                Vector3 rollAxis = transform.forward;
+                float rollSpin = Vector3.Dot(_body.angularVelocity, rollAxis);
+                _body.angularVelocity -= rollAxis * (rollSpin * rollSpinDamping);
+            }
         }
 
         /// <summary>Yaw derived from the flattened forward vector rather

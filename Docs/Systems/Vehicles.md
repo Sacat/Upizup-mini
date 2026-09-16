@@ -1,5 +1,18 @@
 # Vehicles (Riding & Driving)
 
+## MINI-170 — SuperMoto still tipping over during a wheelie, real root cause found and fixed (2026-09-15)
+
+User: "i said no crashing when riding or wheelieing and the character still crashes so fix this", then "like i just see the character falling of the bike when wheeling". Confirmed first that scripted crash-ejection is fully OFF already (MINI-167's `BikeCrashEjectionController.ShouldEjectForImpact` unconditionally returns false) - the "crash" the user sees is genuine uncontrolled physics tip-over, a different bug entirely.
+
+Two real, separate root causes found and fixed, both in SuperMoto-specific scripts (TMAX was already correct on both counts):
+
+1. **`SuperMotoUprightAssist` fully disabled roll correction the instant any wheelie started** (`if (_wheelieAssist.CurrentRampDeg > 0.01f) return;`), leaving zero protection against sideways tipping at exactly the bike's most vulnerable moment. `TmaxBikeControllerCustom` already solves this correctly via `wheelieRollAssist`, which STRENGTHENS roll correction during a wheelie instead of disabling it - SuperMoto never got the equivalent fix. Fixed: roll correction now runs unconditionally (safe - it only ever corrects roll, reapplying the current pitch unchanged, so it can't fight the wheelie system), scaled up 4x during a wheelie (`wheelieCorrectionMultiplier`), plus direct damping of the underlying roll-axis angular velocity (`rollSpinDamping`) since `MoveRotation` alone corrects the visible orientation but not the spin that produced it.
+2. **`SuperMotoWheelieAssist.MeasurePitch()` still used `Mathf.Asin(transform.forward.y)`** - the exact technique already diagnosed and replaced in the sibling `SuperMotoUprightAssist.TruePitchDeg()` (folds back past 90deg, "a bad reading got physically baked in and re-asserted every frame"), but never ported here. This measurement feeds `ComputeTrueRollDeg()`, which feeds `ApplyAutoRecover()`'s fallen-over check (`autoRecoverRollLimitDeg=60deg`) - a bad reading could silently keep the auto-recovery safety net from ever firing once genuinely rolled over. Ported the same signed-angle fix verbatim.
+
+Also fixed a real test-harness gap while diagnosing: `Mini119RealSceneWheelieTest` never invoked `SuperMotoUprightAssist.FixedUpdate` at all, despite `WireSuperMotoInstance` (confirmed by reading the actual call chain) attaching that component to the exact bike instance under test - so the test was silently blind to roll-correction behavior the whole time. Added the missing invoke.
+
+Verified with the project's own existing regression test, not assumed: `Mini119RealSceneWheelieTest` (real scene, real Lalay spawn, 8s of hold-then-tap wheelieing) went from roll climbing to 87.7deg and getting stuck there for 6+ seconds, to roll staying at 1.1-1.7deg for the entire 8 seconds while the bike travels normally. Standing `Mini134CrashDamageRecoveryValidation` regression still passes (`[MINI-138] PASS`). Compile clean, Windows build succeeded (437,304,645 bytes). Real hands-on ride feel is still the final gate, same as every prior crash/wheelie round - this is real-scene physics-simulation evidence, not a live playtest.
+
 ## MINI-167 — bikes crash too easily, raised 50% harder to trigger ejection (2026-09-12)
 
 User: "the bikes crashes too easily still make it like 50% harder to

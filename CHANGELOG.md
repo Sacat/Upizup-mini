@@ -9,6 +9,10 @@ Built an isolated expansion with seven selected OSM road sections, an approximat
 
 User approved the new Blender previews for the main characters. Franki defaults to the 90 and Sacat to the 97; both remain selectable per character under existing IDs, with saved selections/colours preserved. Real Air cavities, reduced combined geometry and fitted ankle skin replace the tall legacy footwear; Mike270 and all non-shoe outfits/accessories are preserved. Shoe UI/save tests, full wardrobe regression, sampled idle/walk/run, final static renders, Windows build (437,302,389 bytes) and actual built-player/portrait proof pass. Exact process, source, measurements and remaining mobile/material limits: `Docs/WorkPackets/MINI-166-AirMax-Integration.md`.
 
+## MINI-170 SuperMoto wheelie tip-over fixed — 2026-09-15
+
+Scripted crash-ejection was already fully off; the bike was still physically tipping over during a wheelie with zero correction. Root-caused to two real bugs (SuperMotoUprightAssist disabling roll correction during wheelie; a stale pitch-measurement technique breaking the auto-recovery safety net) and fixed both, plus a test-harness gap that was hiding the first bug. Verified with the project's own real-scene regression test: roll went from climbing to 87.7deg and staying stuck, to holding at 1-2deg through a full 8s sustained wheelie. Compile clean, Windows build succeeded (437,304,645 bytes). See Docs/Systems/Vehicles.md.
+
 ## MINI-169 Highland/Farm Safehouse walkable interior — 2026-09-14
 
 The first/free safehouse was already a real 3-walled room with a bed (survey found this before building anything) - just open-fronted like a shed. Added a real front wall with a walkable doorway, matching its existing construction exactly. Compile clean, scene saved, real renders confirmed, Windows build succeeded (437,304,133 bytes). Lalay House/Estate interiors and the Highland Mansion garage/integration are separate follow-up parts of the same task. See Docs/WorkPackets/MINI-169.md.
