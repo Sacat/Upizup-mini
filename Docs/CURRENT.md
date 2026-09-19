@@ -530,3 +530,6 @@ Keep this file short. Update facts and priorities at task completion; put detail
 
 ### MINI-173 checkpoint (2026-09-19)
 Latest expansion scene: GrandBayProof_ExpansionImport.unity.31 researched-type replacement Lalay homes, Geneva football removed, bay shoreline extended past roundabout, chain garment-depth fit for Sacat/Franki. See Docs/WorkPackets/MINI-173.md for exact commands and limitations. Do not rerun MINI171 import or MINI172 Apply over this scene. No EXE rebuild; current visual approval remains pending.
+
+## MINI-174 — bay seawall and house separation (2026-09-19)
+Added65 joined seawall segments past the roundabout in expansion import scene. Audited169 generic house envelopes including roofs;72 conservative clashes resolved by adjusting62 houses. Fresh saved-scene validation passed:0 house overlap pairs,0 sampled house-road hits,130 wall colliders. Google Maps reference unavailable; wall design follows user's correction, with approximate dimensions. Commands, sources, exact relocations and inspected renders: Docs/WorkPackets/MINI-174.md. No EXE rebuild; visual/user gameplay review pending.

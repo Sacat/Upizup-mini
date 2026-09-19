@@ -2005,3 +2005,6 @@ User narrowed scope to Berekua through the high school and permitted road simpli
 MINI-168 update2026-09-15: Geneva field, coastal roundabout loop and PCSS flip applied to review copy. Fresh-session visuals and static checks pass; user review pending. Instructional record: Docs/Maps/dm-dom-grand-bay-expansion-v1/GENEVA-WORKFLOW.md. No live integration.
 
 - MINI-173: Implemented Lalay replacement homes, football removal, coastal bay and main-character chain fit. Geometric checks passed; final Play Mode settling evidence and user visual review recorded in Docs/WorkPackets/MINI-173.md.
+
+## MINI-174 — bay seawall and house separation (2026-09-19)
+Added65 joined seawall segments past the roundabout in expansion import scene. Audited169 generic house envelopes including roofs;72 conservative clashes resolved by adjusting62 houses. Fresh saved-scene validation passed:0 house overlap pairs,0 sampled house-road hits,130 wall colliders. Google Maps reference unavailable; wall design follows user's correction, with approximate dimensions. Commands, sources, exact relocations and inspected renders: Docs/WorkPackets/MINI-174.md. No EXE rebuild; visual/user gameplay review pending.

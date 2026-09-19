@@ -60,9 +60,9 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 current_owner: None
 active_task: None
 reserved_files: None
-released_task: MINI-173
+released_task: MINI-174
 released_at: 2026-09-19
-released_reason: Expansion-copy roads smoothed with three paved junction patches; PCSS right wing measured and moved off Road 4; Geneva upgraded to a multi-use cricket/football ground with central strip, wickets, oval boundary and small stands. Focused and full import validators pass; five fixed-camera renders ready for user review. Canonical live/source scenes remain protected.
+released_reason: Seawall extended past roundabout and generic house overlaps corrected; compile, fresh scene validation and rendered inspection complete. User visual review pending.
 ```
 
 Scope: import ONLY the new MINI168_Expansion content (roads, terrain extension, houses, PCSS school, Geneva field, roundabout) into a NEW copy of the live scene, never the older Lalay/Highland the expansion copy also carries. Live GrandBayProof.unity stays untouched until the user has walked and driven the result.
@@ -3104,3 +3104,8 @@ MINI-165 scoped checkpoint: 8b1e2d8 (runtime code, editor tools, headphone asset
 
 
 MINI-173 checkpoint:31 Lalay shanties replaced; Geneva football removed; coastal bay reaches roundabout; Sacat/Franki chain fit inspected in Play Mode including settling. Compile and geometric acceptance passed. Evidence/commands/Claude workflow and limitations: Docs/WorkPackets/MINI-173.md. No EXE rebuild. Ownership released.
+
+
+
+## MINI-174 — bay seawall and house separation (2026-09-19)
+Added65 joined seawall segments past the roundabout in expansion import scene. Audited169 generic house envelopes including roofs;72 conservative clashes resolved by adjusting62 houses. Fresh saved-scene validation passed:0 house overlap pairs,0 sampled house-road hits,130 wall colliders. Google Maps reference unavailable; wall design follows user's correction, with approximate dimensions. Commands, sources, exact relocations and inspected renders: Docs/WorkPackets/MINI-174.md. No EXE rebuild; visual/user gameplay review pending.
