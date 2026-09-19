@@ -1473,9 +1473,9 @@ MonoBehaviour:
   rightHandTarget: {fileID: 247768696851771707}
   leftFootTarget: {fileID: 741080777249879825}
   rightFootTarget: {fileID: 7225956852351128350}
-  seatedOffset: {x: 0.11, y: -0.01, z: 0.32}
+  seatedOffset: {x: 0.11, y: -0.01, z: 0.02}
   seatedPitch: 0
-  wheelieOffset: {x: 0, y: -0.4, z: 0.28}
+  wheelieOffset: {x: 0, y: -0.4, z: -0.02}
   wheeliePitch: 22
   ridePoseActionId: RideBike
   mountActionId: MountBike

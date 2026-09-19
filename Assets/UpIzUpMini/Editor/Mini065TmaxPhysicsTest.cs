@@ -158,6 +158,12 @@ namespace UpIzUpMini.EditorTools
                 lh: "PillionGrabLeft", rh: "PillionGrabRight",
                 lf: "PillionFootLeft", rf: "PillionFootRight",
                 ridePose: "RideBike", mount: "MountBike");
+            var pillionSeat = prefabRoot.transform.Find("PillionSeat_Seat")?.GetComponent<VehicleSeat>();
+            if (pillionSeat != null)
+            {
+                pillionSeat.ConfigureSeatedPose(new Vector3(0.11f, -0.01f, 0.02f), 0f);
+                pillionSeat.ConfigureWheeliePose(new Vector3(0f, -0.40f, -0.02f), 22f);
+            }
 
             // MINI-066 fix: BikeInteractable belongs on the PREFAB, not just
             // the test scene. It was previously added only in BuildTestScene,

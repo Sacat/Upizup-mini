@@ -42,6 +42,7 @@ namespace UpIzUpMini.Interaction
         private float _blockedTimer;
         private float _sideSign;
         private readonly NavPathSteerer _steerer = new NavPathSteerer();
+        private readonly NpcObstacleJumpMotor _jumpMotor = new NpcObstacleJumpMotor();
 
         public bool IsAlert => reactsToHeat
             && EconomyManager.Instance != null
@@ -122,12 +123,23 @@ namespace UpIzUpMini.Interaction
                     }
                     else if (dir.HasValue)
                     {
-                        Vector3 safeDirection = dir.Value;
-                        if (_controller != null && !LocalSteeringSafety.TryDirection(
-                                transform, _controller, safeDirection, null, _sideSign, out safeDirection))
+                        Vector3 desiredDirection = dir.Value;
+                        Vector3 safeDirection = desiredDirection;
+                        bool blocked = _controller != null && !LocalSteeringSafety.TryDirection(
+                            transform, _controller, safeDirection, null, _sideSign, out safeDirection);
+                        if (blocked)
                         {
                             _blockedTimer += Time.deltaTime;
-                            if (_blockedTimer >= 0.9f)
+                            Vector3 jump = _jumpMotor.Step(transform, _controller, desiredDirection, true,
+                                _blockedTimer >= 0.6f, Time.deltaTime);
+                            if (_jumpMotor.IsAirborne)
+                            {
+                                _controller.Move(desiredDirection * (speed * 0.45f * Time.deltaTime) + jump);
+                                desiredBlend = speed;
+                                ApplyAnimation(desiredBlend);
+                                return;
+                            }
+                            if (_blockedTimer >= 1.2f)
                             {
                                 _sideSign *= -1f;
                                 _blockedTimer = 0f;
@@ -142,7 +154,8 @@ namespace UpIzUpMini.Interaction
                         // straight through walls.
                         if (_controller != null && _controller.enabled)
                         {
-                            _controller.SimpleMove(safeDirection * speed);
+                            Vector3 vertical = _jumpMotor.Step(transform, _controller, safeDirection, true, false, Time.deltaTime);
+                            _controller.Move(safeDirection * (speed * Time.deltaTime) + vertical);
                         }
                         else
                         {
@@ -172,7 +185,9 @@ namespace UpIzUpMini.Interaction
                 // MotionSpeed and gates on Grounded; without these the clip
                 // plays at a fixed rate and the feet skate.
                 animator.SetFloat("MotionSpeed", desiredBlend > 0.01f ? 1f : 0f);
-                animator.SetBool("Grounded", true);
+                animator.SetBool("Grounded", !_jumpMotor.IsAirborne);
+                animator.SetBool("Jump", _jumpMotor.IsAirborne);
+                animator.SetBool("FreeFall", _jumpMotor.IsAirborne);
             }
         }
 

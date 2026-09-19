@@ -62,6 +62,8 @@ namespace UpIzUpMini.EditorTools
                     "MountBike",
                     "RideBike");
                 pillionSeat.SetRole(VehicleSeat.SeatRole.Passenger);
+                pillionSeat.ConfigureSeatedPose(new Vector3(0.11f, -0.01f, 0.02f), 0f);
+                pillionSeat.ConfigureWheeliePose(new Vector3(0f, -0.40f, -0.02f), 22f);
                 var pillionSo = new SerializedObject(pillionSeat);
                 pillionSo.FindProperty("ridePoseStartTimeSeconds").floatValue = 0f;
                 pillionSo.ApplyModifiedPropertiesWithoutUndo();
@@ -115,8 +117,8 @@ namespace UpIzUpMini.EditorTools
                 "Pillion anchor is not using the neutral SuperMoto-style rotation.");
             Require(pillionSeat != null && pillionSeat.RidePoseActionId == "RideBike",
                 "Pillion is not using the stable SuperMoto RideBike pose.");
-            Require(pillionSeat != null && pillionSeat.SeatedOffset == new Vector3(0.11f, -0.01f, 0.32f),
-                "Pillion height/position changed; MINI-128 must preserve it.");
+            Require(pillionSeat != null && pillionSeat.SeatedOffset == new Vector3(0.11f, -0.01f, 0.02f),
+                "Pillion spacing correction was not preserved.");
 
             var custom = prefab.GetComponent<TmaxBikeControllerCustom>();
             Require(custom != null, "Proven custom TMAX controller was removed.");

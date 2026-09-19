@@ -94,6 +94,7 @@ namespace UpIzUpMini.Character
         public const float ChainForward = 0.044f;
         public const float ChainUp = 0.383f;
         public const float ChainSide = -0.032f;
+        public const float ChainNeckwardCorrection = 0.035f;
 
         /// <summary>Pitch about the character's right axis. The model is a FLAT
         /// loop, so tilting it is what lets the top arc sit behind the neck
@@ -394,6 +395,10 @@ namespace UpIzUpMini.Character
                 // this method already decided the item's rest pose is.
                 if (itemId == "chain_gold")
                 {
+                    // MINI-171: fitted shirts changed the visible chest surface.
+                    // Keep each character's authored placement, then settle the
+                    // whole chain 3.5 cm toward the neck in character space.
+                    go.transform.position -= transform.forward * ChainNeckwardCorrection;
                     var swing = go.AddComponent<AccessorySwing>();
                     // MINI-067: hold the chain in the CHARACTER's frame, not
                     // the chest bone's. This rig's bone rest orientations are

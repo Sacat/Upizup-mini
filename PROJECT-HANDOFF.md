@@ -59,6 +59,18 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 ```yaml
 current_owner: None
 active_task: None
+released_task: MINI-171
+released_at: 2026-09-19
+released_reason: Expansion import copy repaired and verified; 22 roads fitted to terrain, Dog Life actors/routes grounded, NPC clearance-checked stuck jumps added, chains moved neckward, TMAX/SuperMoto pillion spacing corrected, and Windows build succeeded. Protected live/source scenes unchanged. User walk/drive and animated two-rider/chain visual acceptance remain.
+```
+
+Scope: import ONLY the new MINI168_Expansion content (roads, terrain extension, houses, PCSS school, Geneva field, roundabout) into a NEW copy of the live scene, never the older Lalay/Highland the expansion copy also carries. Live GrandBayProof.unity stays untouched until the user has walked and driven the result.
+
+Previous claim history:
+
+```yaml
+current_owner: None
+active_task: None
 released_task: MINI-170
 released_at: 2026-09-15
 released_reason: User - "i said no crashing when riding or wheelieing and the character still crashes so fix this". Two real root causes found and fixed (SuperMotoUprightAssist disabling roll correction during wheelie; SuperMotoWheelieAssist's stale pitch measurement breaking auto-recovery), plus a test-harness gap. Verified via the project's own real-scene regression test: roll went from climbing to 87.7deg stuck, to holding 1-2deg through a full 8s wheelie. Compile clean, Windows build succeeded (437,304,645 bytes). See Docs/Systems/Vehicles.md.

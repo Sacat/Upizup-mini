@@ -846,7 +846,7 @@ namespace UpIzUpMini.Vehicles
                 // reducing.
                 var pillionSeatGo = new GameObject("PillionSeat");
                 pillionSeatGo.transform.SetParent(instance.transform, false);
-                pillionSeatGo.transform.localPosition = seatLocalPos + new Vector3(0f, 0.05f, -0.45f);
+                pillionSeatGo.transform.localPosition = seatLocalPos + new Vector3(0f, 0.05f, -0.55f);
                 pillionSeatGo.transform.localRotation = Quaternion.identity;
 
                 var pillionLeftHandTarget = new GameObject("PillionLeftHandPos").transform;
