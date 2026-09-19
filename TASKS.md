@@ -2003,3 +2003,5 @@ Expand the approved Lalay/Highland/By-the-Bay map system across the remaining Gr
 User narrowed scope to Berekua through the high school and permitted road simplification. Initial copy now has seven mapped roads plus one approximate school lane, 52 houses and campus massing. Four inspected images and geometry validation are ready; maximum measured new-road grade 5.5%. Live scene unchanged. Layout review and runtime/junction tests remain.
 
 MINI-168 update2026-09-15: Geneva field, coastal roundabout loop and PCSS flip applied to review copy. Fresh-session visuals and static checks pass; user review pending. Instructional record: Docs/Maps/dm-dom-grand-bay-expansion-v1/GENEVA-WORKFLOW.md. No live integration.
+
+- MINI-173: Implemented Lalay replacement homes, football removal, coastal bay and main-character chain fit. Geometric checks passed; final Play Mode settling evidence and user visual review recorded in Docs/WorkPackets/MINI-173.md.

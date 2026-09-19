@@ -527,3 +527,6 @@ MINI-109 through the full MINI-119 SuperMoto/follow-up chain documented above ar
 ## Update rule
 
 Keep this file short. Update facts and priorities at task completion; put detailed evidence, command logs, and historical narrative in the task entry inside `PROJECT-HANDOFF.md`.
+
+### MINI-173 checkpoint (2026-09-19)
+Latest expansion scene: GrandBayProof_ExpansionImport.unity.31 researched-type replacement Lalay homes, Geneva football removed, bay shoreline extended past roundabout, chain garment-depth fit for Sacat/Franki. See Docs/WorkPackets/MINI-173.md for exact commands and limitations. Do not rerun MINI171 import or MINI172 Apply over this scene. No EXE rebuild; current visual approval remains pending.

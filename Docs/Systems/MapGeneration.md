@@ -68,3 +68,6 @@ The live `GrandBayProof.unity` scene has NO Unity `Terrain` component - ground i
 ## MINI-168 — Geneva loop / field applied (2026-09-15)
 
 Research-backed bay-roundabout-coast-school connection and simplified Geneva football field now in isolated copy; PCSS courtyard opens toward Grand Bay Road.11 road colliders,7.96% maximum saved grade,63 field-support checks; fresh-process render inspection and protected operation hashes pass. Reusable method, source IDs, measurements, exact tools/commands and observed failures: Docs/Maps/dm-dom-grand-bay-expansion-v1/GENEVA-WORKFLOW.md. Runtime acceptance and gameplay integration remain out of scope.
+
+## MINI-173 — Lalay homes, Geneva and coastal bay (2026-09-19)
+31 imported Lalay shanty roots disabled and replaced on existing lots with procedural veranda homes. Removed141 football objects from Geneva; retained cricket/community features and corrected stand tier direction. Clipped/graded expansion coast so the roundabout reads as bay-side; preserved road geometry. Validation passed:31 homes, zero active shanties/football, zero sampled house-road hits, matching terrain mesh/collider, minimum roundabout shore clearance8.524689m. Real-world references establish architectural types only. See Docs/WorkPackets/MINI-173.md for tools, commands, dimensions, sources, evidence and Claude continuation rules. No EXE rebuild.

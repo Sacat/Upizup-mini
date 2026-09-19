@@ -59,7 +59,8 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 ```yaml
 current_owner: None
 active_task: None
-released_task: MINI-172
+reserved_files: None
+released_task: MINI-173
 released_at: 2026-09-19
 released_reason: Expansion-copy roads smoothed with three paved junction patches; PCSS right wing measured and moved off Road 4; Geneva upgraded to a multi-use cricket/football ground with central strip, wickets, oval boundary and small stands. Focused and full import validators pass; five fixed-camera renders ready for user review. Canonical live/source scenes remain protected.
 ```
@@ -3100,3 +3101,6 @@ built with both the radio and the missions included.
 - Next action: user runs the updated build, uses the purchasing protagonist, and checks idle/walk/run. Open a new bounded adjustment only if fit or swing needs revision.
 
 MINI-165 scoped checkpoint: 8b1e2d8 (runtime code, editor tools, headphone assets and packet). Earlier scene/shared-document changes remain unstaged. Unity-generated YAML/meta whitespace warnings were retained; runtime C# diff check passed.
+
+
+MINI-173 checkpoint:31 Lalay shanties replaced; Geneva football removed; coastal bay reaches roundabout; Sacat/Franki chain fit inspected in Play Mode including settling. Compile and geometric acceptance passed. Evidence/commands/Claude workflow and limitations: Docs/WorkPackets/MINI-173.md. No EXE rebuild. Ownership released.

@@ -399,6 +399,7 @@ namespace UpIzUpMini.Character
                     // Keep each character's authored placement, then settle the
                     // whole chain 3.5 cm toward the neck in character space.
                     go.transform.position -= transform.forward * ChainNeckwardCorrection;
+                    ChainGarmentFit.Fit(go, transform, animator);
                     var swing = go.AddComponent<AccessorySwing>();
                     // MINI-067: hold the chain in the CHARACTER's frame, not
                     // the chest bone's. This rig's bone rest orientations are
@@ -612,3 +613,4 @@ namespace UpIzUpMini.Character
         }
     }
 }
+

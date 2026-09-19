@@ -482,3 +482,6 @@ User-approved manual placements are visual locks - e.g. Sacat's and Boss C's two
 - `Docs/CharacterPipeline/System/`, `Tools/CharacterPipeline/`
 - `Docs/VISUAL-APPROVAL-REGISTER.md` (locked placements - never recalculate)
 - `Docs/ASSET-REGISTER.md` MINI-AST-121 (Sacat Modular Base Rigged, the MINI-107 candidate)
+
+## MINI-173 — chain garment fit (2026-09-19)
+Actual Play Mode front/side inspection found chain portions inside both main-character shirts. CharacterEquipment now calls ChainGarmentFit before swing initialization:48-sample smooth forward/back depth fit against baked visible meshes, cloned accessory meshes, originals untouched. Only Sacat/Franki. Rejected radial fit stretched widths; final fit preserves them. Equip-time fitting is not dynamic cloth collision; pose/wardrobe-switch review remains. Full reproduction and limits: Docs/WorkPackets/MINI-173.md.
