@@ -1,3 +1,7 @@
+## MINI-172 — Roads, PCSS clearance and Geneva cricket ground (2026-09-19)
+
+Smoothed eight expansion road centrelines without moving endpoints, added three paved seam/corner junctions, and refitted terrain beneath them. Measured the PCSS conflict to the entrance-facing right wing and moved it 3 m off Road 4 while narrowing the campus footprint. Geneva remains a modest multi-use grass field but now includes a central cricket strip, wickets, oval boundary and two small three-tier stands alongside football markings. Focused validation and the complete MINI-171 import regression pass; five new renders await user review. See `Docs/WorkPackets/MINI-172.md`.
+
 ## MINI-168 — Geneva playing field and coastal loop (2026-09-15)
 
 Separate expansion copy now connects the bay through a roundabout and coastal stretch back to PCSS; school courtyard faces the road. Added simplified Geneva football pitch, goals, markings, benches and graded terrain. Fresh-session renders and static validation pass;11 road colliders,7.96% maximum grade,217480 extension triangles. Live game untouched; runtime testing/visual acceptance pending. Full instructional record: Docs/Maps/dm-dom-grand-bay-expansion-v1/GENEVA-WORKFLOW.md.

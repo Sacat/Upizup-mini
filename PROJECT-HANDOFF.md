@@ -59,9 +59,9 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 ```yaml
 current_owner: None
 active_task: None
-released_task: MINI-171
+released_task: MINI-172
 released_at: 2026-09-19
-released_reason: Expansion import copy repaired and verified; 22 roads fitted to terrain, Dog Life actors/routes grounded, NPC clearance-checked stuck jumps added, chains moved neckward, TMAX/SuperMoto pillion spacing corrected, and Windows build succeeded. Protected live/source scenes unchanged. User walk/drive and animated two-rider/chain visual acceptance remain.
+released_reason: Expansion-copy roads smoothed with three paved junction patches; PCSS right wing measured and moved off Road 4; Geneva upgraded to a multi-use cricket/football ground with central strip, wickets, oval boundary and small stands. Focused and full import validators pass; five fixed-camera renders ready for user review. Canonical live/source scenes remain protected.
 ```
 
 Scope: import ONLY the new MINI168_Expansion content (roads, terrain extension, houses, PCSS school, Geneva field, roundabout) into a NEW copy of the live scene, never the older Lalay/Highland the expansion copy also carries. Live GrandBayProof.unity stays untouched until the user has walked and driven the result.
