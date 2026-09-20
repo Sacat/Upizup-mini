@@ -590,3 +590,6 @@ Added labelled credit union in expansion import scene using published directory 
 MINI-175 colour correction: credit union exterior changed from cream to white at user request; builder default updated to preserve the change.
 
 MINI-175 final palette: white walls/trim, black windows, sign background, columns and ATM; white sign lettering. Render inspected; mini175-monochrome.log passed.
+
+## MINI-176 — Claude workflow handoff and current-chain verification (2026-09-20)
+Complete guide: Docs/CLAUDE-GRANDBAY-BUILDINGS-CHAIN-WORKFLOW.md, linked to the earlier Blender MINI-142 house guide. Covers current Grand Bay map/building dimensions, geographic/elevation rules, road/coast/lot validation, tools, source limitations, chain transfer measurements and future-character fitting workflow. MINI-176 experimental mesh remaps were superseded by Claude MINI-178; preserve the accepted Franki profile and unchanged Sacat. Fresh saved-expansion Play Mode verification passed (Logs/mini176-verify-current.log); existing canonical-scene wardrobe regression passed (Logs/mini176-wardrobe-regression.log). No new EXE, motion certification or live-scene promotion. Details: Docs/WorkPackets/MINI-176.md.
