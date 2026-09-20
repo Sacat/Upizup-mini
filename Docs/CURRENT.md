@@ -533,3 +533,6 @@ Latest expansion scene: GrandBayProof_ExpansionImport.unity.31 researched-type r
 
 ## MINI-174 — bay seawall and house separation (2026-09-19)
 Added65 joined seawall segments past the roundabout in expansion import scene. Audited169 generic house envelopes including roofs;72 conservative clashes resolved by adjusting62 houses. Fresh saved-scene validation passed:0 house overlap pairs,0 sampled house-road hits,130 wall colliders. Google Maps reference unavailable; wall design follows user's correction, with approximate dimensions. Commands, sources, exact relocations and inspected renders: Docs/WorkPackets/MINI-174.md. No EXE rebuild; visual/user gameplay review pending.
+
+## MINI-175 — Grand Bay Credit Union on Lalay (2026-09-20)
+Added labelled credit union in expansion import scene using published directory pin15.2407793,-61.3166228 and official Lalay address. Street-relative frontage setback5.187216 game metres; model is stylized, not a surveyed/photo-matched replica. Replaced one generic parcel house; moved conflicting clothing stall and NPC together16m along the street. Renders inspected. Tool, measurements, failed approaches, reference limitations and verification: Docs/WorkPackets/MINI-175.md. No EXE rebuild.

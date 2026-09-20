@@ -101,11 +101,11 @@
       "longitude": -61.3166228,
       "localXMetres": 159.33,
       "localZMetres": -474.08,
-      "source": "Institution website plus prior place-coordinate cross-check",
+      "source": "GBCCU official contact address; near-place.com published place coordinate rechecked 2026-09-19",
       "sourceId": "candidate/GB-005",
       "verificationStatus": "official_institution_candidate_coordinate",
       "userVerified": false,
-      "notes": "Strong Lalay/Main Road anchor; entrance and exact footprint need local confirmation."
+      "notes": "https://gbccu.com/contact/ confirms Lalay Main Road; https://dm.near-place.com/grand-bay-cooperative-credit-union-lalay-main-road publishes this coordinate. Directory pin is not a surveyed footprint. Entrance and precise parcel remain unverified."
     },
     {
       "id": "farmers_cooperative",
@@ -249,3 +249,4 @@
     }
   ]
 }
+

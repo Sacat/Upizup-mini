@@ -60,9 +60,9 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 current_owner: None
 active_task: None
 reserved_files: None
-released_task: MINI-174
-released_at: 2026-09-19
-released_reason: Seawall extended past roundabout and generic house overlaps corrected; compile, fresh scene validation and rendered inspection complete. User visual review pending.
+released_task: MINI-175
+released_at: 2026-09-20
+released_reason: Credit union placed using published Lalay pin with documented frontage setback; shop conflict fixed; compile, fresh scene clearance validation and render inspection passed.
 ```
 
 Scope: import ONLY the new MINI168_Expansion content (roads, terrain extension, houses, PCSS school, Geneva field, roundabout) into a NEW copy of the live scene, never the older Lalay/Highland the expansion copy also carries. Live GrandBayProof.unity stays untouched until the user has walked and driven the result.
@@ -3109,3 +3109,7 @@ MINI-173 checkpoint:31 Lalay shanties replaced; Geneva football removed; coastal
 
 ## MINI-174 — bay seawall and house separation (2026-09-19)
 Added65 joined seawall segments past the roundabout in expansion import scene. Audited169 generic house envelopes including roofs;72 conservative clashes resolved by adjusting62 houses. Fresh saved-scene validation passed:0 house overlap pairs,0 sampled house-road hits,130 wall colliders. Google Maps reference unavailable; wall design follows user's correction, with approximate dimensions. Commands, sources, exact relocations and inspected renders: Docs/WorkPackets/MINI-174.md. No EXE rebuild; visual/user gameplay review pending.
+
+
+
+MINI-175: Lalay credit union added; published pin, stylized facade and documented frontage adjustment. Clothing stall/NPC relocated out of parcel. Fresh scene validation passed. See Docs/WorkPackets/MINI-175.md. No EXE rebuild.
