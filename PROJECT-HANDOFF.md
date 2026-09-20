@@ -62,7 +62,7 @@ active_task: None
 reserved_files: None
 released_task: MINI-175
 released_at: 2026-09-20
-released_reason: Credit union placed using published Lalay pin with documented frontage setback; shop conflict fixed; compile, fresh scene clearance validation and render inspection passed.
+released_reason: User-requested white walls and black windows/details applied; compile and rendered inspection passed.
 ```
 
 Scope: import ONLY the new MINI168_Expansion content (roads, terrain extension, houses, PCSS school, Geneva field, roundabout) into a NEW copy of the live scene, never the older Lalay/Highland the expansion copy also carries. Live GrandBayProof.unity stays untouched until the user has walked and driven the result.
@@ -3113,3 +3113,7 @@ Added65 joined seawall segments past the roundabout in expansion import scene. A
 
 
 MINI-175: Lalay credit union added; published pin, stylized facade and documented frontage adjustment. Clothing stall/NPC relocated out of parcel. Fresh scene validation passed. See Docs/WorkPackets/MINI-175.md. No EXE rebuild.
+
+
+
+

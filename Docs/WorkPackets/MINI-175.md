@@ -13,3 +13,11 @@ Actual render revealed Market_CLOTHES and NPC_ApparelShop overlapping the bank. 
 Evidence: Logs/Tasks/MINI-175/Placement.txt, ShopRelocation.txt, NeighbourAudit.txt, Validation.txt; Renders/CreditUnion.png and LalayLocation.png at1400x1000. Final CreditUnion.png opened and inspected on2026-09-20: label no longer clips facade, entrance and road clear. Compile logs mini175.log, mini175-shop.log, mini175-validation.log. Existing NUnit folders empty; focused scene checks used. No EXE rebuild. Canonical/source scenes unchanged. Preserve unrelated ObjectiveMarker.mat and packages-lock.json edits.
 
 Final fresh-process verification: MINI175_VALIDATION_PASS; roadFootprintHits=0 and houseMarketEnvelopeOverlaps=0. Compile succeeded. Static appearance inspected; live NPC shop interaction and user visual approval remain pending.
+
+2026-09-20 user colour correction: exterior WarmConcrete changed to white (1,1,1,1), including saved material and builder default. Geometry, placement and green sign unchanged. Verification render: Logs/mini175-white.log; no need to rerun placement/relocation.
+
+Follow-up colour instruction: WindowGlass is black (0,0,0,1), applied to window/entrance glass and shared ATM screen. White window frames retained. Saved material and builder default updated.
+
+Final user direction: mostly white and black. WarmConcrete/WhiteTrim now white; WindowGlass/DeepGreen black. Legacy material names retained for GUID stability. Sign lettering white, sign background/columns/ATM black. Builder defaults match. No geometry changes.
+
+Final monochrome render opened and inspected; MINI175_RENDER_PASS in Logs/mini175-monochrome.log, compilation without errors. Material-only change; prior placement validation remains applicable.

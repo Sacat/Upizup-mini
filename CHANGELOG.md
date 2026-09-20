@@ -586,3 +586,7 @@ Added65 joined seawall segments past the roundabout in expansion import scene. A
 
 ## MINI-175 — Grand Bay Credit Union on Lalay (2026-09-20)
 Added labelled credit union in expansion import scene using published directory pin15.2407793,-61.3166228 and official Lalay address. Street-relative frontage setback5.187216 game metres; model is stylized, not a surveyed/photo-matched replica. Replaced one generic parcel house; moved conflicting clothing stall and NPC together16m along the street. Renders inspected. Tool, measurements, failed approaches, reference limitations and verification: Docs/WorkPackets/MINI-175.md. No EXE rebuild.
+
+MINI-175 colour correction: credit union exterior changed from cream to white at user request; builder default updated to preserve the change.
+
+MINI-175 final palette: white walls/trim, black windows, sign background, columns and ATM; white sign lettering. Render inspected; mini175-monochrome.log passed.
