@@ -51,7 +51,7 @@ namespace UpIzUpMini.Vehicles
         [Tooltip("Degrees per second the wheelie angle climbs while held, and falls back to 0 when released.")]
         public float riseRateDegPerSecond = 72f;
         [Tooltip("Maximum wheelie angle (deg) a full, sustained hold reaches.")]
-        public float rampCeilingDeg = BikeCrashEjectionController.MaximumWheelieDegrees;
+        public float rampCeilingDeg = 55f; // MINI-181: a real balance-point wheelie tops out well short of vertical, so it can never loop over
         [Tooltip("Minimum speed (km/h) to START a wheelie - has no effect on SUSTAINING one already in progress.")]
         public float wheelieMinSpeedKmh = 8f;
         [Tooltip("Maximum speed (km/h) to START a wheelie.")]
@@ -100,12 +100,28 @@ namespace UpIzUpMini.Vehicles
         // deceleration threshold is sensitive enough that an ordinary
         // jolt trips it. Both fixed in Awake() below.
         [Tooltip("CrashController.decelerationSpeedForCrash - how hard a sudden slowdown has to be to count as a crash. HIGHER = harder to trigger accidentally.")]
-        public float crashDecelerationThreshold = 20f;
+        public float crashDecelerationThreshold = 32f; // MINI-181: 20 -> 32 (only a genuine wall-grade stop); ignored entirely during a wheelie
 
         private CrashController _crash;
         private RB_Controller _rb;
         private Rigidbody _body;
         private Input_Manager _input;
+
+        [Header("MINI-181 real wheelie feel (balance point)")]
+        [Tooltip("Angle (deg) the front settles at when the wheelie key is held with no extra throttle - the bike's balance point.")]
+        public float balancePointDeg = 36f;
+        [Tooltip("How snappily the front comes up (spring stiffness, 1/s^2). Higher = pops up faster.")]
+        public float liftStiffness = 20f;
+        [Tooltip("Damping ratio while lifting/holding. Below 1 gives a small natural wobble around the balance point.")]
+        public float liftDamping = 0.42f;
+        [Tooltip("How quickly the front drops back when the key is released.")]
+        public float dropStiffness = 11f;
+        [Tooltip("Damping ratio on the way down (near 1 = smooth set-down, no bounce).")]
+        public float dropDamping = 0.85f;
+        [Tooltip("Front-wheel landing push (x bike weight) when the front comes down fast - compresses the fork like a real landing.")]
+        public float landingThump = 0.9f;
+        private float _pitchVel;
+        public float PitchVelocityDegPerSec => _pitchVel;
 
         private float _currentWheelieTarget;
         private bool _wheelieYawLatched;
@@ -215,6 +231,16 @@ namespace UpIzUpMini.Vehicles
                 _crash.crashTag = new string[0];
             }
 
+            // MINI-181, user: "the rider crashes extremely too easy especially
+            // in wheelieing." The real remaining source: the vendor's
+            // TriggerToCollider on the rider's ragdoll bones sets isCrashed
+            // the instant any bone trigger touches ANYTHING not tagged Player
+            // (the road, a kerb, the bike's own tail during a wheelie).
+            // Disabling is not enough (Unity still sends OnTriggerEnter to
+            // disabled scripts), so they are removed.
+            Debug.Log("MINI-181 removing TriggerToCollider x" + GetComponentsInChildren<TriggerToCollider>(true).Length + " on " + name);
+            foreach (var ttc in GetComponentsInChildren<TriggerToCollider>(true)) { if (Application.isPlaying) Destroy(ttc); else DestroyImmediate(ttc); }
+
             // MINI-119 follow-up fix, user: "it crashes a bit too easy...
             // not sure if the ragdoll has anything to do with this." Forced
             // to trigger here in Awake - guaranteed to run before
@@ -249,7 +275,13 @@ namespace UpIzUpMini.Vehicles
             // sliders now requires a respawn to take effect, which is
             // honest, rather than appearing to work live while doing
             // nothing at all.
-            if (_crash != null) _crash.decelerationSpeedForCrash = crashDecelerationThreshold;
+            if (_crash != null)
+            {
+                // MINI-181: a wheelie can never count as a crash by deceleration.
+                bool inWheelie = _currentWheelieTarget > 0.5f;
+                _crash.decelerationSpeedForCrash = inWheelie ? 9999f : crashDecelerationThreshold;
+                if (inWheelie) { _crash.rbSpeed = 0f; _crash.lateRbSpeed = 0f; }
+            }
 
             ApplyWheelie();
         }
@@ -295,13 +327,33 @@ namespace UpIzUpMini.Vehicles
             // whether a wheelie key is held at all. E is guaranteed to
             // wheelie because both keys now do the one thing being asked
             // for, not two different things.
+            // MINI-181: too slow to hold it up -> the front comes down on its own.
+            if (wheelieForcingPose && speedKmh < wheelieMinSpeedKmh * 0.5f) eligible = false;
             bool wantsWheelie = eligible && Mathf.Abs(wheelieIn) > 0.01f;
-            float targetPitch = wantsWheelie
-                ? BikeCrashEjectionController.ClampWheelieDegrees(rampCeilingDeg)
-                : 0f;
 
-            _currentWheelieTarget = Mathf.MoveTowards(
-                _currentWheelieTarget, targetPitch, riseRateDegPerSecond * Time.fixedDeltaTime);
+            // MINI-181: real balance-point wheelie instead of a linear ramp to
+            // near-vertical. The front is a spring-damper around a target:
+            // key held -> balance point (extra throttle lifts it a bit higher,
+            // up to rampCeilingDeg); released -> 0. Under-damped on the way up
+            // (natural wobble at the balance point), near-critically damped on
+            // the way down (clean set-down), hard-capped so it can never loop.
+            float ceiling = BikeCrashEjectionController.ClampWheelieDegrees(rampCeilingDeg);
+            float throttle = Mathf.Clamp01(_input.VInput);
+            float targetPitch = wantsWheelie ? Mathf.Lerp(balancePointDeg, ceiling, throttle * 0.6f) : 0f;
+            float k = wantsWheelie ? liftStiffness : dropStiffness;
+            float zeta = wantsWheelie ? liftDamping : dropDamping;
+            float dt = Time.fixedDeltaTime;
+            float accel = k * (targetPitch - _currentWheelieTarget) - 2f * zeta * Mathf.Sqrt(k) * _pitchVel;
+            _pitchVel += accel * dt;
+            _currentWheelieTarget += _pitchVel * dt;
+            if (_currentWheelieTarget > ceiling) { _currentWheelieTarget = ceiling; if (_pitchVel > 0f) _pitchVel = 0f; }
+            if (_currentWheelieTarget <= 0f)
+            {
+                if (_pitchVel < -25f && landingThump > 0f)
+                    _body.AddForceAtPosition(-transform.up * _body.mass * 9.81f * landingThump * Mathf.Clamp01(-_pitchVel / 90f) * dt,
+                        frontWheel.transform.position, ForceMode.Impulse);
+                _currentWheelieTarget = 0f; _pitchVel = 0f;
+            }
 
             if (_currentWheelieTarget <= 0.01f)
             {
@@ -428,7 +480,13 @@ namespace UpIzUpMini.Vehicles
             if (flatForward.sqrMagnitude < 0.0001f) return 0f;
             flatForward.Normalize();
             Vector3 right = Vector3.Cross(Vector3.up, flatForward);
-            return Vector3.SignedAngle(flatForward, transform.forward, right);
+            // MINI-181: sign fixed. SignedAngle about right = up x forward is
+            // NEGATIVE for nose-up, but every caller builds its target as
+            // Euler(-pitch) (nose-up = positive). The flipped sign made a
+            // 35deg wheelie read as ~70deg of "roll" (auto-recover reset mid-
+            // wheelie) and made the upright assist steer the nose toward the
+            // mirrored pitch on slopes.
+            return -Vector3.SignedAngle(flatForward, transform.forward, right);
         }
 
         private Quaternion ZeroRollTarget(float pitchDeg) =>

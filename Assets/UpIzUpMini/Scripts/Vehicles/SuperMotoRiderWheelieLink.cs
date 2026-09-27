@@ -28,7 +28,11 @@ namespace UpIzUpMini.Vehicles
             if (_assist == null || _rider == null || !_rider.IsMounted) return;
 
             float ceiling = Mathf.Max(1f, _assist.rampCeilingDeg);
-            float blend01 = Mathf.Clamp01(_assist.CurrentRampDeg / ceiling);
+            // MINI-181: the rider works the wheelie - throws weight back as the
+            // front pops up, eases forward as it comes down - instead of only
+            // tracking the angle. Only while the front is actually up.
+            float lean = _assist.CurrentRampDeg > 0.5f ? _assist.PitchVelocityDegPerSec / 400f : 0f;
+            float blend01 = Mathf.Clamp01(_assist.CurrentRampDeg / ceiling + lean);
             _rider.SetWheelieBlend(blend01);
         }
     }

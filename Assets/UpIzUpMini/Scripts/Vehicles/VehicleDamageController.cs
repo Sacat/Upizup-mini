@@ -55,6 +55,13 @@ namespace UpIzUpMini.Vehicles
             if (collision.collider != null
                 && collision.collider.GetComponentInParent<NpcCombatHealth>() != null) return;
 
+            // MINI-181: road/ground contacts (landings, bumps, a wheelie's tail
+            // scraping) never wear the bike down to a forced ejection, and
+            // nothing damages it mid-wheelie. Walls and cars still do.
+            if (collision.contactCount > 0 && collision.GetContact(0).normal.y > 0.55f) return;
+            var crashCtl = GetComponent<BikeCrashEjectionController>();
+            if (crashCtl != null && crashCtl.IsWheelieActive) return;
+
             float damage = DamageForSpeed(collision.relativeVelocity.magnitude);
             if (damage <= 0f) return;
             _nextDamageAt = Time.time + repeatCollisionCooldown;

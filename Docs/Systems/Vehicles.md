@@ -1,5 +1,14 @@
 # Vehicles (Riding & Driving)
 
+## MINI-181 — SuperMoto wheelie crash root causes fixed + real balance-point wheelie + real suspension (2026-09-27)
+
+User: "the rider crashes extremely too easy especially in wheelieing... make the bikes move more like a real bike with my physics springs etc. even how the character wheelies the bike." Full step-by-step record (backups, root causes, values, commands, evidence): `Docs/WorkPackets/MINI-181.md`.
+
+- **What didn't work (MINI-170):** its "ported verbatim" signed-angle pitch had the WRONG SIGN (negative = nose-up while every caller builds `Euler(-pitch)`), so a 35deg wheelie read as ~70deg roll and auto-recover reset the bike mid-wheelie. MINI-170 also made `SuperMotoUprightAssist` MoveRotation during wheelies, overwriting the wheelie's pitch (last MoveRotation wins), so the bike floated up and slammed down. MINI-170's "roll stayed 1deg" evidence came from a harness whose bike was input-disabled (see below), so it never really wheelied.
+- **What worked:** negate pitch in both assists; upright assist leaves rotation to the wheelie while it is up; destroy the vendor `TriggerToCollider` (disabling doesn't stop trigger messages); decel crash off during wheelies (32 otherwise); `VehicleDamageController` ignores ground contacts and wheelies. Spring-damper wheelie (balance 36deg, cap 55deg, lift k20/z0.42, drop k11/z0.85, landing thump). New `SuperMotoSuspensionTuning` (front 0.22m/24000/2300, rear 0.20m/28000/2700, sag 0.4). Rider blend adds pitch velocity/400.
+- **Harness hazard:** parked bikes are input-disabled until mounted; `Mini119RealSceneWheelieTest` now calls `SetBikeInputEnabled(instance,true)` before its reflected `Start()` calls. Any older SuperMoto batch result produced after that parking change is suspect.
+- Result: 8s real-scene wheelie never crashes, settles 33-38deg, roll 0, rear grounded; MINI-138 regression PASS; Windows build OK. Hands-on ride still the gate.
+
 ## MINI-170 — SuperMoto still tipping over during a wheelie, real root cause found and fixed (2026-09-15)
 
 User: "i said no crashing when riding or wheelieing and the character still crashes so fix this", then "like i just see the character falling of the bike when wheeling". Confirmed first that scripted crash-ejection is fully OFF already (MINI-167's `BikeCrashEjectionController.ShouldEjectForImpact` unconditionally returns false) - the "crash" the user sees is genuine uncontrolled physics tip-over, a different bug entirely.

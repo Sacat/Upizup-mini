@@ -97,16 +97,20 @@ namespace UpIzUpMini.EditorTools
                 Debug.LogError("MINI-119 REAL SCENE TEST FAIL: the stock Input_Manager (LeftCtrl/LeftShift) is still attached alongside (or instead of) the E/Q remap - E will not register.");
             }
 
+            VehicleSpawnController.SetBikeInputEnabled(instance, true); // MINI-181: parked bikes are input-disabled until mounted; simulate the mount
             InvokeIfExists(gadd, "Start");
             InvokeIfExists(remap, "Start");
             InvokeIfExists(ragdollMgr, "Start");
             InvokeIfExists(crashCtrl, "Start");
             InvokeIfExists(autoLevel, "Start");
             InvokeIfExists(groundAngle, "Start");
+            Debug.Log($"MINI-181 assist enabled={(assist != null && assist.enabled)} active={instance.activeInHierarchy}");
             InvokeIfExists(assist, "Awake");
             InvokeIfExists(trike, "Awake");
             InvokeIfExists(anytimeReset, "Awake");
             InvokeIfExists(upright, "Awake");
+            InvokeIfExists(instance.GetComponent<SuperMotoSuspensionTuning>(), "Awake"); // MINI-181
+            bool everCrashed = false; float maxPitchSeen = 0f;
 
             FieldInfo wheelieField = typeof(Input_Manager).GetField("wheelieInput", BindingFlags.NonPublic | BindingFlags.Instance);
             FieldInfo vInputField = typeof(Input_Manager).GetField("vInput", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -146,6 +150,9 @@ namespace UpIzUpMini.EditorTools
                 InvokeIfExists(trike, "FixedUpdate");
                 InvokeIfExists(upright, "FixedUpdate");
                 Physics.Simulate(dt);
+                if (gadd != null && gadd.isCrashed) everCrashed = true; // MINI-181
+                if (assist != null) maxPitchSeen = Mathf.Max(maxPitchSeen, assist.CurrentRampDeg);
+                if (i >= settleSteps && i % 5 == 0 && i < settleSteps + 200) { var fw = gadd.wheelColliders[1]; var rw = gadd.wheelColliders[0]; Debug.Log($"MINI181TRACE t={(i - settleSteps) * dt:F2} y={instance.transform.position.y:F2} ramp={assist.CurrentRampDeg:F1} fwdY={instance.transform.forward.y:F2} spd={rb.linearVelocity.magnitude * 3.6f:F0}kmh vy={rb.linearVelocity.y:F2} rearG={rw.isGrounded} frontG={fw.isGrounded} held={wheelieHeld} roll={assist.TrueRollDeg:F1} pitchM={assist.TruePitchDeg:F1}"); }
 
                 if (i >= settleSteps && (i - settleSteps) % 50 == 0) // every 1.0s of hold
                 {
@@ -157,6 +164,7 @@ namespace UpIzUpMini.EditorTools
 
             float finalRoll = assist != null ? assist.TrueRollDeg : -999f;
             float finalPitch = Mathf.Asin(Mathf.Clamp(instance.transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+            Debug.Log($"MINI-181 CRASH CHECK: everCrashed={everCrashed} maxWheelieDeg={maxPitchSeen:F1} ttcLeft={instance.GetComponentsInChildren<Gadd420.TriggerToCollider>(true).Length}");
             Debug.Log($"MINI-119 REAL SCENE TEST RESULT: after 8s of hold-then-tap wheelieing on the REAL Lalay road spawn - final pos={instance.transform.position}, final pitch={finalPitch:F1}deg, final TRUE roll={finalRoll:F1}deg, isCrashed={(gadd != null ? gadd.isCrashed.ToString() : "n/a")}.");
 
             Object.DestroyImmediate(instance);

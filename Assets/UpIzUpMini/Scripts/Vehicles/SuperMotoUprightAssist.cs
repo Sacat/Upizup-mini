@@ -90,7 +90,15 @@ namespace UpIzUpMini.Vehicles
             Quaternion newRot = Quaternion.RotateTowards(
                 transform.rotation, zeroRollTarget, effectiveSpeed * Time.fixedDeltaTime);
 
-            _body.MoveRotation(newRot);
+            // MINI-181: during a wheelie SuperMotoWheelieAssist already
+            // builds the rotation as yaw * pitch with NO roll term, and both
+            // components calling MoveRotation meant whichever ran last won.
+            // This one (built from the PREVIOUS step's pitch) was overwriting
+            // the wheelie's pitch, so the wheelie lifted the bike's POSITION
+            // without tilting it: the bike floated, piled up falling speed,
+            // and the sudden stop on touchdown read as a crash. The wheelie
+            // owns rotation while it is up; roll-spin damping below still runs.
+            if (!wheelieing) _body.MoveRotation(newRot);
 
             // Remove the underlying roll-axis spin too, not just the
             // visible orientation - see rollSpinDamping's own tooltip for
@@ -136,7 +144,13 @@ namespace UpIzUpMini.Vehicles
             if (flatForward.sqrMagnitude < 0.0001f) return 0f;
             flatForward.Normalize();
             Vector3 right = Vector3.Cross(Vector3.up, flatForward);
-            return Vector3.SignedAngle(flatForward, transform.forward, right);
+            // MINI-181: sign fixed. SignedAngle about right = up x forward is
+            // NEGATIVE for nose-up, but every caller builds its target as
+            // Euler(-pitch) (nose-up = positive). The flipped sign made a
+            // 35deg wheelie read as ~70deg of "roll" (auto-recover reset mid-
+            // wheelie) and made the upright assist steer the nose toward the
+            // mirrored pitch on slopes.
+            return -Vector3.SignedAngle(flatForward, transform.forward, right);
         }
     }
 }

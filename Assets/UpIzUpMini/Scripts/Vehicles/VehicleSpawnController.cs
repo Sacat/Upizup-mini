@@ -669,6 +669,8 @@ namespace UpIzUpMini.Vehicles
             instance.AddComponent<SuperMotoTrikeStabilizer>();
 
             instance.AddComponent<SuperMotoWheelieAssist>();
+            // MINI-181: real-bike springs (fork/shock travel, sag, rebound).
+            instance.AddComponent<SuperMotoSuspensionTuning>();
 
             // MINI-119 follow-up, user: "its a left to right that needs
             // to return to equal angle on both left and right so the
