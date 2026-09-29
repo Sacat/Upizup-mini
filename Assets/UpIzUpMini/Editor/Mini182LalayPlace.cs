@@ -105,7 +105,8 @@ namespace UpIzUpMini.EditorTools
                 var b = r.bounds; if (b.size.y < 1.2f || b.size.y > 16f || b.size.x > 25f || b.size.z > 25f) continue;
                 var tr = r.transform; bool mine = false; for (var p = tr; p != null; p = p.parent) if (candSet.Contains(p)) { mine = true; break; }
                 if (mine) continue;
-                bool decor = false; for (var p = tr; p != null; p = p.parent) if (p.name.StartsWith("ApprovedGrass") || p.name.Contains("Grass") || p.name == "world") { decor = true; break; }
+                bool decor = false; for (var p = tr; p != null; p = p.parent) if (p.name.StartsWith("ApprovedGrass") || p.name.Contains("Grass")) { decor = true; break; }
+                if (!decor && tr.name != "x") { bool veh = false; for (var q = tr; q != null; q = q.parent) if (q.name.Contains("SUV") || q.name.Contains("Rover") || q.name.Contains("TMAX") || q.name.Contains("Vehicle")) { veh = true; break; } if (!veh) for (var q = tr; q != null; q = q.parent) if (q.name == "world") { decor = true; break; } }
                 if (decor) continue;
                 obstacles.Add(FromBounds(b)); obsName.Add(r.transform.parent != null ? r.transform.parent.name + "/" + r.name : r.name);
             }
@@ -118,6 +119,8 @@ namespace UpIzUpMini.EditorTools
             var prefabs = Directory.GetFiles(Prefabs, "*.prefab").Select(f => AssetDatabase.LoadAssetAtPath<GameObject>(f.Replace('\\', '/'))).Where(p => p != null).ToList();
             var groups = new (string prefix, int weight)[] { ("HouseCorrugatedGable1s_", 30), ("HouseHipRed2s_", 26), ("HouseFlatConcrete2s_", 26), ("HouseShopfront2s_", 10) };
             var byGroup = groups.ToDictionary(g => g.prefix, g => prefabs.Where(p => p.name.StartsWith(g.prefix)).OrderBy(p => p.name).ToList());
+            var smallOf = new Dictionary<string, string> { { "HouseCorrugatedGable1s_", "HouseSmallCorrugatedGable1s_" }, { "HouseHipRed2s_", "HouseSmallHipRed1s_" }, { "HouseFlatConcrete2s_", "HouseSmallFlatConcrete2s_" }, { "HouseShopfront2s_", "HouseSmallShopfront2s_" } };
+            int smallUsed = 0;
 
             Vector2 Tangent(Vector2 c, out bool ok, out Vector2 toRoad)
             {
@@ -156,7 +159,7 @@ namespace UpIzUpMini.EditorTools
             {
                 var rs = t.GetComponentsInChildren<Renderer>(); var b = rs[0].bounds; foreach (var rr in rs) b.Encapsulate(rr.bounds);
                 bool home = t.name.StartsWith("Lalay_Home_"); uint h = Hash(t.name);
-                if (!home && (h % 100) >= 45) { kept++; report.Add($"{t.name},approved-art,-,-,-,{b.center.x:F1},-,{b.center.z:F1},kept (style mix)"); continue; }
+                if (!home && (h % 100) >= 65) { kept++; report.Add($"{t.name},approved-art,-,-,-,{b.center.x:F1},-,{b.center.z:F1},kept (style mix)"); continue; }
                 // pick group (weighted), avoid repeating the previous house's group on the same side, limit shops
                 bool sideA = t.name.Contains("SideA"); string prev = sideA ? prevSideAVariant : prevSideBVariant;
                 string pick = null;
@@ -174,10 +177,15 @@ namespace UpIzUpMini.EditorTools
                 var tan = Tangent(c2, out bool okTan, out var toRoad).normalized;
                 var f = new Vector2(-tan.y, tan.x); if (Vector2.Dot(f, toRoad) < 0) f = -f;   // front faces the road
                 var r = new Vector2(f.y, -f.x);
-                var box = prefab.GetComponent<BoxCollider>();
-                float fw = 6.2f, fd = 5.2f; var bcs = prefab.GetComponents<BoxCollider>(); if (bcs.Length > 0) { fw = bcs[0].size.x; fd = bcs[0].size.z; }
                 Obb chosen = default; float chosenS = 0, chosenZ = 0; Vector2 chosenC = c2; bool ok = false; float ny = 0;
                 string why = "";
+                var smallList = prefabs.Where(p => p.name.StartsWith(smallOf[pick])).OrderBy(p => p.name).ToList();
+                var smallPf = smallList.Count > 0 ? smallList[(int)((h / 7) % (uint)smallList.Count)] : null;
+                GameObject usedPrefab = prefab; bool usedSmall = false;
+                foreach (var pf in new[] { prefab, smallPf })
+                {
+                if (pf == null) continue;
+                float fw = 6.2f, fd = 5.2f; var bcs = pf.GetComponents<BoxCollider>(); if (bcs.Length > 0) { fw = bcs[0].size.x; fd = bcs[0].size.z; }
                 foreach (var off in new[] { 0f, 1.2f, -1.2f, 2.4f, -2.4f })
                 {
                 foreach (var sc in new[] { (1f, 1f), (.94f, .94f), (.88f, .9f), (.8f, .88f), (.72f, .85f), (.65f, .8f) })
@@ -200,19 +208,21 @@ namespace UpIzUpMini.EditorTools
                 }
                 if (ok) break;
                 }
+                if (ok) { usedPrefab = pf; usedSmall = pf != prefab; break; }
+                }
                 if (!ok) { skipped++; report.Add($"{t.name},{(home ? "procedural" : "approved-art")},{prefab.name},-,-,{b.center.x:F1},-,{b.center.z:F1},SKIPPED ({why}) - original kept"); continue; }
-                var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab, root.transform);
-                inst.name = prefab.name + "__for__" + t.name;
+                var inst = (GameObject)PrefabUtility.InstantiatePrefab(usedPrefab, root.transform);
+                inst.name = usedPrefab.name + "__for__" + t.name; if (usedSmall) smallUsed++;
                 float yaw = Quaternion.LookRotation(new Vector3(-f.x, 0, -f.y), Vector3.up).eulerAngles.y;
                 inst.transform.SetPositionAndRotation(new Vector3(chosenC.x, ny, chosenC.y), Quaternion.Euler(0, yaw, 0));
                 inst.transform.localScale = new Vector3(chosenS, 1f, chosenZ);
                 t.gameObject.SetActive(false); replacedSet.Add(t);
-                placed.Add(chosen); replaced++; perVariant[pick] = perVariant.TryGetValue(pick, out var n) ? n + 1 : 1;
+                placed.Add(chosen); replaced++; string vkey = usedSmall ? "small " + pick : pick; perVariant[vkey] = perVariant.TryGetValue(vkey, out var n) ? n + 1 : 1;
                 if (sideA) prevSideAVariant = pick; else prevSideBVariant = pick; if (pick == "HouseShopfront2s_") lastShopX = b.center.x;
-                report.Add($"{t.name},{(home ? "procedural" : "approved-art")},{prefab.name},{chosenS:F2}x{chosenZ:F2},{yaw:F0},{chosenC.x:F1},{ny:F1},{chosenC.y:F1},replaced");
+                report.Add($"{t.name},{(home ? "procedural" : "approved-art")},{usedPrefab.name},{chosenS:F2}x{chosenZ:F2},{yaw:F0},{chosenC.x:F1},{ny:F1},{chosenC.y:F1},replaced");
             }
             EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
-            log.Add($"candidates={cand.Count} replaced={replaced} keptOriginalStyle={kept} skippedNoRoom={skipped}");
+            log.Add($"candidates={cand.Count} replaced={replaced} (small variants used={smallUsed}) keptOriginalStyle={kept} skippedNoRoom={skipped}");
             foreach (var kv in perVariant) log.Add($"  {kv.Key}: {kv.Value}");
             if (Sha(Live) != liveHash) throw new Exception("SAFETY STOP: live scene changed.");
             log.Add("live sha after=" + Sha(Live)); log.Add("copy in build settings=" + EditorBuildSettings.scenes.Any(s => s.enabled && s.path == Copy));

@@ -516,6 +516,303 @@
         "trisLod1": 3500
       },
       "improvementNotes": "User approved for now (2026-09-29) but said it is not perfect. Revisit: shop shutter/roll-up door option, wall signage, more character in the frontage, awning shape/colour realism vs the Lalay photos."
+    },
+    {
+      "id": "small_corrugated_gable_1s",
+      "family": "small_corrugated",
+      "status": "draft",
+      "source": "Photos: Top view lalay, closer Lalay (small single-storey houses on narrow lots with grey/rust corrugated roofs); satellite check: real lots are ~3x narrower than the kit houses at game scale",
+      "storeys": 1,
+      "footprint": {
+        "w": 3.6,
+        "d": 5.0
+      },
+      "storeyHeight": 2.75,
+      "foundation": 0.32,
+      "roof": {
+        "type": "gable_depth",
+        "rise": 0.7,
+        "overhang": 0.22,
+        "frontOverhang": 0.35,
+        "material": "roof_rust",
+        "ribs": true,
+        "ribSpacing": 0.13
+      },
+      "facade": {
+        "veranda": false,
+        "balcony": false,
+        "sideWindows": true,
+        "canopy": false,
+        "storeyElements": [
+          [
+            [
+              "door",
+              -0.9
+            ],
+            [
+              "window",
+              0.95
+            ]
+          ]
+        ]
+      },
+      "palette": {
+        "wall": "wall_white",
+        "roof": "roof_rust"
+      },
+      "variants": [
+        {
+          "name": "White_Rust",
+          "wall": "wall_white",
+          "roof": "roof_rust"
+        },
+        {
+          "name": "Yellow_Grey",
+          "wall": "wall_cream_yellow",
+          "roof": "roof_aged_metal"
+        },
+        {
+          "name": "Blue_Rust",
+          "wall": "wall_sky_blue",
+          "roof": "roof_rust"
+        },
+        {
+          "name": "Pink_Grey",
+          "wall": "wall_pink",
+          "roof": "roof_aged_metal"
+        }
+      ],
+      "budget": {
+        "trisLod0": 5000,
+        "trisLod1": 2200
+      }
+    },
+    {
+      "id": "small_hip_red_1s",
+      "family": "small_hip",
+      "status": "draft",
+      "source": "Photos: closer Lalay, Housing complex before the school (small red hip-roof houses); narrow-lot variant of hip_red_2s",
+      "storeys": 1,
+      "footprint": {
+        "w": 4.0,
+        "d": 4.4
+      },
+      "storeyHeight": 2.75,
+      "foundation": 0.32,
+      "roof": {
+        "type": "hip",
+        "rise": 1.0,
+        "overhang": 0.28,
+        "material": "roof_red",
+        "ribs": true
+      },
+      "facade": {
+        "veranda": false,
+        "balcony": false,
+        "sideWindows": true,
+        "storeyElements": [
+          [
+            [
+              "window",
+              -1.1
+            ],
+            [
+              "door",
+              0.9
+            ]
+          ]
+        ]
+      },
+      "palette": {
+        "wall": "wall_cream_yellow",
+        "roof": "roof_red"
+      },
+      "variants": [
+        {
+          "name": "CreamYellow",
+          "wall": "wall_cream_yellow",
+          "roof": "roof_red"
+        },
+        {
+          "name": "Peach",
+          "wall": "wall_peach",
+          "roof": "roof_red"
+        },
+        {
+          "name": "White",
+          "wall": "wall_white",
+          "roof": "roof_red"
+        },
+        {
+          "name": "Seafoam",
+          "wall": "wall_seafoam",
+          "roof": "roof_red"
+        }
+      ],
+      "budget": {
+        "trisLod0": 5000,
+        "trisLod1": 2200
+      }
+    },
+    {
+      "id": "small_flat_concrete_2s",
+      "family": "small_flat",
+      "status": "draft",
+      "source": "Photos: closer Lalay, Lalay from the bay to the hill (narrow two-storey flat-roof concrete houses); narrow-lot variant of flat_concrete_2s",
+      "storeys": 2,
+      "footprint": {
+        "w": 3.8,
+        "d": 4.6
+      },
+      "storeyHeight": 2.75,
+      "foundation": 0.32,
+      "roof": {
+        "type": "flat",
+        "parapet": 0.5,
+        "parapetThickness": 0.16,
+        "slabOverhang": 0.1,
+        "material": "concrete_light"
+      },
+      "facade": {
+        "veranda": false,
+        "balcony": true,
+        "sideWindows": true,
+        "storeyElements": [
+          [
+            [
+              "door",
+              -0.95
+            ],
+            [
+              "window",
+              0.95
+            ]
+          ],
+          [
+            [
+              "door",
+              -0.95
+            ],
+            [
+              "window",
+              0.95
+            ]
+          ]
+        ]
+      },
+      "palette": {
+        "wall": "wall_white",
+        "roof": "concrete_light"
+      },
+      "variants": [
+        {
+          "name": "White",
+          "wall": "wall_white",
+          "roof": "concrete_light"
+        },
+        {
+          "name": "CreamYellow",
+          "wall": "wall_cream_yellow",
+          "roof": "concrete_light"
+        },
+        {
+          "name": "Coral",
+          "wall": "wall_coral",
+          "roof": "concrete_light"
+        },
+        {
+          "name": "SkyBlue",
+          "wall": "wall_sky_blue",
+          "roof": "concrete_light"
+        }
+      ],
+      "budget": {
+        "trisLod0": 7000,
+        "trisLod1": 3000
+      }
+    },
+    {
+      "id": "small_shopfront_2s",
+      "family": "small_shop",
+      "status": "draft",
+      "source": "Photos: closer Lalay, Top view lalay (small ground-floor shop under a two-storey flat-roof house); narrow-lot variant of shopfront_2s",
+      "storeys": 2,
+      "footprint": {
+        "w": 4.4,
+        "d": 4.6
+      },
+      "storeyHeight": 2.75,
+      "foundation": 0.32,
+      "roof": {
+        "type": "flat",
+        "parapet": 0.5,
+        "parapetThickness": 0.16,
+        "slabOverhang": 0.1,
+        "material": "concrete_light"
+      },
+      "facade": {
+        "veranda": false,
+        "balcony": false,
+        "sideWindows": true,
+        "storeyElements": [
+          [
+            [
+              "shopfront",
+              -0.6,
+              2.4
+            ],
+            [
+              "door",
+              1.55
+            ]
+          ],
+          [
+            [
+              "window",
+              -1.1
+            ],
+            [
+              "window",
+              1.1
+            ]
+          ]
+        ]
+      },
+      "palette": {
+        "wall": "wall_white",
+        "roof": "concrete_light",
+        "accent": "awning_red"
+      },
+      "variants": [
+        {
+          "name": "White_RedAwning",
+          "wall": "wall_white",
+          "roof": "concrete_light",
+          "accent": "awning_red"
+        },
+        {
+          "name": "Yellow_GreenAwning",
+          "wall": "wall_cream_yellow",
+          "roof": "concrete_light",
+          "accent": "awning_green"
+        },
+        {
+          "name": "Blue_OrangeAwning",
+          "wall": "wall_sky_blue",
+          "roof": "concrete_light",
+          "accent": "awning_orange"
+        },
+        {
+          "name": "Coral_TealAwning",
+          "wall": "wall_coral",
+          "roof": "concrete_light",
+          "accent": "awning_teal"
+        }
+      ],
+      "budget": {
+        "trisLod0": 7000,
+        "trisLod1": 3000
+      }
     }
   ]
 }

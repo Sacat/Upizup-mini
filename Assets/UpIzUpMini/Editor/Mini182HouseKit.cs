@@ -134,6 +134,7 @@ namespace UpIzUpMini.EditorTools
                 prefabs.Add(pf); log.Add($"{m.name}: tris LOD0={m0.triangles.Length / 3} LOD1={m1.triangles.Length / 3} size={m.dimensions}");
             }
             AssetDatabase.SaveAssets();
+            if (Environment.GetEnvironmentVariable("MINI182_NOROW") == "1") { log.Add("NOROW: prefabs only"); log.Add("live sha after=" + Sha(Live)); File.WriteAllLines(Out + "/KitImport-Report.txt", log); Debug.Log("MINI182KIT_PASS " + string.Join(" | ", log)); return; }
 
             // isolated copy scene
             var liveScene = EditorSceneManager.OpenScene(Live, OpenSceneMode.Single);

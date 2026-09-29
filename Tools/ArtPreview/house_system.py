@@ -216,10 +216,11 @@ def build_house(row, origin, M, y0=1.8):
     for level in range(levels):
         z = .3 + level * sh
         cube('Horizontal concrete course', (x, y, z + .10), (w + .07, d + .07, .13), M['limewash'], .015)
-        for kind, off in row['facade']['storeyElements'][level]:
+        for el in row['facade']['storeyElements'][level]:
+            kind, off = el[0], el[1]
             if kind == 'window': window(x + off, y - d / 2 - .045, z + 1.50, M)
             elif kind == 'door': door(x + off, y - d / 2, z, M)
-            elif kind == 'shopfront': shopfront(x + off, y - d / 2, z, M, row['palette'].get('accent', 'rail_dark'))
+            elif kind == 'shopfront': shopfront(x + off, y - d / 2, z, M, row['palette'].get('accent', 'rail_dark'), el[2] if len(el) > 2 else 3.6)
         if row['facade'].get('sideWindows'):
             for sx in (-1, 1):
                 side_window(x + sx * (w / 2 + .045), y + .3, z + 1.50, M, sx)
@@ -243,7 +244,7 @@ def build_house(row, origin, M, y0=1.8):
     elif rt == 'flat':
         roof_flat(x, y, w, d, base, row, M)
         rod('Gutter downpipe', (x + w / 2 + .03, fy - .05, .4), (x + w / 2 + .03, fy - .05, base - .05), .04, M['limewash'])
-    door_x = next((off for kind, off in row['facade']['storeyElements'][0] if kind == 'door'), 0.0)
+    door_x = next((e[1] for e in row['facade']['storeyElements'][0] if e[0] == 'door'), 0.0)
     for step in range(3):
         cube('Entry step', (x + door_x, fy - .32 - step * .22, .24 - step * .075), (1.5, .34, .12), M['concrete'], .014)
     if row['facade'].get('canopy'):
