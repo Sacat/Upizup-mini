@@ -1,0 +1,47 @@
+{
+  "_readme": "MINI-182 House Model System. One row per house variant; Tools/ArtPreview/house_system.py builds any row. Sizes in metres, Blender axes (front faces -Y, +Z up). Add a variant by adding a row (plus at most one new part builder). Never store a size or colour only in code. Colours are linear RGB and must be appended to the shared palette, never reordered.",
+  "colors": {
+    "limewash": [0.82, 0.80, 0.67],
+    "concrete": [0.44, 0.47, 0.43],
+    "concrete_light": [0.70, 0.70, 0.66],
+    "ink": [0.055, 0.085, 0.08],
+    "glass": [0.055, 0.12, 0.14],
+    "timber_green": [0.20, 0.30, 0.28],
+    "rail_dark": [0.08, 0.14, 0.13],
+    "roof_aged_metal": [0.44, 0.50, 0.51],
+    "roof_red": [0.40, 0.115, 0.075],
+    "wall_seafoam": [0.40, 0.65, 0.54],
+    "wall_peach": [0.69, 0.39, 0.28],
+    "wall_white": [0.80, 0.79, 0.74],
+    "wall_cream_yellow": [0.78, 0.68, 0.38],
+    "wall_coral": [0.72, 0.34, 0.27],
+    "wall_sky_blue": [0.36, 0.60, 0.72]
+  },
+  "houses": [
+    {
+      "id": "plaster_gable_1s", "family": "plaster_gable", "status": "approved", "source": "MINI-141/142 approved one-storey (regression baseline)",
+      "storeys": 1, "footprint": {"w": 5.6, "d": 4.7}, "storeyHeight": 2.75, "foundation": 0.32,
+      "roof": {"type": "gable", "rise": 0.95, "overhang": 0.24, "material": "roof_aged_metal", "ribs": true},
+      "facade": {"veranda": true, "balcony": false, "storeyElements": [[["window", -1.75], ["door", 0.0], ["window", 1.75]]]},
+      "palette": {"wall": "wall_seafoam", "roof": "roof_aged_metal"},
+      "budget": {"trisLod0": 6000, "trisLod1": 2500}
+    },
+    {
+      "id": "plaster_gable_2s", "family": "plaster_gable", "status": "approved", "source": "MINI-141/142 approved two-storey (regression baseline)",
+      "storeys": 2, "footprint": {"w": 5.6, "d": 4.7}, "storeyHeight": 2.75, "foundation": 0.32,
+      "roof": {"type": "gable", "rise": 0.95, "overhang": 0.24, "material": "roof_red", "ribs": true},
+      "facade": {"veranda": false, "balcony": true, "storeyElements": [[["window", -1.75], ["door", 0.0], ["window", 1.75]], [["window", -1.75], ["door", 0.0], ["window", 1.75]]]},
+      "palette": {"wall": "wall_peach", "roof": "roof_red"},
+      "budget": {"trisLod0": 9000, "trisLod1": 3500}
+    },
+    {
+      "id": "flat_concrete_2s", "family": "flat_concrete", "status": "draft", "source": "Photos: closer Lalay, Top view lalay, Lalay from the bay to the hill (flat-roof painted concrete two-storey with parapet and front balcony)",
+      "storeys": 2, "footprint": {"w": 6.2, "d": 5.2}, "storeyHeight": 2.75, "foundation": 0.32,
+      "roof": {"type": "flat", "parapet": 0.55, "parapetThickness": 0.18, "slabOverhang": 0.12, "material": "concrete_light"},
+      "facade": {"veranda": false, "balcony": true, "sideWindows": true, "storeyElements": [[["door", -1.9], ["window", 0.55], ["window", 2.0]], [["window", -1.95], ["door", 0.0], ["window", 1.95]]]},
+      "palette": {"wall": "wall_white", "roof": "concrete_light"},
+      "wallChoices": ["wall_white", "wall_cream_yellow", "wall_coral", "wall_sky_blue"],
+      "budget": {"trisLod0": 9000, "trisLod1": 3500}
+    }
+  ]
+}

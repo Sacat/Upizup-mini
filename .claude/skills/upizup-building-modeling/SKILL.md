@@ -115,3 +115,7 @@ Before calling a building done, verify by ACTUALLY LOOKING (not assuming):
   it's attached to - check the specific junction close up.
 - Roof pitch, storey height, and any other measured quantity match the
   research finding numerically, not just "looks about right."
+
+
+## House variants at scale
+When many house variants are needed (Grand Bay enhancement), use the data-driven House Model System in `upizup-grandbay-house-enhancement` (definition table + part builders) instead of copying a house function per variant.

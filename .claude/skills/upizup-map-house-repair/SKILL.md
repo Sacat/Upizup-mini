@@ -171,3 +171,7 @@ Dog Life junction/seam repair - the concrete worked example).
    relevant work packet with exact measurements, logs and what was NOT
    certified.
 10. Stage only owned files, commit, release the claim.
+
+
+## Related
+Photo-driven house enhancement and the house definition table: `upizup-grandbay-house-enhancement`.
