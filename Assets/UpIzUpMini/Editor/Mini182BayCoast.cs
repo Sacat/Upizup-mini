@@ -212,16 +212,8 @@ namespace UpIzUpMini.EditorTools
             bool FreeSpot(Vector2 p, float r) { foreach (var b in others) { float dx = Mathf.Max(b.min.x - p.x, 0, p.x - b.max.x), dz = Mathf.Max(b.min.z - p.y, 0, p.y - b.max.z); if (dx * dx + dz * dz < r * r) return false; } for (int a = 0; a < 8; a++) if (OnRoad(p + new Vector2(Mathf.Cos(a * .785f), Mathf.Sin(a * .785f)) * r)) return false; return !OnRoad(p); }
 
             var fc = new Vector2(fb.center.x, fb.center.z); float fr0 = Mathf.Max(fb.extents.x, fb.extents.z);
-            // worn/pale outfield patches on the slab
-            int patches = 0;
-            for (int i = 0; i < 26; i++)
-            {
-                var p = fc + new Vector2(R(-fb.extents.x * .8f, fb.extents.x * .8f), R(-fb.extents.z * .8f, fb.extents.z * .8f)); float y = SlabY(p, out bool ok); if (!ok) continue;
-                float rad = R(2.5f, 6f); string col = R(0, 1) < .7f ? "outfield_pale" : "outfield_worn"; int nseg = 10; var ring = new List<Vector3>(); bool good = true; float ex = R(1f, 1.6f), rot = R(0, 6.28f);
-                for (int k = 0; k < nseg; k++) { float th = k * Mathf.PI * 2 / nseg; var q = p + new Vector2(Mathf.Cos(th + rot) * rad * ex, Mathf.Sin(th + rot) * rad / ex); float yy = SlabY(q, out bool o2); if (!o2 || Mathf.Abs(yy - y) > .15f) { good = false; break; } ring.Add(new Vector3(q.x, yy + .035f + (patches % 5) * .002f, q.y)); }
-                if (!good) continue; for (int k = 0; k < nseg; k++) gen.Tri(new Vector3(p.x, y + .035f + (patches % 5) * .002f, p.y), ring[k], ring[(k + 1) % nseg], cell[col]); patches++;
-            }
-            log.Add("outfield patches=" + patches);
+            // user request: the field stays ONE solid colour, so no outfield patches
+            log.Add("outfield patches=0 (removed by request)");
 
             // pavilion beside the field: first free spot on a ring around the slab, preferring the road (west) side
             int pav = 0; Vector2 pavPos = Vector2.zero; float pavY = 0;

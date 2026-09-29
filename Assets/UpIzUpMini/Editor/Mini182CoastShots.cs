@@ -21,6 +21,13 @@ namespace UpIzUpMini.EditorTools
             Shot("wall_oblique", new Vector3(215, 24, -175), new Vector3(275, 1, -118));
             Shot("wall_close", new Vector3(238, 9, -140), new Vector3(262, 1.5f, -138));
             Shot("wall_north", new Vector3(345, 26, -60), new Vector3(315, 1.5f, -15));
+            Shot("school_top", new Vector3(107, 400, 48), new Vector3(107, 0, 48), true, 34);
+            Shot("school_oblique", new Vector3(107, 45, 100), new Vector3(107, 19, 45));
+            Shot("school_court", new Vector3(107, 30, 78), new Vector3(107f, 18.5f, 50f));
+            Shot("school_street", new Vector3(75, 24, 75), new Vector3(108, 19, 48));
+            Shot("housing_a", new Vector3(-20, 34, -20), new Vector3(-48, 12, -42));
+            Shot("housing_top", new Vector3(20, 400, 30), new Vector3(20, 0, 30), true, 60);
+            Shot("housing_b", new Vector3(55, 40, 90), new Vector3(20, 18, 30));
             Shot("field_top", new Vector3(273, 400, 57), new Vector3(273, 0, 57), true, 55);
             Shot("field_oblique", new Vector3(215, 32, 20), new Vector3(273, 3, 60));
             Shot("field_close", new Vector3(300, 12, 20), new Vector3(273, 2, 62));

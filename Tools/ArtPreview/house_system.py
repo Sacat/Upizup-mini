@@ -181,6 +181,14 @@ def roof_hip(x, y, w, d, base, row, M):
             for sg in (-1, 1):
                 rod('Metal roof rib', (x + sg * hx, yy, base + .025), (x + sg * (hx - hy * k), yy, base + rise * k + .025), .014, roofmat, 5)
     rod('Ridge cap', (x - rl, y, ridge + .04), (x + rl, y, ridge + .04), .05, roofmat, 6)
+    n_sol = r.get('solar', 0)   # solar panels flush on the front (-Y) roof plane, as in the apartment photos
+    if n_sol:
+        slope = (ridge - base) / hy; pw = min(1.5, (2 * rl + hy) / n_sol - .22); py0 = .38; py1 = .38 + 1.1
+        for i in range(n_sol):
+            cx = x + (i - (n_sol - 1) / 2) * (pw + .22)
+            def pt(u, v): yy = y - hy + v; return (cx + u, yy, base + slope * v + .05)
+            mesh('Solar panel', [pt(-pw / 2, py0), pt(pw / 2, py0), pt(pw / 2, py1), pt(-pw / 2, py1)], [(0, 1, 2, 3)], M['solar_panel'])
+            mesh('Solar panel back', [pt(-pw / 2, py0), pt(-pw / 2, py1), pt(pw / 2, py1), pt(pw / 2, py0)], [(0, 1, 2, 3)], M['solar_panel'])
     cube('Eave fascia front', (x, y - hy, base - .035), (2 * hx + .11, .11, .14), M['limewash'], .01)
     cube('Eave fascia back', (x, y + hy, base - .035), (2 * hx + .11, .11, .14), M['limewash'], .01)
     for sx in (-1, 1): cube('Eave fascia side', (x + sx * hx, y, base - .035), (.11, 2 * hy - .11, .14), M['limewash'], .01)
