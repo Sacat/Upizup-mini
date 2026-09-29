@@ -137,3 +137,10 @@ Photos and satellite show: palms and coconut trees, banana clusters in back yard
 - School: original school boxes disabled; new merged mesh (2.2k tris) + 8 box colliders: two 2-storey wings (white ground floor, orange upper storey, dark roofs, courtyard walkways with green rails), rear block, front wall with yellow gate posts, side classroom, and a basketball court (11 x 14 m, lines, centre circle, keys, two hoops) in the middle. Uses second palette texture (`palette_coast.png`, 29 colours now).
 - Open map: `PhaseOne_Boundaries` (old East/North/South/West walls and FutureExitBarrier_*) DISABLED in the copy scene; new invisible outer boundary at the terrain edge (x -125..340, z -231..110). Walking not tested in Play Mode.
 - Evidence: `Renders/e1_*`, `Expansion-Report.txt`.
+
+### Stage 6b - Layout fix from satellite review (2026-09-29)
+- User: too many houses around the school; apartments should be on the opposite side of the road like a small gated community a little lower down from the school.
+- Google Maps satellite (15.2464, -61.3149, Bellevue Chopin / Grand Bay Main Rd): school = U-shaped campus with the court in the middle opening to the road; only a few sheds and gardens around it; the apartments are a small group of ~4 long red-roof blocks in a row directly across the road, fronts facing the road.
+- `Mini182Complex.cs`: scattered apartment blocks thinned (kept 13 far from the school, 38 hidden but still in the scene); ONE complex built: 4 apartment blocks scaled 1.75x long, 17.5 m apart along road 4, 17 m off the road centre on the side away from the school, walls (grey back/sides, white front with a 5 m gate gap and yellow gate posts), parking slab. Site search checked roads, buildings and terrain. Ground 17.3-18.6 m vs school floor 17.8 (slightly lower/east as asked).
+- Known: blocks sit at the lowest footprint corner so posts show on the downhill side; fronts face the road; the wall mesh has no colliders; distant scattered blocks remain sparse.
+- Evidence `Renders/f1_cx_*`, `Complex-Report.txt`.
