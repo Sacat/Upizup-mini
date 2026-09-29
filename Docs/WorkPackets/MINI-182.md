@@ -114,3 +114,11 @@ Photos and satellite show: palms and coconut trees, banana clusters in back yard
 - Validation on fresh reload: 0 vertices on roads, 0 floating (>.6 m), 0 below ground, 1 vertex within .01 m of a building bounds (touching, not overlapping). Evidence `Renders/g1..g6`, `LalayGround-Report.txt`, `LalayGroundValidation.txt`.
 - Known issues: on slopes the layered rings show contour-like banding; dry-grass patches read a bit yellow; patches follow the coarse terrain mesh so edges look faceted.
 - Not done: hedges, fences, utility poles, denser forest, ground under the expansion/bay side.
+
+### Stage 4 step 4 - Poles, fences, hedges (2026-09-29, first pass, isolated copy scene)
+- `Mini182LalayProps.cs` (`Apply`, `ValidateAndRender`) + `props_colors.json` (palette 60 cells: 50-59 = pole wood, wire, insulator, fence wood x2, hedge x2, lamp arm/head/glow). One merged mesh `LalayProps.asset` (~21.5k verts, ~11k tris, shared Palette.mat, shadows off) under `MINI182_LalayProps`, plus 9 small pole box colliders. Deterministic seed 184, idempotent, live hash unchanged.
+- User feedback mid-task: "the utility poles have lights on them and they are brown" -> poles are now clearly brown (linear .19/.10/.045) and each has a curved street-light arm reaching over the road with a lamp head and a pale glowing lens (colour only; NO real Light components, mobile).
+- Poles: 9 along the north side of the main road, every 24-30 m (searched 4.6-13 m off the road centreline, 0.7 m from buildings, 0.7 m from road/sidewalk, 2 m from streams, 1 m from trunks); 3 sagging wires between neighbours, none across gaps > 45 m. Fences: 170 posts / 122 rail sections (back-lot lines, half of them picket), hedges 34 sections (front-of-yard and between neighbours). Long hillside fence lines: 3.
+- Validation on fresh reload: ground-level samples on roads 0, inside building bounds 0; 9 samples sit a little below terrain (rails on slopes). Evidence `Renders/h1..h6`.
+- Lessons: poles alternating sides made wires zig-zag across the road (fixed: one side); palette colours must be appended before Apply; `palette_append.py props 50` re-appends unshipped cells.
+- Known: only 9 poles (frontage houses block many spots); lamps are not emissive; fences are simple post-and-rail with optional pickets; hedges are boxy tapered blocks.
