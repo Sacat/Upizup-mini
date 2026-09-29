@@ -32,6 +32,7 @@ namespace UpIzUpMini.EditorTools
             Shot("cx_oblique", new Vector3(95f, 40f, 105f), new Vector3(140f, 18f, 68f));
             Shot("cx_street", new Vector3(125f, 26f, 40f), new Vector3(150f, 19f, 74f));
             Shot("cx_wide", new Vector3(60f, 70f, 130f), new Vector3(120f, 15f, 55f));
+            Shot("cls_view", new Vector3(80f, 34f, 22f), new Vector3(105f, 19f, 72f));
             Shot("field_top", new Vector3(273, 400, 57), new Vector3(273, 0, 57), true, 55);
             Shot("field_oblique", new Vector3(215, 32, 20), new Vector3(273, 3, 60));
             Shot("field_close", new Vector3(300, 12, 20), new Vector3(273, 2, 62));

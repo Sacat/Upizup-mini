@@ -38,11 +38,11 @@ namespace UpIzUpMini.EditorTools
             GameObject[] roots = scene.GetRootGameObjects();
             CheckForMissingScripts(roots, problems);
 
-            GameObject player = GameObject.FindWithTag("Player");
-            ValidatePlayer(player, problems);
+            PlayerController[] players = Object.FindObjectsByType<PlayerController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            ValidatePlayers(players, problems);
 
             GameObject mainCamera = GameObject.FindWithTag("MainCamera");
-            ValidateCamera(mainCamera, player, problems);
+            ValidateCamera(mainCamera, players, problems);
 
             // MINI-011 Phase C replaced NPCInteractable/FarmPlotInteractable
             // with TownNPCInteractable/FarmPlot; accept either generation
@@ -95,23 +95,24 @@ namespace UpIzUpMini.EditorTools
             }
         }
 
-        private static void ValidatePlayer(GameObject player, List<string> problems)
+        private static void ValidatePlayers(PlayerController[] players, List<string> problems)
         {
-            if (player == null)
+            if (players.Length == 0)
             {
-                problems.Add("No GameObject tagged 'Player' found.");
+                problems.Add("No playable PlayerController found.");
                 return;
             }
 
-            if (player.GetComponent<CharacterController>() == null)
-                problems.Add("Player is missing CharacterController.");
-            if (player.GetComponent<PlayerController>() == null)
-                problems.Add("Player is missing PlayerController.");
-            if (player.GetComponent<InteractionDetector>() == null)
-                problems.Add("Player is missing InteractionDetector.");
+            foreach (PlayerController player in players)
+            {
+                if (player.GetComponent<CharacterController>() == null)
+                    problems.Add(player.name + " is missing CharacterController.");
+                if (player.GetComponent<InteractionDetector>() == null)
+                    problems.Add(player.name + " is missing InteractionDetector.");
+            }
         }
 
-        private static void ValidateCamera(GameObject mainCamera, GameObject player, List<string> problems)
+        private static void ValidateCamera(GameObject mainCamera, PlayerController[] players, List<string> problems)
         {
             if (mainCamera == null)
             {
@@ -141,11 +142,31 @@ namespace UpIzUpMini.EditorTools
                 {
                     problems.Add("ThirdPersonFollowCamera has no target assigned.");
                 }
-                else if (player != null && targetProp.objectReferenceValue as Transform != player.transform)
+                else if (players.Length > 0 && !IsCharacterCameraTarget(targetProp.objectReferenceValue as Transform, players) && !SwitchManagerSetsCameraAtStart(follow))
                 {
-                    problems.Add("ThirdPersonFollowCamera target is not the Player.");
+                    Transform assigned = targetProp.objectReferenceValue as Transform;
+                    problems.Add("ThirdPersonFollowCamera target is not a playable character: " + (assigned != null ? GetPath(assigned) : "<missing>"));
                 }
             }
+        }
+
+        private static bool IsCharacterCameraTarget(Transform target, PlayerController[] players)
+        {
+            if (target == null) return false;
+            if (System.Array.Exists(players, player => player.transform == target)) return true;
+
+            CharacterSwitchManager switcher = Object.FindFirstObjectByType<CharacterSwitchManager>(FindObjectsInactive.Include);
+            if (switcher == null || switcher.Slots == null) return false;
+            return System.Array.Exists(switcher.Slots, slot => slot != null && slot.root != null && slot.root.transform == target && slot.playerController != null);
+        }
+
+        private static bool SwitchManagerSetsCameraAtStart(ThirdPersonFollowCamera camera)
+        {
+            CharacterSwitchManager switcher = Object.FindFirstObjectByType<CharacterSwitchManager>(FindObjectsInactive.Include);
+            if (switcher == null || switcher.Slots == null || switcher.Slots.Length == 0) return false;
+            if (switcher.Slots[0] == null || switcher.Slots[0].root == null || switcher.Slots[0].playerController == null) return false;
+            SerializedProperty assigned = new SerializedObject(switcher).FindProperty("followCamera");
+            return assigned != null && assigned.objectReferenceValue == camera;
         }
 
         private static string GetPath(Transform t)

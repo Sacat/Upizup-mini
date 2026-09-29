@@ -232,9 +232,7 @@ namespace UpIzUpMini.EditorTools
             { sm.Box(new Vector3((a + b) / 2, yb + .55f, zf), new Vector3((b - a) / 2, .55f, .12f), cell["school_white"]); sm.Box(new Vector3((a + b) / 2, yb + 1.22f, zf), new Vector3((b - a) / 2, .06f, .05f), cell["school_rail"]); Col(new Vector3((a + b) / 2, yb + .7f, zf), new Vector3(b - a, 1.4f, .3f)); }
             foreach (float sg in new[] { -1f, 1f }) sm.Box(new Vector3(cx + sg * gate, yb + 1.0f, zf), new Vector3(.22f, 1.0f, .22f), cell["school_yellow"]);
             sm.Box(new Vector3(cx, yb + 2.15f, zf), new Vector3(gate + .3f, .25f, .08f), cell["school_yellow"]);   // sign board over the gate
-            // covered walkway / bike shed at the west end and a small side classroom, as in the aerial photos
-            var sideC = new Vector3(bw0.min.x - 6.5f, yb, bw0.center.z + 2f);
-            sm.Box(new Vector3(sideC.x, yb + 1.6f, sideC.z), new Vector3(3.0f, 1.6f, 4.0f), cell["school_white"]); sm.Box(new Vector3(sideC.x, yb + 3.4f, sideC.z), new Vector3(3.5f, .14f, 4.5f), cell["school_roof"]); Col(new Vector3(sideC.x, yb + 1.6f, sideC.z), new Vector3(6f, 3.2f, 8f));
+            // (the side classroom that used to sit on the road beside the school moved across the road, higher up - see Mini182Complex)
             // export mesh
             var mesh = new Mesh { name = "MINI182_School" }; if (sm.v.Count > 65000) mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
             mesh.SetVertices(sm.v); mesh.SetUVs(0, sm.uv); mesh.SetTriangles(sm.t, 0); mesh.RecalculateNormals(); mesh.RecalculateBounds();

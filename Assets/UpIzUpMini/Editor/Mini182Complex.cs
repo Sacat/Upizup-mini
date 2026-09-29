@@ -120,6 +120,28 @@ namespace UpIzUpMini.EditorTools
                 ys.Add(gmin); results.Add($"block {k} at ({c.x:F0},{gmin:F1},{c.y:F0})");
             }
             var wallCols = new GameObject("WallColliders"); wallCols.transform.SetParent(root.transform, false);
+            // small classroom/admin building: across the road from the school, WEST of the complex and higher up the slope (as in the satellite view)
+            {
+                bool placedCls = false; float schoolFloor = 17.8f;
+                for (int start = si - 4; start >= 3 && !placedCls; start -= 2)
+                {
+                    var t1 = Tan(start); var n1 = new Vector2(-t1.y, t1.x); if (Vector2.Dot(n1, cl[start] - School) < 0) n1 = -n1;
+                    for (float off = 14f; off <= 46f && !placedCls; off += 2f)
+                    {
+                        var c = cl[start] + n1 * off; float g = G(c.x, c.y, out bool ok); if (!ok || g < schoolFloor + 2.4f) continue;
+                        float yw = Mathf.Atan2(t1.x, t1.y) * Mathf.Rad2Deg; if (!Free(c, 5.5f, 4.0f, yw)) continue;
+                        float gmin = float.MaxValue; var q = Quaternion.Euler(0, yw, 0); foreach (var dx in new[] { -1f, 1f }) foreach (var dz in new[] { -1f, 1f }) { var pp = c + new Vector2((q * Vector3.right).x, (q * Vector3.right).z) * dx * 4.5f + new Vector2((q * Vector3.forward).x, (q * Vector3.forward).z) * dz * 3f; float gg = G(pp.x, pp.y, out bool o2); if (o2) gmin = Mathf.Min(gmin, gg); }
+                        var cm = new MB(); cm.Box(new Vector3(c.x, gmin + 1.6f, c.y), new Vector3(4.5f, 1.6f, 3f), cell["school_white"], yw); cm.Box(new Vector3(c.x, gmin + 3.3f, c.y), new Vector3(5.0f, .14f, 3.5f), cell["school_roof"], yw);
+                        cm.Box(new Vector3(c.x, gmin + 1.9f, c.y) - new Vector3((q * Vector3.forward).x, 0, (q * Vector3.forward).z) * 3.03f, new Vector3(3.6f, .5f, .04f), cell["school_glass"], yw);
+                        var cmesh = new Mesh { name = "MINI182_Classroom" }; cmesh.SetVertices(cm.v); cmesh.SetUVs(0, cm.uv); cmesh.SetTriangles(cm.t, 0); cmesh.RecalculateNormals(); cmesh.RecalculateBounds();
+                        string cp = Art + "/ClassroomAcrossRoad.asset"; if (AssetDatabase.LoadAssetAtPath<Mesh>(cp) != null) AssetDatabase.DeleteAsset(cp); AssetDatabase.CreateAsset(cmesh, cp);
+                        var cg2 = new GameObject("ClassroomAcrossRoad"); cg2.transform.SetParent(root.transform, false); cg2.isStatic = true; cg2.AddComponent<MeshFilter>().sharedMesh = cmesh; var cmr = cg2.AddComponent<MeshRenderer>(); cmr.sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(Art + "/Palette_Coast.mat"); cmr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                        var cc = new GameObject("ClassroomCollider"); cc.transform.SetParent(cg2.transform, false); cc.transform.SetPositionAndRotation(new Vector3(c.x, gmin + 1.7f, c.y), Quaternion.Euler(0, yw, 0)); var cbc = cc.AddComponent<BoxCollider>(); cbc.size = new Vector3(9f, 3.4f, 6f);
+                        log.Add($"classroom building moved across the road: ({c.x:F0},{gmin:F1},{c.y:F0}), {gmin - schoolFloor:F1} m above the school floor, {off:F0} m off the road centre"); placedCls = true;
+                    }
+                }
+                if (!placedCls) log.Add("WARN: no free higher site for the classroom building");
+            }
             Vector2 W(float u, float w) => anchor + along * u + away * w;
             void Seg(Vector2 a, Vector2 b, string col, float h)
             {

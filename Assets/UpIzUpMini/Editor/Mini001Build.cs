@@ -5,19 +5,14 @@ using UnityEngine;
 namespace UpIzUpMini.EditorTools
 {
     /// <summary>
-    /// Produces a throwaway Windows standalone build of the MINI-001
-    /// GrandBayProof scene so it can be double-clicked outside the Editor,
-    /// mirroring the reference project's Builds/PlayableAlpha/UpIzUp.exe
-    /// convention. Not a substitute for the eventual MINI-010 build pass
-    /// (save/load, Android, full chapter) — this only packages what
-    /// MINI-001 already contains.
+    /// Builds the current playable Grand Bay scene for Windows.
     /// </summary>
     public static class Mini001Build
     {
         private const string ScenePath = "Assets/UpIzUpMini/Scenes/GrandBayProof.unity";
         private const string OutputPath = "Builds/GrandBayProof/UpIzUpMini.exe";
 
-        [MenuItem("Up Iz Up Mini/MINI-001/Build Windows Player (GrandBayProof)")]
+        [MenuItem("Up Iz Up Mini/Build Windows Player (Grand Bay Expansion)")]
         public static void BuildWindowsPlayer()
         {
             var options = new BuildPlayerOptions
