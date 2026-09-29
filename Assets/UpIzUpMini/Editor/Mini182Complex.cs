@@ -119,11 +119,13 @@ namespace UpIzUpMini.EditorTools
                 inst.transform.SetPositionAndRotation(new Vector3(c.x, gmin - .02f, c.y), Quaternion.Euler(0, faceYaw, 0)); inst.transform.localScale = new Vector3(1.75f, 1f, 1f);
                 ys.Add(gmin); results.Add($"block {k} at ({c.x:F0},{gmin:F1},{c.y:F0})");
             }
+            var wallCols = new GameObject("WallColliders"); wallCols.transform.SetParent(root.transform, false);
             Vector2 W(float u, float w) => anchor + along * u + away * w;
             void Seg(Vector2 a, Vector2 b, string col, float h)
             {
                 var mid = (a + b) / 2; float g = G(mid.x, mid.y, out bool ok); if (!ok || OnRoad(mid)) return;
                 float len = Vector2.Distance(a, b); float yw = Mathf.Atan2((b - a).x, (b - a).y) * Mathf.Rad2Deg; mb.Box(new Vector3(mid.x, g + h / 2, mid.y), new Vector3(.18f, h / 2, len / 2), cell[col], yw);
+                var cg = new GameObject("WallCollider"); cg.transform.SetParent(wallCols.transform, false); cg.transform.SetPositionAndRotation(new Vector3(mid.x, g + h / 2, mid.y), Quaternion.Euler(0, yw, 0)); var bcw = cg.AddComponent<BoxCollider>(); bcw.size = new Vector3(.36f, h, len);
             }
             float u0 = -6f, u1 = 3 * 17.5f + 6f, wBack = 9f, wFront = -6.5f, gate = 5f, uMid = (u0 + u1) / 2;
             for (float u = u0; u < u1; u += 3f) Seg(W(u, wBack), W(Mathf.Min(u + 3f, u1), wBack), "school_grey", 1.3f);
@@ -138,6 +140,25 @@ namespace UpIzUpMini.EditorTools
             var mr = vis.AddComponent<MeshRenderer>(); mr.sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(Art + "/Palette_Coast.mat"); mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             log.AddRange(results);
             log.Add($"complex anchor ({anchor.x:F0},{anchor.y:F0}) along road dir ({along.x:F2},{along.y:F2}); ground y {ys.Min():F1}..{ys.Max():F1}; school floor y 17.8; direction sign {dirSign}");
+            // plinths: every active apartment block gets a concrete base down to the lowest ground under its footprint, so it sits level on slopes
+            var pm = new MB(); int plinths = 0; float maxDrop = 0;
+            var blocks = new List<Transform>(); foreach (Transform c in root.transform) if (c.name.StartsWith("Apartment_")) blocks.Add(c); foreach (Transform c in housing.transform) if (c.gameObject.activeSelf) blocks.Add(c);
+            foreach (var b in blocks)
+            {
+                float sx = b.localScale.x; float hx = 3.8f * sx + .1f, hz = 3.2f + .1f; var q = b.rotation; float gmin2 = float.MaxValue;
+                for (int i = 0; i <= 6; i++) for (int j = 0; j <= 4; j++) { var pp = b.position + q * new Vector3(Mathf.Lerp(-hx, hx, i / 6f), 0, Mathf.Lerp(-hz, hz, j / 4f)); float g = G(pp.x, pp.z, out bool ok); if (ok) gmin2 = Mathf.Min(gmin2, g); }
+                float drop = b.position.y - gmin2; if (drop < .05f) continue; maxDrop = Mathf.Max(maxDrop, drop);
+                float top = b.position.y + .08f, bottom = gmin2 - .15f; float yaw = b.eulerAngles.y;
+                pm.Box(new Vector3(b.position.x, (top + bottom) / 2, b.position.z), new Vector3(hx, (top - bottom) / 2, hz), 3, yaw); plinths++;
+            }
+            if (pm.v.Count > 0)
+            {
+                var pmesh = new Mesh { name = "MINI182_Plinths" }; pmesh.SetVertices(pm.v); pmesh.SetUVs(0, pm.uv); pmesh.SetTriangles(pm.t, 0); pmesh.RecalculateNormals(); pmesh.RecalculateBounds();
+                string pp2 = Art + "/ApartmentPlinths.asset"; if (AssetDatabase.LoadAssetAtPath<Mesh>(pp2) != null) AssetDatabase.DeleteAsset(pp2); AssetDatabase.CreateAsset(pmesh, pp2);
+                var pg = new GameObject("Plinths"); pg.transform.SetParent(root.transform, false); pg.isStatic = true; pg.AddComponent<MeshFilter>().sharedMesh = pmesh;
+                var pr = pg.AddComponent<MeshRenderer>(); pr.sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/UpIzUpMini/Art/Environment/Mini142/Palette.mat"); pr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+            log.Add($"plinths added={plinths} (max drop {maxDrop:F2} m); wall colliders={wallCols.transform.childCount}");
             AssetDatabase.SaveAssets(); EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
             if (Sha(Live) != liveHash) throw new Exception("SAFETY STOP: live scene changed.");
             log.Add("live sha after=" + Sha(Live)); File.WriteAllLines(Out + "/Complex-Report.txt", log); Debug.Log("MINI182COMPLEX " + string.Join(" | ", log));
