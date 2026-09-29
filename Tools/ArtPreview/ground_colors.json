@@ -1,0 +1,45 @@
+{
+  "_readme": "MINI-182 stage 4 step 3: ground patch colours (linear RGB), appended to the shared palette by palette_append.py. Edge colours sit under the main colour as a soft rim.",
+  "colors": {
+    "ground_dirt": [
+      0.22,
+      0.12,
+      0.05
+    ],
+    "ground_dirt_edge": [
+      0.24,
+      0.22,
+      0.08
+    ],
+    "ground_path": [
+      0.3,
+      0.2,
+      0.1
+    ],
+    "ground_dry_grass": [
+      0.24,
+      0.27,
+      0.08
+    ],
+    "ground_dry_edge": [
+      0.2,
+      0.31,
+      0.09
+    ],
+    "ground_forest": [
+      0.025,
+      0.085,
+      0.03
+    ],
+    "ground_forest_edge": [
+      0.05,
+      0.16,
+      0.05
+    ],
+    "ground_garden": [
+      0.1,
+      0.06,
+      0.03
+    ]
+  }
+}
