@@ -50,3 +50,10 @@ Filenames say what each shows. Groups: Lalay top/closer/dense views (7), Lalay b
 - Evidence: `Renders/k1_row_street.png`, `k5_context.png`, `k3_first_close.png`, `Kit/sheet_*.png`, `KitImport-Report.txt`.
 - Lessons: (1) my first coping was one full-footprint slab hiding the roof deck - build coping as a ring; (2) place-search must ignore huge bounds (hills/ground) or it finds no free lot; (3) Unity GetPixel is bottom-up, PNG rows top-down: palette cell row r is at unity y = r*16.
 - Next: remaining variants one at a time (hip red-roof two-storey, corrugated gable, green/teal roof, shopfront, unfinished concrete frame, wooden board), then stage 3 Lalay placement.
+
+### Variant 2 - hip_red_2s (2026-09-29, user approved Blender turnaround and Unity result)
+- 6.0 x 5.0 m two-storey, four-plane hip roof (rise 1.3, overhang .3, 45 deg hips, ribs run straight up each face and stop on the ridge/hip line, ridge cap, eave fascia), balcony, side windows; walls cream yellow / peach / white / seafoam. 4,494 tris LOD0, 2,250 LOD1, 8 materials.
+- Hip roof lesson: ribs must run perpendicular to the eave and end on the hip line (first version fanned ribs toward the ridge ends and looked wrong); fascia sides shortened so corners do not overlap.
+- Palette bug caught before shipping: `house_export.py` rebuilt the palette from MINI-142 every run, so exporting a second family would have dropped the first family's appended cells and mis-coloured its houses. Fixed: the exporter now starts from the latest MINI-182 palette (append-only across families, asserts cells 0..19 unchanged). ALWAYS re-export ALL approved families in order (flat first, then hip) after changing the palette logic. Palette is now 24 cells (20 shipped + white, cream yellow, coral, sky blue).
+- Unity kit now sizes colliders from footprint/height in the JSON and places a test row per family (`MINI182_FAMILY` env var, root `MINI182_KitTest_<family>`).
+- Evidence: `Renders/k1/k3/k5` (hip row), `Kit/sheet_hip_red_2s.png`, `Kit/sheet_pair_hip_red_2s_vs_flat.png`.

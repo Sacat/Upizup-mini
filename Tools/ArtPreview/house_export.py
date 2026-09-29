@@ -14,8 +14,11 @@ import house_system as hs
 ROOT = Path(r'E:\Unity\Up Iz Up Mini')
 OLD = ROOT / 'Logs/Tasks/MINI-142/Export'
 OUT = ROOT / 'Logs/Tasks/MINI-182/Export'; OUT.mkdir(parents=True, exist_ok=True)
-palette = [tuple(c) for c in json.loads((OLD / 'manifest.json').read_text())['paletteLinearColors']]
-n_existing = len(palette)
+# Append-only across runs: start from the latest MINI-182 palette if one exists, else the shipped MINI-142 palette.
+BASE = OUT / 'manifest.json' if (OUT / 'manifest.json').exists() else OLD / 'manifest.json'
+palette = [tuple(c) for c in json.loads(BASE.read_text())['paletteLinearColors']]
+assert palette[:20] == [tuple(c) for c in json.loads((OLD / 'manifest.json').read_text())['paletteLinearColors']][:20], 'shipped palette cells changed'
+n_existing = 20
 
 
 def color_index(material):
@@ -58,7 +61,7 @@ def export_row(row, asset_name):
     lod1 = dict(name='LOD1', parts=[part('Body', objs, origin, True)])
     pts = body['vertices']
     bounds = {k: dict(min=min(v[k] for v in pts), max=max(v[k] for v in pts)) for k in ('x', 'y', 'z')}
-    data = dict(name=asset_name, parts=[body], lods=[lod1], bounds=bounds, dimensions={k: round(b['max'] - b['min'], 6) for k, b in bounds.items()}, palette='palette.png')
+    data = dict(name=asset_name, parts=[body], lods=[lod1], bounds=bounds, dimensions={k: round(b['max'] - b['min'], 6) for k, b in bounds.items()}, palette='palette.png', footprintW=row['footprint']['w'], footprintD=row['footprint']['d'], bodyHeight=row['storeys'] * row['storeyHeight'], family=row['family'])
     (OUT / (asset_name + '.json')).write_text(json.dumps(data, separators=(',', ':')))
     summary[asset_name] = dict(row=row['id'], wall=row['palette']['wall'], triangles=len(body['triangles']) // 3, lod1Triangles=len(lod1['parts'][0]['triangles']) // 3, dimensions=data['dimensions'], bounds=bounds)
 

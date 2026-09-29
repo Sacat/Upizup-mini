@@ -22,11 +22,13 @@ namespace UpIzUpMini.EditorTools
         const string OldArt = "Assets/UpIzUpMini/Art/Environment/Mini142";
         const string Export = "Logs/Tasks/MINI-182/Export";
         const string Out = "Logs/Tasks/MINI-182";
-        const string Root = "MINI182_KitTest";
+        const string RootBase = "MINI182_KitTest_";
+        static string Family => Environment.GetEnvironmentVariable("MINI182_FAMILY") ?? "flat_concrete";
+        static string Root => RootBase + Family;
 
         [Serializable] class Part { public string name; public Vector3[] vertices; public Vector3[] normals; public int[] triangles; public Vector2[] uv; }
         [Serializable] class Detail { public string name; public Part[] parts; }
-        [Serializable] class Model { public string name; public Part[] parts; public Vector3 dimensions; public Detail[] lods; }
+        [Serializable] class Model { public string name; public Part[] parts; public Vector3 dimensions; public Detail[] lods; public float footprintW; public float footprintD; public float bodyHeight; public string family; }
 
         static string Sha(string p)
         {
@@ -113,7 +115,7 @@ namespace UpIzUpMini.EditorTools
             if (mat == null) throw new Exception("Shared Palette.mat missing at " + OldArt);
             mat.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(OldArt + "/palette.png");
 
-            var prefabs = new List<GameObject>();
+            var prefabs = new List<GameObject>(); var placeList = new List<GameObject>();
             foreach (var json in Directory.GetFiles(Export, "House*.json").OrderBy(f => f))
             {
                 var m = JsonUtility.FromJson<Model>(File.ReadAllText(json));
@@ -122,9 +124,11 @@ namespace UpIzUpMini.EditorTools
                 GameObject Child(string n, Mesh me) { var g = new GameObject(n); g.transform.SetParent(root.transform, false); g.AddComponent<MeshFilter>().sharedMesh = me; var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = mat; return g; }
                 var l0 = Child("House_LOD0", m0).GetComponent<Renderer>(); var l1 = Child("House_LOD1", m1).GetComponent<Renderer>();
                 var group = root.AddComponent<LODGroup>(); group.SetLODs(new[] { new LOD(.11f, new[] { l0 }), new LOD(.008f, new[] { l1 }) }); group.RecalculateBounds();
-                var box = root.AddComponent<BoxCollider>(); box.center = new Vector3(0, .30f + 5.5f * .5f, 0); box.size = new Vector3(6.2f, 5.5f, 5.2f);
-                var bx = root.AddComponent<BoxCollider>(); bx.center = new Vector3(0, .16f, 0); bx.size = new Vector3(6.34f, .32f, 5.34f);
+                var box = root.AddComponent<BoxCollider>(); float fw = m.footprintW > 0 ? m.footprintW : 6.2f, fd = m.footprintD > 0 ? m.footprintD : 5.2f, fh = m.bodyHeight > 0 ? m.bodyHeight : 5.5f;
+                box.center = new Vector3(0, .30f + fh * .5f, 0); box.size = new Vector3(fw, fh, fd);
+                var bx = root.AddComponent<BoxCollider>(); bx.center = new Vector3(0, .16f, 0); bx.size = new Vector3(fw + .14f, .32f, fd + .14f);
                 var pf = PrefabUtility.SaveAsPrefabAsset(root, Art + "/Prefabs/" + m.name + ".prefab"); UnityEngine.Object.DestroyImmediate(root);
+                if (m.family == Family || (string.IsNullOrEmpty(m.family) && Family == "flat_concrete")) placeList.Add(pf);
                 prefabs.Add(pf); log.Add($"{m.name}: tris LOD0={m0.triangles.Length / 3} LOD1={m1.triangles.Length / 3} size={m.dimensions}");
             }
             AssetDatabase.SaveAssets();
@@ -155,7 +159,7 @@ namespace UpIzUpMini.EditorTools
                 for (float x = 20; x <= 120 && placed == 0; x += 2)
                 {
                     var slots = new List<Vector3>(); bool ok = true;
-                    for (int i = 0; i < prefabs.Count && ok; i++)
+                    for (int i = 0; i < placeList.Count && ok; i++)
                     {
                         float sx = x + i * 9f; float gy = Ground(sx, z);
                         if (float.IsNegativeInfinity(gy)) { ok = false; noGround++; break; }
@@ -168,9 +172,9 @@ namespace UpIzUpMini.EditorTools
                     {
                         var p = slots[i]; var rp = NearestRoad(new Vector2(p.x, p.z), out _);
                         var f = new Vector3(rp.x - p.x, 0, rp.y - p.z).normalized;
-                        var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefabs[i], rootGo.transform);
+                        var inst = (GameObject)PrefabUtility.InstantiatePrefab(placeList[i], rootGo.transform);
                         inst.transform.SetPositionAndRotation(new Vector3(p.x, p.y + .01f, p.z), Quaternion.LookRotation(-f, Vector3.up));
-                        report.Add($"{prefabs[i].name} at ({p.x:F1},{p.y:F1},{p.z:F1}) facing road"); placed++;
+                        report.Add($"{placeList[i].name} at ({p.x:F1},{p.y:F1},{p.z:F1}) facing road"); placed++;
                     }
                 }
             if (placed == 0) throw new Exception($"No free 4-house row found near the Lalay south side. terrainColliders={terrain.Count} roads={roads.Count} roadPts={roadPts.Count} occupied={occupied.Count} noGround={noGround} roadDistFail={roadFar} occupiedFail={occ}");

@@ -124,6 +124,32 @@ def roof_gable(x, y, w, d, base, row, M):
         cube('Roof fascia', (x, yy, base - .035), (2 * hx + .11, .11, .14), M['limewash'], .01)
 
 
+def roof_hip(x, y, w, d, base, row, M):
+    """Four-plane hip roof: 45 deg hips at the ends, ridge half-length = hx - hy. Metal ribs on the two long planes."""
+    r = row['roof']; ov = r['overhang']; ridge = base + r['rise']; roofmat = M[r['material']]
+    hx = w / 2 + ov; hy = d / 2 + ov; rl = max(.2, hx - hy)
+    b = [(x - hx, y - hy, base), (x + hx, y - hy, base), (x + hx, y + hy, base), (x - hx, y + hy, base)]
+    rf = [(x - rl, y, ridge), (x + rl, y, ridge)]
+    mesh('Hip roof front', [b[0], b[1], rf[1], rf[0]], [(0, 1, 2, 3)], roofmat)
+    mesh('Hip roof back', [b[3], b[2], rf[1], rf[0]], [(0, 3, 2, 1)], roofmat)
+    mesh('Hip roof left', [b[0], b[3], rf[0]], [(0, 2, 1)], roofmat)
+    mesh('Hip roof right', [b[1], b[2], rf[1]], [(0, 1, 2)], roofmat)
+    if r.get('ribs'):
+        rise = r['rise']
+        for i in range(30):   # long planes: ribs run straight up the slope, ending on the ridge or the hip line
+            xx = x - hx + 2 * hx * (i + .5) / 30; k = min(1.0, (hx - abs(xx - x)) / hy)
+            for sg in (-1, 1):
+                rod('Metal roof rib', (xx, y + sg * hy, base + .025), (xx, y + sg * hy * (1 - k), base + rise * k + .025), .014, roofmat, 5)
+        for j in range(11):   # end planes: ribs run along X toward the ridge end
+            yy = y - hy + 2 * hy * (j + .5) / 11; k = (hy - abs(yy - y)) / hy
+            for sg in (-1, 1):
+                rod('Metal roof rib', (x + sg * hx, yy, base + .025), (x + sg * (hx - hy * k), yy, base + rise * k + .025), .014, roofmat, 5)
+    rod('Ridge cap', (x - rl, y, ridge + .04), (x + rl, y, ridge + .04), .05, roofmat, 6)
+    cube('Eave fascia front', (x, y - hy, base - .035), (2 * hx + .11, .11, .14), M['limewash'], .01)
+    cube('Eave fascia back', (x, y + hy, base - .035), (2 * hx + .11, .11, .14), M['limewash'], .01)
+    for sx in (-1, 1): cube('Eave fascia side', (x + sx * hx, y, base - .035), (.11, 2 * hy - .11, .14), M['limewash'], .01)
+
+
 def roof_flat(x, y, w, d, top, row, M):
     r = row['roof']; t = r['parapetThickness']; ph = r['parapet']; ov = r['slabOverhang']
     cube('Roof slab', (x, y, top + .07), (w + 2 * ov, d + 2 * ov, .14), M['concrete'], .02)
@@ -168,6 +194,9 @@ def build_house(row, origin, M, y0=1.8):
         ridge = base + row['roof']['rise']
         for xx in [x - w / 2, x + w / 2]:
             mesh('Plastered gable', [(xx, y - d / 2, base), (xx, y + d / 2, base), (xx, y, ridge - .10)], [(0, 1, 2)], wallmat)
+        rod('Gutter downpipe', (x + w / 2 - .07, fy - .13, .4), (x + w / 2 - .07, fy - .13, base - .1), .035, M['limewash'])
+    elif rt == 'hip':
+        roof_hip(x, y, w, d, base, row, M)
         rod('Gutter downpipe', (x + w / 2 - .07, fy - .13, .4), (x + w / 2 - .07, fy - .13, base - .1), .035, M['limewash'])
     elif rt == 'flat':
         roof_flat(x, y, w, d, base, row, M)
