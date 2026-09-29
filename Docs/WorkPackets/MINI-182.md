@@ -63,3 +63,11 @@ Filenames say what each shows. Groups: Lalay top/closer/dense views (7), Lalay b
 - New: `roof_gable_depth` builder, `canopy` facade option, `variants` (wall+roof pairs) in the table and exporter; new colours roof_rust, wall_pink. Palette now 26 cells (20 shipped + 6 appended); all three families re-exported in order (flat, hip, corrugated).
 - Unity test-row search widened (x 0-200, z -158..-240, road distance 9-30 m) because earlier rows fill the nearby ground; the row landed beside the church at x~164-191, z~-158, each house facing its nearest road so orientations differ. This is a model check only; real placement is stage 3.
 - Evidence: `Renders/k3_first_close.png`, `k6_row_high.png`, `k7_pair_close.png`, `Kit/sheet_corrugated_gable_1s.png`, `Kit/sheet_pair_corrugated_gable_1s_vs_plaster.png`.
+
+### Variant 4 - shopfront_2s (2026-09-29, APPROVED FOR NOW - NEEDS IMPROVEMENT)
+- User: "not perfect but approve for now and export (take note that it needs improvement)". Table status = `approved_needs_improvement` with `improvementNotes` in `house_definitions.json`. Do not treat it as a locked look; revisit after the other types.
+- 6.4 x 5.2 m two-storey flat-roof, ground-floor shop (dark recess, glass display with mullions, stallboard, jamb posts, lintel, tilted awning with valance and brackets, dark sign band with light trim, side door), 3 upper windows, side windows. Wall + awning pairs: White+Red, Yellow+Green, Blue+Orange, Coral+Teal. 2,804 tris LOD0 / 1,402 LOD1, 8 materials.
+- Improvement ideas (from my review, not user-specified): roll-up shutter/half-open door option, wall signage or painted name area, more character to the frontage (goods, ledge, security grille), awning shape and colour realism versus the Lalay photos; sign band is blank.
+- Palette now 30 cells (20 shipped + 10 appended: white, cream yellow, coral, sky blue, rust, pink, awning red/green/orange/teal). All four families re-exported in order.
+- Unity row landed at x~200-227, z~-210 by the beach/roundabout side; model check only.
+- Evidence: `Renders/k1_row_street.png`, `k3_first_close.png`, `k6_row_high.png`, `Kit/sheet_shopfront_2s.png`, `Kit/sheet_pair_shopfront_2s_vs_flat.png`.

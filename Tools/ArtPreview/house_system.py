@@ -91,6 +91,23 @@ def side_window(x, y, z, M, sign):
     cube('Side mullion', (x + sign * .1, y, z), (.04, .06, 1.14), M['limewash'])
 
 
+def shopfront(cx, fy, z, M, accent, width=3.6):
+    """Ground-floor shop: dark recess, glass display with mullions and a stallboard, sloped awning with valance and brackets, sign band."""
+    hw = width / 2
+    cube('Shop recess', (cx, fy - .03, z + 1.2), (width + .2, .06, 2.3), M['ink'])
+    cube('Shop glass', (cx, fy - .07, z + 1.32), (width - .1, .04, 1.72), M['glass'])
+    for mx in (-hw * .5, 0.0, hw * .5): cube('Shop mullion', (cx + mx, fy - .10, z + 1.32), (.07, .05, 1.76), M['limewash'])
+    cube('Shop transom', (cx, fy - .10, z + 2.20), (width, .06, .07), M['limewash'])
+    cube('Shop stallboard', (cx, fy - .09, z + .27), (width + .18, .14, .54), M['concrete'], .015)
+    cube('Shop lintel', (cx, fy - .07, z + 2.32), (width + .3, .16, .16), M['limewash'], .015)
+    for sx in (-1, 1): cube('Shop jamb', (cx + sx * (hw + .1), fy - .07, z + 1.2), (.14, .14, 2.4), M['limewash'], .012)
+    aw = cube('Shop awning', (cx, fy - .5, z + 2.42), (width + .5, 1.0, .06), M[accent], .01); aw.rotation_euler = (math.radians(20), 0, 0)
+    cube('Awning valance', (cx, fy - .96, z + 2.13), (width + .5, .05, .18), M[accent], .008)
+    for sx in (-1, 1): rod('Awning bracket', (cx + sx * (hw + .2), fy - .02, z + 2.5), (cx + sx * (hw + .2), fy - .93, z + 2.15), .022, M['rail_dark'], 5)
+    cube('Sign band', (cx, fy - .05, z + 2.66), (width + .3, .06, .26), M['rail_dark'], .01)
+    cube('Sign band trim', (cx, fy - .07, z + 2.66), (width + .1, .03, .05), M['limewash'])
+
+
 def door(x, y, z, M):
     cube('Door recess', (x, y - .08, z + 1.04), (1.04, .08, 2.08), M['ink'])
     cube('Panelled timber door', (x, y - .13, z + 1.03), (.87, .075, 1.98), M['timber_green'], .015)
@@ -202,6 +219,7 @@ def build_house(row, origin, M, y0=1.8):
         for kind, off in row['facade']['storeyElements'][level]:
             if kind == 'window': window(x + off, y - d / 2 - .045, z + 1.50, M)
             elif kind == 'door': door(x + off, y - d / 2, z, M)
+            elif kind == 'shopfront': shopfront(x + off, y - d / 2, z, M, row['palette'].get('accent', 'rail_dark'))
         if row['facade'].get('sideWindows'):
             for sx in (-1, 1):
                 side_window(x + sx * (w / 2 + .045), y + .3, z + 1.50, M, sx)
