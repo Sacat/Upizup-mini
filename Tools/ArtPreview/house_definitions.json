@@ -115,6 +115,11 @@
       0.8,
       0.66,
       0.44
+    ],
+    "roof_maroon": [
+      0.26,
+      0.08,
+      0.09
     ]
   },
   "houses": [
@@ -914,6 +919,26 @@
           "name": "CreamYellow",
           "wall": "wall_cream_yellow",
           "roof": "roof_red"
+        },
+        {
+          "name": "Pink_Maroon",
+          "wall": "wall_pink",
+          "roof": "roof_maroon"
+        },
+        {
+          "name": "Blue_Maroon",
+          "wall": "wall_sky_blue",
+          "roof": "roof_maroon"
+        },
+        {
+          "name": "Cream_Maroon",
+          "wall": "wall_cream",
+          "roof": "roof_maroon"
+        },
+        {
+          "name": "Peach_Maroon",
+          "wall": "wall_peach",
+          "roof": "roof_maroon"
         }
       ],
       "budget": {

@@ -162,7 +162,7 @@ def roof_gable_depth(x, y, w, d, base, row, M):
 
 def roof_hip(x, y, w, d, base, row, M):
     """Four-plane hip roof: 45 deg hips at the ends, ridge half-length = hx - hy. Metal ribs on the two long planes."""
-    r = row['roof']; ov = r['overhang']; ridge = base + r['rise']; roofmat = M[r['material']]
+    r = row['roof']; ov = r['overhang']; ridge = base + r['rise']; roofmat = M[row['palette'].get('roof', r['material'])]
     hx = w / 2 + ov; hy = d / 2 + ov; rl = max(.2, hx - hy)
     b = [(x - hx, y - hy, base), (x + hx, y - hy, base), (x + hx, y + hy, base), (x - hx, y + hy, base)]
     rf = [(x - rl, y, ridge), (x + rl, y, ridge)]
