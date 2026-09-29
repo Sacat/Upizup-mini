@@ -1,0 +1,194 @@
+{
+  "_readme": "MINI-182 scenery table. One row per plant type; scenery_system.py builds any row deterministically from (row, seed). Colours are linear RGB and are appended to the shared palette (append-only).",
+  "colors": {
+    "trunk_palm": [
+      0.42,
+      0.32,
+      0.21
+    ],
+    "trunk_palm_dark": [
+      0.3,
+      0.22,
+      0.14
+    ],
+    "palm_leaf_a": [
+      0.13,
+      0.33,
+      0.08
+    ],
+    "palm_leaf_b": [
+      0.19,
+      0.42,
+      0.11
+    ],
+    "coconut": [
+      0.32,
+      0.22,
+      0.09
+    ],
+    "broad_trunk": [
+      0.27,
+      0.19,
+      0.11
+    ],
+    "broad_leaf_dark": [
+      0.08,
+      0.22,
+      0.07
+    ],
+    "broad_leaf_mid": [
+      0.15,
+      0.34,
+      0.09
+    ],
+    "broad_leaf_light": [
+      0.25,
+      0.44,
+      0.14
+    ],
+    "banana_stem": [
+      0.38,
+      0.42,
+      0.15
+    ],
+    "banana_leaf_a": [
+      0.16,
+      0.4,
+      0.07
+    ],
+    "banana_leaf_b": [
+      0.24,
+      0.48,
+      0.11
+    ],
+    "limewash": [
+      0.82,
+      0.8,
+      0.67
+    ],
+    "concrete": [
+      0.44,
+      0.47,
+      0.43
+    ],
+    "concrete_light": [
+      0.7,
+      0.7,
+      0.66
+    ],
+    "ink": [
+      0.055,
+      0.085,
+      0.08
+    ],
+    "glass": [
+      0.055,
+      0.12,
+      0.14
+    ],
+    "timber_green": [
+      0.2,
+      0.3,
+      0.28
+    ],
+    "rail_dark": [
+      0.08,
+      0.14,
+      0.13
+    ],
+    "wall_white": [
+      0.8,
+      0.79,
+      0.74
+    ]
+  },
+  "scenery": [
+    {
+      "id": "coconut_palm",
+      "kind": "palm",
+      "status": "draft",
+      "source": "Photos: Top view lalay, closer Lalay, Lalay from the bay to the hill (coconut palms with curved trunks and drooping fronds among houses); satellite: scattered palms in yards and along the coast",
+      "height": [
+        8.0,
+        10.0
+      ],
+      "lean": [
+        0.4,
+        1.6
+      ],
+      "trunkRadius": 0.28,
+      "fronds": [
+        13,
+        16
+      ],
+      "frondLength": [
+        4.6,
+        5.6
+      ],
+      "leafletLength": 1.15,
+      "budget": {
+        "trisLod0": 1400,
+        "trisLod1": 600
+      },
+      "seeds": [
+        11,
+        23,
+        37
+      ]
+    },
+    {
+      "id": "broadleaf_tree",
+      "kind": "broadleaf",
+      "status": "draft",
+      "source": "Photos: Lalay dense area, Housing complex before the school (mango/breadfruit-type broadleaf trees in back yards and along verges)",
+      "trunkHeight": [
+        2.4,
+        3.2
+      ],
+      "trunkRadius": 0.22,
+      "canopyRadius": [
+        3.0,
+        3.8
+      ],
+      "budget": {
+        "trisLod0": 1100,
+        "trisLod1": 500
+      },
+      "seeds": [
+        5,
+        9
+      ],
+      "blobs": [
+        9,
+        12
+      ]
+    },
+    {
+      "id": "banana_clump",
+      "kind": "banana",
+      "status": "draft",
+      "source": "Photos: Lalay dense area, closer Lalay (banana plants in back yards); simplified vs the MINI-142 crop banana (no fruit) for scenery budget",
+      "plants": [
+        3,
+        4
+      ],
+      "height": [
+        2.4,
+        3.0
+      ],
+      "budget": {
+        "trisLod0": 900,
+        "trisLod1": 400
+      },
+      "seeds": [
+        3,
+        8
+      ],
+      "leafLength": [
+        2.3,
+        3.0
+      ],
+      "leafWidth": 0.46
+    }
+  ]
+}
