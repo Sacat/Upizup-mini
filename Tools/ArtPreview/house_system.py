@@ -42,7 +42,7 @@ def make_materials():
     """One Blender material per named colour (named exactly as in the JSON so the exporter palette is stable)."""
     out = {}
     for name, c in load_defs()['colors'].items():
-        rough, metal = (.42, .55) if name == 'roof_aged_metal' else (.5, .25) if name == 'roof_red' else (.45, .5) if name == 'rail_dark' else (.27, 0) if name == 'glass' else (.7, 0)
+        rough, metal = (.42, .55) if name in ('roof_aged_metal', 'roof_rust') else (.5, .25) if name == 'roof_red' else (.45, .5) if name == 'rail_dark' else (.27, 0) if name == 'glass' else (.7, 0)
         out[name] = _mat(name, c, rough, metal)
     return out
 
@@ -124,6 +124,25 @@ def roof_gable(x, y, w, d, base, row, M):
         cube('Roof fascia', (x, yy, base - .035), (2 * hx + .11, .11, .14), M['limewash'], .01)
 
 
+def roof_gable_depth(x, y, w, d, base, row, M):
+    """Gable roof whose ridge runs front-to-back (gable end faces the street), corrugated ribs, bargeboards."""
+    r = row['roof']; ridge = base + r['rise']; roofmat = M[row['palette']['roof']]
+    hx = w / 2 + r['overhang']; yf = y - d / 2 - r['frontOverhang']; yb = y + d / 2 + r.get('backOverhang', r['overhang'])
+    mesh('Roof left plane', [(x - hx, yf, base), (x - hx, yb, base), (x, yb, ridge), (x, yf, ridge)], [(0, 1, 2, 3)], roofmat)
+    mesh('Roof right plane', [(x + hx, yf, base), (x, yf, ridge), (x, yb, ridge), (x + hx, yb, base)], [(0, 1, 2, 3)], roofmat)
+    if r.get('ribs'):
+        n = int((yb - yf) / r['ribSpacing'])
+        for i in range(n + 1):
+            yy = yf + (yb - yf) * i / n
+            rod('Corrugation rib', (x - hx, yy, base + .03), (x, yy, ridge + .03), .016, roofmat, 4)
+            rod('Corrugation rib', (x, yy, ridge + .03), (x + hx, yy, base + .03), .016, roofmat, 4)
+    rod('Ridge cap', (x, yf, ridge + .05), (x, yb, ridge + .05), .06, roofmat, 6)
+    for yy in (yf, yb):   # bargeboards along the rake edges
+        rod('Bargeboard', (x - hx, yy, base), (x, yy, ridge), .05, M['limewash'], 5)
+        rod('Bargeboard', (x, yy, ridge), (x + hx, yy, base), .05, M['limewash'], 5)
+    return ridge
+
+
 def roof_hip(x, y, w, d, base, row, M):
     """Four-plane hip roof: 45 deg hips at the ends, ridge half-length = hx - hy. Metal ribs on the two long planes."""
     r = row['roof']; ov = r['overhang']; ridge = base + r['rise']; roofmat = M[r['material']]
@@ -195,6 +214,11 @@ def build_house(row, origin, M, y0=1.8):
         for xx in [x - w / 2, x + w / 2]:
             mesh('Plastered gable', [(xx, y - d / 2, base), (xx, y + d / 2, base), (xx, y, ridge - .10)], [(0, 1, 2)], wallmat)
         rod('Gutter downpipe', (x + w / 2 - .07, fy - .13, .4), (x + w / 2 - .07, fy - .13, base - .1), .035, M['limewash'])
+    elif rt == 'gable_depth':
+        ridge = roof_gable_depth(x, y, w, d, base, row, M)
+        for yy in (y - d / 2, y + d / 2):
+            mesh('Plastered gable end', [(x - w / 2, yy, base), (x + w / 2, yy, base), (x, yy, ridge)], [(0, 1, 2)] if yy < y else [(0, 2, 1)], wallmat)
+        rod('Gutter downpipe', (x + w / 2 - .07, fy - .13, .4), (x + w / 2 - .07, fy - .13, base - .1), .035, M['limewash'])
     elif rt == 'hip':
         roof_hip(x, y, w, d, base, row, M)
         rod('Gutter downpipe', (x + w / 2 - .07, fy - .13, .4), (x + w / 2 - .07, fy - .13, base - .1), .035, M['limewash'])
@@ -204,6 +228,10 @@ def build_house(row, origin, M, y0=1.8):
     door_x = next((off for kind, off in row['facade']['storeyElements'][0] if kind == 'door'), 0.0)
     for step in range(3):
         cube('Entry step', (x + door_x, fy - .32 - step * .22, .24 - step * .075), (1.5, .34, .12), M['concrete'], .014)
+    if row['facade'].get('canopy'):
+        cm = M[row['palette']['roof']]; cxp = x + door_x
+        cube('Door canopy', (cxp, fy - .55, 2.62), (1.9, 1.0, .07), cm, .015)
+        for sx in (-.8, .8): cube('Canopy post', (cxp + sx, fy - .98, 1.32), (.08, .08, 2.6), M['limewash'], .01)
     if row['facade'].get('veranda'):
         roofmat = M[row['roof']['material']]
         cube('Veranda canopy', (x, fy - .58, 2.66), (5.75, 1.2, .12), roofmat, .02)

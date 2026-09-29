@@ -69,9 +69,10 @@ def export_row(row, asset_name):
 argv = sys.argv[sys.argv.index('--') + 1:]
 row = hs.load_row(argv[0])
 suffix = ''.join(w.capitalize() for w in row['id'].split('_'))
-for wall in row.get('wallChoices', [row['palette']['wall']]):
-    r = copy.deepcopy(row); r['palette']['wall'] = wall
-    export_row(r, 'House' + suffix + '_' + ''.join(w.capitalize() for w in wall.replace('wall_', '').split('_')))
+variants = row.get('variants') or [dict(name=''.join(w.capitalize() for w in wall.replace('wall_', '').split('_')), wall=wall, roof=row['palette']['roof']) for wall in row.get('wallChoices', [row['palette']['wall']])]
+for v in variants:
+    r = copy.deepcopy(row); r['palette']['wall'] = v['wall']; r['palette']['roof'] = v['roof']
+    export_row(r, 'House' + suffix + '_' + v['name'])
 
 def srgb(c): return round(255 * (12.92 * c if c <= .0031308 else 1.055 * c ** (1 / 2.4) - .055))
 def chunk(t, d): return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)

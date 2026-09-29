@@ -92,6 +92,8 @@ namespace UpIzUpMini.EditorTools
             Shot("k1_row_street", c + fwd * 24 + Vector3.up * 3f, c + Vector3.up * 3.5f);
             Shot("k2_row_oblique", c + fwd * 30 + Vector3.Cross(Vector3.up, fwd) * 26 + Vector3.up * 14, c + Vector3.up * 3f);
             Shot("k3_first_close", first + fwd * 15 + Vector3.up * 3f, first + Vector3.up * 3.5f);
+            Shot("k6_row_high", c + fwd * 21 + Vector3.up * 11f, c + Vector3.up * 1.5f);
+            Shot("k7_pair_close", c + fwd * 13 + Vector3.Cross(Vector3.up, fwd) * 7 + Vector3.up * 5.5f, c + Vector3.up * 2f);
             Shot("k4_top", c + Vector3.up * 200, c, true, 22);
             // in-context: from the Lalay road, looking at the row with neighbouring approved houses
             Shot("k5_context", c + fwd * 45 + Vector3.Cross(Vector3.up, fwd) * 40 + Vector3.up * 20, c);
@@ -155,8 +157,8 @@ namespace UpIzUpMini.EditorTools
             var rootGo = new GameObject(Root);
             int placed = 0; var report = new List<string>(); int noGround = 0, roadFar = 0, occ = 0;
             // search the open ground south of the Lalay main road for a straight row of 4 slots facing the road
-            for (float z = -158; z >= -215 && placed == 0; z -= 2)
-                for (float x = 20; x <= 120 && placed == 0; x += 2)
+            for (float z = -158; z >= -240 && placed == 0; z -= 2)
+                for (float x = 0; x <= 200 && placed == 0; x += 2)
                 {
                     var slots = new List<Vector3>(); bool ok = true;
                     for (int i = 0; i < placeList.Count && ok; i++)
@@ -164,7 +166,7 @@ namespace UpIzUpMini.EditorTools
                         float sx = x + i * 9f; float gy = Ground(sx, z);
                         if (float.IsNegativeInfinity(gy)) { ok = false; noGround++; break; }
                         NearestRoad(new Vector2(sx, z), out float rd);
-                        if (rd < 9f || rd > 16f) { ok = false; roadFar++; } else if (!Free(new Vector3(sx, gy, z), 5.5f)) { ok = false; occ++; }
+                        if (rd < 9f || rd > 30f) { ok = false; roadFar++; } else if (!Free(new Vector3(sx, gy, z), 5.5f)) { ok = false; occ++; }
                         slots.Add(new Vector3(sx, gy, z));
                     }
                     if (!ok) continue;

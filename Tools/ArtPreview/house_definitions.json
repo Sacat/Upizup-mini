@@ -75,6 +75,16 @@
       0.36,
       0.6,
       0.72
+    ],
+    "roof_rust": [
+      0.42,
+      0.2,
+      0.1
+    ],
+    "wall_pink": [
+      0.72,
+      0.42,
+      0.48
     ]
   },
   "houses": [
@@ -324,6 +334,80 @@
       "budget": {
         "trisLod0": 9000,
         "trisLod1": 3500
+      }
+    },
+    {
+      "id": "corrugated_gable_1s",
+      "family": "corrugated_gable",
+      "status": "draft",
+      "source": "Photos: closer Lalay, Top view lalay, More of Lalay (single-storey houses with grey/rust corrugated gable roofs, ridge running front to back)",
+      "storeys": 1,
+      "footprint": {
+        "w": 5.4,
+        "d": 6.4
+      },
+      "storeyHeight": 2.75,
+      "foundation": 0.32,
+      "roof": {
+        "type": "gable_depth",
+        "rise": 0.85,
+        "overhang": 0.25,
+        "frontOverhang": 0.4,
+        "material": "roof_rust",
+        "ribs": true,
+        "ribSpacing": 0.13
+      },
+      "facade": {
+        "veranda": false,
+        "balcony": false,
+        "sideWindows": true,
+        "canopy": true,
+        "storeyElements": [
+          [
+            [
+              "door",
+              -1.6
+            ],
+            [
+              "window",
+              0.35
+            ],
+            [
+              "window",
+              1.85
+            ]
+          ]
+        ]
+      },
+      "palette": {
+        "wall": "wall_white",
+        "roof": "roof_rust"
+      },
+      "variants": [
+        {
+          "name": "White_Rust",
+          "wall": "wall_white",
+          "roof": "roof_rust"
+        },
+        {
+          "name": "Yellow_Grey",
+          "wall": "wall_cream_yellow",
+          "roof": "roof_aged_metal"
+        },
+        {
+          "name": "Blue_Rust",
+          "wall": "wall_sky_blue",
+          "roof": "roof_rust"
+        },
+        {
+          "name": "Pink_Grey",
+          "wall": "wall_pink",
+          "roof": "roof_aged_metal"
+        }
+      ],
+      "budget": {
+        "trisLod0": 7000,
+        "trisLod1": 3000
       }
     }
   ]
