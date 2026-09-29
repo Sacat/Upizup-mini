@@ -119,7 +119,7 @@ namespace UpIzUpMini.EditorTools
             }
             var placedC = new List<(Vector2 c, int units)>(); bool Clear(Vector2 c, int units) { foreach (var (pc, pu) in placedC) { var d = c - pc; float dl = Mathf.Abs(Vector2.Dot(d, along)), ds = Mathf.Abs(Vector2.Dot(d, down)); if (dl < (units + pu) * UnitW / 2f + 3f && ds < Depth + 6f) return false; } return true; }
             // slots: two upper buildings of 4 units, then one of 4 and one of 3 lower down
-            var slots = new (int units, bool upper)[] { (4, true), (4, true), (3, false) };
+            var slots = new (int units, bool upper)[0];   // all other buildings are aligned to the road row below (see the photos: parallel rows either side of a lane)
             var chosen = new List<(Vector2 c, int units, Vector2 al, float fy)>();
             foreach (var slot in slots)
             {
@@ -149,7 +149,35 @@ namespace UpIzUpMini.EditorTools
                 if (rt.x < 0) rt = -rt;   // same direction as the old row: toward the Geneva field
                 var toRoad = (rc - pink2); var nrm = new Vector2(-rt.y, rt.x); if (Vector2.Dot(nrm, toRoad) < 0) nrm = -nrm;   // side of the road
                 float fy = Mathf.Atan2(nrm.x, nrm.y) * Mathf.Rad2Deg; var centre = pink2 + rt * (4 * UnitW / 2f - UnitW / 2f);   // first unit centred on the pink house
-                chosen.Add((centre, 4, rt, fy)); log.Add($"road row: pink house was at ({pink2.x:F1},{pink2.y:F1}); road {rd:F1} m away, direction ({rt.x:F2},{rt.y:F2}); 4-unit building centred ({centre.x:F1},{centre.y:F1}), fronts face the road (yaw {fy:F0})");
+                chosen.Add((centre, 4, rt, fy));
+                // the other three buildings copy the road row's angle and direction: a second building in the same line beyond a lane, then two behind (uphill)
+                // exactly like the "Housing apartments" photos (parallel rows stepping up the hillside, an access lane between buildings)
+                var dn = new Vector2(Mathf.Sin(fy * Mathf.Deg2Rad), Mathf.Cos(fy * Mathf.Deg2Rad)); var up = -dn; float lenRow = 4 * UnitW, lane = 8f, back = Depth + 9.5f;
+                bool FitsF(Vector2 c2, int units2, out float spread2)
+                {
+                    spread2 = 0; float hl2 = units2 * UnitW / 2f + 1f, hd2 = Depth / 2f + 2.5f; float gmn = float.MaxValue, gmx = float.MinValue;
+                    for (int i = 0; i <= units2 * 3; i++) for (int j = 0; j <= 4; j++)
+                    {
+                        var pp = c2 + rt * Mathf.Lerp(-hl2, hl2, i / (float)(units2 * 3)) + dn * Mathf.Lerp(-hd2, hd2 + 2f, j / 4f);
+                        float g = G(pp.x, pp.y, out bool okk); if (!okk || OnRoad(pp)) return false;
+                        foreach (var o in others) if (pp.x > o.min.x - 1f && pp.x < o.max.x + 1f && pp.y > o.min.z - 1f && pp.y < o.max.z + 1f) return false;
+                        gmn = Mathf.Min(gmn, g); gmx = Mathf.Max(gmx, g);
+                    }
+                    foreach (var q in chosen) { var d = c2 - q.c; if (Mathf.Abs(Vector2.Dot(d, rt)) < (units2 + q.units) * UnitW / 2f + 2.5f && Mathf.Abs(Vector2.Dot(d, dn)) < Depth + 5f) return false; }
+                    spread2 = gmx - gmn; return spread2 <= 6.5f;
+                }
+                foreach (var (name0, uu, dl, ds) in new[] { ("beyond the lane, same line", 4, lenRow / 2f + lane + lenRow / 2f - lenRow / 2f, 0f), ("behind, above the first", 4, 0f, back), ("behind, above the second", 3, lenRow + lane - (4 - 3) * UnitW / 2f - lenRow / 2f + lenRow / 2f - (lenRow - 3 * UnitW) / 2f - 0f, back) })
+                {
+                    string name = name0; Vector2 baseC = centre + rt * (name.StartsWith("beyond") ? lenRow + lane : name.EndsWith("first") ? 0f : lenRow + lane - (lenRow - uu * UnitW) / 2f) + up * ds; bool okB = false; Vector2 use = baseC;
+                    for (int tries = 0; tries < 200 && !okB; tries++)
+                    {
+                        float sl = (tries % 2 == 0 ? 1 : -1) * ((tries + 1) / 2) * 1.2f; float su = (tries / 25) * 1.5f;   // slide along the row, then step a little uphill
+                        var cc = baseC + rt * sl + up * su; if (FitsF(cc, uu, out _)) { use = cc; okB = true; }
+                    }
+                    if (!okB && name.StartsWith("beyond")) { baseC = centre + up * (2f * back); for (int tries = 0; tries < 120 && !okB; tries++) { float sl = (tries % 2 == 0 ? 1 : -1) * ((tries + 1) / 2) * 1.2f; var cc = baseC + rt * sl; if (FitsF(cc, uu, out _)) { use = cc; okB = true; name = "third row behind (no room beyond the lane)"; } } }
+                    if (okB) { chosen.Add((use, uu, rt, fy)); log.Add($"aligned building ({uu} units, {name}) at ({use.x:F1},{use.y:F1})"); } else log.Add($"WARN: no room for the {uu}-unit building {name}");
+                }
+                log.Add($"road row: pink house was at ({pink2.x:F1},{pink2.y:F1}); road {rd:F1} m away, direction ({rt.x:F2},{rt.y:F2}); 4-unit building centred ({centre.x:F1},{centre.y:F1}), fronts face the road (yaw {fy:F0})");
             }
             // 5. build
             var root = new GameObject(RootName); var pf = Directory.GetFiles(Art + "/Prefabs", "HouseApartmentHip2s_*Maroon.prefab").OrderBy(f => f).Select(f => AssetDatabase.LoadAssetAtPath<GameObject>(f.Replace('\\', '/'))).ToList();
