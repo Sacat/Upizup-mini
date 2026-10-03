@@ -65,7 +65,7 @@ namespace UpIzUpMini.Interaction
                 if (d < DistanceToNearestOfficer) DistanceToNearestOfficer = d;
             }
 
-            PlayerCarryingContraband = IsCarryingContraband();
+            PlayerCarryingContraband = IsCarryingContraband() || UpIzUpMini.Combat.FirearmController.GunDrawn;   // MINI-192: a drawn gun draws police attention like contraband
 
             if (DistanceToNearestOfficer <= noticeRadius && PlayerCarryingContraband)
             {

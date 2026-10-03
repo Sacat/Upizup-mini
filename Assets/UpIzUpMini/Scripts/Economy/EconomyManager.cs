@@ -16,6 +16,7 @@ namespace UpIzUpMini.Economy
         [SerializeField] private int startingMoney = 20;
 
         private readonly Dictionary<string, int> _inventory = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _ammo = new Dictionary<string, int>();
 
         // MINI-073: "make the pharmacy items be able to store in your
         // inventory and able to use after even food as well." Food/pill
@@ -29,6 +30,7 @@ namespace UpIzUpMini.Economy
         private readonly Dictionary<string, ShopItemDefinition> _consumableCatalog = new Dictionary<string, ShopItemDefinition>();
 
         public int Money { get; private set; }
+        public int SidearmMagazine { get; private set; }
         public float Heat { get; private set; }
         public const float MaxHeat = 100f;
 
@@ -71,6 +73,73 @@ namespace UpIzUpMini.Economy
             new Dictionary<int, HashSet<string>>();
 
         public int GetCount(string cropId) => _inventory.TryGetValue(cropId, out int c) ? c : 0;
+
+        public int GetAmmo(string ammoId) => _ammo.TryGetValue(ammoId, out int count) ? count : 0;
+
+        public void AddAmmo(string ammoId, int amount)
+        {
+            if (string.IsNullOrEmpty(ammoId) || amount <= 0) return;
+            _ammo[ammoId] = GetAmmo(ammoId) + amount;
+            OnChanged?.Invoke();
+        }
+
+        public int TakeAmmo(string ammoId, int requested)
+        {
+            int taken = Mathf.Min(GetAmmo(ammoId), Mathf.Max(0, requested));
+            if (taken > 0) { _ammo[ammoId] -= taken; OnChanged?.Invoke(); }
+            return taken;
+        }
+
+        /// <summary>MINI-192: the starter sidearm. Grants the item and a full magazine once, when the player does not own it (new game, or an older save).</summary>
+        public bool GrantStarterItem(string itemId, int magazineRounds)
+        {
+            if (_owned.Contains(itemId)) return false;
+            _owned.Add(itemId);
+            SidearmMagazine = Mathf.Clamp(magazineRounds, 0, 12);
+            OnChanged?.Invoke();
+            return true;
+        }
+
+        public bool SpendSidearmRound()
+        {
+            if (SidearmMagazine <= 0) return false;
+            SidearmMagazine--;
+            OnChanged?.Invoke();
+            return true;
+        }
+
+        public int ReloadSidearm(int capacity, string ammoId)
+        {
+            int taken = TakeAmmo(ammoId, Mathf.Max(0, capacity - SidearmMagazine));
+            SidearmMagazine += taken;
+            OnChanged?.Invoke();
+            return taken;
+        }
+
+        public void LoadSidearmMagazine(int rounds)
+        {
+            SidearmMagazine = Mathf.Clamp(rounds, 0, 12);
+            OnChanged?.Invoke();
+        }
+
+        public void CaptureAmmo(List<string> ids, List<int> counts)
+        {
+            foreach (var entry in _ammo)
+            {
+                if (entry.Value <= 0) continue;
+                ids.Add(entry.Key);
+                counts.Add(entry.Value);
+            }
+        }
+
+        public void LoadAmmo(IReadOnlyList<string> ids, IReadOnlyList<int> counts)
+        {
+            _ammo.Clear();
+            if (ids == null || counts == null) return;
+            for (int i = 0; i < ids.Count && i < counts.Count; i++)
+                if (!string.IsNullOrEmpty(ids[i])) _ammo[ids[i]] = Mathf.Max(0, counts[i]);
+            OnChanged?.Invoke();
+        }
 
         // --- Seeds -------------------------------------------------------
         // Planting consumes a seed; harvesting returns more than one so the
@@ -178,6 +247,17 @@ namespace UpIzUpMini.Economy
             {
                 AddSeeds(item.grantsCrop.cropId, item.seedQuantity);
                 message = $"Bought {item.seedQuantity} {item.displayName} for ${item.price}.";
+            }
+            else if (item.category == ShopCategory.Ammunition)
+            {
+                AddAmmo(item.ammoId, Mathf.Max(1, item.ammoQuantity));
+                message = $"Bought {item.ammoQuantity} {item.displayName} for ${item.price}.";
+            }
+            else if (item.category == ShopCategory.Firearm)
+            {
+                _owned.Add(item.itemId);
+                SidearmMagazine = Mathf.Clamp(item.ammoQuantity, 0, 12);
+                message = $"Bought {item.displayName} for ${item.price}. Right click to aim, left click to fire, R to reload.";
             }
             else if (item.category == ShopCategory.Food || item.category == ShopCategory.Enhancement)
             {

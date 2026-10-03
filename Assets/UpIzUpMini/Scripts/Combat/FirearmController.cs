@@ -48,7 +48,13 @@ namespace UpIzUpMini.Combat
         public int MagazineRounds => EconomyManager.Instance != null ? EconomyManager.Instance.SidearmMagazine : 0;
         public bool IsReloading => reloadAt > 0f;
         // IPistolUser (MINI-190): the body animation reads these
-        public bool IsLowReady => false;
+        public bool IsLowReady => gunDrawn && !IsAiming && canUseNow && !IsReloading;
+
+        /// <summary>MINI-192: true while the active character carries the sidearm in hand (low ready or aiming). Police react to it.</summary>
+        public static bool GunDrawn { get; private set; }
+        /// <summary>MINI-192: true when the player owns the sidearm at all (holstered or not).</summary>
+        public static bool PlayerOwnsGun { get { return EconomyManager.Instance != null && EconomyManager.Instance.OwnsItem(SidearmId); } }
+        bool gunDrawn = true, canUseNow;
         public float ReloadProgress => reloadAt > 0f ? Mathf.Clamp01(1f - (reloadAt - Time.time) / Mathf.Max(.01f, reloadSeconds)) : 0f;
         public Vector3 AimDirection { get { var c = Camera.main; return c != null ? c.transform.forward : transform.forward; } }
         public Transform WeaponRoot => weaponRoot;
@@ -137,13 +143,19 @@ namespace UpIzUpMini.Combat
         void Update()
         {
             var economy = EconomyManager.Instance;
+            // MINI-192: the player starts with the sidearm in hand (a full magazine, no reserve rounds - the ammunition mission teaches buying more)
+            if (economy != null && player != null && player.IsControlled) economy.GrantStarterItem(SidearmId, MagazineCapacity);
             bool available = economy != null && economy.OwnsItem(SidearmId);
             bool canUse = available && player != null && player.IsControlled
                 && (vitals == null || !vitals.IsDead) && (rider == null || !rider.IsMounted)
                 && Time.timeScale > .001f && Cursor.lockState == CursorLockMode.Locked
                 && !AnyShopOpen();
 
+            canUseNow = canUse;
+            if (canUse && Input.GetKeyDown(KeyCode.H)) gunDrawn = !gunDrawn;
             IsAiming = canUse && (virtualAim || Input.GetMouseButton(1));
+            if (IsAiming) gunDrawn = true;
+            if (player != null && player.IsControlled) GunDrawn = canUse && gunDrawn;
             bool showWeapon = pose != null ? pose.WeaponVisible : IsAiming;
             if (heldWeaponRenderers != null)
                 foreach (var renderer in heldWeaponRenderers)
@@ -154,6 +166,15 @@ namespace UpIzUpMini.Combat
                 reloadAt = 0f;
                 int loaded = economy != null ? economy.ReloadSidearm(MagazineCapacity, AmmoId) : 0;
                 if (loaded > 0) Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.ReloadTool);   // MINI-191 ammunition mission
+            }
+
+            // starter gun means the "buy the Tool" step is already satisfied
+            if (available && Missions.MissionSystem.Instance != null)
+            {
+                var objective = Missions.MissionSystem.Instance.CurrentObjective;
+                if (objective != null && objective.kind == Missions.ObjectiveKind.BuyItem
+                    && string.Equals(objective.targetId, SidearmId, StringComparison.OrdinalIgnoreCase))
+                    Missions.MissionSystem.Instance.Notify(Missions.ObjectiveKind.BuyItem, SidearmId);
             }
 
             if (canUse && (queuedReload || Input.GetKeyDown(KeyCode.R))) BeginReload();

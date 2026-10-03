@@ -60,6 +60,15 @@ namespace UpIzUpMini.Interaction
         [SerializeField] private NpcCombatHealth combatHealth;
         [SerializeField] private HumanoidAnimationManager animationManager;
 
+        [Header("Police sidearm (MINI-192)")]
+        [SerializeField] private float gunRange = 22f;
+        [SerializeField] private float gunHoldDistance = 7f;
+        [SerializeField] private float gunShotInterval = 1.35f;
+        [SerializeField] private float gunDamage = 7f;
+        private NpcPistolUser _pistol;
+        private float _nextGunShot;
+        private int _gunShots;
+
         private CharacterController _controller;
         private bool _headingToB = true;
         private float _pauseTimer;
@@ -89,6 +98,49 @@ namespace UpIzUpMini.Interaction
             if (animator == null) animator = GetComponentInChildren<Animator>();
             if (combatHealth == null) combatHealth = GetComponent<NpcCombatHealth>();
             if (animationManager == null) animationManager = GetComponent<HumanoidAnimationManager>();
+            _pistol = GetComponent<NpcPistolUser>();
+            if (_pistol == null)
+            {
+                _pistol = gameObject.AddComponent<NpcPistolUser>();
+                _pistol.Configure(Resources.Load<GameObject>("Weapons/PoliceSidearmVisual"));
+            }
+        }
+
+        private void SetStance(NpcPistolUser.StanceKind stance, Transform target = null)
+        {
+            if (_pistol == null || !_pistol.enabled) return;
+            _pistol.Stance = stance;
+            _pistol.AimTarget = target;
+        }
+
+        /// <summary>MINI-192: when the player owns a gun, officers in a chase draw theirs: low ready while closing in, then hold and fire from range.</summary>
+        private bool TryGunfight(GameObject player, float distToPlayer, bool canSee)
+        {
+            if (_pistol == null || !_pistol.enabled || !FirearmController.PlayerOwnsGun || player == null)
+            {
+                SetStance(NpcPistolUser.StanceKind.Holstered);
+                return false;
+            }
+            if (!canSee || distToPlayer > gunRange || distToPlayer <= stopDistance)
+            {
+                SetStance(distToPlayer <= stopDistance ? NpcPistolUser.StanceKind.Holstered : NpcPistolUser.StanceKind.LowReady);
+                return false;
+            }
+            SetStance(NpcPistolUser.StanceKind.Aiming, player.transform);
+            // outside the hold band the officer keeps closing in with the gun raised; inside it he stops and shoots
+            if (distToPlayer > gunHoldDistance + 4f) return false;
+            Face(player.transform.position);
+            if (!_pistol.IsReloading && Time.time >= _nextGunShot)
+            {
+                _nextGunShot = Time.time + gunShotInterval;
+                _pistol.TriggerShot();
+                var victim = player.GetComponent<CharacterVitals>();
+                float hitChance = Mathf.Lerp(.7f, .25f, Mathf.Clamp01(distToPlayer / gunRange));
+                if (victim != null && !victim.IsDead && Random.value < hitChance) victim.Damage(gunDamage);
+                if (++_gunShots % 8 == 0) _pistol.BeginReload();
+            }
+            Animate(0f);
+            return true;
         }
 
         public void SetPatrol(Vector3 a, Vector3 b)
@@ -108,6 +160,7 @@ namespace UpIzUpMini.Interaction
             {
                 IsChasing = false;
                 CurrentState = PoliceMovementState.Down;
+                SetStance(NpcPistolUser.StanceKind.Holstered);
                 CancelStrike();
                 Animate(0f);
                 return;
@@ -166,6 +219,7 @@ namespace UpIzUpMini.Interaction
             if (!IsChasing)
             {
                 CancelStrike();
+                SetStance(NpcPistolUser.StanceKind.Holstered);
             }
             else if (_strike.IsRunning)
             {
@@ -197,6 +251,8 @@ namespace UpIzUpMini.Interaction
                 }
                 destination = player.transform.position;
                 speed = chaseSpeed;
+
+                if (TryGunfight(player, distToPlayer, canSeePlayer)) return;
 
                 if (distToPlayer <= stopDistance)
                 {
