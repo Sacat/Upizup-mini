@@ -120,7 +120,7 @@ namespace UpIzUpMini.EditorTools
             var placedC = new List<(Vector2 c, int units)>(); bool Clear(Vector2 c, int units) { foreach (var (pc, pu) in placedC) { var d = c - pc; float dl = Mathf.Abs(Vector2.Dot(d, along)), ds = Mathf.Abs(Vector2.Dot(d, down)); if (dl < (units + pu) * UnitW / 2f + 3f && ds < Depth + 6f) return false; } return true; }
             // slots: two upper buildings of 4 units, then one of 4 and one of 3 lower down
             var slots = new (int units, bool upper)[0];   // all other buildings are aligned to the road row below (see the photos: parallel rows either side of a lane)
-            var chosen = new List<(Vector2 c, int units, Vector2 al, float fy)>();
+            var chosen = new List<(Vector2 c, int units, Vector2 al, float fy, float sc)>();
             foreach (var slot in slots)
             {
                 Vector2 best = Vector2.zero; float bestScore = float.MinValue; bool ok = false;
@@ -132,7 +132,7 @@ namespace UpIzUpMini.EditorTools
                     float score = (slot.upper ? gc : -gc) - spread * .3f - Vector2.Distance(c, cen) * .05f; if (score > bestScore) { bestScore = score; best = c; ok = true; }
                 } }
                 if (!ok) { log.Add($"WARN: no site for a {slot.units}-unit {(slot.upper ? "upper" : "lower")} building"); continue; }
-                placedC.Add((best, slot.units)); chosen.Add((best, slot.units, along, faceYaw));
+                placedC.Add((best, slot.units)); chosen.Add((best, slot.units, along, faceYaw, 1f));
             }
             // fixed row: the three houses beside the road (ExpansionHouse_44/46/47) are removed; a 4-unit apartment building starts exactly where the pink one
             // (ExpansionHouse_44, nearest the school) stood and runs the same way along the road toward the Geneva field, fronts toward the road
@@ -149,13 +149,13 @@ namespace UpIzUpMini.EditorTools
                 if (rt.x < 0) rt = -rt;   // same direction as the old row: toward the Geneva field
                 var toRoad = (rc - pink2); var nrm = new Vector2(-rt.y, rt.x); if (Vector2.Dot(nrm, toRoad) < 0) nrm = -nrm;   // side of the road
                 float fy = Mathf.Atan2(nrm.x, nrm.y) * Mathf.Rad2Deg; var centre = pink2 + rt * (4 * UnitW / 2f - UnitW / 2f);   // first unit centred on the pink house
-                chosen.Add((centre, 4, rt, fy));
+                chosen.Add((centre, 4, rt, fy, 1f));
                 // the other three buildings copy the road row's angle and direction: a second building in the same line beyond a lane, then two behind (uphill)
                 // exactly like the "Housing apartments" photos (parallel rows stepping up the hillside, an access lane between buildings)
                 var dn = new Vector2(Mathf.Sin(fy * Mathf.Deg2Rad), Mathf.Cos(fy * Mathf.Deg2Rad)); var up = -dn; float lenRow = 4 * UnitW, lane = 8f, back = Depth + 9.5f;
-                bool FitsF(Vector2 c2, int units2, out float spread2)
+                bool FitsF(Vector2 c2, int units2, out float spread2, float sc2 = 1f)
                 {
-                    spread2 = 0; float hl2 = units2 * UnitW / 2f + 1f, hd2 = Depth / 2f + 2.5f; float gmn = float.MaxValue, gmx = float.MinValue;
+                    spread2 = 0; float hl2 = units2 * UnitW * sc2 / 2f + 1f, hd2 = Depth * sc2 / 2f + 2.5f; float gmn = float.MaxValue, gmx = float.MinValue;
                     for (int i = 0; i <= units2 * 3; i++) for (int j = 0; j <= 4; j++)
                     {
                         var pp = c2 + rt * Mathf.Lerp(-hl2, hl2, i / (float)(units2 * 3)) + dn * Mathf.Lerp(-hd2, hd2 + 2f, j / 4f);
@@ -163,10 +163,10 @@ namespace UpIzUpMini.EditorTools
                         foreach (var o in others) if (pp.x > o.min.x - 1f && pp.x < o.max.x + 1f && pp.y > o.min.z - 1f && pp.y < o.max.z + 1f) return false;
                         gmn = Mathf.Min(gmn, g); gmx = Mathf.Max(gmx, g);
                     }
-                    foreach (var q in chosen) { var d = c2 - q.c; if (Mathf.Abs(Vector2.Dot(d, rt)) < (units2 + q.units) * UnitW / 2f + 2.5f && Mathf.Abs(Vector2.Dot(d, dn)) < Depth + 5f) return false; }
+                    foreach (var q in chosen) { var d = c2 - q.c; if (Mathf.Abs(Vector2.Dot(d, rt)) < (units2 * sc2 + q.units * q.sc) * UnitW / 2f + 2.5f && Mathf.Abs(Vector2.Dot(d, dn)) < (Depth * sc2 + Depth * q.sc) / 2f + 3f) return false; }
                     spread2 = gmx - gmn; return spread2 <= 6.5f;
                 }
-                foreach (var (name0, uu, dl, ds) in new[] { ("beyond the lane, same line", 4, lenRow / 2f + lane + lenRow / 2f - lenRow / 2f, 0f), ("behind, above the first", 4, 0f, back), ("behind, above the second", 3, lenRow + lane - (4 - 3) * UnitW / 2f - lenRow / 2f + lenRow / 2f - (lenRow - 3 * UnitW) / 2f - 0f, back) })
+                foreach (var (name0, uu, dl, ds) in new[] { ("behind, above the first", 4, 0f, back), ("behind, above the second", 3, lenRow + lane - (4 - 3) * UnitW / 2f - lenRow / 2f + lenRow / 2f - (lenRow - 3 * UnitW) / 2f - 0f, back) })
                 {
                     string name = name0; Vector2 baseC = centre + rt * (name.StartsWith("beyond") ? lenRow + lane : name.EndsWith("first") ? 0f : lenRow + lane - (lenRow - uu * UnitW) / 2f) + up * ds; bool okB = false; Vector2 use = baseC;
                     for (int tries = 0; tries < 200 && !okB; tries++)
@@ -175,7 +175,25 @@ namespace UpIzUpMini.EditorTools
                         var cc = baseC + rt * sl + up * su; if (FitsF(cc, uu, out _)) { use = cc; okB = true; }
                     }
                     if (!okB && name.StartsWith("beyond")) { baseC = centre + up * (2f * back); for (int tries = 0; tries < 120 && !okB; tries++) { float sl = (tries % 2 == 0 ? 1 : -1) * ((tries + 1) / 2) * 1.2f; var cc = baseC + rt * sl; if (FitsF(cc, uu, out _)) { use = cc; okB = true; name = "third row behind (no room beyond the lane)"; } } }
-                    if (okB) { chosen.Add((use, uu, rt, fy)); log.Add($"aligned building ({uu} units, {name}) at ({use.x:F1},{use.y:F1})"); } else log.Add($"WARN: no room for the {uu}-unit building {name}");
+                    if (okB) { chosen.Add((use, uu, rt, fy, 1f)); log.Add($"aligned building ({uu} units, {name}) at ({use.x:F1},{use.y:F1})"); } else log.Add($"WARN: no room for the {uu}-unit building {name}");
+                }
+                // the four-unit building that was closest to the school now sits BETWEEN the three-unit building and the road, same angle and direction;
+                // if the gap is too small it is scaled down (horizontal only, never height) until it fits
+                var three = chosen.FirstOrDefault(q => q.units == 3);
+                if (three.units == 3)
+                {
+                    bool okBet = false; Vector2 useB = Vector2.zero; float useS = 1f;
+                    foreach (float sc2 in new[] { 1f, .9f, .8f, .7f, .6f })
+                    {
+                        for (int tries = 0; tries < 80 && !okBet; tries++)
+                        {
+                            float sl = (tries % 2 == 0 ? 1 : -1) * ((tries + 1) / 2) * 1.0f; float ds2 = (Depth + 8.5f) - (tries / 20) * 1.0f;   // in front of the three-unit building (toward the road), then closer if needed
+                            var cc = three.c + rt * sl + dn * ds2; if (FitsF(cc, 4, out _, sc2)) { useB = cc; useS = sc2; okBet = true; }
+                        }
+                        if (okBet) break;
+                    }
+                    if (okBet) { chosen.Add((useB, 4, rt, fy, useS)); log.Add($"4-unit building moved between the 3-unit building and the road at ({useB.x:F1},{useB.y:F1}), horizontal scale {useS:F2}"); }
+                    else log.Add("WARN: no room between the 3-unit building and the road even at 0.6 scale");
                 }
                 log.Add($"road row: pink house was at ({pink2.x:F1},{pink2.y:F1}); road {rd:F1} m away, direction ({rt.x:F2},{rt.y:F2}); 4-unit building centred ({centre.x:F1},{centre.y:F1}), fronts face the road (yaw {fy:F0})");
             }
@@ -185,20 +203,20 @@ namespace UpIzUpMini.EditorTools
             var pfDict = pf.ToDictionary(p => p.name.Replace("HouseApartmentHip2s_", ""), p => p);
             for (int b = 0; b < chosen.Count; b++)
             {
-                var (c, nu, alB, fyB) = chosen[b]; var downB = new Vector2(Mathf.Sin(fyB * Mathf.Deg2Rad), Mathf.Cos(fyB * Mathf.Deg2Rad)); Vector2 AxB(float s2, float l2) => alB * l2 + downB * s2; var grp = new GameObject($"Building_{b}_{nu}units"); grp.transform.SetParent(root.transform, false);
+                var (c, nu, alB, fyB, scB) = chosen[b]; var downB = new Vector2(Mathf.Sin(fyB * Mathf.Deg2Rad), Mathf.Cos(fyB * Mathf.Deg2Rad)); Vector2 AxB(float s2, float l2) => alB * l2 + downB * s2; var grp = new GameObject($"Building_{b}_{nu}units"); grp.transform.SetParent(root.transform, false);
                 for (int u = 0; u < nu; u++)
                 {
-                    float l = (u - (nu - 1) / 2f) * UnitW; var uc = c + alB * l;
+                    float l = (u - (nu - 1) / 2f) * UnitW * scB; var uc = c + alB * l;
                     float gmin = float.MaxValue; var q = Quaternion.Euler(0, fyB, 0);
-                    for (int i = 0; i <= 4; i++) for (int j = 0; j <= 4; j++) { var p = uc + new Vector2((q * Vector3.right).x, (q * Vector3.right).z) * Mathf.Lerp(-UnitW / 2, UnitW / 2, i / 4f) + new Vector2((q * Vector3.forward).x, (q * Vector3.forward).z) * Mathf.Lerp(-Depth / 2, Depth / 2, j / 4f); float g = G(p.x, p.y, out bool ok); if (ok) gmin = Mathf.Min(gmin, g); }
+                    for (int i = 0; i <= 4; i++) for (int j = 0; j <= 4; j++) { var p = uc + new Vector2((q * Vector3.right).x, (q * Vector3.right).z) * Mathf.Lerp(-UnitW * scB / 2, UnitW * scB / 2, i / 4f) + new Vector2((q * Vector3.forward).x, (q * Vector3.forward).z) * Mathf.Lerp(-Depth * scB / 2, Depth * scB / 2, j / 4f); float g = G(p.x, p.y, out bool ok); if (ok) gmin = Mathf.Min(gmin, g); }
                     float gcen = G(uc.x, uc.y, out _); float baseY = Mathf.Max(gmin, gcen - 1.1f);   // terraced: base sits on the mid ground so the uphill side is dug in and a plinth fills the downhill side
                     var prefab = pfDict[order[(b * 2 + u) % order.Length]];
                     var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab, grp.transform); inst.name = $"Unit_{u}_{prefab.name.Replace("HouseApartmentHip2s_", "")}";
-                    inst.transform.SetPositionAndRotation(new Vector3(uc.x, baseY, uc.y), Quaternion.Euler(0, fyB, 0)); units++;
-                    float drop = baseY - gmin; if (drop > 0.05f) { maxDrop = Mathf.Max(maxDrop, drop); pm.Box(new Vector3(uc.x, (baseY + .08f + gmin - .2f) / 2, uc.y), new Vector3(UnitW / 2 + .05f, (baseY + .08f - gmin + .2f) / 2, Depth / 2 + .05f), 3, fyB); }
+                    inst.transform.SetPositionAndRotation(new Vector3(uc.x, baseY, uc.y), Quaternion.Euler(0, fyB, 0)); inst.transform.localScale = new Vector3(scB, 1f, scB); units++;
+                    float drop = baseY - gmin; if (drop > 0.05f) { maxDrop = Mathf.Max(maxDrop, drop); pm.Box(new Vector3(uc.x, (baseY + .08f + gmin - .2f) / 2, uc.y), new Vector3(UnitW * scB / 2 + .05f, (baseY + .08f - gmin + .2f) / 2, Depth * scB / 2 + .05f), 3, fyB); }
                 }
                 // white post-and-rail fence along the front, with a 4 m gap in the middle for the steps
-                float lenB = nu * UnitW; float sF = Depth / 2 + 2.2f;
+                float lenB = nu * UnitW * scB; float sF = Depth * scB / 2 + 2.2f;
                 for (float l = -lenB / 2 - 1f; l <= lenB / 2 + 1f; l += 2.4f)
                 {
                     if (Mathf.Abs(l) < 2.0f) continue; var p = c + AxB(sF, l); float g = G(p.x, p.y, out bool ok); if (!ok || OnRoad(p)) continue;
@@ -206,12 +224,12 @@ namespace UpIzUpMini.EditorTools
                     var p2 = c + AxB(sF, l + 1.2f); float g2 = G(p2.x, p2.y, out bool ok2); if (!ok2 || OnRoad(p2)) continue;
                     foreach (float hh in new[] { .35f, .85f }) fence.Box(new Vector3(p2.x, (g + g2) / 2 + hh, p2.y), new Vector3(.025f, .04f, 1.25f), cell["school_white"], fyB + 90f);
                 }
-                var bc = new GameObject("Collider"); bc.transform.SetParent(grp.transform, false); bc.transform.SetPositionAndRotation(new Vector3(c.x, G(c.x, c.y, out _) + 2.7f, c.y), Quaternion.Euler(0, fyB, 0)); var box = bc.AddComponent<BoxCollider>(); box.size = new Vector3(lenB, 5.5f, Depth);
+                var bc = new GameObject("Collider"); bc.transform.SetParent(grp.transform, false); bc.transform.SetPositionAndRotation(new Vector3(c.x, G(c.x, c.y, out _) + 2.7f, c.y), Quaternion.Euler(0, fyB, 0)); var box = bc.AddComponent<BoxCollider>(); box.size = new Vector3(lenB, 5.5f, Depth * scB);
             }
             Mesh Emit(MB mb, string name) { var m = new Mesh { name = name }; m.SetVertices(mb.v); m.SetUVs(0, mb.uv); m.SetTriangles(mb.t, 0); m.RecalculateNormals(); m.RecalculateBounds(); string mp = Art + "/" + name + ".asset"; if (AssetDatabase.LoadAssetAtPath<Mesh>(mp) != null) AssetDatabase.DeleteAsset(mp); AssetDatabase.CreateAsset(m, mp); return m; }
             if (pm.v.Count > 0) { var g = new GameObject("Plinths"); g.transform.SetParent(root.transform, false); g.isStatic = true; g.AddComponent<MeshFilter>().sharedMesh = Emit(pm, "TerracePlinths"); var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/UpIzUpMini/Art/Environment/Mini142/Palette.mat"); r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; }
             if (fence.v.Count > 0) { var g = new GameObject("Fence"); g.transform.SetParent(root.transform, false); g.isStatic = true; g.AddComponent<MeshFilter>().sharedMesh = Emit(fence, "TerraceFence"); var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(Art + "/Palette_Coast.mat"); r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; }
-            foreach (var (c, nu, _, _) in chosen) log.Add($"building of {nu} units at ({c.x:F0}, {G(c.x, c.y, out _):F1}, {c.y:F0})");
+            foreach (var (c, nu, _, _, _) in chosen) log.Add($"building of {nu} units at ({c.x:F0}, {G(c.x, c.y, out _):F1}, {c.y:F0})");
             log.Add($"apartment units placed={units} (target 15: 4+4 upper, 4 on the road row, 3 lower), plinth drop up to {maxDrop:F2} m; facing downhill yaw {faceYaw:F0}");
             AssetDatabase.SaveAssets(); EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
             if (Sha(Live) != liveHash) throw new Exception("SAFETY STOP: live scene changed.");
