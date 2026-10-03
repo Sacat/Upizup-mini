@@ -152,7 +152,8 @@ namespace UpIzUpMini.Combat
             if (reloadAt > 0f && Time.time >= reloadAt)
             {
                 reloadAt = 0f;
-                economy?.ReloadSidearm(MagazineCapacity, AmmoId);
+                int loaded = economy != null ? economy.ReloadSidearm(MagazineCapacity, AmmoId) : 0;
+                if (loaded > 0) Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.ReloadTool);   // MINI-191 ammunition mission
             }
 
             if (canUse && (queuedReload || Input.GetKeyDown(KeyCode.R))) BeginReload();

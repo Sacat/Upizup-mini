@@ -26,6 +26,8 @@ namespace UpIzUpMini.Missions
         BribeNormy,
         DeliverItem,   // MINI-110: hand over a specific held consumable item (targetId = item id) to whoever asked for it
         DefeatAllRivals, // MINI-119: every member of a named RivalGangSpawner's pool (targetId = spawner GameObject name) must be knocked out
+        FireTool, // MINI-185: one real fired round during the tool-acquisition mission
+        ReloadTool, // MINI-191: one completed magazine change in the ammunition mission (APPENDED so saved enum values never shift)
     }
 
     [Serializable]
@@ -80,6 +82,7 @@ namespace UpIzUpMini.Missions
     /// </summary>
     public class MissionSystem : MonoBehaviour
     {
+        public const string CompletedMissionSentinel = "__ALL_COMPLETE__";
         public static MissionSystem Instance { get; private set; }
 
         [SerializeField] private List<Mission> missions = new List<Mission>();
@@ -109,6 +112,29 @@ namespace UpIzUpMini.Missions
 
         private int _missionIndex;
         private int _objectiveIndex;
+        private string _resumeAfterToolMissionId;
+        private int _resumeAfterToolObjectiveIndex;
+        private List<int> _resumeAfterToolProgress;
+
+        public string ResumeAfterToolMissionId => _resumeAfterToolMissionId;
+        public int ResumeAfterToolObjectiveIndex => _resumeAfterToolObjectiveIndex;
+        public List<int> CaptureResumeAfterToolProgress() => _resumeAfterToolProgress != null
+            ? new List<int>(_resumeAfterToolProgress) : new List<int>();
+
+        public void SetResumeAfterTool(string missionId, int objectiveIndex, IReadOnlyList<int> progress)
+        {
+            _resumeAfterToolMissionId = missionId;
+            _resumeAfterToolObjectiveIndex = objectiveIndex;
+            _resumeAfterToolProgress = new List<int>();
+            if (progress != null) foreach (int value in progress) _resumeAfterToolProgress.Add(value);
+        }
+
+        public void ClearResumeAfterTool()
+        {
+            _resumeAfterToolMissionId = null;
+            _resumeAfterToolObjectiveIndex = 0;
+            _resumeAfterToolProgress = null;
+        }
 
         public event Action<Mission> OnMissionComplete;
 
@@ -188,6 +214,16 @@ namespace UpIzUpMini.Missions
 
             if (mission.commitToWeedRouteOnComplete)
                 ProgressionManager.Instance?.CommitToWeedRoute();
+
+            if (mission.missionId == "M12T" && !string.IsNullOrEmpty(_resumeAfterToolMissionId))
+            {
+                string resumeId = _resumeAfterToolMissionId;
+                int resumeObjective = _resumeAfterToolObjectiveIndex;
+                var resumeProgress = _resumeAfterToolProgress;
+                ClearResumeAfterTool();
+                LoadState(ResolveSavedMissionIndex(resumeId, missions.Count, 2), resumeObjective, resumeProgress);
+                return;
+            }
 
             _missionIndex++;
             _objectiveIndex = 0;
@@ -412,6 +448,31 @@ namespace UpIzUpMini.Missions
 
         public int SaveMissionIndex => _missionIndex;
         public int SaveObjectiveIndex => _objectiveIndex;
+        public string MissionIdAt(int index) => index >= 0 && index < missions.Count
+            ? missions[index].missionId : CompletedMissionSentinel;
+
+        /// <summary>Resolve stable mission IDs for new saves and shift legacy
+        /// index-only saves past the inserted M12T mission without rewinding story progress.</summary>
+        public int ResolveSavedMissionIndex(string savedMissionId, int savedIndex, int schemaVersion)
+        {
+            if (savedMissionId == CompletedMissionSentinel) return missions.Count;
+            if (!string.IsNullOrEmpty(savedMissionId))
+            {
+                for (int i = 0; i < missions.Count; i++)
+                    if (string.Equals(missions[i].missionId, savedMissionId, StringComparison.OrdinalIgnoreCase)) return i;
+            }
+            if (schemaVersion < 2)
+            {
+                // legacy index-only saves pre-date both inserted missions (M12T tool, then M12A ammunition, always adjacent)
+                for (int i = 0; i < missions.Count; i++)
+                    if (missions[i].missionId == "M12T")
+                    {
+                        int inserted = (i + 1 < missions.Count && missions[i + 1].missionId == "M12A") ? 2 : 1;
+                        return Mathf.Clamp(savedIndex >= i ? savedIndex + inserted : savedIndex, 0, missions.Count);
+                    }
+            }
+            return Mathf.Clamp(savedIndex, 0, missions.Count);
+        }
 
         public List<int> CaptureObjectiveProgress()
         {
