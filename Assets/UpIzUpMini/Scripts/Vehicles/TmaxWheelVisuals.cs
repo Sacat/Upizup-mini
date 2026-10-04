@@ -52,6 +52,13 @@ namespace UpIzUpMini.Vehicles
         [SerializeField] private Transform leftGripTarget;
         [SerializeField] private Transform rightGripTarget;
 
+        private Transform bikeLeanRoot;
+        private Transform FindLeanRoot()
+        {
+            var controller = GetComponentInParent<TmaxBikeControllerCustom>();
+            return controller != null ? controller.VisualLeanRoot : null;
+        }
+
         private Quaternion steeringBaseLocalRotation = Quaternion.identity;
         private Vector3 leftGripPivotOffset;
         private Vector3 rightGripPivotOffset;
@@ -75,8 +82,13 @@ namespace UpIzUpMini.Vehicles
         private void LateUpdate()
         {
             CacheWheelRestPositions();
-            UpdateWheel(frontCollider, frontWheelVisual, frontWheelRestLocalPosition);
-            UpdateWheel(rearCollider, rearWheelVisual, rearWheelRestLocalPosition);
+            // MINI-193: bank the wheel discs with the body lean/pitch instead of keeping them vertical
+            Quaternion bank = Quaternion.identity;
+            var leanRoot = bikeLeanRoot != null ? bikeLeanRoot : (bikeLeanRoot = FindLeanRoot());
+            if (leanRoot != null && leanRoot.parent != null)
+                bank = leanRoot.rotation * Quaternion.Inverse(leanRoot.parent.rotation);
+            UpdateWheel(frontCollider, frontWheelVisual, frontWheelRestLocalPosition, bank);
+            UpdateWheel(rearCollider, rearWheelVisual, rearWheelRestLocalPosition, bank);
             UpdateSteeringAssembly();
         }
 
@@ -163,7 +175,8 @@ namespace UpIzUpMini.Vehicles
         private static void UpdateWheel(
             WheelCollider collider,
             Transform visual,
-            Vector3 restLocalPosition)
+            Vector3 restLocalPosition,
+            Quaternion bank)
         {
             if (collider == null || visual == null)
                 return;
@@ -184,7 +197,7 @@ namespace UpIzUpMini.Vehicles
                 ? visual.parent.TransformPoint(restLocalPosition)
                 : visual.position;
             lockedPosition.y = position.y;
-            visual.SetPositionAndRotation(lockedPosition, rotation);
+            visual.SetPositionAndRotation(lockedPosition, bank * rotation);
         }
     }
 }

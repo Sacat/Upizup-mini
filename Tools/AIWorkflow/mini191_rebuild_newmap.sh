@@ -33,6 +33,7 @@ step 07-expand   UpIzUpMini.EditorTools.Mini182Expansion.Apply
 step 08-complex  UpIzUpMini.EditorTools.Mini182Complex.Apply
 step 09-terrace  UpIzUpMini.EditorTools.Mini182ApartmentTerrace.Apply
 step 10-coast2   UpIzUpMini.EditorTools.Mini182BayCoast.Apply
+step 10b-roads  UpIzUpMini.EditorTools.Mini193RoadJunctions.Apply
 export MINI191_SCENE="$SCENE"
 step 11-ammo     UpIzUpMini.EditorTools.Mini191AmmoMission.Apply
 echo "CHAIN DONE $(date +%H:%M:%S)" | tee -a Logs/Tasks/MINI-191/chain.txt

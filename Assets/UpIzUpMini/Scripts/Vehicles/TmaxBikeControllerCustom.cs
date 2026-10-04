@@ -309,6 +309,8 @@ namespace UpIzUpMini.Vehicles
 
         private float currentSteer;
         private float currentVisualLean;
+        private float intentLean;                  // MINI-193: the eased steering lean fed to TmaxRideDynamics
+        private TmaxRideDynamics dynamics;
         private float currentWheelieTarget;
         private bool wheelieHeld;
         private bool wheelieYawLatched;
@@ -447,6 +449,8 @@ namespace UpIzUpMini.Vehicles
         public float MinLeanSpeedKmh { get => minLeanSpeedKmh; set => minLeanSpeedKmh = value; }
 
         public float CurrentVisualLean => currentVisualLean;
+        /// <summary>MINI-193: the visual lean root, so wheel discs can bank with the body.</summary>
+        public Transform VisualLeanRoot => visualLeanRoot;
 
         public float CurrentRollAngle
         {
@@ -471,6 +475,11 @@ namespace UpIzUpMini.Vehicles
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
+
+            // MINI-193: spring suspension, spring-damper lean and squat/dive pitch (see TmaxRideDynamics)
+            dynamics = GetComponent<TmaxRideDynamics>();
+            if (dynamics == null) dynamics = gameObject.AddComponent<TmaxRideDynamics>();
+            dynamics.ApplySuspension(frontWheel, rearWheel);
 
             baseCenterOfMassLocal =
                 centerOfMass != null
@@ -1545,12 +1554,21 @@ namespace UpIzUpMini.Vehicles
                 speedFactor *
                 (1f - wheelie01);
 
-            currentVisualLean =
+            intentLean =
                 Mathf.Lerp(
-                    currentVisualLean,
+                    intentLean,
                     targetLean,
                     leanResponse * Time.deltaTime
                 );
+
+            if (dynamics != null && dynamics.enabled)
+            {
+                dynamics.Step(intentLean, maxVisualLean, wheelie01, Time.deltaTime);
+                currentVisualLean = dynamics.Roll;
+                visualLeanRoot.localRotation = dynamics.BodyRotation;
+                return;
+            }
+            currentVisualLean = intentLean;
 
             visualLeanRoot.localRotation =
                 Quaternion.Euler(
