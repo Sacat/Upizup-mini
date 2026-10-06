@@ -54,6 +54,14 @@ namespace UpIzUpMini.Cameras
         /// </summary>
         public bool OrbitLocked { get; set; }
 
+        private const float MouseDegreesPerCount = 2.4f;
+        private const float VerticalScale = 0.85f;
+        private const float MinPitch = -6f, MaxPitch = 80f;
+        private float _kick;
+
+        /// <summary>MINI-195: a short upward camera punch (degrees) used by the sidearm; recovers on its own.</summary>
+        public void Kick(float degrees) { _kick = Mathf.Min(6f, _kick + degrees); }
+
         private float _yaw;
 
         // Field initializer (not Awake) so this reads correctly even
@@ -94,13 +102,16 @@ namespace UpIzUpMini.Cameras
             }
             else if (Cursor.lockState == CursorLockMode.Locked)
             {
-                Vector2 lookInput = GameInput.Look;
-                _yaw += lookInput.x * mouseSensitivity * Time.deltaTime;
-                _pitch -= lookInput.y * verticalSensitivity * Time.deltaTime;
-                _pitch = Mathf.Clamp(_pitch, minPitchDegrees, maxPitchDegrees);
+                // MINI-195: "the mouse movement seems limited" - the old code scaled the per-frame mouse delta by delta time and clamped the
+                // pitch to 20..75 degrees. Mouse is now degrees per count, and the camera can look nearly level (and slightly up) for aiming.
+                Vector2 look = GameInput.LookDegrees(MouseDegreesPerCount, mouseSensitivity, Time.deltaTime);
+                _yaw += look.x;
+                _pitch -= look.y * (verticalSensitivity / 100f) * VerticalScale;
+                _pitch = Mathf.Clamp(_pitch, MinPitch, MaxPitch);
             }
 
-            Quaternion orbitRot = Quaternion.Euler(_pitch, _yaw, 0f);
+            _kick = Mathf.MoveTowards(_kick, 0f, Time.deltaTime * (4f + _kick * 6f));
+            Quaternion orbitRot = Quaternion.Euler(_pitch - _kick, _yaw, 0f);
             Vector3 desiredPosition = target.position
                 + orbitRot * new Vector3(0f, 0f, -orbitDistance)
                 + Vector3.up * lookAtHeight;

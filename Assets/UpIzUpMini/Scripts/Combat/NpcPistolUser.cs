@@ -48,6 +48,7 @@ namespace UpIzUpMini.Combat
         public void TriggerShot()
         {
             if (pose != null) pose.NotifyShot();
+            MuzzleFlashFx.Play(shotOrigin, AimDirection);
             if (flash != null && shotOrigin != null) { flash.SetPosition(0, shotOrigin.position); flash.SetPosition(1, shotOrigin.position + AimDirection * .6f); flash.enabled = true; flashUntil = Time.time + .045f; }
         }
 

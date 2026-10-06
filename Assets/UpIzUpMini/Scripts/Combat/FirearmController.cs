@@ -55,8 +55,37 @@ namespace UpIzUpMini.Combat
         /// <summary>MINI-192: true when the player owns the sidearm at all (holstered or not).</summary>
         public static bool PlayerOwnsGun { get { return EconomyManager.Instance != null && EconomyManager.Instance.OwnsItem(SidearmId); } }
         bool gunDrawn = true, canUseNow;
+        /// <summary>Batch-mode proofs cannot lock the cursor; they set this instead.</summary>
+        public static bool TestForceUsable;
+        Cameras.ThirdPersonFollowCamera followCamera;
+        Transform shotOrigin;
+        float hudEmptyFlash;
         public float ReloadProgress => reloadAt > 0f ? Mathf.Clamp01(1f - (reloadAt - Time.time) / Mathf.Max(.01f, reloadSeconds)) : 0f;
-        public Vector3 AimDirection { get { var c = Camera.main; return c != null ? c.transform.forward : transform.forward; } }
+        // MINI-195: aimed shots follow the camera; the lowered ready pose follows the BODY, so the arms never twist across the chest toward a camera
+        // that is looking somewhere else than the character is facing.
+        public Vector3 AimDirection { get { return IsAiming ? CrosshairAimDirection() : transform.forward; } }
+
+        // MINI-195: the third-person camera looks steeply down at the character, so the raw camera forward would point the gun at the ground.
+        // Aim the gun from the chest to the point under the crosshair instead, with the pitch limited so the arms stay natural.
+        int aimCacheFrame = -1; Vector3 aimCache = Vector3.forward;
+        Vector3 CrosshairAimDirection()
+        {
+            if (aimCacheFrame == Time.frameCount) return aimCache;
+            aimCacheFrame = Time.frameCount;
+            var c = Camera.main; if (c == null) { aimCache = transform.forward; return aimCache; }
+            Vector3 chest = transform.position + Vector3.up * 1.35f;
+            var ray = new Ray(c.transform.position, c.transform.forward);
+            Vector3 point = ray.GetPoint(60f);
+            var hits = Physics.RaycastAll(ray, 60f, ~0, QueryTriggerInteraction.Ignore); float best = float.MaxValue;
+            foreach (var h in hits) { if (h.collider.transform.IsChildOf(transform) || h.distance < 1f) continue; if (h.distance < best) { best = h.distance; point = h.point; } }
+            Vector3 d = point - chest; if (d.sqrMagnitude < .01f) d = c.transform.forward;
+            d.Normalize();
+            float pitch = Mathf.Asin(Mathf.Clamp(d.y, -1f, 1f)) * Mathf.Rad2Deg;
+            Vector3 flat = new Vector3(d.x, 0f, d.z); if (flat.sqrMagnitude < .0001f) flat = transform.forward; flat.Normalize();
+            pitch = Mathf.Clamp(pitch, -32f, 48f);
+            aimCache = Quaternion.AngleAxis(-pitch, Vector3.Cross(Vector3.up, flat).normalized) * flat;
+            return aimCache;
+        }
         public Transform WeaponRoot => weaponRoot;
 
         void Awake()
@@ -86,6 +115,13 @@ namespace UpIzUpMini.Combat
             if (weaponRoot == null || rightHand == null) return;
             var cam = Camera.main;
             if (cam == null) return;
+            if (IsAiming && player != null && player.IsControlled)
+            {
+                // MINI-195: while aiming the body turns to face where the camera points (third-person shooter convention)
+                Vector3 flat = cam.transform.forward; flat.y = 0f;
+                if (flat.sqrMagnitude > .001f)
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(flat.normalized, Vector3.up), 1f - Mathf.Exp(-18f * Time.deltaTime));
+            }
             // MINI-190: follow the animated hand direction (recoil flip, reload tilt) once the pose system is driving the arms
             Vector3 gunDirection = pose != null && pose.AimBlend > .05f ? pose.GunDirection : cam.transform.forward;
             PlaceAtHand(weaponRoot, gripAnchor, backstrapAnchor, rightHand,
@@ -148,7 +184,7 @@ namespace UpIzUpMini.Combat
             bool available = economy != null && economy.OwnsItem(SidearmId);
             bool canUse = available && player != null && player.IsControlled
                 && (vitals == null || !vitals.IsDead) && (rider == null || !rider.IsMounted)
-                && Time.timeScale > .001f && Cursor.lockState == CursorLockMode.Locked
+                && Time.timeScale > .001f && (Cursor.lockState == CursorLockMode.Locked || TestForceUsable)
                 && !AnyShopOpen();
 
             canUseNow = canUse;
@@ -197,7 +233,7 @@ namespace UpIzUpMini.Combat
             if (Time.time < nextShotAt || reloadAt > 0f) return;
             nextShotAt = Time.time + shotInterval;
             var economy = EconomyManager.Instance;
-            if (economy == null || !economy.SpendSidearmRound()) { BeginReload(); return; }
+            if (economy == null || !economy.SpendSidearmRound()) { hudEmptyFlash = Time.time + .6f; BeginReload(); return; }
 
             Recoil = 1f;
             if (pose != null) pose.NotifyShot();
@@ -221,7 +257,13 @@ namespace UpIzUpMini.Combat
                 }
                 break;
             }
-            ShowTracer(muzzle != null ? muzzle.position : transform.position + Vector3.up * 1.4f, end);
+            if (shotOrigin == null && weaponRoot != null) shotOrigin = weaponRoot.Find("LalayTool_Visual/ShotOrigin");
+            Vector3 muzzlePos = shotOrigin != null ? shotOrigin.position : (muzzle != null ? muzzle.position : transform.position + Vector3.up * 1.4f);
+            ShowTracer(muzzlePos, end);
+            Vector3 fireDir = pose != null ? pose.GunDirection : (end - muzzlePos).normalized;
+            MuzzleFlashFx.Play(shotOrigin != null ? shotOrigin : transform, fireDir);
+            if (followCamera == null) followCamera = FindFirstObjectByType<Cameras.ThirdPersonFollowCamera>();
+            if (followCamera != null) followCamera.Kick(1.7f);
             Missions.MissionSystem.Instance?.Notify(Missions.ObjectiveKind.FireTool);
         }
 
@@ -239,9 +281,9 @@ namespace UpIzUpMini.Combat
             tracer = go.AddComponent<LineRenderer>();
             tracer.useWorldSpace = true;
             tracer.positionCount = 2;
-            tracer.startWidth = .035f;
-            tracer.endWidth = .006f;
-            tracer.material = new Material(Shader.Find("Sprites/Default"));
+            tracer.startWidth = .018f;
+            tracer.endWidth = .004f;
+            tracer.material = MuzzleFlashFx.FlashMaterial != null ? MuzzleFlashFx.FlashMaterial : new Material(Shader.Find("Sprites/Default"));
             tracer.startColor = new Color(1f, .85f, .35f, .9f);
             tracer.endColor = new Color(1f, .72f, .2f, 0f);
             tracer.enabled = false;
@@ -256,15 +298,43 @@ namespace UpIzUpMini.Combat
             tracerUntil = Time.time + .045f;
         }
 
+        GUIStyle bigStyle, smallStyle;
         void OnGUI()
         {
             if (player == null || !player.IsControlled || EconomyManager.Instance == null || !EconomyManager.Instance.OwnsItem(SidearmId)) return;
             if (Time.timeScale <= .001f) return;
-            var label = IsReloading ? "RELOADING" : $"TOOL  {MagazineRounds}/{EconomyManager.Instance.GetAmmo(AmmoId)}";
-            GUI.Label(new Rect(Screen.width - 210, Screen.height - 75, 205, 45), label + "\nR reload  •  Right click aim");
+            float s = Mathf.Max(.75f, Screen.height / 900f);
+            if (bigStyle == null) { bigStyle = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleLeft }; smallStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleLeft }; }
+            bigStyle.fontSize = Mathf.RoundToInt(44 * s); smallStyle.fontSize = Mathf.RoundToInt(15 * s);
+            int mag = MagazineRounds, reserve = EconomyManager.Instance.GetAmmo(AmmoId);
+            float w = 300 * s, h = 112 * s, x = Screen.width - w - 22 * s, y = Screen.height - h - 22 * s;
+            var old = GUI.color;
+            GUI.color = new Color(0f, 0f, 0f, .62f); GUI.DrawTexture(new Rect(x, y, w, h), Texture2D.whiteTexture);
+            GUI.color = new Color(1f, .78f, .25f, 1f); GUI.DrawTexture(new Rect(x, y, 4 * s, h), Texture2D.whiteTexture);
+            bool empty = mag <= 0, lowMag = mag > 0 && mag <= 3, flashing = Time.time < hudEmptyFlash && (int)(Time.time * 10) % 2 == 0;
+            GUI.color = IsReloading ? new Color(1f, .8f, .3f) : (empty || flashing ? new Color(1f, .3f, .25f) : (lowMag ? new Color(1f, .6f, .25f) : Color.white));
+            GUI.Label(new Rect(x + 16 * s, y + 6 * s, 170 * s, 56 * s), IsReloading ? "RELOAD" : mag.ToString(), bigStyle);
+            GUI.color = new Color(.85f, .85f, .85f, 1f);
+            GUI.Label(new Rect(x + 150 * s, y + 6 * s, 140 * s, 56 * s), IsReloading ? "" : "/ " + MagazineCapacity + "    x " + reserve, smallStyle);
+            // one pip per round in the magazine
+            float pip = (w - 32 * s) / MagazineCapacity;
+            for (int i = 0; i < MagazineCapacity; i++)
+            {
+                GUI.color = i < mag ? new Color(1f, .82f, .3f, 1f) : new Color(1f, 1f, 1f, .16f);
+                GUI.DrawTexture(new Rect(x + 16 * s + i * pip, y + 66 * s, pip - 4 * s, 14 * s), Texture2D.whiteTexture);
+            }
+            if (IsReloading) { GUI.color = new Color(1f, .8f, .3f, 1f); GUI.DrawTexture(new Rect(x + 16 * s, y + 88 * s, (w - 32 * s) * ReloadProgress, 6 * s), Texture2D.whiteTexture); }
+            GUI.color = new Color(.9f, .9f, .9f, .85f);
+            string hint = !gunDrawn ? "H  draw gun" : (empty ? (reserve > 0 ? "R  reload  -  empty" : "OUT OF AMMO  -  buy rounds from the trader") : "R reload   H holster   RMB aim");
+            GUI.Label(new Rect(x + 16 * s, y + 90 * s, w - 20 * s, 20 * s), hint, smallStyle);
+            GUI.color = old;
             if (!IsAiming) return;
-            var box = new Rect(Screen.width * .5f - 9, Screen.height * .5f - 9, 18, 18);
-            GUI.Box(box, "+");
+            float cx = Screen.width * .5f, cy = Screen.height * .5f, gap = 6 * s, len = 10 * s, th = 2 * s;
+            GUI.color = new Color(1f, 1f, 1f, .9f);
+            GUI.DrawTexture(new Rect(cx - th * .5f, cy - gap - len, th, len), Texture2D.whiteTexture); GUI.DrawTexture(new Rect(cx - th * .5f, cy + gap, th, len), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(cx - gap - len, cy - th * .5f, len, th), Texture2D.whiteTexture); GUI.DrawTexture(new Rect(cx + gap, cy - th * .5f, len, th), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(cx - th, cy - th, th * 2, th * 2), Texture2D.whiteTexture);
+            GUI.color = old;
         }
     }
 

@@ -74,6 +74,15 @@ namespace UpIzUpMini.InputSystem
             ? _virtualLook
             : new Vector2(UnityEngine.Input.GetAxis("Mouse X"), UnityEngine.Input.GetAxis("Mouse Y")) + ArrowKeyLook();
 
+        /// <summary>MINI-195: camera look in DEGREES this frame. The mouse is a per-frame delta, so it must not be multiplied by delta time
+        /// (that made the camera sluggish and frame-rate dependent); arrow keys and touch look are rates, so they are.</summary>
+        public static Vector2 LookDegrees(float mouseDegreesPerCount, float rateDegreesPerSecond, float dt)
+        {
+            if (_virtualLookActive) return _virtualLook * rateDegreesPerSecond * dt;
+            var mouse = new Vector2(UnityEngine.Input.GetAxis("Mouse X"), UnityEngine.Input.GetAxis("Mouse Y"));
+            return mouse * mouseDegreesPerCount + ArrowKeyLook() * rateDegreesPerSecond * dt;
+        }
+
         private static Vector2 WasdMove()
         {
             float x = 0f, y = 0f;

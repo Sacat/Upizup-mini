@@ -20,10 +20,10 @@ namespace UpIzUpMini.Combat
         {
             public float drawSeconds = .28f, holsterSeconds = .22f;
             public float reachFraction = .93f;                 // of full arm length, aimed
-            public float lowReadyReachFraction = .72f, lowReadyPitch = 38f;   // degrees DOWN
+            public float lowReadyReachFraction = .9f, lowReadyPitch = 46f;   // degrees DOWN
             public float lookBodyWeight = .42f, lookHeadWeight = .75f, lookClamp = .6f;
-            public float recoilPitchDegrees = 9f, recoilPushback = .045f, recoilBodyKick = 2.5f;
-            public float recoilStiffness = 220f, recoilDamping = 24f;
+            public float recoilPitchDegrees = 17f, recoilPushback = .075f, recoilBodyKick = 4.5f;
+            public float recoilStiffness = 200f, recoilDamping = 16f;
             public float elbowOut = .22f, elbowDown = .16f, supportWristBack = .055f;
             public float noFingerHandPitch = 90f, noFingerFistSquash = .62f;   // rigs whose hands have no finger bones (low-poly NPCs): hand mesh points up at identity, pitch it forward
             public float trigerFingerCurl = 4f, gripFingerCurl = 62f, supportFingerCurl = 58f, thumbCurl = 22f;
@@ -48,7 +48,7 @@ namespace UpIzUpMini.Combat
 
         void Awake() { animator = GetComponent<Animator>(); noFingers = animator != null && animator.isHuman && animator.GetBoneTransform(HumanBodyBones.RightIndexProximal) == null; }
 
-        public void NotifyShot() { recoilVelocity += 14f; }
+        public void NotifyShot() { recoilVelocity += 26f; }
 
         void EnsureAnchors()
         {
@@ -88,8 +88,10 @@ namespace UpIzUpMini.Combat
             reloadWeight = Mathf.MoveTowards(reloadWeight, User.IsReloading ? 1f : 0f, dt * 7f);
             lastReload = User.IsReloading ? User.ReloadProgress : lastReload;
             // spring-damper recoil (impulse comes from NotifyShot)
-            recoilVelocity += (-Profile.recoilStiffness * recoil - Profile.recoilDamping * recoilVelocity) * dt;
-            recoil += recoilVelocity * dt;
+            // sub-stepped and clamped: a frame hitch must never blow the explicit spring up
+            int steps = Mathf.Clamp(Mathf.CeilToInt(dt / .008f), 1, 6); float h = Mathf.Min(dt, .05f) / steps;
+            for (int i = 0; i < steps; i++) { recoilVelocity += (-Profile.recoilStiffness * recoil - Profile.recoilDamping * recoilVelocity) * h; recoil += recoilVelocity * h; }
+            recoil = Mathf.Clamp(recoil, -1.2f, 1.6f);
             WeaponVisible = aim > .38f;
             EnsureAnchors();
             if (magazine != null) magazine.gameObject.SetActive(User.IsReloading && User.ReloadProgress > .3f && User.ReloadProgress < .72f);
