@@ -58,6 +58,10 @@ namespace UpIzUpMini.Cameras
         private const float VerticalScale = 0.85f;
         private const float MinPitch = -6f, MaxPitch = 80f;
         private float _kick;
+        private float _aimBlend; private bool _aimWanted;
+        /// <summary>MINI-195: right mouse button aim view - the camera pulls in over the shoulder so the crosshair sits front and centre.</summary>
+        public void SetAiming(bool aiming) { _aimWanted = aiming; }
+        private const float AimDistance = 3.1f, AimHeight = 1.55f, AimShoulder = 0.55f;
 
         /// <summary>MINI-195: a short upward camera punch (degrees) used by the sidearm; recovers on its own.</summary>
         public void Kick(float degrees) { _kick = Mathf.Min(6f, _kick + degrees); }
@@ -112,11 +116,15 @@ namespace UpIzUpMini.Cameras
 
             _kick = Mathf.MoveTowards(_kick, 0f, Time.deltaTime * (4f + _kick * 6f));
             Quaternion orbitRot = Quaternion.Euler(_pitch - _kick, _yaw, 0f);
+            _aimBlend = Mathf.MoveTowards(_aimBlend, (_aimWanted && !OrbitLocked) ? 1f : 0f, Time.deltaTime * 5f);
+            float a = Mathf.SmoothStep(0f, 1f, _aimBlend);
+            float dist = Mathf.Lerp(orbitDistance, AimDistance, a), height = Mathf.Lerp(lookAtHeight, AimHeight, a);
+            Vector3 shoulder = orbitRot * Vector3.right * (AimShoulder * a);
             Vector3 desiredPosition = target.position
-                + orbitRot * new Vector3(0f, 0f, -orbitDistance)
-                + Vector3.up * lookAtHeight;
+                + orbitRot * new Vector3(0f, 0f, -dist)
+                + Vector3.up * height + shoulder;
 
-            Vector3 lookPoint = target.position + Vector3.up * lookAtHeight;
+            Vector3 lookPoint = target.position + Vector3.up * height + shoulder;
             desiredPosition = ResolveObstruction(lookPoint, desiredPosition);
 
             transform.position = Vector3.SmoothDamp(

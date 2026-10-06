@@ -50,7 +50,7 @@ namespace UpIzUpMini.EditorTools
                 var pc = fc.GetComponent<PlayerController>(); var pose = fc.GetComponentInChildren<FirearmPose>(true);
                 bool anyRenderer = false; if (fc.WeaponRoot != null) foreach (var r in fc.WeaponRoot.GetComponentsInChildren<Renderer>(true)) anyRenderer |= r.enabled;
                 log.AppendLine(fc.name + " controlled=" + (pc != null && pc.IsControlled) + " active=" + fc.gameObject.activeInHierarchy + " lowReady=" + fc.IsLowReady + " aiming=" + fc.IsAiming
-                    + " weaponVisible=" + (pose != null ? pose.WeaponVisible.ToString() : "nopose") + " aimBlend=" + (pose != null ? pose.AimBlend.ToString("0.00") : "-") + " bodyFwd=" + fc.transform.forward.ToString("0.00") + " aimDir=" + fc.AimDirection.ToString("0.00") + " camFwd=" + (Camera.main != null ? Camera.main.transform.forward.ToString("0.00") : "none") + " weaponRoot=" + (fc.WeaponRoot != null) + " rendererOn=" + anyRenderer);
+                    + " weaponVisible=" + (pose != null ? pose.WeaponVisible.ToString() : "nopose") + " aimBlend=" + (pose != null ? pose.AimBlend.ToString("0.00") : "-") + " bodyFwd=" + fc.transform.forward.ToString("0.00") + " aimDir=" + fc.AimDirection.ToString("0.00") + " camFwd=" + (Camera.main != null ? Camera.main.transform.forward.ToString("0.00") : "none") + " camDist=" + (Camera.main != null ? Vector3.Distance(Camera.main.transform.position, fc.transform.position).ToString("0.0") : "-") + " weaponRoot=" + (fc.WeaponRoot != null) + " rendererOn=" + anyRenderer);
             }
         }
 

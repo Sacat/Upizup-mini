@@ -54,7 +54,7 @@ namespace UpIzUpMini.Combat
         public static bool GunDrawn { get; private set; }
         /// <summary>MINI-192: true when the player owns the sidearm at all (holstered or not).</summary>
         public static bool PlayerOwnsGun { get { return EconomyManager.Instance != null && EconomyManager.Instance.OwnsItem(SidearmId); } }
-        bool gunDrawn = true, canUseNow;
+        bool gunDrawn = true, canUseNow, wasOutOfAmmo;
         /// <summary>Batch-mode proofs cannot lock the cursor; they set this instead.</summary>
         public static bool TestForceUsable;
         Cameras.ThirdPersonFollowCamera followCamera;
@@ -188,6 +188,18 @@ namespace UpIzUpMini.Combat
                 && !AnyShopOpen();
 
             canUseNow = canUse;
+            // MINI-195: out of ammunition (empty magazine AND no spare rounds) - put the gun away until more rounds are bought or found
+            bool outOfAmmo = economy != null && economy.SidearmMagazine <= 0 && economy.GetAmmo(AmmoId) <= 0 && !IsReloading;
+            if (outOfAmmo) { if (!wasOutOfAmmo) gunDrawn = false; }
+            else if (wasOutOfAmmo) gunDrawn = true;   // rounds are back: draw again
+            wasOutOfAmmo = outOfAmmo;
+            if (outOfAmmo) canUse = false;
+            canUseNow = canUse;
+            if (player != null && player.IsControlled)
+            {
+                if (followCamera == null) followCamera = FindFirstObjectByType<Cameras.ThirdPersonFollowCamera>();
+                if (followCamera != null) followCamera.SetAiming(canUse && (virtualAim || Input.GetMouseButton(1)));
+            }
             if (canUse && Input.GetKeyDown(KeyCode.H)) gunDrawn = !gunDrawn;
             IsAiming = canUse && (virtualAim || Input.GetMouseButton(1));
             if (IsAiming) gunDrawn = true;
