@@ -17,6 +17,26 @@ namespace UpIzUpMini.EditorTools
     {
         static bool sacatBareTorso;
 
+        // arms shade from the neck/torso tone at the shoulder to the forearm tone at the wrist, so no seam or odd orange limb shows
+        static Material ArmGradientMaterial()
+        {
+            string texPath = Art + "/Sacat_ArmGradient.png", matPath = Art + "/Sacat_ArmGradient.mat";
+            var stops = new[] { (0f, new Color(.350f, .212f, .150f)), (.35f, new Color(.395f, .242f, .176f)), (.65f, new Color(.440f, .275f, .205f)), (1f, new Color(.485f, .305f, .235f)) };
+            var tex = new Texture2D(4, 64, TextureFormat.RGBA32, false);
+            for (int y = 0; y < 64; y++)
+            {
+                float t = y / 63f; int k = 0; while (k < stops.Length - 2 && t > stops[k + 1].Item1) k++;
+                var c = Color.Lerp(stops[k].Item2, stops[k + 1].Item2, Mathf.InverseLerp(stops[k].Item1, stops[k + 1].Item1, t));
+                for (int x = 0; x < 4; x++) tex.SetPixel(x, y, c);
+            }
+            tex.Apply(); File.WriteAllBytes(texPath, tex.EncodeToPNG()); AssetDatabase.ImportAsset(texPath);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(texPath); imp.wrapMode = TextureWrapMode.Clamp; imp.mipmapEnabled = false; imp.SaveAndReimport();
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            if (mat == null) { mat = new Material(Shader.Find("Standard")); AssetDatabase.CreateAsset(mat, matPath); }
+            mat.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(texPath); mat.color = Color.white; mat.SetFloat("_Glossiness", .12f); mat.SetFloat("_Metallic", 0f);
+            EditorUtility.SetDirty(mat); AssetDatabase.SaveAssets(); return mat;
+        }
+
         // y, half width x, half depth front, half depth back, centre z
         static readonly float[,] TorsoKeys =
         {
@@ -111,11 +131,12 @@ namespace UpIzUpMini.EditorTools
                 int headIdx = surface.Bone("Head"), bestHead = best; float bdh = float.MaxValue; var tH = new Vector3(0f, 1.49f, -.02f);
                 var weights = uvMesh.boneWeights;
                 for (int i = 0; i < vv.Length; i++) { if (weights[i].boneIndex0 != headIdx || weights[i].weight0 < .6f) continue; var p = m2.MultiplyPoint3x4(vv[i]); float d = (p - tH).sqrMagnitude; if (d < bdh) { bdh = d; bestHead = i; } }
+                var gradient = ArmGradientMaterial();
                 void Piece(string rendererName, string assetName, Shape shape)
                 {
                     var br = Bind(root, rendererName, surface); var mesh = Asset(shape.Mesh(assetName), assetName + ".asset"); br.sharedMesh = mesh;
-                    var uv2 = new List<Vector2>(); for (int i = 0; i < mesh.vertexCount; i++) uv2.Add(uvs[rendererName == "WardrobeTorso" ? bestHead : best]); mesh.SetUVs(0, uv2); EditorUtility.SetDirty(mesh);
-                    br.sharedMaterials = new[] { rendererName == "WardrobeTorso" ? AssetDatabase.LoadAssetAtPath<Material>(Art + "/Sacat_Skin.mat") : skinMat }; br.enabled = true; br.updateWhenOffscreen = true;
+                    var uv2 = new List<Vector2>(); for (int i = 0; i < mesh.vertexCount; i++) if (rendererName == "WardrobeArms") { var verts = mesh.vertices; for (int q = 0; q < verts.Length; q++) uv2.Add(new Vector2(.5f, Mathf.Clamp01((Mathf.Abs(verts[q].x) - .19f) / .495f))); } else for (int q = 0; q < mesh.vertexCount; q++) uv2.Add(uvs[bestHead]); mesh.SetUVs(0, uv2); EditorUtility.SetDirty(mesh);
+                    br.sharedMaterials = new[] { rendererName == "WardrobeTorso" ? AssetDatabase.LoadAssetAtPath<Material>(Art + "/Sacat_Skin.mat") : gradient }; br.enabled = true; br.updateWhenOffscreen = true;
                 }
                 Piece("WardrobeArms", "Sacat_Arms", BuildArms(surface));
                 Piece("WardrobeTorso", "Sacat_Torso", BuildTorso(surface));

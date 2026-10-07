@@ -82,8 +82,10 @@ public static partial class Mini166Repair {
  static Shape Shirt(Surface s,List<List<V>> faces,bool polo){
   var result=new Shape(s);var neck=s.Rest("Neck");float sleeve=Mathf.Lerp(Mathf.Abs(s.Rest("LeftArm").x),Mathf.Abs(s.Rest("LeftForeArm").x),.46f);
   float opening=sacatBareTorso?neck.y-.012f:neck.y+.45f*(s.Rest("Head").y-neck.y);
+  float[] origTop=new float[8];
+  if(sacatBareTorso)foreach(var face in faces)foreach(var fv in face){float ax0=Mathf.Abs(fv.p.x);if(ax0>=.13f&&ax0<.29f){int bi=(int)((ax0-.13f)/.02f);origTop[bi]=Mathf.Max(origTop[bi],fv.p.y);}}
   foreach(var face in faces){if(face.Count<3)continue;
-   if(sacatBareTorso){var cc=face.Aggregate(Vector3.zero,(a,b)=>a+b.p)/face.Count;if(Mathf.Abs(cc.x)<.17f&&cc.y>1.30f&&cc.z<neck.z-.02f)continue;}   // the hood is replaced by the clean yoke patch below
+   if(sacatBareTorso){var cc=face.Aggregate(Vector3.zero,(a,b)=>a+b.p)/face.Count;if(Mathf.Abs(cc.x)<.14f&&cc.z<neck.z-.02f&&face.All(fv=>fv.p.y>1.30f))continue;}   // the hood is replaced by the clean yoke patch below
    var f=face.Select(v=>{
     if(v.p.y>opening&&Mathf.Abs(v.p.x)<.15f&&new Vector2(v.p.x,v.p.z-neck.z).magnitude>.062f){var p=v.p;p.y=opening;v.p=p;}
     if(!sacatOriginalTorso&&v.p.y<neck.y-.12f&&Mathf.Abs(v.p.x)<.205f){float t=Mathf.InverseLerp(s.Rest("Hips").y,neck.y-.12f,v.p.y);float rx=Mathf.Lerp(.151f,.20f,t),rz=Mathf.Lerp(.088f,.112f,t);float angle=Mathf.Atan2(v.p.x/rx,(v.p.z+.01f)/rz);v.p=new Vector3(Mathf.Sin(angle)*rx,v.p.y,Mathf.Cos(angle)*rz-.01f);v.n=new Vector3(Mathf.Sin(angle),0,Mathf.Cos(angle)).normalized;}
@@ -125,8 +127,11 @@ public static partial class Mini166Repair {
   }
   if(sacatBareTorso){
    // MINI-199: clean upper-back yoke following the torso skin, up to the polo neckline
-   const int cols=18,rows=6;
-   V Yoke(int i,int j){float x=-.17f+.34f*i/cols;float top=NeckLineY(x,false);float y=Mathf.Lerp(1.29f,top,j/(float)rows);var p=new Vector3(x,y,TorsoBackZ(x,y)-.007f);return new V{p=p,n=new Vector3(0,.1f,-1).normalized,uv=new Vector2(x*8f,y*8f),w=s.Weight(p)};}
+   const int cols=22,rows=7;
+   float OrigTopAt(float ax){int bi=Mathf.Clamp((int)((ax-.13f)/.02f),0,7);float t=origTop[bi];return t>1f?t-.003f:1.38f;}
+   float YokeTop(float x){float ax=Mathf.Abs(x);if(ax<=.09f)return NeckLineY(x,false);float a9=NeckLineY(.09f,false),a13=OrigTopAt(.13f);if(ax<=.13f)return Mathf.Lerp(a9,a13,Mathf.SmoothStep(0,1,(ax-.09f)/.04f));return OrigTopAt(ax);}
+   Vector3 YokePos(int i,int j){float x=-.22f+.44f*i/cols;float top=YokeTop(x);float y=Mathf.Lerp(1.26f,top,j/(float)rows);var ta=TorsoAt(y);float W=ta[0]+.06f;float u=Mathf.Clamp(Mathf.Abs(x)/W,0f,.985f);float zz=ta[3]-ta[2]*Mathf.Sqrt(1f-u*u)-Mathf.Lerp(.002f,.008f,Mathf.SmoothStep(0,1,Mathf.InverseLerp(1.28f,1.34f,y)));return new Vector3(x,y,zz);}
+   V Yoke(int i,int j){var p=YokePos(i,j);var dx=YokePos(Mathf.Min(i+1,cols),j)-YokePos(Mathf.Max(i-1,0),j);var dy=YokePos(i,Mathf.Min(j+1,rows))-YokePos(i,Mathf.Max(j-1,0));var n=Vector3.Cross(dx,dy).normalized;if(n.z>0)n=-n;return new V{p=p,n=n,uv=new Vector2(p.x*8f,p.y*8f),w=s.Weight(p)};}
    for(int i=0;i<cols;i++)for(int j=0;j<rows;j++){V a=Yoke(i,j),b=Yoke(i+1,j),c=Yoke(i+1,j+1),d=Yoke(i,j+1);result.Poly(new List<V>{a,c,b},0);result.Poly(new List<V>{a,d,c},0);}
   }
   int bone=s.Bone("Neck");
