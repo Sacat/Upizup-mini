@@ -81,11 +81,11 @@ namespace UpIzUpMini.EditorTools
             {
                 var go = GameObject.Find(n); if (go == null) continue;
                 var cam = new GameObject("c").AddComponent<Camera>(); cam.fieldOfView = 26; cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(.6f, .72f, .85f);
-                Vector3 c = go.transform.position + Vector3.up * .95f;
-                string[] views = { "front", "side", "back" }; Vector3[] dirs = { go.transform.forward, go.transform.right, -go.transform.forward };
-                for (int i = 0; i < 3; i++)
+                bool zoom = Environment.GetEnvironmentVariable("MINI196_ZOOM") == "1"; Vector3 c = go.transform.position + Vector3.up * (zoom ? 1.2f : .95f);
+                string[] views = { "front", "side", "back", "back34" }; Vector3[] dirs = { go.transform.forward, go.transform.right, -go.transform.forward, (-go.transform.forward + go.transform.right).normalized };
+                for (int i = 0; i < 4; i++)
                 {
-                    cam.transform.position = c + dirs[i] * 5.5f; cam.transform.LookAt(c);
+                    cam.transform.position = c + dirs[i] * (zoom ? 2.3f : 5.5f); cam.transform.LookAt(c);
                     var rt = new RenderTexture(700, 1000, 24); cam.targetTexture = rt; cam.Render(); RenderTexture.active = rt;
                     var tx = new Texture2D(700, 1000, TextureFormat.RGB24, false); tx.ReadPixels(new Rect(0, 0, 700, 1000), 0, 0); tx.Apply();
                     File.WriteAllBytes(Out + "/" + n + "_" + tag + "_" + views[i] + ".png", tx.EncodeToPNG()); RenderTexture.active = null; cam.targetTexture = null; UnityEngine.Object.Destroy(rt);

@@ -40,6 +40,7 @@ namespace UpIzUpMini.EditorTools
         }
 
         static FitProfile fitOriginal, fitGarment;
+        static bool sacatOriginalTorso;
 
         static void ComputeSacatFit(IEnumerable<Vector3> originalPoints, IEnumerable<Vector3> garmentPoints)
         {
