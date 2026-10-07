@@ -22,7 +22,7 @@ public static partial class Mini166Repair {
   }catch(Exception e){Debug.LogException(e);EditorApplication.Exit(1);}
  }
  static void BuildCharacter(GameObject root){
-  bool sacat=root.name=="Sacat";var renderers=root.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+  bool sacat=root.name=="Sacat";fitOriginal=null;fitGarment=null;var renderers=root.GetComponentsInChildren<SkinnedMeshRenderer>(true);
   SkinnedMeshRenderer Find(string name)=>renderers.First(r=>r.name==name);
   var sourceR=Find(sacat?"Ch06":"Ch28_Hoody");var shirt=new Surface(root,sourceR);
   var pants=sacat?shirt:new Surface(root,Find("Ch28_Pants"));var shoes=sacat?shirt:new Surface(root,Find("Ch28_Sneakers"));
@@ -48,10 +48,12 @@ public static partial class Mini166Repair {
   if(sacat){
    // Use the repaired continuous garment topology, fitted by corresponding
    // rest bones, instead of preserving Ch06's fused hoodie pockets and skirt.
+   var originalSilhouette=shirt;fitOriginal=null;fitGarment=null;
    var franki=GameObject.Find("Franki");var fr=franki.GetComponentsInChildren<SkinnedMeshRenderer>(true);
    shirt=Retarget(new Surface(franki,fr.First(r=>r.name=="Ch28_Hoody")),shirt);
    pants=Retarget(new Surface(franki,fr.First(r=>r.name=="Ch28_Pants")),pants);
    upper=shirt.Faces(0).ToList();lower=pants.Faces(0).ToList();
+   ComputeSacatFit(originalSilhouette.vertices.Select(v=>v.p),upper.SelectMany(f=>f).Select(v=>v.p));
   }
   var skin=Matte(root.name+"_Skin",sacat?new Color(.34f,.205f,.135f):new Color(.412f,.243f,.153f));
   var fabric=Matte("Cotton",Color.white);var denim=Matte("Denim",Color.white);var trim=Matte("Stitch",new Color(.48f,.42f,.29f));var detail=Matte("Pearl",new Color(.78f,.79f,.75f));
@@ -83,9 +85,10 @@ public static partial class Mini166Repair {
   foreach(var face in faces){if(face.Count<3)continue;
    var f=face.Select(v=>{
     if(v.p.y>opening&&Mathf.Abs(v.p.x)<.15f&&new Vector2(v.p.x,v.p.z-neck.z).magnitude>.062f){var p=v.p;p.y=opening;v.p=p;}
-    if(v.p.y<neck.y-.12f&&Mathf.Abs(v.p.x)<.205f){float t=Mathf.InverseLerp(s.Rest("Hips").y,neck.y-.12f,v.p.y);float rx=Mathf.Lerp(.151f,.20f,t),rz=Mathf.Lerp(.088f,.112f,t);float angle=Mathf.Atan2(v.p.x/rx,(v.p.z+.01f)/rz);v.p=new Vector3(Mathf.Sin(angle)*rx,v.p.y,Mathf.Cos(angle)*rz-.01f);v.n=new Vector3(Mathf.Sin(angle),0,Mathf.Cos(angle)).normalized;}
+    if(fitGarment==null&&fitOriginal==null&&v.p.y<neck.y-.12f&&Mathf.Abs(v.p.x)<.205f){float t=Mathf.InverseLerp(s.Rest("Hips").y,neck.y-.12f,v.p.y);float rx=Mathf.Lerp(.151f,.20f,t),rz=Mathf.Lerp(.088f,.112f,t);float angle=Mathf.Atan2(v.p.x/rx,(v.p.z+.01f)/rz);v.p=new Vector3(Mathf.Sin(angle)*rx,v.p.y,Mathf.Cos(angle)*rz-.01f);v.n=new Vector3(Mathf.Sin(angle),0,Mathf.Cos(angle)).normalized;}
     // Restore a convex neck-to-deltoid transition after the legacy hood flatten.
     // Keep the neckline, sleeve ends, weights and topology intact.
+    if(fitOriginal!=null){v.p=FitPoint(v.p);return v;}
     var before=v.p;v.p=ShoulderForm(before,s);
     const float step=.0001f;
     var jac=Matrix4x4.identity;
