@@ -33,7 +33,7 @@ public static partial class Mini166Repair {
    int headIndex=shirt.Bone("Head");
    foreach(var face in shirt.Faces(0)){
     var center=(face[0].p+face[1].p+face[2].p)/3;
-    bool protectedSkin=face.All(v=>v.w.boneIndex0==headIndex&&v.w.weight0>.55f)||Mathf.Abs(center.x)>.635f;
+    bool protectedSkin=face.All(v=>v.w.boneIndex0==headIndex&&v.w.weight0>.55f)||Mathf.Abs(center.x)>(sacatBareArms?.672f:.635f);
     if(protectedSkin){body.Poly(face,0);continue;}
     upper.Add(Clip(face,p=>p.y-(sacat?waist-.07f:waist),true));var below=Clip(face,p=>p.y-waist,false);lower.Add(Clip(below,p=>p.y-ankle,true));
    }
@@ -106,7 +106,7 @@ public static partial class Mini166Repair {
     jac.SetColumn(2,(ShoulderForm(before+Vector3.forward*step,s)-ShoulderForm(before-Vector3.forward*step,s))/(2*step));
     v.n=jac.inverse.transpose.MultiplyVector(v.n).normalized;
     return v;}).ToList();
-   var arms=Clip(f,p=>Mathf.Abs(p.x)-sleeve,true);result.Poly(arms,1);var torso=Clip(f,p=>Mathf.Abs(p.x)-sleeve,false);
+   var arms=Clip(f,p=>Mathf.Abs(p.x)-sleeve,true);if(!sacatBareArms)result.Poly(arms,1);var torso=Clip(f,p=>Mathf.Abs(p.x)-sleeve,false);
    // Only the neck opening exposes skin. A horizontal cut across the whole
    // shoulder made the tee look like an off-shoulder shirt.
    float NeckDistance(Vector3 p)=>Mathf.Min(p.y-opening,.075f-Mathf.Abs(p.x));
