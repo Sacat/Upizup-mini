@@ -81,21 +81,32 @@ public static partial class Mini166Repair {
  }
  static Shape Shirt(Surface s,List<List<V>> faces,bool polo){
   var result=new Shape(s);var neck=s.Rest("Neck");float sleeve=Mathf.Lerp(Mathf.Abs(s.Rest("LeftArm").x),Mathf.Abs(s.Rest("LeftForeArm").x),.46f);
-  float opening=neck.y+.45f*(s.Rest("Head").y-neck.y);
+  float opening=sacatBareTorso?neck.y-.012f:neck.y+.45f*(s.Rest("Head").y-neck.y);
   foreach(var face in faces){if(face.Count<3)continue;
+   if(sacatBareTorso){var cc=face.Aggregate(Vector3.zero,(a,b)=>a+b.p)/face.Count;if(Mathf.Abs(cc.x)<.17f&&cc.y>1.30f&&cc.z<neck.z-.02f)continue;}   // the hood is replaced by the clean yoke patch below
    var f=face.Select(v=>{
     if(v.p.y>opening&&Mathf.Abs(v.p.x)<.15f&&new Vector2(v.p.x,v.p.z-neck.z).magnitude>.062f){var p=v.p;p.y=opening;v.p=p;}
     if(!sacatOriginalTorso&&v.p.y<neck.y-.12f&&Mathf.Abs(v.p.x)<.205f){float t=Mathf.InverseLerp(s.Rest("Hips").y,neck.y-.12f,v.p.y);float rx=Mathf.Lerp(.151f,.20f,t),rz=Mathf.Lerp(.088f,.112f,t);float angle=Mathf.Atan2(v.p.x/rx,(v.p.z+.01f)/rz);v.p=new Vector3(Mathf.Sin(angle)*rx,v.p.y,Mathf.Cos(angle)*rz-.01f);v.n=new Vector3(Mathf.Sin(angle),0,Mathf.Cos(angle)).normalized;}
     // Restore a convex neck-to-deltoid transition after the legacy hood flatten.
     // Keep the neckline, sleeve ends, weights and topology intact.
     if(sacatOriginalTorso){
-     // the original hoodie's hood is an extra layer over the upper back: ease those vertices forward onto a smooth back-of-shoulder to back-of-neck slope
+     var p2=v.p;float ax=Mathf.Abs(p2.x);
+     if(sacatBareTorso){
+      // MINI-199: collapse the hood onto a polo neckline and lay the shirt back/front on the real torso skin
+      if(ax<.2f&&p2.y>1.30f){
+       bool front=p2.z>=neck.z-.02f;float lim=NeckLineYRelease(p2.x,front);if(p2.y>lim)p2.y=lim;
+       float edge=1f-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.15f,.20f,ax));
+       if(!front){float zs=TorsoBackZ(p2.x,p2.y)-.007f;p2.z=Mathf.Lerp(p2.z,Mathf.Max(p2.z,zs),edge);}
+       else if(p2.y>1.36f&&ax<.15f){float zf=TorsoFrontZ(p2.x,p2.y)+.012f;p2.z=Mathf.Lerp(p2.z,Mathf.Min(p2.z,zf),edge);}
+      }
+      v.p=p2;return v;
+     }
      float yb=neck.y-.16f;
-     if(Mathf.Abs(v.p.x)<.2f&&v.p.y>yb&&v.p.z<neck.z-.02f){
-      float t=Mathf.SmoothStep(0,1,Mathf.InverseLerp(yb,neck.y+.05f,v.p.y));
+     if(ax<.2f&&p2.y>yb&&p2.z<neck.z-.02f){
+      float t=Mathf.SmoothStep(0,1,Mathf.InverseLerp(yb,neck.y+.05f,p2.y));
       float zb=Mathf.Lerp(-.125f,neck.z-.07f,t);
-      float edge=1f-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.14f,.21f,Mathf.Abs(v.p.x)));
-      var p2=v.p;p2.z=Mathf.Lerp(p2.z,Mathf.Max(p2.z,zb),edge);v.p=p2;
+      float edge=1f-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.14f,.21f,ax));
+      p2.z=Mathf.Lerp(p2.z,Mathf.Max(p2.z,zb),edge);v.p=p2;
      }
      return v;}
     var before=v.p;v.p=ShoulderForm(before,s);
@@ -110,7 +121,13 @@ public static partial class Mini166Repair {
    // Only the neck opening exposes skin. A horizontal cut across the whole
    // shoulder made the tee look like an off-shoulder shirt.
    float NeckDistance(Vector3 p)=>Mathf.Min(p.y-opening,.075f-Mathf.Abs(p.x));
-   result.Poly(Clip(torso,NeckDistance,true),1);result.Poly(Clip(torso,NeckDistance,false),0);
+   if(!sacatBareTorso)result.Poly(Clip(torso,NeckDistance,true),1);result.Poly(Clip(torso,NeckDistance,false),0);
+  }
+  if(sacatBareTorso){
+   // MINI-199: clean upper-back yoke following the torso skin, up to the polo neckline
+   const int cols=18,rows=6;
+   V Yoke(int i,int j){float x=-.17f+.34f*i/cols;float top=NeckLineY(x,false);float y=Mathf.Lerp(1.29f,top,j/(float)rows);var p=new Vector3(x,y,TorsoBackZ(x,y)-.007f);return new V{p=p,n=new Vector3(0,.1f,-1).normalized,uv=new Vector2(x*8f,y*8f),w=s.Weight(p)};}
+   for(int i=0;i<cols;i++)for(int j=0;j<rows;j++){V a=Yoke(i,j),b=Yoke(i+1,j),c=Yoke(i+1,j+1),d=Yoke(i,j+1);result.Poly(new List<V>{a,c,b},0);result.Poly(new List<V>{a,d,c},0);}
   }
   int bone=s.Bone("Neck");
   // An actual folded collar, with two open pointed leaves on the chest.
