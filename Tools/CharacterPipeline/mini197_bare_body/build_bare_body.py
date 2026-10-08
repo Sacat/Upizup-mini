@@ -29,19 +29,26 @@ unknown=B.dilate(Ad,boxer|vest,4)|((s<0.22)&(z>0.6)&(z<1.6))      # sample skin 
 lin=B.srgb2lin(col)
 skin=B.harmonic_fill(Ad,unknown,lin)
 skin=np.where(fill[:,None],skin,lin)
+corr=np.ones((len(Wd),3))   # multiplicative large-scale tone correction (1 = unchanged)
 if upto>=1:
-    # hands: pull the hand tone toward the forearm/face so hands do not read lighter than the arm
-    hand=np.abs(Wd[:,0])>0.70; fore=(np.abs(Wd[:,0])>0.45)&(np.abs(Wd[:,0])<0.62)
-    ratio=lin[fore].mean(0)/np.maximum(lin[hand].mean(0),1e-4)
-    print('hand/forearm ratio',ratio)
-    t=np.clip((np.abs(Wd[:,0])-0.62)/0.08,0,1)[:,None]  # blend in over the wrist
-    skin=skin*(1+t*(ratio-1))
-    fill|=np.abs(Wd[:,0])>0.62
-if TINT is not None:
-    # recolour skin (not hair/eyes): scale skin-coloured vertices toward the target mean tone
-    skinlike=(s>0.25)&(v>0.15)|fill
-    mean=skin[skinlike].mean(0); skin=np.where(skinlike[:,None],skin*(TINT/mean),skin); fill|=skinlike
+    # skin tone: arms read lighter than face/legs and the neck darker. Even out the LOW-frequency tone only,
+    # keeping texture detail: corr = target / smoothed_skin_colour on skin vertices (hair/eyes/brows excluded).
+    skinv=(s>0.25)&(v>0.25)&~B.dilate(Ad,boxer|vest,2)
+    import scipy.sparse as sp
+    deg=np.asarray(Ad.sum(1)).ravel(); P=sp.diags(1/np.maximum(deg,1))@Ad
+    num=np.where(skinv[:,None],skin,0.0); den=skinv.astype(float)[:,None]
+    for _ in range(int(os.environ.get('TONE_SMOOTH','400'))): num=P@num; den=P@den
+    low=num/np.maximum(den,1e-6)
+    target=skin[skinv].mean(0) if TINT is None else B.srgb2lin(TINT)
+    k=float(os.environ.get('TONE_STRENGTH','0.85'))
+    c=np.clip((target/np.maximum(low,1e-4))**k,0.6,1.6)
+    hairish=(v<0.18)|(s<0.18)
+    corr=np.where(hairish[:,None],1.0,c)
+    for name,m in (('face',(np.abs(Wd[:,0])<0.05)&(Wd[:,2]>1.62)),('arm',np.abs(Wd[:,0])>0.3),('hand',np.abs(Wd[:,0])>0.74),('thigh',(Wd[:,2]>0.6)&(Wd[:,2]<0.75))):
+        print('tone corr',name,corr[m&skinv].mean(0).round(3))
 me=donor.data
+skin=skin*np.where(fill[:,None],corr,1.0)
+ca=me.color_attributes.new('tone_corr','FLOAT_COLOR','POINT'); ca.data.foreach_set('color',np.c_[corr,np.ones(len(Wd))].ravel())
 a=me.color_attributes.new('skin_fill','FLOAT_COLOR','POINT'); a.data.foreach_set('color',np.c_[skin,np.ones(len(Wd))].ravel())
 mk=me.attributes.new('fill_mask','FLOAT','POINT'); mk.data.foreach_set('value',fill.astype(float))
 img=bpy.data.images.load(tex)
@@ -52,7 +59,10 @@ def skin_material(name,use_tex=True):
     c=nt.nodes.new('ShaderNodeAttribute'); c.attribute_name='skin_fill'
     m=nt.nodes.new('ShaderNodeAttribute'); m.attribute_name='fill_mask'
     mix=nt.nodes.new('ShaderNodeMix'); mix.data_type='RGBA'
-    nt.links.new(m.outputs['Fac'],mix.inputs['Factor']); nt.links.new(t.outputs[0],mix.inputs[6]); nt.links.new(c.outputs[0],mix.inputs[7])
+    tc=nt.nodes.new('ShaderNodeAttribute'); tc.attribute_name='tone_corr'
+    mul=nt.nodes.new('ShaderNodeMix'); mul.data_type='RGBA'; mul.blend_type='MULTIPLY'; mul.inputs['Factor'].default_value=1.0
+    nt.links.new(t.outputs[0],mul.inputs[6]); nt.links.new(tc.outputs[0],mul.inputs[7])
+    nt.links.new(m.outputs['Fac'],mix.inputs['Factor']); nt.links.new(mul.outputs[2],mix.inputs[6]); nt.links.new(c.outputs[0],mix.inputs[7])
     em=nt.nodes.new('ShaderNodeEmission'); nt.links.new(mix.outputs[2],em.inputs[0])
     outn=nt.nodes['Material Output']; nt.links.new(em.outputs[0],outn.inputs[0])   # emission: bake source = pure albedo
     return mat
@@ -237,7 +247,11 @@ arm.data.pose_position='REST'
 cam=rlib.setup_render(400,720,24); rlib.turntable(cam,0.93,1.9,out)
 sc.render.resolution_y=400; rlib.closeup(cam,out+'_hip',(0,0,0.92),0.55)
 rlib.closeup(cam,out+'_shoulder',(0,0,1.40),0.55)
+rlib.closeup(cam,out+'_hand',(0.80,0,1.47),0.30,views=(('front',0),('back',180)))
+cam.location=(0.80,0.0,2.0); cam.rotation_euler=(0,0,0); sc.render.filepath=out+'_hand_top.png'; bpy.ops.render.render(write_still=True)
 clay=bpy.data.materials.new('clay'); clay.diffuse_color=(0.6,0.6,0.62,1)
 for o in sc.objects:
     if o.type=='MESH' and not o.hide_render: o.data.materials[0]=clay
 rlib.closeup(cam,out+'_clayhip',(0,0,0.92),0.55); rlib.closeup(cam,out+'_clayshoulder',(0,0,1.40),0.55)
+rlib.closeup(cam,out+'_clayhand',(0.80,0,1.47),0.30,views=(('front',0),('back',180)))
+cam.location=(0.80,0.0,2.0); cam.rotation_euler=(0,0,0); sc.render.filepath=out+'_clayhand_top.png'; bpy.ops.render.render(write_still=True)

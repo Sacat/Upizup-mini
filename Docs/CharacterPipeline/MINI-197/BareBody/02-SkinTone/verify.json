@@ -1,0 +1,50 @@
+{
+ "bones": 101,
+ "bones_missing": [],
+ "bone_max_offset_mm": 0.001,
+ "height_donor_new": [
+  1.8501,
+  1.8497
+ ],
+ "rest_dist_to_donor_mm_p50_p99": [
+  2.4,
+  16.3
+ ],
+ "meshes": {
+  "SacatBare_Torso": {
+   "tris": 6562,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Hands": {
+   "tris": 1696,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Head": {
+   "tris": 3514,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Arms": {
+   "tris": 2438,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Legs": {
+   "tris": 4182,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Feet": {
+   "tris": 1608,
+   "max_influences": 3,
+   "unweighted": 0
+  }
+ },
+ "total_tris": 20000,
+ "posed_dist_to_donor_mm_p50_p99": [
+  2.4,
+  21.7
+ ]
+}
