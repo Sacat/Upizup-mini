@@ -19,7 +19,8 @@ def shoot(tag):
     for m in meshes: m.data.materials[0]=clay
     rlib.closeup(cam,f'{out}_{tag}_clay',(0,0,0.55),1.25,views=(('front',0),('side',90),('back',180)))
 shoot('rest')
-# natural stride: thigh local X points to world -X, so a NEGATIVE angle flexes the hip forward
-pb['CC_Base_L_Thigh'].rotation_euler=(math.radians(-35),0,0); pb['CC_Base_L_Calf'].rotation_euler=(math.radians(55),0,0)
-pb['CC_Base_R_Thigh'].rotation_euler=(math.radians(15),0,0); pb['CC_Base_R_Calf'].rotation_euler=(math.radians(15),0,0)
+# natural stride. Measured with knee_dir.py on this rig: thigh +X swings the knee FORWARD (-Y, front),
+# calf -X puts the ankle BEHIND the knee (correct knee flexion). Opposite signs bend the knee backwards.
+pb['CC_Base_L_Thigh'].rotation_euler=(math.radians(35),0,0); pb['CC_Base_L_Calf'].rotation_euler=(math.radians(-55),0,0)
+pb['CC_Base_R_Thigh'].rotation_euler=(math.radians(-15),0,0); pb['CC_Base_R_Calf'].rotation_euler=(math.radians(-20),0,0)
 bpy.context.view_layer.update(); shoot('bend')
