@@ -17,7 +17,9 @@ Do not replace the live Sacat/Franki or edit `GrandBayProof.unity` until the che
 
 Each FBX holds one armature (101 `CC_Base_*` bones, AccuRig names unchanged) and six skinned
 meshes sharing one material: `<Name>Bare_Head`, `_Torso`, `_Arms`, `_Hands`, `_Legs`, `_Feet`
-(20,000 triangles total, 4 bone influences max, no unweighted vertices).
+(Sacat 19,200 triangles, Franki 18,900; 4 bone influences max; no unweighted vertices).
+Franki has a seventh mesh, `FrankiBare_Hair`: the approved MINI-164 black hair (9,484 triangles,
+rigid on `CC_Base_Head`, own near-black material). It is the same hair asset as `Garments/Franki_Hair.fbx`.
 
 Suggested import settings:
 - Model: Scale Factor 1, Convert Units on; Normals **Import** (custom normals keep the piece seams invisible).
@@ -36,12 +38,17 @@ Suggested import settings:
 5. **Rig frame fix**: in the MINI-105 FBX (as Blender imports it) the armature object was rotated 90° X
    against its upright mesh, so posing any bone tore the skin. The armature object is now a plain ×0.01
    scale, with the meshes parented at identity. All pose tests ran on a plain re-import of the exported FBX.
-6. **Franki**: the same body and rig with his warmer skin tone (target sRGB 0.50/0.32/0.20, from the Ch28 face).
-   The face is the same as Sacat's; hair is meant to come from his hair piece.
+6. **Franki**: the same body and rig with **his own original face**. The head comes from `Strong.fbx` (Ch28),
+   raised 9.9 cm so its head joint sits on `CC_Base_Head`. It is joined to the body by a slanted neck bridge that
+   follows the original neck-stub edge, and his Ch28 face texture is baked into the shared atlas. Skin is his
+   warmer tone (target sRGB 0.50/0.32/0.20, sampled from that face).
+7. **Faces**: on both characters the eyes, nose and mouth area gets extra triangles, snapped onto the full-detail
+   surface. On Sacat, the flat eyelid shelves from the AI scan are smoothed. The dark wedges around Sacat's eyes
+   are painted into the approved MINI-105 texture and were left as they are.
 
 Generator: `Tools/CharacterPipeline/mini197_bare_body/build_bare_body.py`
-(`python build_bare_body.py -- <donor.fbx> <basecolor.png> neck <out_prefix> [r,g,b skin target]`, with
-env `BODY_NAME=Franki`). Checks: `verify_fbx.py`, `pose_hands.py`, `legs_inspect.py`, `leg_measure.py`, `torso_measure.py`.
+(`python build_bare_body.py -- <donor.fbx> <basecolor.png> neck <out_prefix> [r,g,b skin target]`; for Franki also
+set env `BODY_NAME=Franki FRANKI_HEAD=<Strong.fbx> FRANKI_HAIR=<Garments/Franki_Hair.fbx>`). Checks: `verify_fbx.py`, `pose_hands.py`, `legs_inspect.py`, `leg_measure.py`, `torso_measure.py`.
 
 ## What to check in Unity
 
@@ -56,7 +63,8 @@ env `BODY_NAME=Franki`). Checks: `verify_fbx.py`, `pose_hands.py`, `legs_inspect
    `CC_Base_*`. Garments will not attach until bones are renamed on import or the lookup is generalised
    (MINI-197 step 6). This is a code decision for the local session.
 6. **Look in game light**: skin tone of both characters next to each other, hands vs arms, no visible
-   outline where the vest or boxers used to be.
+   outline where the vest or boxers used to be. On Franki, the neck join, and the hair sitting on the scalp with
+   no gaps when the head turns.
 
 ## Known limits (not fixed)
 
@@ -64,6 +72,7 @@ env `BODY_NAME=Franki`). Checks: `verify_fbx.py`, `pose_hands.py`, `legs_inspect
 - The bare chest and back are smooth filled skin with fine variation and subtle areolae (user: good enough).
 - One faint corner on the pinky side of each knuckle line.
 - No LOD1/LOD2 yet (budget about 8k / 3k triangles); the same generator can produce them with `BODY_TRIS`.
-- Franki and Sacat share a face.
+- Franki's hair is the existing MINI-164 asset (strip-like cards, 9.5k triangles); a lighter hair LOD would help mobile.
+- A faint tone shift remains on the side of Franki's neck where his face texture meets the body skin.
 
 Evidence renders: `0x-*/renders/`.

@@ -164,3 +164,29 @@ def radial_hermite(W,p0,p1,side,band,ref_hi,ref_lo,nbins=48,rmax=0.14,edge=0.02)
     w=np.clip(np.minimum(t-t0+edge,t1+edge-t)/edge,0,1); w=w*w*(3-2*w); w=np.where(sel,w,0)
     rn=r+(rfit-r)*w
     return W+radial*((rn/np.maximum(r,1e-6)-1))[:,None], w>0
+def fan_cap_loops(bm,select_edge):
+    """Close boundary loops whose edges pass select_edge(edge) with a fan to the loop centroid. Robust for jagged,
+    non-planar loops where bmesh.ops.holes_fill gives up. Returns the number of loops capped."""
+    import bmesh
+    be=[e for e in bm.edges if e.is_boundary and select_edge(e)]
+    adj={}
+    for e in be:
+        for v in e.verts: adj.setdefault(v,[]).append(e)
+    used=set(); n=0
+    for e0 in be:
+        if e0 in used: continue
+        loop=[e0.verts[0]]; cur=e0.verts[1]; used.add(e0); prev=e0
+        for _ in range(100000):
+            loop.append(cur)
+            nxt=[e for e in adj.get(cur,[]) if e not in used]
+            if not nxt: break
+            prev=nxt[0]; used.add(prev); cur=prev.other_vert(cur)
+            if cur is loop[0]: break
+        if len(loop)<3: continue
+        c=bm.verts.new(tuple(np.mean([np.array(v.co) for v in loop],axis=0)))
+        for a,b in zip(loop,loop[1:]+loop[:1]):
+            if a is b: continue
+            try: bm.faces.new((a,b,c))
+            except ValueError: pass
+        n+=1
+    return n

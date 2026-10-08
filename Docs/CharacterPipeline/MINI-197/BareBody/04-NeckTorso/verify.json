@@ -62,50 +62,50 @@
  ],
  "height_donor_new": [
   1.8501,
-  1.8498
+  1.8497
  ],
  "rest_dist_to_donor_mm_p50_p99": [
-  2.5,
-  10.4
+  2.7,
+  10.3
  ],
  "meshes": {
   "SacatBare_Hands": {
-   "tris": 1826,
+   "tris": 1640,
    "max_influences": 4,
    "unweighted": 0
   },
   "SacatBare_Arms": {
-   "tris": 2818,
-   "max_influences": 4,
-   "unweighted": 0
-  },
-  "SacatBare_Head": {
-   "tris": 4134,
+   "tris": 2508,
    "max_influences": 4,
    "unweighted": 0
   },
   "SacatBare_Torso": {
-   "tris": 4478,
+   "tris": 3974,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Head": {
+   "tris": 5094,
    "max_influences": 4,
    "unweighted": 0
   },
   "SacatBare_Legs": {
-   "tris": 4876,
+   "tris": 4334,
    "max_influences": 4,
    "unweighted": 0
   },
   "SacatBare_Feet": {
-   "tris": 1868,
+   "tris": 1650,
    "max_influences": 3,
    "unweighted": 0
   }
  },
- "total_tris": 20000,
+ "total_tris": 19200,
  "posed_bounds_m": [
   [
    -0.937,
    -0.505,
-   0.001
+   0.0
   ],
   [
    0.71,

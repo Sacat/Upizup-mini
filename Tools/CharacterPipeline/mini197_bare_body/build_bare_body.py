@@ -19,6 +19,18 @@ VOXEL=0.003; TARGET_TRIS=int(os.environ.get('BODY_TRIS','20000'))
 
 # ---------- 1. donor: masks and skin colour (bake source) ----------
 arm,donor=B.load(fbx); B.weld(donor)
+FHEAD=os.environ.get('FRANKI_HEAD'); fhead=None
+# heights are in the slanted frame z' = z - 0.36*y that follows Franki's neck-stub edge (front 1.60 m, back 1.64 m)
+NECK_A=float(os.environ.get('NECK_A','1.585'))   # donor neck kept below z'=NECK_A (under Sacat's jaw)
+NECK_B=float(os.environ.get('NECK_B','1.628'))   # Franki head kept above z'=NECK_B (just above its stub edge)
+HEAD_CUT=NECK_B
+if FHEAD:
+    import franki_head as FH
+    fhead,fimg,fhair,fhaircol,fdelta=FH.load(FHEAD,os.environ['FRANKI_HAIR'],B.bone_world(arm,'CC_Base_Head',donor))
+    fm=bpy.data.materials.new('FrankiHeadBake'); fm.use_nodes=True; nt_=fm.node_tree
+    ti=nt_.nodes.new('ShaderNodeTexImage'); ti.image=fimg; em_=nt_.nodes.new('ShaderNodeEmission')
+    nt_.links.new(ti.outputs[0],em_.inputs[0]); nt_.links.new(em_.outputs[0],nt_.nodes['Material Output'].inputs[0])
+    fhead.data.materials.append(fm); fhead.hide_render=True
 px=B.tex_pixels(tex); col,_,_=B.vert_colors(donor,px); Wd=B.world_co(donor); Ad=B.adjacency(donor)
 s,v=B.hsv(col); z=Wd[:,2]
 boxer=B.close_mask(Ad,((v<0.22)&(s<0.45)&(z>0.70)&(z<1.10))|((v<0.30)&(z>0.78)&(z<1.08)&(np.abs(Wd[:,0])<0.20)),4)
@@ -26,6 +38,10 @@ vest=B.close_mask(Ad,(v>0.62)&(s<0.18)&(z>0.95)&(z<1.58),3)
 fill=B.dilate(Ad,boxer,3)
 if upto>=2: fill|=B.dilate(Ad,vest,4)
 unknown=B.dilate(Ad,boxer|vest,4)|((s<0.22)&(z>0.6)&(z<1.6))      # sample skin only from clean skin
+if fhead is not None:
+    # Sacat's low nape hairline / stubble would bake onto Franki's neck: refill the upper donor neck from the shoulders
+    neckfill=(FH.shear(Wd)[:,2]>NECK_A-0.05)&(np.abs(Wd[:,0])<0.13)&(Wd[:,2]>1.45)
+    fill|=neckfill; unknown|=neckfill|(FH.shear(Wd)[:,2]>NECK_A-0.05)&(np.abs(Wd[:,0])<0.16)&(Wd[:,2]>1.45)
 if upto>=1: unknown|=np.abs(Wd[:,0])>0.745
 lin=B.srgb2lin(col)
 skin=B.harmonic_fill(Ad,unknown,lin)
@@ -61,7 +77,9 @@ if upto>=1:
     target=skin[skinv].mean(0) if TINT is None else B.srgb2lin(TINT)
     k=float(os.environ.get('TONE_STRENGTH','0.85'))
     c=np.clip((target/np.maximum(low,1e-4))**k,0.6,1.6)
-    hairish=(v<0.18)|(s<0.18)
+    # only the scalp hair keeps its colour; dark facial features (lids, brows, nostrils) take the same smooth
+    # correction as the skin around them, otherwise they show as angular dark patches after the tone shift
+    hairish=((v<0.18)|(s<0.18))&((Wd[:,2]>1.715)|((Wd[:,2]>1.60)&(Wd[:,1]>0.035)))
     corr=np.where(hairish[:,None],1.0,c)
     for name,m in (('face',(np.abs(Wd[:,0])<0.05)&(Wd[:,2]>1.62)),('arm',np.abs(Wd[:,0])>0.3),('hand',np.abs(Wd[:,0])>0.74),('thigh',(Wd[:,2]>0.6)&(Wd[:,2]<0.75))):
         print('tone corr',name,corr[m&skinv].mean(0).round(3))
@@ -130,24 +148,64 @@ me.materials.clear(); me.materials.append(skin_material('DonorBake'))
 import bmesh
 bm=bmesh.new(); bm.from_mesh(me)
 nb=len([e for e in bm.edges if e.is_boundary])
-bmesh.ops.holes_fill(bm,edges=[e for e in bm.edges if e.is_boundary],sides=0)
-bm.to_mesh(me); bm.free(); print('donor boundary edges filled',nb)
+# not on the head: eye/mouth openings capped with UV-less n-gons bake as dark angular smudges around the eyes
+bmesh.ops.holes_fill(bm,edges=[e for e in bm.edges if e.is_boundary and min(v.co[2] for v in e.verts)*donor.matrix_world[2][2]<1.52],sides=0)
+bm.to_mesh(me); bm.free(); print('donor boundary edges filled (below the neck)',nb)
 if os.environ.get('DEBUG_DONOR'):
     cam=rlib.setup_render(400,400,8); rlib.closeup(cam,out+'_donorhip',(0,0,0.92),0.55,views=(('front',0),('back',180))); sys.exit(0)
 
 # ---------- 2. closed surface ----------
 polys=B.tri_polys(donor.data); Vsrc=Wd
+if fhead is not None:
+    FW=B.world_co(fhead); fpolys=[p.vertices[:] for p in fhead.data.polygons]
+    BV,BF=FH.neck_bridge_tilted(Wd,B.tri_polys(donor.data),NECK_A,FW,fpolys,NECK_B)
+    Zd=FH.shear(Wd)[:,2]; Zf=FH.shear(FW)[:,2]
+    polys=[p for p in polys if not any(Zd[i]>NECK_A+0.006 for i in p)]
+    base=len(Vsrc); polys=polys+[tuple(i+base for i in p) for p in fpolys if not any(Zf[i]<NECK_B-0.004 for i in p)]
+    Vsrc=np.vstack([Vsrc,FW]); base=len(Vsrc); polys=polys+[tuple(i+base for i in f) for f in BF]; Vsrc=np.vstack([Vsrc,BV])
+    print('neck bridge',NECK_A,'->',NECK_B,'rings',len(BV)//72)
+    # bake source for the bridge: the donor's neck skin tone just below the cut (no texture exists there)
+    nb=B.mesh_from_world('NeckBridgeBake',BV,BF); nm=bpy.data.materials.new('NeckBridgeBake'); nm.use_nodes=True
+    neckc=(np.abs(FH.shear(Wd)[:,2]-(NECK_A-0.01))<0.01)&(np.abs(Wd[:,0])<0.08)
+    nc=skin[neckc].mean(0)*corr[neckc].mean(0) if 'skin' in dir() else np.array([0.2,0.1,0.06])
+    # Franki's stub bottom is painted dark (old hoodie-collar shading): fade his texture into the neck tone over 3.5 cm
+    zf=FH.shear(B.world_co(fhead))[:,2]; nmx=np.clip((NECK_B+0.035-zf)/0.035,0,1); nmx=nmx*nmx*(3-2*nmx)
+    at_=fhead.data.attributes.new('neckmix','FLOAT','POINT'); at_.data.foreach_set('value',nmx)
+    fnt=fhead.data.materials[0].node_tree; emn=[n for n in fnt.nodes if n.type=='EMISSION'][0]; tin=[n for n in fnt.nodes if n.type=='TEX_IMAGE'][0]
+    a2=fnt.nodes.new('ShaderNodeAttribute'); a2.attribute_name='neckmix'; mx2=fnt.nodes.new('ShaderNodeMix'); mx2.data_type='RGBA'
+    fnt.links.new(a2.outputs['Fac'],mx2.inputs['Factor']); fnt.links.new(tin.outputs[0],mx2.inputs[6]); mx2.inputs[7].default_value=(*nc,1.0)
+    fnt.links.new(mx2.outputs[2],emn.inputs[0])
+    e_=nm.node_tree.nodes.new('ShaderNodeEmission'); e_.inputs[0].default_value=(*nc,1.0)
+    nm.node_tree.links.new(e_.outputs[0],nm.node_tree.nodes['Material Output'].inputs[0]); nb.data.materials.append(nm); nb.hide_render=True
 if upto>=1:
-    polys=[p for p in polys if not all(cutv[i] for i in p)]
+    polys=[p for p in polys if not all(i<len(cutv) and cutv[i] for i in p)]
     extra_v=[];extra_f=[]; base=len(Vsrc)
     for side,J in HANDJ.items():
         for f,(dy,dx,L,w,h,spread) in H.FINGERS.items():
             fv,ff=H.finger_mesh(J[f],w,h); extra_f+= [tuple(i+base+sum(len(e) for e in extra_v) for i in fc) for fc in ff]; extra_v.append(fv)
     Vsrc=np.vstack([Vsrc]+extra_v); polys=polys+extra_f
+if os.environ.get('DEBUG_SRC') and fhead is not None:
+    cols=[(0.8,0.5,0.4,1),(0.3,0.5,0.9,1),(0.3,0.8,0.3,1)]
+    nD=len(Wd); nF=len(FW)
+    parts=[[p for p in polys if max(p)<nD],[tuple(i-nD for i in p) for p in polys if nD<=min(p) and max(p)<nD+nF],[tuple(i-nD-nF for i in p) for p in polys if min(p)>=nD+nF and max(p)<nD+nF+len(BV)]]
+    for k,(VV,PP) in enumerate(((Wd,parts[0]),(FW,parts[1]),(BV,parts[2]))):
+        o=B.mesh_from_world(f'dbg{k}',VV,PP); mt=bpy.data.materials.new(f'd{k}'); mt.diffuse_color=cols[k]; o.data.materials.append(mt)
+    donor.hide_render=True; fhead.hide_render=True; nb.hide_render=True
+    cam=rlib.setup_render(400,400,8); rlib.closeup(cam,out+'_src',(0,0,1.60),0.32,views=(('front',0),('side',90),('back',180))); sys.exit(0)
 rm=B.mesh_from_world('rm',Vsrc,polys); rm.data.remesh_voxel_size=VOXEL
-if upto>=1:
+if upto>=1 or fhead is not None:
     import bmesh as _bm
-    bm=_bm.new(); bm.from_mesh(rm.data); _bm.ops.holes_fill(bm,edges=[e for e in bm.edges if e.is_boundary],sides=0); bm.to_mesh(rm.data); bm.free()
+    bm=_bm.new(); bm.from_mesh(rm.data); nb0=sum(e.is_boundary for e in bm.edges)
+    if fhead is not None:   # neck openings (donor cut, bridge ends, Franki stub): fan caps, holes_fill fails on these
+        ncap=B.fan_cap_loops(bm,lambda e: all(1.50<v.co[2]<1.72 and abs(v.co[0])<0.16 for v in e.verts))
+        print('neck loops fan-capped',ncap)
+    _bm.ops.holes_fill(bm,edges=[e for e in bm.edges if e.is_boundary],sides=0)
+    print('remesh source boundary edges',nb0,'->',sum(e.is_boundary for e in bm.edges),'non-manifold',sum(len(e.link_faces)>2 for e in bm.edges))
+    if os.environ.get('DEBUG_OPEN'):
+        mids=np.array([[(e.verts[0].co[k]+e.verts[1].co[k])/2 for k in range(3)] for e in bm.edges if e.is_boundary])
+        for lo,hi in ((0,0.5),(0.5,1.0),(1.0,1.4),(1.4,1.55),(1.55,1.62),(1.62,1.7),(1.7,1.9)):
+            m=(mids[:,2]>=lo)&(mids[:,2]<hi); print(f'  open edges z[{lo},{hi}) n={m.sum()}', (mids[m].min(0).round(3),mids[m].max(0).round(3)) if m.any() else '')
+    bm.to_mesh(rm.data); bm.free()
 B.activate(rm); bpy.ops.object.voxel_remesh()
 # drop internal shells the remesh leaves inside old fabric folds (they poke through after smoothing)
 import bmesh, scipy.sparse.csgraph as cg
@@ -155,6 +213,12 @@ nc,lab=cg.connected_components(B.adjacency(rm)); keep=np.bincount(lab).argmax()
 bm=bmesh.new(); bm.from_mesh(rm.data); bm.verts.ensure_lookup_table()
 bmesh.ops.delete(bm,geom=[v for v in bm.verts if lab[v.index]!=keep],context='VERTS'); bm.to_mesh(rm.data); bm.free()
 print('remesh components',nc,'kept',np.bincount(lab).max())
+if os.environ.get('DEBUG_RM'):
+    donor.hide_render=True
+    if fhead is not None: fhead.hide_render=True; nb.hide_render=True; fhair.hide_render=True
+    rm.data.materials.append(bpy.data.materials.new('c'))
+    cam=rlib.setup_render(400,400,8); rlib.closeup(cam,out+'_rm',(0,0,1.60),0.36,views=(('front',0),('side',90),('back',180)))
+    rlib.closeup(cam,out+'_rmfull',(0,0,0.93),2.0,views=(('front',0),)); sys.exit(0)
 W=B.world_co(rm); A=B.adjacency(rm)
 tree=cKDTree(Wd); _,nn=tree.query(W)
 rbox=B.close_mask(A,boxer[nn],2); rvest=B.close_mask(A,vest[nn],2)
@@ -244,6 +308,14 @@ if upto>=1:
         mc=np.array([J[f][0] for f in ('Index','Mid','Ring','Pinky')])
         dmin=np.min(np.linalg.norm(W[:,None,:]-mc[None,:,:],axis=2),axis=1)
         relax(dmin<0.032,80,ramp=5)
+if fhead is None:
+    # the donor face (AI scan) has flat eyelid 'shelves' that shade as dark wedges at the eye corners;
+    # soften only the eye sockets (texture keeps the eye detail)
+    for eb_,sg_ in (('CC_Base_L_Eye',1),('CC_Base_R_Eye',-1)):
+        ec=B.bone_world(arm,eb_,donor)+np.array([sg_*0.012,0.0,0.002])
+        de=np.linalg.norm((W-ec)/np.array([0.038,0.045,0.020]),axis=1); eye=(de<1.0)&(W[:,0]*sg_>0.008)
+        W=B.biharmonic_fill(W,A,eye); relax(B.dilate(A,eye,3),15,ramp=3)
+        print('eye socket rebuilt',eb_,int(eye.sum()))
 B.set_world_co(rm,W)
 if os.environ.get('DEBUG_HI'):
     donor.hide_render=True; rm.data.materials.append(bpy.data.materials.new('c'))
@@ -252,8 +324,46 @@ if os.environ.get('DEBUG_HI'):
 
 # ---------- 5. decimate (symmetric) ----------
 B.activate(rm)
-dec=rm.modifiers.new('dec','DECIMATE'); dec.ratio=TARGET_TRIS/ (2*len(rm.data.vertices)); dec.use_symmetry=True; dec.symmetry_axis='X'
-bpy.ops.object.modifier_apply(modifier='dec')
+print('pre-decimate verts',len(rm.data.vertices),'faces',len(rm.data.polygons))
+# keep the face denser (eyes, nose, lips bake badly on large triangles): vertex-group weighted collapse.
+# Weight 0 near the face front = protected, 1 elsewhere; iterate the ratio until the total hits the target.
+Wr=B.world_co(rm); hb=B.bone_world(arm,'CC_Base_Head',donor)
+# features oval: eyes ~1.72 m, mouth ~1.66 m, on the front of the face (y < head joint - 6 cm)
+fc=hb+np.array([0,-0.10,0.055]); dd_=np.linalg.norm((Wr-fc)/np.array([0.055,0.05,0.065]),axis=1)
+face=np.clip((1.3-dd_)/0.3,0,1)*(Wr[:,1]<hb[1]-0.06)
+def tris_of(o): return sum(len(p.vertices)-2 for p in o.data.polygons)
+# Face detail: eyes/nose/mouth bake badly on large triangles. Decimate evenly, then subdivide only the features
+# oval once and snap the new vertices onto the full-detail surface (BVH nearest), so sockets and nostrils keep shape.
+from mathutils.bvhtree import BVHTree
+import bmesh as _bmF
+hi=_bmF.new(); hi.from_mesh(rm.data); hi_bvh=BVHTree.FromBMesh(hi)
+FACE_SUB=int(os.environ.get('FACE_SUB','1'))
+body_target=TARGET_TRIS-int(os.environ.get('FACE_EXTRA','2400'))*FACE_SUB
+src=tris_of(rm); ratio=body_target/src
+for it in range(5):
+    tmp=rm.copy(); tmp.data=rm.data.copy(); bpy.context.scene.collection.objects.link(tmp); B.activate(tmp)
+    d_=tmp.modifiers.new('dec','DECIMATE'); d_.ratio=ratio; d_.use_symmetry=True; d_.symmetry_axis='X'
+    bpy.ops.object.modifier_apply(modifier='dec'); got=tris_of(tmp)
+    if abs(got-body_target)<0.01*body_target or it==4: break
+    ratio*=body_target/got; bpy.data.objects.remove(tmp,do_unlink=True)
+bpy.data.objects.remove(rm,do_unlink=True); rm=tmp; rm.name='rm'; B.activate(rm)
+if FACE_SUB:
+    bm=_bmF.new(); bm.from_mesh(rm.data); bm.verts.ensure_lookup_table()
+    Wv=np.array([v.co[:] for v in bm.verts]); dv=np.linalg.norm((Wv-fc)/np.array([0.055,0.05,0.065]),axis=1)
+    infa=(dv<1.15)&(Wv[:,1]<hb[1]-0.05)
+    edges=[e for e in bm.edges if infa[e.verts[0].index] or infa[e.verts[1].index]]
+    res=_bmF.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
+    _bmF.ops.triangulate(bm,faces=bm.faces)
+    newv=[g for g in res['geom_inner'] if isinstance(g,_bmF.types.BMVert)]
+    moved=0
+    for v in bm.verts:
+        if v.index>=len(Wv) or infa[v.index] if v.index<len(Wv) else True:
+            loc,nrm,idx,dist=hi_bvh.find_nearest(v.co)
+            if loc is not None and dist<0.01: v.co=loc; moved+=1
+    bm.to_mesh(rm.data); bm.free()
+    print('face oval subdivided: snapped verts',moved)
+print('decimated: total',tris_of(rm))
+B.activate(rm)
 bpy.ops.object.shade_smooth()
 tris=sum(len(p.vertices)-2 for p in rm.data.polygons); print('LOD0 tris',tris,'verts',len(rm.data.vertices))
 
@@ -278,6 +388,13 @@ if upto>=1:
             g=rm.vertex_groups.get(name) or rm.vertex_groups.new(name=name)
             for k,i in enumerate(idx):
                 if w[k]*bl[k]>1e-4: g.add([int(i)],float(w[k]*bl[k]),'ADD')
+if fhead is not None:
+    P=B.world_co(rm); Pz=FH.shear(P)[:,2]; idx=np.where((Pz>NECK_A)&(np.abs(P[:,0])<0.2))[0]
+    wh=np.clip((Pz[idx]-NECK_A)/(NECK_B+0.015-NECK_A),0,1); wh=wh*wh*(3-2*wh)
+    vs=rm.data.vertices; gl=list(rm.vertex_groups); gH=rm.vertex_groups.get('CC_Base_Head')
+    for k,i in enumerate(idx):
+        for ge in list(vs[int(i)].groups): gl[ge.group].add([int(i)],ge.weight*(1-wh[k]),'REPLACE')
+        if wh[k]>1e-4: gH.add([int(i)],float(wh[k]),'ADD')
 bpy.ops.object.vertex_group_limit_total(group_select_mode='ALL',limit=4)
 bpy.ops.object.vertex_group_normalize_all(group_select_mode='ALL',lock_active=False)
 
@@ -291,7 +408,15 @@ nt.links.new(tn.outputs[0],nt.nodes['Principled BSDF'].inputs['Base Color']); nt
 rm.data.materials.clear(); rm.data.materials.append(bmat)
 sc=bpy.context.scene; sc.render.engine='CYCLES'; sc.cycles.device='CPU'; sc.cycles.samples=1
 donor.hide_render=False
+if fhead is not None:
+    import bmesh as _bm2
+    bm=_bm2.new(); bm.from_mesh(donor.data); bm.verts.ensure_lookup_table()
+    Zd_=FH.shear(Wd)[:,2]
+    _bm2.ops.delete(bm,geom=[f for f in bm.faces if any(v.index<len(Wd) and Zd_[v.index]>NECK_A+0.004 and abs(Wd[v.index,0])<0.2 for v in f.verts)],context='FACES')
+    bm.to_mesh(donor.data); bm.free(); fhead.hide_render=False
 for o in sc.objects: o.select_set(False)
+if fhead is not None:
+    fhead.select_set(True); nb.hide_render=False; nb.select_set(True)
 donor.select_set(True); rm.select_set(True); bpy.context.view_layer.objects.active=rm
 # donor is posed by its armature modifier; bake against its rest shape
 for md in donor.modifiers: md.show_viewport=md.show_render=False
@@ -380,6 +505,19 @@ for name in PIECES:
     bmesh.ops.delete(bm,geom=[v for v in bm.verts if not v.link_faces],context='VERTS')
     bm.to_mesh(o.data); bm.free()
     counts[name]=sum(len(p.vertices)-2 for p in o.data.polygons)
+if fhead is not None:
+    fhead.hide_render=True; fhead.hide_viewport=True; nb.hide_render=True; nb.hide_viewport=True
+    Mi=np.linalg.inv(np.array(donor.matrix_world)); HWl=B.world_co(fhair)@Mi[:3,:3].T+Mi[:3,3]
+    fhair.data.vertices.foreach_set('co',HWl.ravel()); fhair.data.update()
+    fhair.name=f'{NAME}Bare_Hair'; fhair.data.name=fhair.name
+    fhair.parent=arm; fhair.matrix_parent_inverse=mathutils.Matrix.Identity(4); fhair.matrix_basis=mathutils.Matrix.Identity(4)
+    g=fhair.vertex_groups.new(name='CC_Base_Head'); g.add(list(range(len(fhair.data.vertices))),1.0,'REPLACE')
+    hmd=fhair.modifiers.new('Armature','ARMATURE'); hmd.object=arm
+    hm=bpy.data.materials.new(f'{NAME}Hair'); hm.use_nodes=True; hm.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value=fhaircol
+    hm.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value=0.7
+    fhair.data.materials.clear(); fhair.data.materials.append(hm)
+    for f in fhair.data.polygons: f.use_smooth=True
+    counts['Hair']=sum(len(p.vertices)-2 for p in fhair.data.polygons)
 print('pieces',counts)
 sc.collection.objects.unlink(rm)
 bpy.ops.wm.save_as_mainfile(filepath=out+'.blend',compress=True)
