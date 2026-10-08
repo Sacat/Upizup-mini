@@ -139,20 +139,33 @@ def relax(region,iters,ramp=6,inset=0.0,mu=-0.53):
     band=B.dilate(A,region&(wgt<1),2)
     W=B.laplacian(W,A,band,iters=max(10,ramp*3),weight=np.clip(B.ring_distance(A,band,4)/4,0,1))
 # ---------- 3. legs: boxers -> bare hips ----------
-edge=shell_inset(B.dilate(A,rbox,int(os.environ.get('BOXER_GROW','4'))),float(os.environ.get('BOXER_T','0.005')))
-relax(edge,120,ramp=4)
-# (leg-opening step is handled by the per-thigh radial rebuild below)
+# Conservative: keep the donor's hip/thigh/glute volume (tight boxers ~= body). Only:
+#  (1) remove the fabric thickness (1.5 mm) with a soft edge,
+#  (2) rebuild a geometric band +-HEM_R around each leg opening as the smoothest surface between the real
+#      thigh below and the real hip above (biharmonic; boundary = untouched surface on both sides -> no shrink),
+#  (3) flatten the groin bulge, (4) light wrinkle smoothing.
+edge=shell_inset(B.dilate(A,rbox,int(os.environ.get('BOXER_GROW','4'))),float(os.environ.get('BOXER_T','0.0015')))
+hemv=rbox&B.dilate(A,~rbox,1)&(z<0.90)                       # leg-opening boundary vertices
+HEM_R=float(os.environ.get('HEM_R','0.022'))
+hem=np.zeros(len(W),bool)
+for sg in (1,-1):
+    hv=W[hemv&(np.sign(x)==sg)]
+    if len(hv)==0: continue
+    # asymmetric: the detected hem line follows the fold underside; the visible lip sits 2-3 cm ABOVE it
+    dd,ii=cKDTree(hv).query(W); dz=W[:,2]-hv[ii,2]
+    hem|=(dd<float(os.environ.get('HEM_UP','0.045')))&(dz>-HEM_R)&(dz<float(os.environ.get('HEM_UP','0.045')))&(np.sign(x)==sg)
+W0=W.copy(); W=B.biharmonic_fill(W,A,hem); print('hem band verts',int(hem.sum()),'max move mm',round(1000*np.linalg.norm(W-W0,axis=1).max(),1))
+if os.environ.get('DEBUG_BAND'):
+    B.set_world_co(rm,W0); cattr=rm.data.color_attributes.new('h','FLOAT_COLOR','POINT')
+    cc=np.tile([0.7,0.7,0.7,1.0],(len(W),1)); cc[rbox]=[0.85,0.45,0.45,1]; cc[hem]=[0.3,0.4,0.95,1]; cc[hemv]=[1,1,0,1]; cattr.data.foreach_set('color',cc.ravel())
+    mt=bpy.data.materials.new('h'); mt.use_nodes=True; at=mt.node_tree.nodes.new('ShaderNodeAttribute'); at.attribute_name='h'
+    mt.node_tree.links.new(at.outputs[0],mt.node_tree.nodes['Principled BSDF'].inputs[0]); rm.data.materials.append(mt); donor.hide_render=True
+    for f in rm.data.polygons: f.use_smooth=True
+    cam=rlib.setup_render(400,400,8); rlib.closeup(cam,out+'_band',(0,0,0.88),0.5,views=(('front',0),('side',90),('back',180))); sys.exit(0)
 groin=(np.abs(x)<0.07)&(z>0.80)&(z<0.975)&(y<0.0)&B.dilate(A,rbox,6)
 W=B.biharmonic_fill(W,A,B.dilate(A,groin,2))
 relax(B.dilate(A,groin,8),40,ramp=8)
-# thighs: the boxer leg band squeezed the thigh (step in radius). Rebuild the upper-thigh radius per angle
-# from clean thigh below and hip above, around each thigh bone.
-for side,sd in (('L',1),('R',-1)):
-    p0=B.bone_world(arm,f'CC_Base_{side}_Thigh',donor); p1=B.bone_world(arm,f'CC_Base_{side}_Calf',donor)
-    W,bz=B.radial_bridge(W,p0,p1,sd,band=(0.22,0.40),refs=[(0.10,0.18),(0.44,0.56)])
-    print(side,'thigh p0',p0.round(3),'band verts',bz.sum())
-# low-cutoff Taubin over the whole boxer zone: removes 1-2 cm fabric features (hems, seams, waistband), keeps glute/thigh form
-relax(B.dilate(A,rbox,3)&(z<1.0),int(os.environ.get('LOWPASS_IT','300')),ramp=12,mu=-0.505)
+relax(B.dilate(A,rbox,3)&(z<1.0),int(os.environ.get('LOWPASS_IT','40')),ramp=12,mu=-0.505)
 # ---------- 4. neck: vest -> bare torso, clean neck/shoulder join ----------
 if upto>=2:
     edge=shell_inset(B.dilate(A,rvest,int(os.environ.get('VEST_GROW','4'))),float(os.environ.get('VEST_T','0.004')))

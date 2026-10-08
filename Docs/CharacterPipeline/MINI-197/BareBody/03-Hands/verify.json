@@ -65,37 +65,37 @@
   1.8497
  ],
  "rest_dist_to_donor_mm_p50_p99": [
-  2.5,
-  17.2
+  2.4,
+  10.0
  ],
  "meshes": {
-  "SacatBare_Arms": {
-   "tris": 2450,
+  "SacatBare_Hands": {
+   "tris": 1582,
    "max_influences": 4,
    "unweighted": 0
   },
   "SacatBare_Torso": {
-   "tris": 6602,
+   "tris": 6682,
    "max_influences": 4,
    "unweighted": 0
   },
   "SacatBare_Head": {
-   "tris": 3542,
+   "tris": 3518,
    "max_influences": 4,
    "unweighted": 0
   },
-  "SacatBare_Hands": {
-   "tris": 1588,
+  "SacatBare_Arms": {
+   "tris": 2438,
    "max_influences": 4,
    "unweighted": 0
   },
   "SacatBare_Legs": {
-   "tris": 4206,
+   "tris": 4172,
    "max_influences": 4,
    "unweighted": 0
   },
   "SacatBare_Feet": {
-   "tris": 1612,
+   "tris": 1608,
    "max_influences": 3,
    "unweighted": 0
   }

@@ -133,3 +133,34 @@ def laplacian(W,A,region,iters=10,lam=0.5,weight=None):
     if weight is not None: r=r*weight[:,None]
     for _ in range(iters): W=W+lam*r*(P@W-W)
     return W
+
+def radial_hermite(W,p0,p1,side,band,ref_hi,ref_lo,nbins=48,rmax=0.14,edge=0.02):
+    """Replace a limb's radius inside band=(t0,t1) (fraction along p0->p1) by a monotone smoothstep, per angle,
+    between line fits of the real surface just above (ref_hi) and just below (ref_lo), evaluated at the band ends.
+    Cannot overshoot (no dents/bulges), unlike a quadratic or slope-matched Hermite through noisy refs."""
+    u=p1-p0; L=np.linalg.norm(u); u=u/L
+    ref=np.array([1.0,0,0]); e1=ref-u*ref.dot(u); e1/=np.linalg.norm(e1); e2=np.cross(u,e1)
+    d=W-p0; t=d@u/L; radial=d-np.outer(d@u,u); r=np.linalg.norm(radial,axis=1)
+    th=np.arctan2(radial@e2,radial@e1)
+    sel=(np.sign(W[:,0])==side)&(r<rmax)&(t>ref_hi[0]-0.03)&(t<ref_lo[1]+0.03)
+    bins=((th+np.pi)/(2*np.pi)*nbins).astype(int)%nbins
+    hi=np.full((nbins,2),np.nan); lo=np.full((nbins,2),np.nan)
+    for k in range(nbins):
+        nb=(bins==k)|(bins==(k+1)%nbins)|(bins==(k-1)%nbins)
+        for rr,(a,b) in ((hi,ref_hi),(lo,ref_lo)):
+            m=sel&nb&(t>=a)&(t<=b)
+            if m.sum()>=6: rr[k]=np.polyfit(t[m],r[m],1)
+    for rr in (hi,lo):
+        bad=np.isnan(rr).any(1)
+        if bad.any(): rr[bad]=np.nanmean(rr,0)
+        for _ in range(2): rr[:]=(np.roll(rr,1,0)+2*rr+np.roll(rr,-1,0))/4
+    f=(th+np.pi)/(2*np.pi)*nbins-0.5; k0=np.floor(f).astype(int); a=(f-k0)[:,None]
+    H=(1-a)*hi[k0%nbins]+a*hi[(k0+1)%nbins]; Lo=(1-a)*lo[k0%nbins]+a*lo[(k0+1)%nbins]
+    t0,t1=band; h=t1-t0; s=np.clip((t-t0)/h,0,1)
+    # end radii from the line fits evaluated at the band ends; monotone smoothstep between them (no slopes ->
+    # no overshoot: the result always lies between the hip radius above and the thigh radius below)
+    P0=H[:,0]*t0+H[:,1]; P1=Lo[:,0]*t1+Lo[:,1]
+    ss=s*s*(3-2*s); rfit=P0+(P1-P0)*ss
+    w=np.clip(np.minimum(t-t0+edge,t1+edge-t)/edge,0,1); w=w*w*(3-2*w); w=np.where(sel,w,0)
+    rn=r+(rfit-r)*w
+    return W+radial*((rn/np.maximum(r,1e-6)-1))[:,None], w>0
