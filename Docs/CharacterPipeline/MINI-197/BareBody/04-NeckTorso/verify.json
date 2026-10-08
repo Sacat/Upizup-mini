@@ -1,0 +1,117 @@
+{
+ "bones": 101,
+ "bones_missing": [],
+ "bone_max_offset_mm_non_finger": 0.001,
+ "finger_bones_moved_mm": {
+  "CC_Base_L_Index1": 32.8,
+  "CC_Base_L_Index2": 62.3,
+  "CC_Base_L_Index3": 76.4,
+  "CC_Base_L_Mid1": 16.8,
+  "CC_Base_L_Mid2": 32.8,
+  "CC_Base_L_Mid3": 31.8,
+  "CC_Base_L_Pinky1": 77.5,
+  "CC_Base_L_Pinky2": 60.1,
+  "CC_Base_L_Pinky3": 47.8,
+  "CC_Base_L_Ring1": 40.4,
+  "CC_Base_L_Ring2": 34.2,
+  "CC_Base_L_Ring3": 30.1,
+  "CC_Base_L_Thumb1": 47.6,
+  "CC_Base_L_Thumb2": 72.8,
+  "CC_Base_L_Thumb3": 101.3,
+  "CC_Base_R_Index1": 35.1,
+  "CC_Base_R_Index2": 61.1,
+  "CC_Base_R_Index3": 75.2,
+  "CC_Base_R_Mid1": 19.6,
+  "CC_Base_R_Mid2": 33.7,
+  "CC_Base_R_Mid3": 32.7,
+  "CC_Base_R_Pinky1": 68.7,
+  "CC_Base_R_Pinky2": 60.9,
+  "CC_Base_R_Pinky3": 50.2,
+  "CC_Base_R_Ring1": 30.6,
+  "CC_Base_R_Ring2": 21.7,
+  "CC_Base_R_Ring3": 5.0,
+  "CC_Base_R_Thumb1": 37.6,
+  "CC_Base_R_Thumb2": 57.7,
+  "CC_Base_R_Thumb3": 49.8
+ },
+ "armature_object_matrix": [
+  [
+   0.01,
+   0.0,
+   0.0,
+   0.0
+  ],
+  [
+   0.0,
+   0.01,
+   0.0,
+   0.0
+  ],
+  [
+   0.0,
+   -0.0,
+   0.01,
+   0.0
+  ],
+  [
+   0.0,
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "height_donor_new": [
+  1.8501,
+  1.8498
+ ],
+ "rest_dist_to_donor_mm_p50_p99": [
+  2.5,
+  10.4
+ ],
+ "meshes": {
+  "SacatBare_Hands": {
+   "tris": 1826,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Arms": {
+   "tris": 2818,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Head": {
+   "tris": 4134,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Torso": {
+   "tris": 4478,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Legs": {
+   "tris": 4876,
+   "max_influences": 4,
+   "unweighted": 0
+  },
+  "SacatBare_Feet": {
+   "tris": 1868,
+   "max_influences": 3,
+   "unweighted": 0
+  }
+ },
+ "total_tris": 20000,
+ "posed_bounds_m": [
+  [
+   -0.937,
+   -0.505,
+   0.001
+  ],
+  [
+   0.71,
+   0.16,
+   1.85
+  ]
+ ],
+ "posed_sane": true
+}

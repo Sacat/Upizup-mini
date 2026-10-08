@@ -23,8 +23,8 @@ px=B.tex_pixels(tex); col,_,_=B.vert_colors(donor,px); Wd=B.world_co(donor); Ad=
 s,v=B.hsv(col); z=Wd[:,2]
 boxer=B.close_mask(Ad,((v<0.22)&(s<0.45)&(z>0.70)&(z<1.10))|((v<0.30)&(z>0.78)&(z<1.08)&(np.abs(Wd[:,0])<0.20)),4)
 vest=B.close_mask(Ad,(v>0.62)&(s<0.18)&(z>0.95)&(z<1.58),3)
-fill=B.dilate(Ad,boxer,2)
-if upto>=2: fill|=B.dilate(Ad,vest,2)
+fill=B.dilate(Ad,boxer,3)
+if upto>=2: fill|=B.dilate(Ad,vest,4)
 unknown=B.dilate(Ad,boxer|vest,4)|((s<0.22)&(z>0.6)&(z<1.6))      # sample skin only from clean skin
 if upto>=1: unknown|=np.abs(Wd[:,0])>0.745
 lin=B.srgb2lin(col)
@@ -67,9 +67,25 @@ if upto>=1:
         print('tone corr',name,corr[m&skinv].mean(0).round(3))
 me=donor.data
 skin=skin*np.where(fill[:,None],corr,1.0)
+AREOLA=[]
+if upto>=1:
+    # filled clothing areas: use the exact equalised target tone (the rest of the skin is pulled to it too), so the
+    # old vest/boxer outline does not show as a paler 'bodysuit'. Fine variation is added in the shader.
+    bodyfill=fill&~(np.abs(Wd[:,0])>0.745)
+    # start from the neighbouring skin at the edge (harmonic fill) and ease to the body tone ~5 cm inside,
+    # so the old fabric outline does not read as a seam
+    dfill=B.ring_distance(Ad,bodyfill,8); w=np.clip((dfill-1)/7,0,1); w=(w*w*(3-2*w))[:,None]
+    skin=np.where(bodyfill[:,None],skin*(1-w)+target[None,:]*float(os.environ.get('FILL_GAIN','0.97'))*w,skin)
+if upto>=2:
+    # areolae on the pectorals: most forward chest point per side between z 1.26 and 1.36
+    for sg in (1,-1):
+        # male nipple spacing ~19 cm on a 1.85 m body (about 4th intercostal space, ~1.31 m here)
+        m=(np.abs(Wd[:,0]*sg-0.095)<0.012)&(Wd[:,2]>1.29)&(Wd[:,2]<1.33)
+        i=np.where(m)[0][np.argmin(Wd[m,1])]; AREOLA.append(Wd[i]); print('areola',Wd[i].round(3))
 ca=me.color_attributes.new('tone_corr','FLOAT_COLOR','POINT'); ca.data.foreach_set('color',np.c_[corr,np.ones(len(Wd))].ravel())
 a=me.color_attributes.new('skin_fill','FLOAT_COLOR','POINT'); a.data.foreach_set('color',np.c_[skin,np.ones(len(Wd))].ravel())
-mk=me.attributes.new('fill_mask','FLOAT','POINT'); mk.data.foreach_set('value',fill.astype(float))
+soft=np.clip(B.ring_distance(Ad,fill,3)/3,0,1)         # feathered edge: 1/3, 2/3, 1 over the first rings inside
+mk=me.attributes.new('fill_mask','FLOAT','POINT'); mk.data.foreach_set('value',soft.astype(float))
 img=bpy.data.images.load(tex)
 def skin_material(name,use_tex=True):
     mat=bpy.data.materials.new(name); mat.use_nodes=True; nt=mat.node_tree; bsdf=nt.nodes['Principled BSDF']
@@ -82,7 +98,31 @@ def skin_material(name,use_tex=True):
     mul=nt.nodes.new('ShaderNodeMix'); mul.data_type='RGBA'; mul.blend_type='MULTIPLY'; mul.inputs['Factor'].default_value=1.0
     nt.links.new(t.outputs[0],mul.inputs[6]); nt.links.new(tc.outputs[0],mul.inputs[7])
     nt.links.new(m.outputs['Fac'],mix.inputs['Factor']); nt.links.new(mul.outputs[2],mix.inputs[6]); nt.links.new(c.outputs[0],mix.inputs[7])
-    em=nt.nodes.new('ShaderNodeEmission'); nt.links.new(mix.outputs[2],em.inputs[0])
+    src=mix.outputs[2]
+    if upto>=1:
+        tcn=nt.nodes.new('ShaderNodeTexCoord')
+        def noise(scale,lo,hi):
+            n=nt.nodes.new('ShaderNodeTexNoise'); n.inputs['Scale'].default_value=scale; n.inputs['Detail'].default_value=6
+            nt.links.new(tcn.outputs['Object'],n.inputs['Vector'])
+            r=nt.nodes.new('ShaderNodeMapRange'); r.inputs['To Min'].default_value=lo; r.inputs['To Max'].default_value=hi
+            nt.links.new(n.outputs['Fac'],r.inputs['Value']); return r.outputs['Result']
+        def mul(a,b):
+            mm=nt.nodes.new('ShaderNodeMix'); mm.data_type='RGBA'; mm.blend_type='MULTIPLY'; mm.inputs['Factor'].default_value=1.0
+            nt.links.new(a,mm.inputs[6]); nt.links.new(b,mm.inputs[7]) if not isinstance(b,float) else None; return mm.outputs[2]
+        var=mul(noise(0.35,0.93,1.07),noise(6.0,0.96,1.04))             # ~3 cm mottling x ~1.5 mm grain
+        fv=nt.nodes.new('ShaderNodeMix'); fv.data_type='RGBA'                # only inside the filled regions
+        nt.links.new(m.outputs['Fac'],fv.inputs['Factor']); fv.inputs[6].default_value=(1,1,1,1); nt.links.new(var,fv.inputs[7])
+        src=mul(src,fv.outputs[2])
+        Mi=np.linalg.inv(np.array(donor.matrix_world))
+        for P in AREOLA:
+            pl=(Mi[:3,:3]@P+Mi[:3,3])
+            vm=nt.nodes.new('ShaderNodeVectorMath'); vm.operation='DISTANCE'; vm.inputs[1].default_value=tuple(pl)
+            nt.links.new(tcn.outputs['Object'],vm.inputs[0])
+            for rad,dark in ((1.35,0.74),(0.45,0.80)):                       # areola 13.5 mm, nipple 4.5 mm (cm units)
+                r=nt.nodes.new('ShaderNodeMapRange'); r.inputs['From Min'].default_value=rad*0.75; r.inputs['From Max'].default_value=rad
+                r.inputs['To Min'].default_value=dark; r.inputs['To Max'].default_value=1.0
+                nt.links.new(vm.outputs['Value'],r.inputs['Value']); src=mul(src,r.outputs['Result'])
+    em=nt.nodes.new('ShaderNodeEmission'); nt.links.new(src,em.inputs[0])
     outn=nt.nodes['Material Output']; nt.links.new(em.outputs[0],outn.inputs[0])   # emission: bake source = pure albedo
     return mat
 me.materials.clear(); me.materials.append(skin_material('DonorBake'))
@@ -168,11 +208,28 @@ relax(B.dilate(A,groin,8),40,ramp=8)
 relax(B.dilate(A,rbox,3)&(z<1.0),int(os.environ.get('LOWPASS_IT','40')),ramp=12,mu=-0.505)
 # ---------- 4. neck: vest -> bare torso, clean neck/shoulder join ----------
 if upto>=2:
-    edge=shell_inset(B.dilate(A,rvest,int(os.environ.get('VEST_GROW','4'))),float(os.environ.get('VEST_T','0.004')))
-    relax(edge,200,ramp=4)
-    # neck/shoulder join: gentle extra relax across the trapezius line so the strap ridge and neckline lip vanish
-    join=(z>1.40)&(z<1.56)&(np.abs(x)<0.20)
-    relax(join,60,ramp=10)
+    # Same conservative recipe as the legs: the vest is tight, so keep the torso volume and only
+    #  (1) remove 1.5 mm of fabric, (2) rebuild a band around each vest edge (bottom hem over the waistband,
+    #  neckline, armholes) by a biharmonic fill anchored to the real surface on both sides,
+    #  (3) low-pass the ribbing, (4) a light pass across the neck/shoulder join.
+    edge=shell_inset(B.dilate(A,rvest,int(os.environ.get('VEST_GROW','3'))),float(os.environ.get('VEST_T','0.0015')))
+    vb=rvest&B.dilate(A,~rvest,1)
+    hemb=vb&(z<1.10); neckb=vb&(z>1.38)&(np.abs(x)<0.13); armb=vb&~hemb&~neckb
+    band=np.zeros(len(W),bool)
+    for m,r_ in ((hemb,float(os.environ.get('VEST_HEM_R','0.032'))),(neckb,0.016),(armb,0.018)):
+        if m.any(): dd,_=cKDTree(W[m]).query(W); band|=dd<r_
+    band&=(np.abs(x)<0.32)&(z>0.90)
+    W0=W.copy(); W=B.biharmonic_fill(W,A,band)
+    print('vest band verts',int(band.sum()),'max move mm',round(1000*np.linalg.norm(W-W0,axis=1).max(),1))
+    relax(B.dilate(A,rvest,2)&~band,int(os.environ.get('VEST_LOWPASS','300')),ramp=8,mu=-0.505)
+    # small slits / label bumps left from the vest (high local Laplacian on the torso)
+    import scipy.sparse as sp
+    deg=np.asarray(A.sum(1)).ravel(); Pm=sp.diags(1/np.maximum(deg,1))@A
+    lap=np.linalg.norm(Pm@W-W,axis=1); spike=(lap>0.0010)&(z>0.95)&(z<1.62)&(np.abs(x)<0.26)
+    print('torso spikes',int(spike.sum()))
+    if spike.any(): relax(B.dilate(A,spike,4),40,ramp=3)
+    join=(z>1.40)&(z<1.58)&(np.abs(x)<0.20)
+    relax(join,30,ramp=10)
 if upto>=1:
     # back of the hand: the donor dorsum is as thick as the old fused finger block; taper it down to finger height
     # over the last 3.5 cm before the knuckles so the fingers do not emerge under a ledge
