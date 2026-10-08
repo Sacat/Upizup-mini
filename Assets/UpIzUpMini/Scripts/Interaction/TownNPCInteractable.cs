@@ -265,7 +265,7 @@ namespace UpIzUpMini.Interaction
                     break;
 
                 case NpcRole.BlackMarket:
-                    _lastFeedback = "I buying clothes and accessories allu done with. Show me what you have, mn.";
+                    _lastFeedback = "Keep it quiet. I have something under the counter, and I still buy old clothes.";
                     // MINI-082: pass this NPC's own transform so the shop
                     // panel can fade itself shut when the player walks away.
                     shop?.Open(transform);

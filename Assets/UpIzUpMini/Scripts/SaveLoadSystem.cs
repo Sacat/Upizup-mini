@@ -48,6 +48,9 @@ namespace UpIzUpMini
         // CaptureConsumables/LoadConsumables.
         public List<string> consumableIds = new List<string>();
         public List<int> consumableCounts = new List<int>();
+        public List<string> ammoIds = new List<string>();
+        public List<int> ammoCounts = new List<int>();
+        public int sidearmMagazine;
 
         // MINI-066: where the bike was left. Vector3.zero means "no bike in the
         // world yet", which Load treats as "leave it wherever the scene put
@@ -57,6 +60,11 @@ namespace UpIzUpMini
         public Vector3 bikeEuler;
 
         public int missionIndex;
+        public string missionId;
+        public int missionSchemaVersion;
+        public string resumeAfterToolMissionId;
+        public int resumeAfterToolObjectiveIndex;
+        public List<int> resumeAfterToolProgress = new List<int>();
         public int objectiveIndex;
         public List<int> objectiveProgress = new List<int>();
     }
@@ -118,12 +126,19 @@ namespace UpIzUpMini
                 EconomyManager.Instance.CaptureCharacterOwned(0, save.sacatOwnedItemIds);
                 EconomyManager.Instance.CaptureCharacterOwned(1, save.frankiOwnedItemIds);
                 EconomyManager.Instance.CaptureConsumables(save.consumableIds, save.consumableCounts);
+                EconomyManager.Instance.CaptureAmmo(save.ammoIds, save.ammoCounts);
             }
+            if (EconomyManager.Instance != null) save.sidearmMagazine = EconomyManager.Instance.SidearmMagazine;
 
             var missions = Missions.MissionSystem.Instance;
             if (missions != null)
             {
                 save.missionIndex = missions.SaveMissionIndex;
+                save.missionId = missions.CurrentMissionId;
+                save.missionSchemaVersion = 2;
+                save.resumeAfterToolMissionId = missions.ResumeAfterToolMissionId;
+                save.resumeAfterToolObjectiveIndex = missions.ResumeAfterToolObjectiveIndex;
+                save.resumeAfterToolProgress = missions.CaptureResumeAfterToolProgress();
                 save.objectiveIndex = missions.SaveObjectiveIndex;
                 save.objectiveProgress = missions.CaptureObjectiveProgress();
             }
@@ -181,6 +196,8 @@ namespace UpIzUpMini
                 save.seedIds, save.seedCounts, save.ownedItemIds,
                 save.sacatOwnedItemIds, save.frankiOwnedItemIds, save.activeCharacter);
             EconomyManager.Instance?.LoadConsumables(save.consumableIds, save.consumableCounts);
+            EconomyManager.Instance?.LoadAmmo(save.ammoIds, save.ammoCounts);
+            EconomyManager.Instance?.LoadSidearmMagazine(save.sidearmMagazine);
 
             // MINI-068: the bike is returned to its HOME spot outside the farm
             // safehouse on every load, not to wherever it was left.
@@ -198,8 +215,31 @@ namespace UpIzUpMini
             // user ever wants "park it where you leave it" back.
             Vehicles.VehicleSpawnController.ReturnBikeHome();
 
-            Missions.MissionSystem.Instance?.LoadState(
-                save.missionIndex, save.objectiveIndex, save.objectiveProgress);
+            var missionSystem = Missions.MissionSystem.Instance;
+            if (missionSystem != null)
+            {
+                missionSystem.ClearResumeAfterTool();
+                int resolvedMissionIndex = missionSystem.ResolveSavedMissionIndex(
+                    save.missionId, save.missionIndex, save.missionSchemaVersion);
+                int toolMissionIndex = missionSystem.ResolveSavedMissionIndex("M12T", 0, 2);
+                bool needsLegacyToolMission = save.missionSchemaVersion < 2
+                    && resolvedMissionIndex > toolMissionIndex
+                    && EconomyManager.Instance != null
+                    && !EconomyManager.Instance.OwnsItem(Combat.FirearmController.SidearmId);
+                if (needsLegacyToolMission)
+                {
+                    string resumeId = missionSystem.MissionIdAt(resolvedMissionIndex);
+                    missionSystem.LoadState(toolMissionIndex, 0, null);
+                    missionSystem.SetResumeAfterTool(resumeId, save.objectiveIndex, save.objectiveProgress);
+                }
+                else
+                {
+                    missionSystem.LoadState(resolvedMissionIndex, save.objectiveIndex, save.objectiveProgress);
+                    if (!string.IsNullOrEmpty(save.resumeAfterToolMissionId))
+                        missionSystem.SetResumeAfterTool(save.resumeAfterToolMissionId,
+                            save.resumeAfterToolObjectiveIndex, save.resumeAfterToolProgress);
+                }
+            }
 
             var plots = FindPlotsOrdered();
             for (int i = 0; i < plots.Count && i < save.plots.Count; i++)

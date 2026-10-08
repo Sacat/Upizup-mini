@@ -275,3 +275,12 @@ user_words: "yes i love it so far continue"
 supersedes: null
 notes: This approval authorizes continued work in the isolated proof, not replacement of the playable road. Live migration still requires upgraded visual evidence and a vehicle pass.
 ```
+
+## MINI-176 — Sacat chain approved, Franki rejected (2026-09-20)
+User: "its perfect on sacat but not on franki". Sacat chain appearance/placement in Logs/Tasks/MINI-173/Renders/Sacat-chain-settled.png is locked. Do not change Sacat shared fit behaviour to fix Franki. Franki upper chain is rejected because it reaches chin/jaw; move to nape and flatten front against shirt. Approval does not certify every animation or outfit.
+
+## MINI-178 — Franki chain accepted "for now" (2026-09-20)
+User: "ok not perfect but its good for now". Franki wears Sacat's double-loop chain via `Assets/UpIzUpMini/Data/Equipment/FrankiChainPlacement.asset` (assigned to Franki's CharacterEquipment in `GrandBayProof_ExpansionImport.unity` only), placed by nape/chest proportion (k .877), pitch-only rotation, +.025 m forward compensation for the 3.5 cm neckward correction, +.025 m up so the front top hides in the neck. Evidence: `Logs/Tasks/MINI-178/Renders/Verify-Franki-{front,side,back}.png`; details `Docs/WorkPackets/MINI-178.md`. Soft approval: accepted as the current state, not final. Do not regenerate or re-derive the Franki profile without the user asking; small height/depth tweaks remain welcome. Not covered: motion, other outfits, live `GrandBayProof.unity`, EXE. Sacat's approval above is unchanged.
+
+## MINI-179 — Arms matched to hand skin, awaiting user review (2026-09-20)
+User asked for arms to look like the hands / original body skin texture, then confirmed the colour comparison "yes that looks like it". New `Sacat_ArmSkin` / `Franki_ArmSkin` on the shirt skin slot (expansion scene only). Evidence: `Logs/Tasks/MINI-179/Renders/`. NOT yet approved after viewing the result; leg/shoe skin unchanged.

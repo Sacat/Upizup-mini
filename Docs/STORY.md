@@ -163,6 +163,8 @@ The user's 2026-08-21 playtest establishes this order for the next implementatio
 
 The cellphone becomes a progression reward: first to call the farming partner, later to call recruited crew for backup. These systems should be introduced through missions and hints rather than being available without context.
 
+After "Round the Village" (M12), "Get Your Tool" leads Sacat and Franki to the Lalay black-market trader. Here "tool" means a gun. They buy the fictional Lalay Tool and fire one test shot away from people before the Rasta chapter continues. The trader and shop remain available afterward for ammunition and clothing resale.
+
 ### Mission 5: The Offer
 
 A fictional middleman known as Boss J approaches them. The legacy internal identifier `BossK` remains save-compatible only and is never player-facing.

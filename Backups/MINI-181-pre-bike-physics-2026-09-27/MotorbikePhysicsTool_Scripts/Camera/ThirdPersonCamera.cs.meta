@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 87223b044b4d4cb4d942c0f395c1cad5
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192691
+  packageName: Motorbike Physics Tool
+  packageVersion: 1.5.6
+  assetPath: Assets/MotorbikePhysicsTool/Scripts/Camera/ThirdPersonCamera.cs
+  uploadId: 454429

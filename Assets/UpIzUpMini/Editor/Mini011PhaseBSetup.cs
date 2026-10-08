@@ -4978,6 +4978,16 @@ namespace UpIzUpMini.EditorTools
                         new MissionObjective { kind = ObjectiveKind.TalkTo, targetId = "Pharmacy", instruction = "Check what the Pharmacy selling", markerPosition = roadPoints[Mathf.Clamp(11,1,roadPoints.Count-2)] },
                     }
                 },
+                // MINI-185: a targeted live-scene patch also installs this
+                // mission. Keep the builder definition in sync for future
+                // rebuilds; do not invoke the whole-world builder to apply it.
+                Mini185ToolMissionSetup.MakeMission(GameObject.Find("NPC_BlackMarket") != null
+                    ? GameObject.Find("NPC_BlackMarket").transform.position
+                    : roadPoints[Mathf.Clamp(13, 1, roadPoints.Count - 2)]),
+                // MINI-191: Ammunition (buy rounds, reload). Targeted patch: Mini191AmmoMission.Apply.
+                Mini191AmmoMission.MakeMission(GameObject.Find("NPC_BlackMarket") != null
+                    ? GameObject.Find("NPC_BlackMarket").transform.position
+                    : roadPoints[Mathf.Clamp(13, 1, roadPoints.Count - 2)]),
                 new Mission
                 {
                     missionId = "M13", title = "Ital and Elders",

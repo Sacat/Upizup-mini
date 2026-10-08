@@ -26,6 +26,11 @@ namespace UpIzUpMini.UI
         [SerializeField] private Text bodyText;
         [SerializeField] private ShopItemDefinition[] stock;
         [SerializeField] private bool resaleMode;
+        [SerializeField] private ShopItemDefinition[] alternateStock;
+        [SerializeField] private bool alternateResaleMode;
+        private bool showAlternate;
+        private ShopItemDefinition[] ActiveStock => showAlternate ? alternateStock : stock;
+        private bool ActiveResale => showAlternate ? alternateResaleMode : resaleMode;
 
         // MINI-082, user: "I still have to press E to close the shops box
         // I should just walk and it fades." The panel now fades itself out
@@ -64,6 +69,7 @@ namespace UpIzUpMini.UI
         {
             if (panel == null) return;
             _anchor = anchor;
+            showAlternate = false;
             _pendingDeactivate = false;
             _targetAlpha = 1f;
             panel.SetActive(true);
@@ -97,6 +103,12 @@ namespace UpIzUpMini.UI
         {
             if (!IsOpen) return;
 
+            if (alternateStock != null && alternateStock.Length > 0 && Input.GetKeyDown(KeyCode.Alpha0))
+            {
+                showAlternate = !showAlternate;
+                Refresh();
+            }
+
             if (canvasGroup != null)
             {
                 canvasGroup.alpha = Mathf.MoveTowards(
@@ -128,9 +140,10 @@ namespace UpIzUpMini.UI
             }
 
             int visibleIndex = 0;
-            for (int i = 0; i < stock.Length && visibleIndex < 9; i++)
+            var visibleStock = ActiveStock;
+            for (int i = 0; i < visibleStock.Length && visibleIndex < 9; i++)
             {
-                var item = stock[i];
+                var item = visibleStock[i];
                 if (!ShouldShow(item)) continue;
                 int keyIndex = visibleIndex++;
                 if (!Input.GetKeyDown(KeyCode.Alpha1 + keyIndex)) continue;
@@ -144,42 +157,42 @@ namespace UpIzUpMini.UI
                     // TryPurchase reports success or the reason it failed,
                     // so it must only be called once per keypress.
                     string msg;
-                    bool bought = resaleMode
-                        ? EconomyManager.Instance.TryResell(stock[i], out msg)
-                        : EconomyManager.Instance.TryPurchase(stock[i], out msg);
+                    bool bought = ActiveResale
+                        ? EconomyManager.Instance.TryResell(item, out msg)
+                        : EconomyManager.Instance.TryPurchase(item, out msg);
                     _message = msg;
 
-                    if (bought && stock[i] != null && !resaleMode)
+                    if (bought && item != null && !ActiveResale)
                     {
-                        bool wearable = stock[i].category == ShopCategory.Clothing
-                                        || stock[i].category == ShopCategory.Footwear
-                                        || stock[i].category == ShopCategory.Accessory;
+                        bool wearable = item.category == ShopCategory.Clothing
+                                        || item.category == ShopCategory.Footwear
+                                        || item.category == ShopCategory.Accessory;
                         if (wearable)
                         {
                             var active = Character.CharacterSwitchManager.Instance?.Active?.root;
                             active?.GetComponent<Character.CharacterEquipment>()?.RefreshEquipment();
                         }
 
-                        if (stock[i].category == ShopCategory.Seed)
+                        if (item.category == ShopCategory.Seed)
                         {
                             Missions.MissionSystem.Instance?.Notify(
-                                Missions.ObjectiveKind.BuySeeds, stock[i].itemId);
+                                Missions.ObjectiveKind.BuySeeds, item.itemId);
                         }
                         Missions.MissionSystem.Instance?.Notify(
-                            Missions.ObjectiveKind.BuyItem, stock[i].itemId);
+                            Missions.ObjectiveKind.BuyItem, item.itemId);
 
                         // MINI-065: a vehicle purchase (currently just the
                         // TMAX) also spawns the real thing in the world -
                         // SpawnPurchasedVehicle no-ops (returns null) for
                         // every item it doesn't recognise, so this is a
                         // no-op for every other shop's stock.
-                        string spawnFeedback = Vehicles.VehicleSpawnController.Instance?.SpawnPurchasedVehicle(stock[i].itemId);
+                        string spawnFeedback = Vehicles.VehicleSpawnController.Instance?.SpawnPurchasedVehicle(item.itemId);
                         if (!string.IsNullOrEmpty(spawnFeedback))
                         {
                             _message = $"{_message} {spawnFeedback}";
                         }
 
-                        _message = $"{_message} {PurchaseReaction(stock[i])}";
+                        _message = $"{_message} {PurchaseReaction(item)}";
                     }
                 }
 
@@ -193,29 +206,32 @@ namespace UpIzUpMini.UI
             if (bodyText == null) return;
 
             var sb = new StringBuilder();
-            sb.AppendLine($"<b>{shopTitle}</b>   (number key to {(resaleMode ? "sell" : "buy")} - walk away, E, or Esc to leave)");
+            sb.AppendLine($"<b>{shopTitle}</b>   (number key to {(ActiveResale ? "sell" : "buy")} - walk away, E, or Esc to leave)");
+            if (alternateStock != null && alternateStock.Length > 0)
+                sb.AppendLine($"[0] {(showAlternate ? "Browse under-table stock" : "Sell old clothes")}");
             sb.AppendLine();
             sb.AppendLine($"Money: ${(EconomyManager.Instance != null ? EconomyManager.Instance.Money : 0)}");
             sb.AppendLine();
 
             int visibleIndex = 0;
-            for (int i = 0; i < stock.Length && visibleIndex < 9; i++)
+            var visibleStock = ActiveStock;
+            for (int i = 0; i < visibleStock.Length && visibleIndex < 9; i++)
             {
-                var item = stock[i];
+                var item = visibleStock[i];
                 if (!ShouldShow(item)) continue;
 
                 string owned = item.category != ShopCategory.Seed
                                && IsOwnedByActiveCharacter(item)
                     ? "  [owned]" : string.Empty;
 
-                int shownPrice = resaleMode ? Mathf.Max(1, Mathf.RoundToInt(item.price * 0.55f)) : item.price;
+                int shownPrice = ActiveResale ? Mathf.Max(1, Mathf.RoundToInt(item.price * 0.55f)) : item.price;
                 sb.AppendLine($"[{visibleIndex + 1}]  {item.displayName,-26} ${shownPrice}{owned}");
                 visibleIndex++;
             }
 
             if (visibleIndex == 0)
             {
-                sb.AppendLine(resaleMode
+                sb.AppendLine(ActiveResale
                     ? "Nothing from your current outfit to sell."
                     : "More stock unlocks as you complete missions.");
             }
@@ -232,7 +248,7 @@ namespace UpIzUpMini.UI
         private bool ShouldShow(ShopItemDefinition item)
         {
             if (item == null || !ProgressionGate.IsItemUnlocked(item)) return false;
-            return !resaleMode || IsOwnedByActiveCharacter(item);
+            return !ActiveResale || IsOwnedByActiveCharacter(item);
         }
 
         private static bool IsOwnedByActiveCharacter(ShopItemDefinition item)

@@ -1,0 +1,61 @@
+{
+  "source": "E:\\Unity\\Up Iz Up Mini\\Tools\\ArtPreview\\Mini186Source\\Hi3D_LalayTool_Modern_raw.fbx",
+  "fbx_bytes": 89998512,
+  "bbox_min": [
+    -0.0006869055214338005,
+    -0.00499742291867733,
+    -0.003131532110273838
+  ],
+  "bbox_max": [
+    0.0006890658405609429,
+    0.005000539589673281,
+    0.003138295840471983
+  ],
+  "bbox_size": [
+    0.0013759713619947433,
+    0.00999796250835061,
+    0.006269827950745821
+  ],
+  "mesh_count": 1,
+  "vertices": 994171,
+  "triangles": 1988434,
+  "meshes": [
+    {
+      "name": "geometry_0",
+      "vertices": 994171,
+      "polygons": 1988434,
+      "triangles": 1988434,
+      "uv_layers": 1,
+      "materials": [
+        "pbr_material"
+      ],
+      "dimensions": [
+        0.0013759713619947433,
+        0.006269826553761959,
+        0.009997961111366749
+      ]
+    }
+  ],
+  "images": [
+    {
+      "name": "Image",
+      "size": [
+        8192,
+        8192
+      ],
+      "source": "FILE",
+      "file": "E:\\Unity\\Up Iz Up Mini\\Tools\\ArtPreview\\Mini186Source\\0.jpg",
+      "packed": true
+    },
+    {
+      "name": "Render Result",
+      "size": [
+        0,
+        0
+      ],
+      "source": "VIEWER",
+      "file": "",
+      "packed": false
+    }
+  ]
+}

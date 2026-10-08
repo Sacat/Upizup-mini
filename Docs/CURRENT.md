@@ -539,3 +539,14 @@ Added labelled credit union in expansion import scene using published directory 
 
 ## MINI-176 — Claude workflow handoff and current-chain verification (2026-09-20)
 Complete guide: Docs/CLAUDE-GRANDBAY-BUILDINGS-CHAIN-WORKFLOW.md, linked to the earlier Blender MINI-142 house guide. Covers current Grand Bay map/building dimensions, geographic/elevation rules, road/coast/lot validation, tools, source limitations, chain transfer measurements and future-character fitting workflow. MINI-176 experimental mesh remaps were superseded by Claude MINI-178; preserve the accepted Franki profile and unchanged Sacat. Fresh saved-expansion Play Mode verification passed (Logs/mini176-verify-current.log); existing canonical-scene wardrobe regression passed (Logs/mini176-wardrobe-regression.log). No new EXE, motion certification or live-scene promotion. Details: Docs/WorkPackets/MINI-176.md.
+## MINI-186 — Modern Lalay Tool model (2026-10-02)
+
+ImageGen concept and one 65-credit Hi3D generation produced a modern sidearm model. Blender cleanup reduced the 1.99M-triangle raw export to a 2,998-triangle, 0.19 m model with a 1024 texture. The model replaces the temporary cubes on both playable characters in GrandBayProof; static scene validation, visual renders and Windows build pass. Runtime aiming hand alignment awaits player-view review. Full measurements and reusable modeling steps: `Docs/WorkPackets/MINI-186.md`.
+
+## MINI-187 — Lalay Tool grip anchors and colorway proofs (2026-10-02)
+
+Three original material variants are available for review, with full-character and close Unity renders for Franki and Sacat. The live tool now aligns an explicit grip anchor to the rig's curled middle finger joint and uses a named muzzle anchor. Static anchor validation and Windows build pass; live player aiming still needs visual review. See `Docs/WorkPackets/MINI-187.md`.
+
+## MINI-188 — Online-referenced Lalay Tool hand fit (2026-10-02)
+
+Visual and manufacturer references exposed a gap between finger-joint alignment and a convincing grip. Added a backstrap anchor and moved the model slightly toward the thumb-index web while preserving finger overlap in Franki and Sacat close renders. Saved-scene checks and Windows build pass. The remaining web gap needs a pistol-specific hand animation; live aiming review remains open. See `Docs/WorkPackets/MINI-188.md`.

@@ -1,0 +1,17 @@
+{
+  "source_triangles": 1988434,
+  "game_triangles": 2998,
+  "game_vertices": 1451,
+  "target_triangles": 3000,
+  "texture_size": [
+    1024,
+    1024
+  ],
+  "output_fbx_bytes": 110716,
+  "output_texture_bytes": 1015973,
+  "dimensions_metres": [
+    0.026010330766439438,
+    0.11865058541297913,
+    0.18987131118774414
+  ]
+}

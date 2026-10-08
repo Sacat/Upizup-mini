@@ -56,16 +56,43 @@ Documentation-only MINI-142 completed and released by Codex (2026-09-12): Docs/C
 
 ### Current claim
 
+MINI-190 (2026-10-02, Claude, released): researched procedural pistol handling for all humanoids (FirearmPose rewritten, IPistolUser, NpcPistolUser, Play Mode proof). Detail: `Docs/Systems/Combat.md`, `Docs/WorkPackets/MINI-190.md`. Awaiting the user's hands-on feel review; no live NPC carries a gun yet.
+
 ```yaml
 current_owner: None
 active_task: None
+released_task: MINI-189 Claude Lalay Tool handoff
+released_at: 2026-10-02
 reserved_files: None
-released_task: MINI-175
-released_at: 2026-09-20
-released_reason: User-requested white walls and black windows/details applied; compile and rendered inspection passed.
 ```
 
-Scope: import ONLY the new MINI168_Expansion content (roads, terrain extension, houses, PCSS school, Geneva field, roundabout) into a NEW copy of the live scene, never the older Lalay/Highland the expansion copy also carries. Live GrandBayProof.unity stays untouched until the user has walked and driven the result.
+MINI-189 (2026-10-02, Codex, released): Wrote `Docs/CLAUDE-HANDOFF-MINI-186-188.md` with a paste-ready Claude prompt and source-checked details of model creation, Hi3D/Blender measurements, live Unity anchors, color materials, old offsets superseded by MINI-188, validation/build evidence and remaining pistol-specific animation work. Documentation only; no scene or player build changed in this task.
+
+MINI-188 (2026-10-02, Codex, released): Used online manufacturer/Unity and side-view visual references to reassess the Lalay Tool grip. Added a model backstrap anchor and tested full web alignment against existing finger alignment in both character rigs. The full web fit lifted the handle out of the fingers; a 25% correction retained overlap and reduced backstrap-to-web proxy gaps to 26.7 mm Sacat / 29.0 mm Franki. Saved-scene verification and Windows build passed. Live aiming/recoil review and a dedicated pistol finger pose remain. Details and links: `Docs/WorkPackets/MINI-188.md`. Pre-existing unrelated dirty files prevented a selective scene commit.
+
+MINI-187 (2026-10-02, Codex, released): Researched official modern sidearm color families and made three unbranded Lalay Tool material options without new Hi3D credits. Measured both rigs' wrist and finger joints, then added explicit grip and muzzle anchors. The live tool aligns its grip to the curled middle finger joint; sampled Unity proof shows the grip within Franki's and Sacat's hands. Both static anchor checks measured 0.0000 m error; Windows build passed. Live camera-driven aim/recoil and final color selection await user review. Details: `Docs/WorkPackets/MINI-187.md`. The shared worktree had pre-existing uncommitted changes, so no selective Git commit was made.
+
+MINI-186 (2026-10-02, Codex, released): Replaced both placeholder sidearm visuals with one ImageGen-led Hi3D modern tool model. One 65-credit generation; raw 1.99M triangles cleaned to a 2,998-triangle 0.19 m asset with a 1024 texture. Three-view Blender renders, Unity rest-pose render, scene verification and Windows build pass. Interactive aiming hand alignment awaits user review. Measurements and reusable prop workflow: `Docs/WorkPackets/MINI-186.md`. The shared worktree had pre-existing uncommitted scene/gameplay changes, so no selective Git commit was made.
+
+MINI-185 (2026-09-29, Codex, released): Added M12T "Get Your Tool" after M12 in the live scene and builder source. The boys meet the Lalay trader, buy the gun called a tool, and fire one test shot. Old saves preserve story progress and take this mission once if they lack the tool. Compile, focused objective exercise, scene validation and Windows build passed; hands-on UI/story review remains. Details: `Docs/WorkPackets/MINI-185.md`.
+
+MINI-184 (2026-09-29, Codex, released): Built-player probe verified sidearm/ammo purchases, firing, NPC damage and reload. Corrected model attachment after in-game render showed it behind the hand. Final compile, static scene validation and Windows build passed. Player-controlled aim motion and feel still need human review. No Hitem3D points used. Details: `Docs/WorkPackets/MINI-184.md`.
+
+MINI-183 (2026-09-29, Codex, released): Lalay black-market sidearm/ammo purchase, shared save state, procedural aim/recoil, NPC hit response and heat wired into live GrandBayProof. Compile, scene validation and Windows build pass. Hands-on visual/gameplay playtest pending. No Hitem3D points used. The isolated MINI-182 HouseEnhance scene SHA-256 was unchanged. Details: `Docs/WorkPackets/MINI-183.md`.
+
+MINI-181 (2026-09-27, Claude, released): SuperMoto wheelie crash root causes fixed (pitch sign flip -> false auto-recover, double MoveRotation, vendor TriggerToCollider, decel/damage during wheelies), real balance-point wheelie, real suspension. Detail: `Docs/Systems/Vehicles.md`, `Docs/WorkPackets/MINI-181.md`. Backups: tag `backup/pre-mini181-bike-physics-2026-09-27`, ref `refs/backup/mini181-uncommitted`, folder `Backups/MINI-181-pre-bike-physics-2026-09-27/`.
+
+```yaml
+current_owner: None
+active_task: None
+released_task: MINI-180 expansion promotion and Windows build
+released_at: 2026-09-26
+reserved_files: None
+```
+
+User explicitly asked for the Grand Bay expansion to replace the older playable map. The expansion copy was promoted into `GrandBayProof.unity`, preserving the canonical scene GUID and the former scene as `Builds/PreExpansionSceneBackup/GrandBayProof.unity`. `EditorBuildSettings.asset` now includes only the promoted game scene. The preview and final Windows builds succeeded; promoted-scene static validation passed. A 15-second headless player launch remained alive without a logged exception, but logged repeated "Setting angular velocity of a kinematic body is not supported" warnings; a visible hands-on playtest remains necessary. Road-junction previews from the earlier MINI-180 work remain previews and were not committed to the scene. Exact build log: `Logs/mini180-final-build-20260926.log`; validation: `Logs/mini180-promoted-scene-validation-final.log`; player log: `Logs/mini180-final-player-smoke.log`.
+
+No Git checkpoint was made: the scene depends on existing uncommitted expansion assets and the working tree contains other ongoing work. A selective commit would not reproduce this build; preserve the whole working tree until those changes are reviewed together.
 
 Previous claim history:
 
@@ -3117,3 +3144,9 @@ MINI-175: Lalay credit union added; published pin, stylized facade and documente
 
 
 
+
+
+
+
+## MINI-176 — Claude workflow handoff and current-chain verification (2026-09-20)
+Complete guide: Docs/CLAUDE-GRANDBAY-BUILDINGS-CHAIN-WORKFLOW.md, linked to the earlier Blender MINI-142 house guide. Covers current Grand Bay map/building dimensions, geographic/elevation rules, road/coast/lot validation, tools, source limitations, chain transfer measurements and future-character fitting workflow. MINI-176 experimental mesh remaps were superseded by Claude MINI-178; preserve the accepted Franki profile and unchanged Sacat. Fresh saved-expansion Play Mode verification passed (Logs/mini176-verify-current.log); existing canonical-scene wardrobe regression passed (Logs/mini176-wardrobe-regression.log). No new EXE, motion certification or live-scene promotion. Details: Docs/WorkPackets/MINI-176.md.

@@ -9,6 +9,7 @@ The mission state machine and content generation are shipped and have been throu
 - `Assets/UpIzUpMini/Scripts/Missions/MissionSystem.cs` - the runtime state machine.
 - Mission CONTENT itself is serialized by `BuildMissions` inside `Mini011PhaseBSetup.cs` - editing only the saved scene is temporary and gets overwritten on a rebuild, same caution as `MapGeneration.md`.
 - Objective kinds (`ObjectiveKind` enum) are generic (`TalkTo`, `ReachArea`, `HarvestCrop`, `SellCrop`, `BuyItem`, `DefeatAllRivals`, `RestAtSafehouse`, etc.) - a data-driven pattern already, each mission is a list of these plus marker positions, not bespoke per-mission code.
+- MINI-185 inserts M12T "Get Your Tool" after M12 in the live scene through `Mini185ToolMissionSetup`; the same mission factory is referenced by `Mini011PhaseBSetup` for future rebuilds. It uses TalkTo, BuyItem, and one FireTool event. New saves record a stable mission ID; index-only older saves shift past the inserted mission. Older saves beyond M12 without a tool are offered M12T once, then resume their original mission and objective progress. Already-owned tools receive retrospective BuyItem credit.
 
 ## What worked / what didn't
 

@@ -11,6 +11,8 @@ namespace UpIzUpMini.Economy
         Enhancement,
         /// <summary>MINI-040. A one-time unlock, not consumed - owning it enables CellPhoneController's "call your partner" key.</summary>
         Communication,
+        Firearm,
+        Ammunition,
     }
 
     /// <summary>
@@ -38,6 +40,10 @@ namespace UpIzUpMini.Economy
         public CropDefinition grantsCrop;
         public int seedQuantity = 3;
 
+        [Header("Ammunition items only")]
+        public string ammoId = "sidearm_rounds";
+        public int ammoQuantity = 12;
+
         [Header("Consumables (Food / Enhancement)")]
         public float healAmount;
         public float staminaBoost;
@@ -50,6 +56,7 @@ namespace UpIzUpMini.Economy
         /// </summary>
         public bool IsConsumable => category == ShopCategory.Food
                                     || category == ShopCategory.Enhancement
-                                    || category == ShopCategory.Seed;
+                                    || category == ShopCategory.Seed
+                                    || category == ShopCategory.Ammunition;
     }
 }

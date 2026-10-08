@@ -1,5 +1,13 @@
 ## MINI-172 — Roads, PCSS clearance and Geneva cricket ground (2026-09-19)
 
+## MINI-190 - Pistol handling animation for all humanoids (2026-10-02)
+
+Research-backed procedural system (two-hand IK, finger curls, recoil, draw/holster, low ready, reload) for Sacat, Franki and any NPC; Play Mode proof renders; no gameplay values changed. See `Docs/WorkPackets/MINI-190.md`.
+
+## MINI-181 — SuperMoto wheelie no longer crashes; realistic wheelie and suspension (2026-09-27)
+
+Fixed the real wheelie crash causes (flipped pitch sign triggering auto-recover mid-wheelie, two scripts fighting over bike rotation, vendor bone crash triggers, deceleration/damage crashes during wheelies). Wheelie is now a spring-damper balance-point motion (settles ~35deg, capped 55deg, soft landing), suspension retuned to real supermoto travel/sag/damping, rider leans with the wheelie's motion. See `Docs/WorkPackets/MINI-181.md`.
+
 Smoothed eight expansion road centrelines without moving endpoints, added three paved seam/corner junctions, and refitted terrain beneath them. Measured the PCSS conflict to the entrance-facing right wing and moved it 3 m off Road 4 while narrowing the campus footprint. Geneva remains a modest multi-use grass field but now includes a central cricket strip, wickets, oval boundary and two small three-tier stands alongside football markings. Focused validation and the complete MINI-171 import regression pass; five new renders await user review. See `Docs/WorkPackets/MINI-172.md`.
 
 ## MINI-168 — Geneva playing field and coastal loop (2026-09-15)
@@ -593,3 +601,27 @@ MINI-175 final palette: white walls/trim, black windows, sign background, column
 
 ## MINI-176 — Claude workflow handoff and current-chain verification (2026-09-20)
 Complete guide: Docs/CLAUDE-GRANDBAY-BUILDINGS-CHAIN-WORKFLOW.md, linked to the earlier Blender MINI-142 house guide. Covers current Grand Bay map/building dimensions, geographic/elevation rules, road/coast/lot validation, tools, source limitations, chain transfer measurements and future-character fitting workflow. MINI-176 experimental mesh remaps were superseded by Claude MINI-178; preserve the accepted Franki profile and unchanged Sacat. Fresh saved-expansion Play Mode verification passed (Logs/mini176-verify-current.log); existing canonical-scene wardrobe regression passed (Logs/mini176-wardrobe-regression.log). No new EXE, motion certification or live-scene promotion. Details: Docs/WorkPackets/MINI-176.md.
+
+## MINI-180 — Grand Bay expansion promoted and Windows EXE rebuilt (2026-09-26)
+
+At the user's explicit request, the saved expansion replaced the older map in `GrandBayProof.unity`. The canonical scene remains the sole build scene and retains its GUID; the former scene was backed up under ignored `Builds/PreExpansionSceneBackup`. The expansion still contains the mission system, minimap, player and existing gameplay points. Static scene validation and the Windows build passed. A 15-second headless player launch remained alive, with repeated kinematic-body angular-velocity warnings and no logged exception; visual play remains unverified. The separate road-junction preview was not applied. See `Docs/WorkPackets/MINI-180.md`.
+# MINI-183 (2026-09-29)
+
+Lalay's black-market trader now sells a fictional sidearm and repeatable ammunition, with clothing resale on key 0. Both playable characters share ownership and ammo. Added aim, recoil, firing, reload, NPC damage and heat response, plus save/load support and a temporary sidearm model. Unity compile, scene validation and Windows build passed; hands-on visual testing remains pending. No Hitem3D points spent.
+# MINI-184 (2026-09-29)
+
+Repaired the temporary sidearm attachment so it follows the animated right hand with a stable root scale and aims along the camera direction. A built-player diagnostic passed purchase, ammo use, NPC damage and reload; final compile, scene validation and Windows build passed. Natural aim motion and feel still require player review. No Hitem3D points spent.
+# MINI-185 (2026-09-29)
+
+Added M12T "Get Your Tool" after "Round the Village": meet the Lalay trader, buy the gun called a tool, and fire one test shot. Added stable mission ID saves and migration for old saves, including a one-time detour for players past M12 without the tool. Targeted scene validation, objective exercise, compile and Windows build passed; player-controlled UI/story review remains.
+## MINI-186 — Modern Lalay Tool visual (2026-10-02)
+
+Generated a fictional modern sidearm from an ImageGen concept with one 65-credit Hi3D attempt. Cleaned its raw 1.99M-triangle mesh to 2,998 triangles and a 1024 texture; replaced the primitive weapon visual on both player characters. Scene verification, in-engine static render and Windows build pass. Runtime aim pose awaits play review. See `Docs/WorkPackets/MINI-186.md`.
+
+## MINI-187 — Lalay Tool colorways and proper hand anchors (2026-10-02)
+
+Added three unbranded color materials and character proofs. Replaced the wrist-relative visual placement with explicit grip and muzzle anchors measured against each rig's curled hand. Both static character validations and Windows build pass; live aim motion remains to review. See `Docs/WorkPackets/MINI-187.md`.
+
+## MINI-188 — Online-reference hand-fit adjustment (2026-10-02)
+
+Added an upper backstrap anchor and adjusted the Lalay Tool toward the thumb-index web after comparing online references and character renders. Both character close-ups retain finger overlap; static alignment checks and Windows build pass. The live aiming pose remains unreviewed. See `Docs/WorkPackets/MINI-188.md`.

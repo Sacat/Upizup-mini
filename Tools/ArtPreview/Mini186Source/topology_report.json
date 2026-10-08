@@ -1,0 +1,12 @@
+{
+  "vertices": 1451,
+  "edges": 4497,
+  "faces": 2998,
+  "boundary_edges": 0,
+  "nonmanifold_edges": 0,
+  "loose_vertices": 0,
+  "connected_components": 1,
+  "largest_components_vertices": [
+    1451
+  ]
+}

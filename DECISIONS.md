@@ -11,6 +11,14 @@ User: "put these on the main characters". Integrate the supplied Codex Air Max90
 
 # Up Iz Up Mini — Decisions
 
+## MINI-188 — calibrate between finger wrap and web contact (2026-10-02)
+
+Use a 75:25 blend of the curled-finger grip and thumb-index web solutions for the current Lalay Tool model. A full web-to-backstrap alignment was rendered and rejected because it lifted the handle outside the fingers in the existing combat idle clip. Keep the named model anchors for future pistol-specific animation work. This is a reversible fit adjustment, not final user approval of live shooting pose.
+
+## MINI-187 — explicit Lalay Tool anchors (2026-10-02)
+
+Use a named grip point on the model and align it to the character rig's curled middle finger joint during aiming. Keep the named muzzle point at the barrel tip for the tracer. This follows the measured hand geometry of Franki and Sacat; visual static proofs pass. Retain the existing graphite/teal default until the user selects a colorway. Live motion and appearance approval remain open; no new visual lock is recorded.
+
 ## MINI-166 revision — distinct clothing and fuller shoulders (2026-09-12)
 
 User requests individually dressed characters and a muscular shoulder/trapezius transition closer to the original fit. Keep both selectable catalogues and independent saved choices; give Franki navy tee/denim jeans/black Mike 90 defaults and Sacat green polo/black trousers/white Mike 97 defaults. Do not overwrite existing deliberate saved selections or forbid the user choosing matching clothes. Add a localized, smooth upper-shoulder volume adjustment to both shirt designs without changing skeletons, faces, sleeve ends or signature accessory transforms. Rejected the first steep trap lift after close-up inspection; refine before final build. User visual acceptance remains owed.
@@ -100,3 +108,19 @@ Boss C keeps the existing 1.85 m cast height and front-to-back depth, but his vi
 2026-09-10 MINI-164: User requested short black waves beneath removable caps. Use continuous head-weighted scalp surfaces and procedural albedo/normal waves; preserve live clothing and face assets. Visual user acceptance remains pending; no visual lock recorded.
 
 2026-09-10 MINI-165: User explicitly defines headphones as a removable head accessory like a cap. Preserve Sacat's original fitted geometry as a separate skinned accessory; use the existing wardrobe unequipped-item save data, with worn as the legacy default.
+
+## D-012 — Grand Bay expansion is the active Mini map
+
+2026-09-26: The user explicitly requested the Grand Bay expansion replace the older playable map. `GrandBayProof.unity` now contains the saved expansion while retaining its original scene GUID for existing project references. `GrandBayProof_ExpansionImport.unity` remains as the expansion source copy; the older canonical scene is backed up in `Builds/PreExpansionSceneBackup`. The unapproved road-junction preview surfaces are not included.
+# MINI-183 (2026-09-29)
+
+Use a temporary in-project sidearm model and procedural aim/recoil until the built-player pose has been inspected. Keep any Hitem3D design spend behind a specific asset brief and user approval. Preserve the M12 gate and clothing resale on the existing Lalay black-market NPC.
+# MINI-184 (2026-09-29)
+
+Keep the sidearm as a temporary rigid model during firearm behavior validation. A Hitem3D replacement brief is prepared in `Docs/WorkPackets/MINI-184.md`, but generation remains deferred until the user accepts a specific point budget and asset direction.
+# MINI-185 (2026-09-29)
+
+Use "tool" as the player-facing local term for the gun while retaining the existing internal sidearm item ID and $750 price. Introduce it through a three-step mission after M12. Preserve older saves' current story position; those past M12 without a tool take this mission once and resume afterward.
+## MINI-186 — Keep source generation and game mesh separate (2026-10-02)
+
+Retain Hi3D's raw export outside Unity `Assets` and ship only the measured, cleaned 0.19 m mesh and 1024 texture. Use the existing sidearm gameplay and mission wiring; replace only the temporary visual parts. A 2,998-triangle PC mesh preserves the silhouette and trigger guard after the 1,500-triangle planning target proved too strict for this generated form. Future game props should use the same reference, measured export, topology cleanup, three-view render and shader-property verification sequence. Live aiming pose remains a visual acceptance item.
