@@ -26,10 +26,29 @@ vest=B.close_mask(Ad,(v>0.62)&(s<0.18)&(z>0.95)&(z<1.58),3)
 fill=B.dilate(Ad,boxer,2)
 if upto>=2: fill|=B.dilate(Ad,vest,2)
 unknown=B.dilate(Ad,boxer|vest,4)|((s<0.22)&(z>0.6)&(z<1.6))      # sample skin only from clean skin
+if upto>=1: unknown|=np.abs(Wd[:,0])>0.745
 lin=B.srgb2lin(col)
 skin=B.harmonic_fill(Ad,unknown,lin)
 skin=np.where(fill[:,None],skin,lin)
+if upto>=1:
+    Nd=B.vertex_normals(donor,Wd); palm=np.clip(-Nd[:,2],0,1)*np.clip((np.abs(Wd[:,0])-0.75)/0.03,0,1)
+    skin=skin*(1+0.22*palm)[:,None]
 corr=np.ones((len(Wd),3))   # multiplicative large-scale tone correction (1 = unchanged)
+import hands as H
+HANDJ={}; thumbv=np.zeros(len(Wd),bool); cutv=np.zeros(len(Wd),bool)
+if upto>=1:
+    gn={g.index:g.name for g in donor.vertex_groups}
+    domb=np.array([gn[max(vv.groups,key=lambda g:g.weight).group] if len(vv.groups) else '' for vv in donor.data.vertices])
+    for side,sg in (('L',1),('R',-1)):
+        HANDJ[side]=H.design(lambda n: B.bone_world(arm,n,donor),side)
+        wrx=B.bone_world(arm,f'CC_Base_{side}_Hand',donor)[0]*sg
+        th=np.array([d.startswith(f'CC_Base_{side}_Index') or d.startswith(f'CC_Base_{side}_Thumb') for d in domb])
+        thumbv|=th
+        cutv|=(~th)&(Wd[:,0]*sg>wrx+0.090)     # fused fingers beyond the knuckle line (thumb kept)
+        print(side,'wrist x',round(wrx,3),'cut verts',int(((~th)&(Wd[:,0]*sg>wrx+0.090)).sum()))
+    # hand colour: fill from the forearm tone; palms (facing -Z in T-pose) a little lighter, as on real darker skin
+    handc=np.abs(Wd[:,0])>0.755
+    fill|=handc
 if upto>=1:
     # skin tone: arms read lighter than face/legs and the neck darker. Even out the LOW-frequency tone only,
     # keeping texture detail: corr = target / smoothed_skin_colour on skin vertices (hair/eyes/brows excluded).
@@ -77,7 +96,18 @@ if os.environ.get('DEBUG_DONOR'):
     cam=rlib.setup_render(400,400,8); rlib.closeup(cam,out+'_donorhip',(0,0,0.92),0.55,views=(('front',0),('back',180))); sys.exit(0)
 
 # ---------- 2. closed surface ----------
-rm=B.mesh_from_world('rm',Wd,B.tri_polys(donor.data)); rm.data.remesh_voxel_size=VOXEL
+polys=B.tri_polys(donor.data); Vsrc=Wd
+if upto>=1:
+    polys=[p for p in polys if not all(cutv[i] for i in p)]
+    extra_v=[];extra_f=[]; base=len(Vsrc)
+    for side,J in HANDJ.items():
+        for f,(dy,dx,L,w,h,spread) in H.FINGERS.items():
+            fv,ff=H.finger_mesh(J[f],w,h); extra_f+= [tuple(i+base+sum(len(e) for e in extra_v) for i in fc) for fc in ff]; extra_v.append(fv)
+    Vsrc=np.vstack([Vsrc]+extra_v); polys=polys+extra_f
+rm=B.mesh_from_world('rm',Vsrc,polys); rm.data.remesh_voxel_size=VOXEL
+if upto>=1:
+    import bmesh as _bm
+    bm=_bm.new(); bm.from_mesh(rm.data); _bm.ops.holes_fill(bm,edges=[e for e in bm.edges if e.is_boundary],sides=0); bm.to_mesh(rm.data); bm.free()
 B.activate(rm); bpy.ops.object.voxel_remesh()
 # drop internal shells the remesh leaves inside old fabric folds (they poke through after smoothing)
 import bmesh, scipy.sparse.csgraph as cg
@@ -130,6 +160,20 @@ if upto>=2:
     # neck/shoulder join: gentle extra relax across the trapezius line so the strap ridge and neckline lip vanish
     join=(z>1.40)&(z<1.56)&(np.abs(x)<0.20)
     relax(join,60,ramp=10)
+if upto>=1:
+    # back of the hand: the donor dorsum is as thick as the old fused finger block; taper it down to finger height
+    # over the last 3.5 cm before the knuckles so the fingers do not emerge under a ledge
+    for side,sg in (('L',1),('R',-1)):
+        wr=B.bone_world(arm,f'CC_Base_{side}_Hand',donor); X=W[:,0]*sg
+        zc=wr[2]+H.MCP_DZ; ztop=zc+0.0095
+        t=np.clip((X-(wr[0]*sg+0.065))/0.035,0,1); t=t*t*(3-2*t)
+        m=(X>wr[0]*sg+0.06)&(X<wr[0]*sg+0.125)&(W[:,2]>ztop)&(np.abs(W[:,1]-wr[1])<0.07)
+        W[m,2]=W[m,2]-(W[m,2]-ztop)[...]*t[m]*0.8
+    # knuckle junction: blend the cut donor palm into the new finger roots
+    for side,J in HANDJ.items():
+        mc=np.array([J[f][0] for f in ('Index','Mid','Ring','Pinky')])
+        dmin=np.min(np.linalg.norm(W[:,None,:]-mc[None,:,:],axis=2),axis=1)
+        relax(dmin<0.032,80,ramp=5)
 B.set_world_co(rm,W)
 if os.environ.get('DEBUG_HI'):
     donor.hide_render=True; rm.data.materials.append(bpy.data.materials.new('c'))
@@ -150,6 +194,20 @@ dt.vert_mapping='POLYINTERP_NEAREST'; dt.layers_vgroup_select_src='ALL'; dt.laye
 # donor is in armature space; transfer in world space
 dt.use_object_transform=True
 bpy.ops.object.modifier_apply(modifier='dt')
+if upto>=1:
+    P=B.world_co(rm)
+    for side,sg in (('L',1),('R',-1)):
+        wrx=B.bone_world(arm,f'CC_Base_{side}_Hand',donor)[0]*sg
+        X=P[:,0]*sg; idx=np.where(X>wrx+0.005)[0]
+        bl=np.clip((X[idx]-(wrx+0.005))/0.025,0,1); bl=bl*bl*(3-2*bl)   # blend donor wrist weights -> procedural hand weights
+        Wh=H.hand_weights(P[idx],HANDJ[side],side,wrx)
+        vs=rm.data.vertices; gl=list(rm.vertex_groups)
+        for k,i in enumerate(idx):
+            for ge in list(vs[int(i)].groups): gl[ge.group].add([int(i)],ge.weight*(1-bl[k]),'REPLACE')
+        for name,w in Wh.items():
+            g=rm.vertex_groups.get(name) or rm.vertex_groups.new(name=name)
+            for k,i in enumerate(idx):
+                if w[k]*bl[k]>1e-4: g.add([int(i)],float(w[k]*bl[k]),'ADD')
 bpy.ops.object.vertex_group_limit_total(group_select_mode='ALL',limit=4)
 bpy.ops.object.vertex_group_normalize_all(group_select_mode='ALL',lock_active=False)
 
@@ -182,13 +240,34 @@ bimg.pixels.foreach_set(p1.astype(np.float32).ravel())
 bimg.filepath_raw=out+'_BaseColor.png'; bimg.file_format='PNG'; bimg.save()
 donor.hide_render=True; donor.hide_viewport=True
 
+# ---------- 8a. finger rig fix ----------
+if upto>=1:
+    import mathutils
+    Mi=np.linalg.inv(np.array(donor.matrix_world))     # world -> armature/donor local (same space)
+    toL=lambda p: mathutils.Vector((Mi[:3,:3]@p+Mi[:3,3]).tolist())
+    B.activate(arm); bpy.ops.object.mode_set(mode='EDIT'); eb=arm.data.edit_bones
+    for side,J in HANDJ.items():
+        for dg,pts in J.items():
+            for i in range(3):
+                b=eb[f'CC_Base_{side}_{dg}{i+1}']; b.use_connect=False
+            for i in range(3):
+                b=eb[f'CC_Base_{side}_{dg}{i+1}']; b.head=toL(pts[i]); b.tail=toL(pts[i+1])
+                b.align_roll(mathutils.Vector((0,0,1)))
+    bpy.ops.object.mode_set(mode='OBJECT')
+    print('finger bones moved')
 # ---------- 8. rig + modular split ----------
 rm.name=f'{NAME}Bare_Body'; rm.data.name=rm.name
-# same object setup as the donor (proven Unity round trip, cf. Tools/CharacterPipeline/build_character_lods.py):
-# mesh data in donor-local coordinates, donor's parent / parent-inverse / basis
+# The MINI-105 import is inconsistent: the mesh stands upright but the armature OBJECT carries a +90 deg X
+# rotation, so bones lie on their back relative to the mesh. Rest pose hides it; any bone rotation swings
+# vertices around a pivot in the wrong space (posing explodes, donor included). Fix: mesh local space already
+# equals armature local space (Z-up, cm), so drop the armature object's rotation and parent the mesh with an
+# identity transform -> bones and skin share one upright frame.
+import mathutils
 Mi=np.linalg.inv(np.array(donor.matrix_world)); Wl=B.world_co(rm)@Mi[:3,:3].T+Mi[:3,3]
 rm.data.vertices.foreach_set('co',Wl.ravel()); rm.data.update()
-rm.parent=arm; rm.matrix_parent_inverse=donor.matrix_parent_inverse.copy(); rm.matrix_basis=donor.matrix_basis.copy()
+arm.matrix_world=mathutils.Matrix.Diagonal((0.01,0.01,0.01,1.0))
+rm.parent=arm; rm.matrix_parent_inverse=mathutils.Matrix.Identity(4); rm.matrix_basis=mathutils.Matrix.Identity(4)
+bpy.context.view_layer.update()
 am=rm.modifiers.new('Armature','ARMATURE'); am.object=arm
 # keep one smooth normal field across piece seams
 rm.data.set_sharp_from_angle(angle=math.pi) if hasattr(rm.data,'set_sharp_from_angle') else None
@@ -248,10 +327,12 @@ cam=rlib.setup_render(400,720,24); rlib.turntable(cam,0.93,1.9,out)
 sc.render.resolution_y=400; rlib.closeup(cam,out+'_hip',(0,0,0.92),0.55)
 rlib.closeup(cam,out+'_shoulder',(0,0,1.40),0.55)
 rlib.closeup(cam,out+'_hand',(0.80,0,1.47),0.30,views=(('front',0),('back',180)))
-cam.location=(0.80,0.0,2.0); cam.rotation_euler=(0,0,0); sc.render.filepath=out+'_hand_top.png'; bpy.ops.render.render(write_still=True)
+cam.location=(0.83,0.015,2.15); cam.rotation_euler=(0,0,0); sc.render.filepath=out+'_hand_top.png'; bpy.ops.render.render(write_still=True)
+cam.location=(0.83,0.015,0.79); cam.rotation_euler=(math.pi,0,0); sc.render.filepath=out+'_hand_palm.png'; bpy.ops.render.render(write_still=True)
 clay=bpy.data.materials.new('clay'); clay.diffuse_color=(0.6,0.6,0.62,1)
 for o in sc.objects:
     if o.type=='MESH' and not o.hide_render: o.data.materials[0]=clay
 rlib.closeup(cam,out+'_clayhip',(0,0,0.92),0.55); rlib.closeup(cam,out+'_clayshoulder',(0,0,1.40),0.55)
 rlib.closeup(cam,out+'_clayhand',(0.80,0,1.47),0.30,views=(('front',0),('back',180)))
-cam.location=(0.80,0.0,2.0); cam.rotation_euler=(0,0,0); sc.render.filepath=out+'_clayhand_top.png'; bpy.ops.render.render(write_still=True)
+cam.location=(0.83,0.015,2.15); cam.rotation_euler=(0,0,0); sc.render.filepath=out+'_clayhand_top.png'; bpy.ops.render.render(write_still=True)
+cam.location=(0.83,0.015,0.79); cam.rotation_euler=(math.pi,0,0); sc.render.filepath=out+'_clayhand_palm.png'; bpy.ops.render.render(write_still=True)
