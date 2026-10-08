@@ -115,6 +115,12 @@ namespace UpIzUpMini.Vehicles
         /// normal riding pose requires (user: "for the wheelie make his right
         /// hand go more on the handle bar").</summary>
         private float _handIkBoost = 1f;
+        // MINI-202: optional extras, all zero/off unless a vehicle feeds them every frame (the SuperMoto never does).
+        private Vector3 _bounceOffset;
+        private float _bouncePitch;
+        private float _lookAheadWeight;
+        private Vector3 _lookAheadForward = Vector3.forward;
+        private Vector3 _lookAheadSideOffset;
 
         public bool IsMounted => _seat != null;
         public VehicleSeat CurrentSeat => _seat;
@@ -199,8 +205,8 @@ namespace UpIzUpMini.Vehicles
             Vector3 pos = Vector3.Lerp(seatedOffset, wheelieOffset, _poseBlend);
             float pitch = Mathf.Lerp(seatedPitch, wheeliePitch, _poseBlend) + _extraPitch;
 
-            transform.localPosition = pos;
-            transform.localRotation = Quaternion.Euler(pitch, 0f, _extraRoll);
+            transform.localPosition = pos + _bounceOffset;
+            transform.localRotation = Quaternion.Euler(pitch + _bouncePitch, 0f, _extraRoll);
         }
 
         public bool Mount(VehicleSeat seat)
@@ -249,6 +255,7 @@ namespace UpIzUpMini.Vehicles
             _poseTarget = 0f;
             _extraPitch = 0f;
             _extraRoll = 0f;
+            _bounceOffset = Vector3.zero; _bouncePitch = 0f; _lookAheadWeight = 0f;
             ApplyKeyframedPose();
 
             _ikTarget = 1f;
@@ -272,6 +279,7 @@ namespace UpIzUpMini.Vehicles
 
             _ikTarget = 0f;
             _extraPitch = 0f;
+            _bounceOffset = Vector3.zero; _bouncePitch = 0f; _lookAheadWeight = 0f;   // look-at is per-frame: off once OnAnimatorIK stops setting it
             if (_anim != null) _anim.EndSustainedAction();
 
             transform.SetParent(_originalParent, worldPositionStays: true);
@@ -340,6 +348,23 @@ namespace UpIzUpMini.Vehicles
         }
 
         /// <summary>Scales hand IK strength - see _handIkBoost.</summary>
+        /// <summary>MINI-202: seat-local offset (legs absorbing a bump) and torso nod, added on top of the keyframed pose.</summary>
+        public void SetBounce(Vector3 seatLocalOffset, float nodDegrees)
+        {
+            _bounceOffset = seatLocalOffset;
+            _bouncePitch = nodDegrees;
+        }
+
+        /// <summary>MINI-202: keep the head looking level down the road (world forward, flattened) while the body leans or
+        /// wheelies. weight 0 = off. sideOffset lets a pillion look past the driver's shoulder.</summary>
+        public void SetLookAhead(float weight, Vector3 worldForward, Vector3 sideOffset)
+        {
+            _lookAheadWeight = Mathf.Clamp01(weight);
+            Vector3 f = new Vector3(worldForward.x, 0f, worldForward.z);
+            if (f.sqrMagnitude > 1e-4f) _lookAheadForward = f.normalized;
+            _lookAheadSideOffset = sideOffset;
+        }
+
         public void SetHandIkBoost(float boost)
         {
             _handIkBoost = Mathf.Max(0f, boost);
@@ -378,6 +403,18 @@ namespace UpIzUpMini.Vehicles
             ApplyGoal(AvatarIKGoal.RightHand, _seat.RightHandTarget, hand, handRotationWeight);
             ApplyGoal(AvatarIKGoal.LeftFoot, _seat.LeftFootTarget, footIkWeight, 0f);
             ApplyGoal(AvatarIKGoal.RightFoot, _seat.RightFootTarget, footIkWeight, 0f);
+
+            // MINI-202: riders keep their eyes on the road (level horizon) while the body leans/wheelies.
+            if (_lookAheadWeight > 0.001f)
+            {
+                Transform head = _animator.GetBoneTransform(HumanBodyBones.Head);
+                if (head != null)
+                {
+                    Vector3 point = head.position + _lookAheadForward * 12f + _lookAheadSideOffset;
+                    _animator.SetLookAtWeight(_lookAheadWeight * _ikWeight, 0.05f, 1f, 0f, 0.55f);
+                    _animator.SetLookAtPosition(point);
+                }
+            }
         }
 
         private void LockBodyToHandlebars()

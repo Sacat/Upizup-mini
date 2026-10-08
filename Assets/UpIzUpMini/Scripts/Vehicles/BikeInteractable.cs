@@ -101,6 +101,11 @@ namespace UpIzUpMini.Vehicles
 
         [Tooltip("MINI-073: how close the other main character must be, when the driver mounts, to hop on the pillion seat automatically.")]
         [SerializeField] private float pillionBoardRadius = 8f;
+        [Header("MINI-202 riders")]
+        [Tooltip("How strongly the riders' heads stay level and look down the road while the body leans or wheelies (0 = off).")]
+        [Range(0f, 1f)][SerializeField] private float riderLookAheadWeight = 0.7f;
+        [Tooltip("Share of the driver's deliberate extra corner lean the pillion copies (a passenger follows the bike, not the rider's hang-off).")]
+        [Range(0f, 1f)][SerializeField] private float pillionExtraLeanShare = 0.35f;
 
         private TmaxBikeControllerCustom _bike;
         private Rigidbody _body;
@@ -406,6 +411,10 @@ namespace UpIzUpMini.Vehicles
                 // upper request, but apply a restrained runtime safety limit.
                 float effectiveLeanFollow = Mathf.Min(riderLeanFollow, RiderLeanFollowSafetyLimit);
                 float effectiveMaxLean = Mathf.Min(riderMaxLeanDegrees, RiderMaxLeanSafetyLimit);
+                // MINI-202: when the seat rides on VisualLeanRoot the rider already leans 1:1 with the body (like on the
+                // physically leaning SuperMoto) - copying the bike's lean again would double it, so only the small
+                // deliberate extra hang into the corner remains.
+                if (_bike.RidersLeanWithBody) effectiveLeanFollow = 0f;
                 float riderRoll =
                     (_bike.CurrentVisualLean * effectiveLeanFollow)
                     + (_driverAnim != null ? _driverAnim.SmoothedSteer * riderExtraLeanDegrees : 0f);
@@ -421,6 +430,11 @@ namespace UpIzUpMini.Vehicles
                 // and does not release until the bike is genuinely back down.
                 bool wheelieing = _bike.WheelieAngle > 1f || !_bike.IsFrontWheelGrounded;
                 _driver.SetHandIkBoost(wheelieing ? wheelieHandGrip : 1f);
+
+                // MINI-202: legs absorb bumps/landings, eyes stay on the road.
+                var dyn = _bike.Dynamics;
+                if (dyn != null) _driver.SetBounce(dyn.DriverBounceOffset, dyn.DriverBounceNod);
+                _driver.SetLookAhead(_bike.RidersLeanWithBody ? riderLookAheadWeight : 0f, transform.forward, Vector3.zero);
             }
 
             // MINI-077: "the pillion is leaning way to back" - mirrors the
@@ -442,10 +456,21 @@ namespace UpIzUpMini.Vehicles
 
                 float effectiveLeanFollow = Mathf.Min(riderLeanFollow, RiderLeanFollowSafetyLimit);
                 float effectiveMaxLean = Mathf.Min(riderMaxLeanDegrees, RiderMaxLeanSafetyLimit);
+                float extra = riderExtraLeanDegrees;
+                if (_bike.RidersLeanWithBody) { effectiveLeanFollow = 0f; extra *= pillionExtraLeanShare; }   // MINI-202 (see driver)
                 float pillionRoll =
                     (_bike.CurrentVisualLean * effectiveLeanFollow)
-                    + (_driverAnim != null ? _driverAnim.SmoothedSteer * riderExtraLeanDegrees : 0f);
+                    + (_driverAnim != null ? _driverAnim.SmoothedSteer * extra : 0f);
                 _pillion.SetExtraRoll(Mathf.Clamp(pillionRoll, -effectiveMaxLean, effectiveMaxLean));
+
+                var dynP = _bike.Dynamics;
+                if (dynP != null) _pillion.SetBounce(dynP.PillionBounceOffset, dynP.PillionBounceNod);
+                // the pillion looks past the driver's shoulder on the inside of the turn
+                float side = _driverAnim != null ? _driverAnim.SmoothedSteer : 0f;
+                // straight: a little to the right of the driver's head; into a turn: over the inside shoulder
+                float sideMetres = Mathf.Clamp(0.45f + 1.4f * Mathf.Clamp(side, -1f, 1f), -1.1f, 1.1f);
+                _pillion.SetLookAhead(_bike.RidersLeanWithBody ? riderLookAheadWeight * 0.8f : 0f, transform.forward,
+                    transform.right * sideMetres);
             }
 
             // Guard the mount frame: the E press that just mounted must not

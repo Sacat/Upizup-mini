@@ -451,6 +451,9 @@ namespace UpIzUpMini.Vehicles
         public float CurrentVisualLean => currentVisualLean;
         /// <summary>MINI-193: the visual lean root, so wheel discs can bank with the body.</summary>
         public Transform VisualLeanRoot => visualLeanRoot;
+        /// <summary>MINI-202: true when the seats/pegs ride on VisualLeanRoot, so riders already lean with the body.</summary>
+        public bool RidersLeanWithBody => dynamics != null && dynamics.enabled && dynamics.RidersAttached;
+        public TmaxRideDynamics Dynamics => dynamics;
 
         public float CurrentRollAngle
         {
@@ -480,6 +483,7 @@ namespace UpIzUpMini.Vehicles
             dynamics = GetComponent<TmaxRideDynamics>();
             if (dynamics == null) dynamics = gameObject.AddComponent<TmaxRideDynamics>();
             dynamics.ApplySuspension(frontWheel, rearWheel);
+            dynamics.AttachRiderAnchors(visualLeanRoot);   // MINI-202: riders lean/squat/dive with the body
 
             baseCenterOfMassLocal =
                 centerOfMass != null

@@ -11,6 +11,13 @@ namespace UpIzUpMini.Vehicles
     ///     atan(v * yawRate / g), so it overshoots and settles instead of a linear ease.
     ///  3. Body pitch from longitudinal acceleration (squat / dive), also spring-damped, faded out during wheelies.
     /// The controller feeds Step from its existing lean update; TmaxWheelVisuals banks the wheel discs with BodyRotation.
+    /// MINI-202 (user: rider and pillion should move realistically with the bike, lean and wheelie, bump with the terrain):
+    ///  4. Rider anchors follow the body. The seats, foot pegs and pillion grab/foot points were siblings of VisualLeanRoot,
+    ///     so the scooter leaned and squatted while both riders stayed upright and their feet came off the pegs. At Awake
+    ///     they are re-parented under VisualLeanRoot (world pose unchanged at rest), so riders lean, squat and dive WITH the
+    ///     body around the tyre contact line, like on the physically leaning SuperMoto. The prefab asset is not modified.
+    ///  5. Rider bounce: each rider's seat offset is a spring-damper driven by the bike's own vertical acceleration, so bumps
+    ///     and landings are absorbed by the riders' legs with a slight lag instead of the riders moving rigidly with the frame.
     /// </summary>
     [DisallowMultipleComponent]
     public class TmaxRideDynamics : MonoBehaviour
@@ -32,8 +39,46 @@ namespace UpIzUpMini.Vehicles
         public float degreesPerMetrePerSecond2 = 0.55f;   // body pitch per m/s^2 of longitudinal acceleration
         public float maxPitchDegrees = 3.2f;
 
+        [Header("MINI-202 riders follow the body")]
+        public bool ridersLeanWithBody = true;
+        [Tooltip("Direct children of the bike root that carry rider placement / IK targets. Re-parented under VisualLeanRoot at Awake.")]
+        public string[] riderAnchorNames = { "Seat", "PillionSeat", "LeftFootTarget", "RightFootTarget", "PillionGrabLeft", "PillionGrabRight", "PillionFootLeft", "PillionFootRight" };
+
+        [Header("MINI-202 rider bounce (legs absorbing bumps)")]
+        public bool riderBounce = true;
+        public float driverBounceFrequency = 11f, driverBounceDamping = 0.55f;
+        public float pillionBounceFrequency = 8f, pillionBounceDamping = 0.45f;
+        [Tooltip("Metres of rider sink per m/s^2 of the bike's vertical acceleration (before the spring).")]
+        public float bounceMetresPerAccel = 0.0035f;
+        public float maxBounce = 0.045f;
+        [Tooltip("Rider torso nod (degrees) per metre of bounce - the upper body pitches slightly forward when the legs absorb a hit.")]
+        public float bounceNodDegreesPerMetre = 60f;
+
         Rigidbody rb;
         float roll, rollVel, pitch, pitchVel;
+        float lastUpSpeed, upAccel, driverBounce, driverBounceVel, pillionBounce, pillionBounceVel;
+        bool upPrimed;
+        public bool RidersAttached { get; private set; }
+        /// <summary>Seat-local offset (metres, Y) and nod (degrees) for the driver / pillion.</summary>
+        public Vector3 DriverBounceOffset { get { return new Vector3(0f, driverBounce, 0f); } }
+        public float DriverBounceNod { get { return -driverBounce * bounceNodDegreesPerMetre; } }
+        public Vector3 PillionBounceOffset { get { return new Vector3(0f, pillionBounce, 0f); } }
+        public float PillionBounceNod { get { return -pillionBounce * bounceNodDegreesPerMetre; } }
+
+        /// <summary>Re-parent the rider anchors under the leaning visual body (runtime only, world pose kept).</summary>
+        public void AttachRiderAnchors(Transform visualLeanRoot)
+        {
+            if (!ridersLeanWithBody || visualLeanRoot == null || RidersAttached) return;
+            int moved = 0;
+            foreach (var n in riderAnchorNames)
+            {
+                Transform t = transform.Find(n);
+                if (t == null || t == visualLeanRoot || visualLeanRoot.IsChildOf(t)) continue;
+                t.SetParent(visualLeanRoot, true);
+                moved++;
+            }
+            RidersAttached = moved > 0;
+        }
         float lastForwardSpeed, smoothedAccel;
         bool primed;
 
@@ -55,6 +100,23 @@ namespace UpIzUpMini.Vehicles
             float accel = (forwardSpeed - lastForwardSpeed) / Time.fixedDeltaTime;
             lastForwardSpeed = forwardSpeed;
             smoothedAccel = Mathf.Lerp(smoothedAccel, Mathf.Clamp(accel, -25f, 25f), 1f - Mathf.Exp(-10f * Time.fixedDeltaTime));
+
+            // vertical (bike-up) acceleration for the rider bounce; gravity is not included (riders are already seated in it)
+            float upSpeed = Vector3.Dot(rb.linearVelocity, transform.up);
+            if (!upPrimed) { lastUpSpeed = upSpeed; upPrimed = true; }
+            float a = (upSpeed - lastUpSpeed) / Time.fixedDeltaTime;
+            lastUpSpeed = upSpeed;
+            upAccel = Mathf.Lerp(upAccel, Mathf.Clamp(a, -40f, 40f), 1f - Mathf.Exp(-25f * Time.fixedDeltaTime));
+            if (riderBounce)
+            {
+                // the frame pushing UP compresses the rider's legs (rider sinks), a drop lets them rise
+                float target = Mathf.Clamp(-upAccel * bounceMetresPerAccel, -maxBounce, maxBounce);
+                Spring(ref driverBounce, ref driverBounceVel, target, driverBounceFrequency, driverBounceDamping, Time.fixedDeltaTime);
+                Spring(ref pillionBounce, ref pillionBounceVel, target * 1.25f, pillionBounceFrequency, pillionBounceDamping, Time.fixedDeltaTime);
+                driverBounce = Mathf.Clamp(driverBounce, -maxBounce, maxBounce);
+                pillionBounce = Mathf.Clamp(pillionBounce, -maxBounce * 1.25f, maxBounce * 1.25f);
+            }
+            else { driverBounce = pillionBounce = driverBounceVel = pillionBounceVel = 0f; }
         }
 
         public void ApplySuspension(WheelCollider front, WheelCollider rear)

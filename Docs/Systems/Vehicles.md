@@ -1,3 +1,7 @@
+## MINI-202 — TMAX riders lean/squat/dive with the body, absorb bumps, keep heads level (2026-10-08, cloud, not yet compiled/play-tested)
+
+User: "tmax bike and the character pillion animation move more realistic ... leaning wheelie ... bumping based on the terrain, shocks working ... check the other bikes and do it based on that". Root cause found in the prefab: `Seat`, `PillionSeat`, foot pegs and pillion grabs are siblings of `VisualLeanRoot`, so MINI-193's sprung lean and squat/dive moved the scooter (and the grips via the steering pivot) but not the riders - they were given a capped 52%/9 degree copy instead. Now the anchors are re-parented under `VisualLeanRoot` at runtime (prefab untouched), the copy is disabled when that is active, each rider gets a spring-damper bounce from the bike's vertical acceleration, and look-at IK keeps both heads level down the road. The SuperMoto never calls the new `VehicleRider` methods. Details/test list: `Docs/WorkPackets/MINI-202.md`.
+
 # Vehicles (Riding & Driving)
 
 ## MINI-181 — SuperMoto wheelie crash root causes fixed + real balance-point wheelie + real suspension (2026-09-27)
