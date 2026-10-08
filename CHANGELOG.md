@@ -1,3 +1,7 @@
+## MINI-197 cloud lane - bare modular Sacat and Franki bodies (2026-10-08)
+
+Blender-only design work on branch `cloud/sacat-legs` (no scenes or generated garments touched). Starting from the MINI-105 AccuRig donor, the vest and boxers were removed as geometry while keeping the body volume (within 0-7 mm on the legs, about 10 mm of girth on the torso), and skin tone was evened out. Hands were rebuilt with separated fingers and the finger rig was corrected: it was one finger off. The armature/mesh frame mismatch that tore the skin on any pose is fixed. Franki uses the same body with his own skin tone. Both are 20k triangles in six skinned pieces. Not yet verified in Unity; import steps and checks: `Docs/CharacterPipeline/MINI-197/BareBody/LOCAL-IMPORT-NOTE.md`.
+
 ## MINI-172 — Roads, PCSS clearance and Geneva cricket ground (2026-09-19)
 
 ## MINI-190 - Pistol handling animation for all humanoids (2026-10-02)
