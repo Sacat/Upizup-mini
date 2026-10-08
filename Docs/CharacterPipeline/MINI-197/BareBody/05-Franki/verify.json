@@ -62,15 +62,15 @@
  ],
  "height_donor_new": [
   1.8501,
-  1.8616
+  1.8641
  ],
  "rest_dist_to_donor_mm_p50_p99": [
-  5.4,
-  24.1
+  3.4,
+  22.8
  ],
  "meshes": {
-  "FrankiBare_Torso": {
-   "tris": 4374,
+  "FrankiBare_Arms": {
+   "tris": 2748,
    "max_influences": 4,
    "unweighted": 0
   },
@@ -80,12 +80,12 @@
    "unweighted": 0
   },
   "FrankiBare_Hair": {
-   "tris": 9484,
+   "tris": 1197,
    "max_influences": 1,
    "unweighted": 0
   },
-  "FrankiBare_Arms": {
-   "tris": 2748,
+  "FrankiBare_Torso": {
+   "tris": 4374,
    "max_influences": 4,
    "unweighted": 0
   },
@@ -105,7 +105,7 @@
    "unweighted": 0
   }
  },
- "total_tris": 28378,
+ "total_tris": 20091,
  "posed_bounds_m": [
   [
    -0.937,
@@ -115,7 +115,7 @@
   [
    0.71,
    0.16,
-   1.862
+   1.864
   ]
  ],
  "posed_sane": true

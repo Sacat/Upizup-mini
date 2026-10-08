@@ -3,6 +3,20 @@
 Cloud design lane, branch `cloud/sacat-legs` (2026-10-08). Blender work only: no scene, prefab or
 generated garment asset was touched. Nothing here has been opened in Unity yet.
 
+## Getting the files onto the Windows machine
+
+Everything is on GitHub, branch `cloud/sacat-legs`. In PowerShell:
+
+    cd "E:\Unity\Up Iz Up Mini"
+    git status                                  # commit or stash local work first
+    git fetch origin cloud/sacat-legs
+    git checkout cloud/sacat-legs               # or: git merge origin/cloud/sacat-legs into your working branch
+
+The files land under `Docs/CharacterPipeline/MINI-197/BareBody/`. Unity ignores `Docs/`, so nothing is
+imported until you copy the FBX and PNG into `Assets/` (below). If you only want the files without switching
+branches, use `git checkout origin/cloud/sacat-legs -- Docs/CharacterPipeline/MINI-197 Tools/CharacterPipeline/mini197_bare_body`.
+Without git, use GitHub's web view of the branch and the "Download raw file" button on each file.
+
 ## What to import
 
 Use the **final** files; stages 01–04 are kept as history only.
@@ -18,8 +32,10 @@ Do not replace the live Sacat/Franki or edit `GrandBayProof.unity` until the che
 Each FBX holds one armature (101 `CC_Base_*` bones, AccuRig names unchanged) and six skinned
 meshes sharing one material: `<Name>Bare_Head`, `_Torso`, `_Arms`, `_Hands`, `_Legs`, `_Feet`
 (Sacat 19,200 triangles, Franki 18,900; 4 bone influences max; no unweighted vertices).
-Franki has a seventh mesh, `FrankiBare_Hair`: the approved MINI-164 black hair (9,484 triangles,
-rigid on `CC_Base_Head`, own near-black material). It is the same hair asset as `Garments/Franki_Hair.fbx`.
+Franki has a seventh mesh, `FrankiBare_Hair`: a **mobile hair cap** (1,197 triangles, one opaque near-black
+material, rigid on `CC_Base_Head`). It is grown from his scalp over the same area as the approved MINI-164 card hair,
+sits 6.5 mm proud at the crown and tapers to skin at the hairline. It replaces the 9,484-triangle alpha-card hair, so
+there is no transparency sorting or overdraw. Franki totals 20,091 triangles.
 
 Suggested import settings:
 - Model: Scale Factor 1, Convert Units on; Normals **Import** (custom normals keep the piece seams invisible).
@@ -72,7 +88,9 @@ set env `BODY_NAME=Franki FRANKI_HEAD=<Strong.fbx> FRANKI_HAIR=<Garments/Franki_
 - The bare chest and back are smooth filled skin with fine variation and subtle areolae (user: good enough).
 - One faint corner on the pinky side of each knuckle line.
 - No LOD1/LOD2 yet (budget about 8k / 3k triangles); the same generator can produce them with `BODY_TRIS`.
-- Franki's hair is the existing MINI-164 asset (strip-like cards, 9.5k triangles); a lighter hair LOD would help mobile.
+- Franki's hair cap is smooth and solid: it reads as a short cut at gameplay distance, but has no strand or wave
+  texture up close. A small tiling hair normal/detail map would add that cheaply. The old card hair is still
+  available with `HAIR_MODE=cards` in the generator.
 - A faint tone shift remains on the side of Franki's neck where his face texture meets the body skin.
 
 Evidence renders: `0x-*/renders/`.

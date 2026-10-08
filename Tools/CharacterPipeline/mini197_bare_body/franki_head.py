@@ -95,3 +95,32 @@ def unshear(W,k=TILT):
 def neck_bridge_tilted(Wa,pa,za,Wb,pb,zb,k=TILT,**kw):
     """neck_bridge in sheared space (z' = z - k*y), so both cuts follow the slanted neck-stub edge."""
     V,F=neck_bridge(shear(Wa,k),pa,za,shear(Wb,k),pb,zb,**kw); return unshear(V,k),F
+
+def hair_cap(head_obj_W,head_polys,hair_W,A_fn,max_off=0.0065,cover=0.010,min_z=None):
+    """Mobile hair: a solid cap grown from the scalp of the decimated head instead of ~9.5k tris of alpha cards.
+    Scalp faces = faces whose vertices all lie within `cover` of the card hair (so the coverage and hairline follow
+    the approved MINI-164 hair). Each vertex moves out along its normal by an offset that is ~0 on the cap border
+    (no visible edge on the skin) and reaches max_off a few rings in (hair volume at the crown)."""
+    from scipy.spatial import cKDTree
+    d,_=cKDTree(hair_W).query(head_obj_W); near=d<cover
+    if min_z is not None: near&=head_obj_W[:,2]>min_z
+    faces=[p for p in head_polys if all(near[i] for i in p)]
+    used=sorted({i for p in faces for i in p}); rm_={v:k for k,v in enumerate(used)}
+    V=head_obj_W[used].copy(); F=[[rm_[i] for i in p] for p in faces]
+    # vertex normals + ring distance from the cap border
+    N=np.zeros_like(V)
+    for f in F:
+        for k in range(1,len(f)-1):
+            n=np.cross(V[f[k]]-V[f[0]],V[f[k+1]]-V[f[0]]); N[f[0]]+=n; N[f[k]]+=n; N[f[k+1]]+=n
+    N/=np.maximum(np.linalg.norm(N,axis=1),1e-9)[:,None]
+    from collections import defaultdict
+    ec=defaultdict(int); nb=defaultdict(set)
+    for f in F:
+        for a,b in zip(f,f[1:]+f[:1]): ec[(min(a,b),max(a,b))]+=1; nb[a].add(b); nb[b].add(a)
+    ring=np.full(len(V),99); cur={v for (a,b),c in ec.items() if c==1 for v in (a,b)}; r=0
+    while cur:
+        for v in cur: ring[v]=min(ring[v],r)
+        nxt={w for v in cur for w in nb[v] if ring[w]==99}; cur=nxt; r+=1
+    t=np.clip(ring/3.0,0,1); t=t*t*(3-2*t)
+    V=V+N*(0.0004+max_off*t)[:,None]
+    return V,F

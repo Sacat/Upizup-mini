@@ -452,6 +452,18 @@ if upto>=1:
     print('finger bones moved')
 # ---------- 8. rig + modular split ----------
 rm.name=f'{NAME}Bare_Body'; rm.data.name=rm.name
+if fhead is not None and os.environ.get('HAIR_MODE','cap')=='cap':
+    # mobile hair: replace the 9.5k-tri alpha cards with a solid cap grown from the scalp (same coverage)
+    HWc=B.world_co(fhair); RW=B.world_co(rm)
+    cv,cf=FH.hair_cap(RW,[p.vertices[:] for p in rm.data.polygons],HWc,None,
+                      max_off=float(os.environ.get('HAIR_OFF','0.0065')),cover=float(os.environ.get('HAIR_COVER','0.012')))
+    old=fhair.data; fhair.data=bpy.data.meshes.new('FrankiHairCap'); fhair.data.from_pydata(cv.tolist(),[],cf)
+    bpy.data.meshes.remove(old)
+    # smoother hairline + rounder volume: one Catmull-Clark level, then trim back to the mobile budget
+    B.activate(fhair); sd=fhair.modifiers.new('sub','SUBSURF'); sd.levels=1; sd.render_levels=1; bpy.ops.object.modifier_apply(modifier='sub')
+    HT=int(os.environ.get('HAIR_TRIS','1200')); d2=fhair.modifiers.new('dec','DECIMATE'); d2.ratio=min(1.0,HT/(2.0*len(fhair.data.polygons))); d2.use_symmetry=True; d2.symmetry_axis='X'
+    bpy.ops.object.modifier_apply(modifier='dec')
+    print('hair cap tris',sum(len(p.vertices)-2 for p in fhair.data.polygons))
 # The MINI-105 import is inconsistent: the mesh stands upright but the armature OBJECT carries a +90 deg X
 # rotation, so bones lie on their back relative to the mesh. Rest pose hides it; any bone rotation swings
 # vertices around a pivot in the wrong space (posing explodes, donor included). Fix: mesh local space already
