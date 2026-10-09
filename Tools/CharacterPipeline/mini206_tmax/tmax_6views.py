@@ -3,6 +3,8 @@ from mathutils import Vector
 sys.path.insert(0,os.path.dirname(__file__)); import rlib
 a=sys.argv[sys.argv.index('--')+1:]; src,out=a[0],a[1]; W=int(a[2]) if len(a)>2 else 900
 bpy.ops.wm.open_mainfile(filepath=src)
+for _o in bpy.data.objects:
+    if 'LOD1' in _o.name: _o.hide_render=True
 hide=a[3].split(',') if len(a)>3 and a[3] else []
 for o in bpy.data.objects:
     if any(o.name.startswith(h) for h in hide): o.hide_render=True

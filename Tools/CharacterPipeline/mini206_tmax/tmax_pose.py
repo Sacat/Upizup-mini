@@ -5,6 +5,8 @@ sys.path.insert(0,os.path.dirname(__file__)); import rlib
 a=sys.argv[sys.argv.index('--')+1:]; src,out=a[0],a[1]; steers=[float(x) for x in a[2].split(',')]; views=a[3].split(','); spin=float(a[4]) if len(a)>4 else 0
 RAKE=math.radians(25); AX=Vector((0,math.sin(RAKE),math.cos(RAKE)))
 bpy.ops.wm.open_mainfile(filepath=src)
+for _o in bpy.data.objects:
+    if 'LOD1' in _o.name: _o.hide_render=True
 O=bpy.data.objects; body=O['TMAX_Body']; fk=O['TMAX_FrontForkAssembly']; fw=O['TMAX_FrontWheel']; rw=O['TMAX_RearWheel']; hb=O['TMAX_Handlebar']
 dg=bpy.context.evaluated_depsgraph_get()
 bvh=BVHTree.FromObject(body,dg)

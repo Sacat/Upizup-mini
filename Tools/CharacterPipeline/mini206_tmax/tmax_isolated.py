@@ -2,6 +2,8 @@ import bpy,sys,os
 from mathutils import Vector
 sys.path.insert(0,os.path.dirname(__file__)); import rlib
 bpy.ops.wm.open_mainfile(filepath=sys.argv[sys.argv.index('--')+1]); out=sys.argv[-1]
+for _o in bpy.data.objects:
+    if 'LOD1' in _o.name: _o.hide_render=True
 names=['TMAX_Body','TMAX_FrontWheel','TMAX_RearWheel','TMAX_FrontForkAssembly','TMAX_Handlebar']
 cam=rlib.setup_render(480,400,10); sc=bpy.context.scene; cam.data.lens=50
 for n in names:

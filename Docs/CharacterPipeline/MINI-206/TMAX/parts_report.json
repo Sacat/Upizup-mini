@@ -7,7 +7,7 @@
  "scale_note": "scan scaled so the wheelbase is the real TMAX 560 value (1.575 m); overall length 2.225 m, height 1.505 m with the screen",
  "parts": {
   "TMAX_Body": {
-   "tris": 14208,
+   "tris": 14226,
    "watertight": false,
    "pivot_blender": [
     0.0,
@@ -304,7 +304,7 @@
    "parent": "TMAX_560_Rebuilt"
   }
  },
- "lod0_total_tris": 20888,
+ "lod0_total_tris": 20906,
  "lod1": {
   "TMAX_Body_LOD1": 7000,
   "TMAX_FrontWheel_LOD1": 1200,

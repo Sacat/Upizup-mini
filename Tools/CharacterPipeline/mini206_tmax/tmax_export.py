@@ -29,11 +29,6 @@ for o in parts.values():
         else: seen[k]=f
     for e in bm.edges:
         if len(e.link_faces)>2: print('NONMANIFOLD edge',o.name,[tuple(round(c,3) for c in f.calc_center_median()) for f in e.link_faces],[len(f.verts) for f in e.link_faces])
-    bad=[e for e in bm.edges if len(e.link_faces)>2]
-    if bad:
-        fs=list({f for e in bad for f in e.link_faces}); _b.ops.delete(bm,geom=fs,context='FACES')
-        _b.ops.holes_fill(bm,edges=[e for e in bm.edges if e.is_boundary],sides=12); _b.ops.triangulate(bm,faces=bm.faces[:])
-        print('repaired',o.name,'boundary left',sum(1 for e in bm.edges if e.is_boundary),'nonman left',sum(1 for e in bm.edges if len(e.link_faces)>2))
     if dup: _b.ops.delete(bm,geom=list(set(dup)),context='FACES_ONLY' if False else 'FACES'); print('removed duplicate faces',o.name,len(set(dup)))
     bm.to_mesh(o.data); bm.free()
 A={'Seat_Driver':(0,0.40,0.770),'Seat_Pillion':(0,0.78,0.852),'FootPeg_L':(0.19,-0.12,0.47),'FootPeg_R':(-0.19,-0.12,0.47),
