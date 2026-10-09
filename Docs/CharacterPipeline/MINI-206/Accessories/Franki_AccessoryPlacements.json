@@ -1,0 +1,141 @@
+{
+ "character": "Franki",
+ "frame": "Unity character frame: x right, y up, z forward, metres, bind pose (T-pose); offset = anchor - bone head",
+ "items": [
+  {
+   "id": "shades_ray",
+   "humanBodyBone": "Head",
+   "ccBone": "CC_Base_Head",
+   "anchorCharacter": {
+    "x": -0.0,
+    "y": 1.7181,
+    "z": 0.1461
+   },
+   "offsetFromBone": {
+    "x": -0.0,
+    "y": 0.0769,
+    "z": 0.1615
+   },
+   "eulerCharacter": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+   },
+   "localScale": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+   },
+   "note": "lens plane 12 mm in front of the nose bridge, centred on the eyes; arms reach the temples",
+   "measuredJson": "{\"eye_mid\": [-0.0, 1.7181, 0.0567], \"nose_bridge\": [-0.0, 1.7181, 0.1341], \"temple_width_m\": 0.1315}"
+  },
+  {
+   "id": "cap_mike",
+   "humanBodyBone": "Head",
+   "ccBone": "CC_Base_Head",
+   "anchorCharacter": {
+    "x": -0.0,
+    "y": 1.8135,
+    "z": 0.0165
+   },
+   "offsetFromBone": {
+    "x": -0.0,
+    "y": 0.1722,
+    "z": 0.0319
+   },
+   "eulerCharacter": {
+    "x": -8,
+    "y": 0,
+    "z": 0
+   },
+   "localScale": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+   },
+   "note": "crown centre 4.5 cm below the head top, peak forward, tilted 8 deg nose-down; scale the cap so its inner band matches the circumference",
+   "measuredJson": "{\"head_top\": [-0.0, 1.8585, 0.0139], \"head_circumference_at_band_m\": 0.557}"
+  },
+  {
+   "id": "headphones_studio",
+   "humanBodyBone": "Head",
+   "ccBone": "CC_Base_Head",
+   "anchorCharacter": {
+    "x": 0.0001,
+    "y": 1.7,
+    "z": 0.0175
+   },
+   "offsetFromBone": {
+    "x": 0.0001,
+    "y": 0.0587,
+    "z": 0.0328
+   },
+   "eulerCharacter": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+   },
+   "localScale": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+   },
+   "note": "midpoint between the ears; cups 1 cm outside each ear, band over the head top",
+   "measuredJson": "{\"ear_L\": [-0.078, 1.6976, 0.0166], \"ear_R\": [0.0783, 1.7024, 0.0183], \"ear_span_m\": 0.1563, \"head_top\": [-0.0, 1.8585, 0.0139]}"
+  },
+  {
+   "id": "watch_rollie",
+   "humanBodyBone": "LeftLowerArm",
+   "ccBone": "CC_Base_L_Forearm",
+   "anchorCharacter": {
+    "x": -0.7022,
+    "y": 1.4822,
+    "z": -0.0393
+   },
+   "offsetFromBone": {
+    "x": -0.2018,
+    "y": -0.0004,
+    "z": 0.027
+   },
+   "eulerCharacter": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+   },
+   "localScale": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+   },
+   "note": "3.5 cm up the forearm from the wrist joint; face on the back of the wrist (up in the T-pose); strap inner radius = wrist radius + 2 mm",
+   "measuredJson": "{\"wrist_centre\": [-0.7022, 1.4822, -0.0393], \"wrist_radius_m\": 0.0291, \"wrist_top_surface\": [-0.7022, 1.5083, -0.0393], \"forearm_dir\": [-0.9912, -0.0022, 0.1327]}"
+  },
+  {
+   "id": "chain_gold",
+   "humanBodyBone": "Chest",
+   "ccBone": "CC_Base_Spine02",
+   "anchorCharacter": {
+    "x": 0.0,
+    "y": 1.2649,
+    "z": 0.0145
+   },
+   "offsetFromBone": {
+    "x": -0.0,
+    "y": 0.0,
+    "z": -0.0
+   },
+   "eulerCharacter": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+   },
+   "localScale": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+   },
+   "note": "use the fitted Chain_<Char>_<Outfit>.fbx meshes (already in place, skinned to Spine02/NeckTwist01): offset 0",
+   "measuredJson": "{}"
+  }
+ ]
+}

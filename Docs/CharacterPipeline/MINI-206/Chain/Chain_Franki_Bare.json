@@ -1,0 +1,9 @@
+{
+ "links": 110,
+ "tris": 8360,
+ "loop_length_m": 1.055,
+ "loop_length_in": 41.5,
+ "lowest_point_below_neck_base_m": 0.269,
+ "centreline_min_clearance_mm": 2.8,
+ "garments": []
+}

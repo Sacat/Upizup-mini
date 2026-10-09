@@ -1,0 +1,32 @@
+{
+ "tee": {
+  "tris": 4600,
+  "verts": 2800,
+  "unweighted_verts": 0,
+  "max_influences": 4
+ },
+ "polo": {
+  "tris": 5982,
+  "verts": 3431,
+  "unweighted_verts": 0,
+  "max_influences": 4
+ },
+ "jeans": {
+  "tris": 5916,
+  "verts": 3316,
+  "unweighted_verts": 0,
+  "max_influences": 4
+ },
+ "trousers": {
+  "tris": 5916,
+  "verts": 3305,
+  "unweighted_verts": 0,
+  "max_influences": 4
+ },
+ "shorts": {
+  "tris": 4216,
+  "verts": 2519,
+  "unweighted_verts": 0,
+  "max_influences": 4
+ }
+}

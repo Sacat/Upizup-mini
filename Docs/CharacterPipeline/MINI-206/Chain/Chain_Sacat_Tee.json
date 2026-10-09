@@ -1,0 +1,11 @@
+{
+ "links": 112,
+ "tris": 8512,
+ "loop_length_m": 1.082,
+ "loop_length_in": 42.6,
+ "lowest_point_below_neck_base_m": 0.269,
+ "centreline_min_clearance_mm": 2.8,
+ "garments": [
+  "Sacat_tee.fbx"
+ ]
+}

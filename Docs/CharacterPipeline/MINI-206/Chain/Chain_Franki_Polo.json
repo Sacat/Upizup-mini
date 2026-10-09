@@ -1,0 +1,11 @@
+{
+ "links": 110,
+ "tris": 8360,
+ "loop_length_m": 1.073,
+ "loop_length_in": 42.3,
+ "lowest_point_below_neck_base_m": 0.269,
+ "centreline_min_clearance_mm": -0.53,
+ "garments": [
+  "Franki_polo.fbx"
+ ]
+}
