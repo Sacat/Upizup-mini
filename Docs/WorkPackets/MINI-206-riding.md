@@ -89,3 +89,17 @@ forward, so expect a round of seat/peg empty adjustments (step 5). That's a visu
 The quick path A needs no code. A ground-normal-relative upright assist would be the next code change for the current TMAX
 if path B is not taken. That is a small edit to `ApplyUprightAssist` (use the averaged WheelCollider ground hit normal instead of
 `Vector3.up` on line 1497), left for the local session because existing scripts are out of scope for this lane.
+
+## 4. Update after Stage 1 and the owner's 2026-10-09 request ("wheeling easy like now, just more realistic; handlebar turning, tyres turning, better leaning, road physics")
+
+Three new draft components (all wrapped in `#if MINI206_DRAFT`, not compiled here):
+
+| File | Use it on | What it does |
+|---|---|---|
+| `Draft/TmaxRideFeel.cs` | current `TMAX_560` (custom controller) | Applies the path A values at Awake through the controller's public setters (no prefab edit; untick to revert). Re-shapes the wheelie: same Q-hold trigger, speed window, 89 deg cap and crash logic, but the pose follows a 2nd-order spring (fast pop, eases into the balance angle with ~5 % overshoot), throttle trims the angle +-6 deg, release falls with a gravity-like accelerating drop, bounded wobble (pitch +-1.2 deg, roll +-0.8 deg), counter-lean roll into steering (<= 7 deg), 3 cm rear squat. |
+| `Draft/TmaxRebuiltVisuals.cs` | current `TMAX_560` | Drives the rebuilt FBX parts: wheels from the WheelCollider poses (suspension + spin + steer, banked with the body lean), fork assembly and handlebar steer about their own raked local Y (bars turn up to 32 deg, 1.8x the physics angle at walking pace, smoothed 60 ms), and moves the riders' HandlebarLeft/Right IK targets onto GripLeft/GripRight so the hands turn with the bars. Hides the old glb and overlay wheels. |
+| `Draft/TmaxSuperMotoVisualBinder.cs` (updated) | duplicate of `TMAX_560_SuperMoto` (path B) | Same FBX on the SuperMoto physics: wheels on the vendor holders, fork + handlebar copy the vendor fork yaw about their raked local Y. |
+
+Rebuilt TMAX facts to use when wiring (from `Docs/CharacterPipeline/MINI-206/TMAX/parts_report.json`, Unity local, metres, FBX root on the ground between the tyres): front axle (0, 0.304, 0.7875), rear axle (0, 0.254, -0.7875), WheelCollider radius 0.304 front / 0.254 rear (the scan's wheel sizes; the bodywork is shaped round them), steering axis 25 deg through the head at (0, 0.72, 0.547). Seat_Driver (0, 0.77, -0.40), Seat_Pillion (0, 0.852, -0.78), FootPeg L/R (+-0.19, 0.47, 0.12), PillionPeg (+-0.27, 0.34, -0.40), PillionHandle (+-0.17, 0.82, -0.80), grips (+-0.31, 1.091, 0.103). The old prefab's rider anchors mapped into this frame are in `legacy_anchor_map.json` (the old visual sat ~7.5 deg yawed, so old anchors are 10-14 cm off the new centre line).
+
+Recommended order on the local machine: (1) TMAX_560 copy + TmaxRideFeel only -> ride Lalay, the off-road strip, kerb drops, a wheelie; (2) add TmaxRebuiltVisuals with the new FBX; (3) in parallel try path B with the updated binder and keep whichever the owner prefers.

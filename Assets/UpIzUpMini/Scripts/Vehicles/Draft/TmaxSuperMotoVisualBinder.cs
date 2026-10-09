@@ -18,12 +18,9 @@ namespace UpIzUpMini.Vehicles.Draft
     ///  1. hides the SuperMoto's own body meshes (Mesh_GRP) - colliders, wheel colliders, rider rig and assists stay;
     ///  2. re-parents TMAX_RearWheel onto the rig's RearWheelPos and TMAX_FrontWheel onto FrontWheelPos (world pose kept),
     ///     so RB_Controller.SetWheelMeshPos drives them (it moves wheels[i] to the WheelCollider pose and spins around X);
-    ///  3. steers the TMAX fork assembly around its REAL raked steering axis. RB_Controller.HandleSteering writes
-    ///     forkPivot.localRotation = Euler(~0, steer, ~0) (it passes quaternion components as Euler angles, so in practice a
-    ///     pure local-Y yaw). We therefore give the fork its own two-level frame: RakeFrame (on the head bearing, tilted by
-    ///     the rake angle) -> SteerYaw (copies the vendor fork pivot's local Y yaw each LateUpdate) -> TMAX_FrontForkAssembly;
-    ///  4. moves the front wheel visual under the fork so it turns with the bars, while its height still follows the
-    ///     WheelCollider suspension (FrontWheelPos is a child of the vendor Fork_Pivot, which only yaws).
+    ///  3. steers TMAX_FrontForkAssembly and TMAX_Handlebar about their own local Y (the FBX aligns it with the real 25 deg raked
+    ///     steering axis), copying the yaw RB_Controller.HandleSteering writes onto the vendor fork pivot each LateUpdate;
+    ///  4. hangs the front wheel visual on the vendor front holder so it steers and follows the WheelCollider suspension.
     /// Physics, inputs, wheelie/upright assists, crash and rider IK are the SuperMoto's and are not touched.
     /// </summary>
     [DisallowMultipleComponent]
@@ -31,13 +28,11 @@ namespace UpIzUpMini.Vehicles.Draft
     {
         [Tooltip("Instance of the MINI-206 TMAX FBX, child of this bike root.")]
         public Transform tmaxVisual;
-        [Tooltip("Steering head rake (degrees from vertical, top tilted back). TMAX 560: about 25-26.")]
-        public float rakeDegrees = 26f;
         [Tooltip("Hide the SuperMoto's own body meshes (Mesh_GRP).")]
         public bool hideSuperMotoBody = true;
 
         RB_Controller _rb;
-        Transform _vendorForkPivot, _steerYaw;
+        Transform _vendorForkPivot;
         float _baseYaw;
 
         void Awake()
@@ -64,29 +59,25 @@ namespace UpIzUpMini.Vehicles.Draft
             CheckAxle("front", _rb.wheelColliders[1], front);
             rear.SetParent(rearHolder.transform, true);
 
-            // fork: RakeFrame on the head bearing (= the fork assembly pivot from the FBX), SteerYaw under it.
+            // fork + handlebar: the MINI-206 FBX already gives both parts a local frame whose Y axis IS the 25 deg raked steering
+            // axis (fork pivot on the head bearing, handlebar pivot on the bar clamp), so steering is a plain local-Y rotation.
             _vendorForkPivot = _rb.forkPivot.transform;
             _baseYaw = _vendorForkPivot.localEulerAngles.y;
-            var rake = new GameObject("TMAX_RakeFrame").transform;
-            rake.SetParent(tmaxVisual, false);
-            rake.position = fork.position;
-            rake.rotation = tmaxVisual.rotation * Quaternion.Euler(-rakeDegrees, 0f, 0f); // top of the axis tilted back
-            _steerYaw = new GameObject("TMAX_SteerYaw").transform;
-            _steerYaw.SetParent(rake, false);
-            fork.SetParent(_steerYaw, true);
-
-            // the front wheel must steer with the fork but keep its WheelCollider height: its holder lives under the vendor
-            // Fork_Pivot (yaw only). Parenting the mesh to the holder keeps suspension + spin; the vendor yaw is about the
-            // bike's vertical, the TMAX axis is raked - at 30 deg of steer the difference at the contact patch is about
-            // 1 cm, acceptable for a scooter. (If it shows, drive the holder's yaw from _steerYaw instead.)
+            _fork = fork; _forkBase = fork.localRotation;
+            _bar = Find(tmaxVisual, "TMAX_Handlebar"); if (_bar != null) _barBase = _bar.localRotation;
+            // the front wheel steers with the vendor holder (yaw about the bike vertical); at 30 deg of steer it differs from the
+            // raked fork by about 1 cm at the contact patch - acceptable for a scooter.
             front.SetParent(frontHolder.transform, true);
         }
 
+        Transform _fork, _bar; Quaternion _forkBase, _barBase;
+
         void LateUpdate()
         {
-            if (_steerYaw == null || _vendorForkPivot == null) return;
+            if (_vendorForkPivot == null) return;
             float yaw = Mathf.DeltaAngle(_baseYaw, _vendorForkPivot.localEulerAngles.y);
-            _steerYaw.localRotation = Quaternion.Euler(0f, yaw, 0f);
+            if (_fork != null) _fork.localRotation = _forkBase * Quaternion.Euler(0f, yaw, 0f);
+            if (_bar != null) _bar.localRotation = _barBase * Quaternion.Euler(0f, yaw, 0f);
         }
 
         static void CheckAxle(string label, WheelCollider wc, Transform wheel)
@@ -94,7 +85,7 @@ namespace UpIzUpMini.Vehicles.Draft
             if (wc == null) return;
             wc.GetWorldPose(out Vector3 pos, out _);
             float d = Vector3.Distance(pos, wheel.position);
-            if (d > 0.02f) Debug.LogWarning("[MINI-206 binder] " + label + " WheelCollider is " + d.ToString("0.000") + " m from the TMAX axle - move the collider (radius ~0.29 m) onto TMAX_" + (label == "rear" ? "Rear" : "Front") + "Wheel.");
+            if (d > 0.02f) Debug.LogWarning("[MINI-206 binder] " + label + " WheelCollider is " + d.ToString("0.000") + " m from the TMAX axle - move the collider (radius 0.304 m front / 0.254 m rear) onto TMAX_" + (label == "rear" ? "Rear" : "Front") + "Wheel.");
         }
 
         static Transform Find(Transform root, string name)
