@@ -1,0 +1,194 @@
+{
+ "Seat": {
+  "old_root_local_unity": [
+   0.0,
+   0.02,
+   -0.176
+  ],
+  "new_unity_local": [
+   -0.0984,
+   0.0208,
+   -0.1903
+  ]
+ },
+ "PillionSeat": {
+  "old_root_local_unity": [
+   0.0,
+   0.02,
+   -0.5068
+  ],
+  "new_unity_local": [
+   -0.142,
+   0.022,
+   -0.5216
+  ]
+ },
+ "HandlebarLeft": {
+  "old_root_local_unity": [
+   -0.28,
+   0.9512,
+   0.4508
+  ],
+  "new_unity_local": [
+   -0.2771,
+   0.9647,
+   0.4756
+  ]
+ },
+ "HandlebarRight": {
+  "old_root_local_unity": [
+   0.28,
+   0.9512,
+   0.4508
+  ],
+  "new_unity_local": [
+   0.2838,
+   0.9534,
+   0.4017
+  ]
+ },
+ "LeftFootTarget": {
+  "old_root_local_unity": [
+   -0.18,
+   0.2731,
+   0.05
+  ],
+  "new_unity_local": [
+   -0.2437,
+   0.2793,
+   0.0601
+  ]
+ },
+ "RightFootTarget": {
+  "old_root_local_unity": [
+   0.18,
+   0.2731,
+   0.05
+  ],
+  "new_unity_local": [
+   0.1169,
+   0.272,
+   0.0127
+  ]
+ },
+ "PillionFootLeft": {
+  "old_root_local_unity": [
+   -0.24,
+   0.3339,
+   -0.3871
+  ],
+  "new_unity_local": [
+   -0.3601,
+   0.3435,
+   -0.3698
+  ]
+ },
+ "PillionFootRight": {
+  "old_root_local_unity": [
+   0.24,
+   0.3339,
+   -0.3871
+  ],
+  "new_unity_local": [
+   0.1206,
+   0.3338,
+   -0.4331
+  ]
+ },
+ "PillionGrabLeft": {
+  "old_root_local_unity": [
+   -0.14,
+   0.6245,
+   -0.2252
+  ],
+  "new_unity_local": [
+   -0.2327,
+   0.6345,
+   -0.2204
+  ]
+ },
+ "PillionGrabRight": {
+  "old_root_local_unity": [
+   0.14,
+   0.6245,
+   -0.2252
+  ],
+  "new_unity_local": [
+   0.0478,
+   0.6288,
+   -0.2574
+  ]
+ },
+ "FrontAxle(FrontWheel)": {
+  "old_root_local_unity": [
+   0.0171,
+   0.3036,
+   0.8196
+  ],
+  "new_unity_local": [
+   0.0558,
+   0.3031,
+   0.8051
+  ]
+ },
+ "RearAxle(RearWheel)": {
+  "old_root_local_unity": [
+   0.1587,
+   0.3036,
+   -0.7038
+  ],
+  "new_unity_local": [
+   -0.0032,
+   0.306,
+   -0.7396
+  ]
+ },
+ "SteeringPivot": {
+  "old_root_local_unity": [
+   0.0,
+   0.9512,
+   0.4508
+  ],
+  "new_unity_local": [
+   0.0033,
+   0.9591,
+   0.4387
+  ]
+ },
+ "COM": {
+  "old_root_local_unity": [
+   0.0,
+   0.3271,
+   0.0
+  ],
+  "new_unity_local": [
+   -0.0689,
+   0.3304,
+   -0.0136
+  ]
+ },
+ "FrontWheelCollider": {
+  "old_root_local_unity": [
+   0.0,
+   0.4036,
+   0.8196
+  ],
+  "new_unity_local": [
+   0.0407,
+   0.4045,
+   0.8075
+  ]
+ },
+ "RearWheelCollider": {
+  "old_root_local_unity": [
+   0.0,
+   0.4036,
+   -0.7038
+  ],
+  "new_unity_local": [
+   -0.1601,
+   0.4103,
+   -0.7186
+  ]
+ }
+}

@@ -1,0 +1,316 @@
+{
+ "units": "metres",
+ "blender_frame": "front -Y, up +Z, bike left +X",
+ "unity_frame": "front +Z, up +Y, bike right +X (FBX default axis conversion)",
+ "origin": "on the ground, midway between the axles",
+ "wheelbase_m": 1.575,
+ "scale_note": "scan scaled so the wheelbase is the real TMAX 560 value (1.575 m); overall length 2.225 m, height 1.505 m with the screen",
+ "parts": {
+  "TMAX_Body": {
+   "tris": 14208,
+   "watertight": false,
+   "pivot_blender": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "pivot_unity": [
+    -0.0,
+    0.0,
+    -0.0
+   ],
+   "bounds_blender": [
+    [
+     -0.4299,
+     -0.8929,
+     0.1294
+    ],
+    [
+     0.4172,
+     1.1344,
+     1.5045
+    ]
+   ],
+   "material": "TMAX_Body"
+  },
+  "TMAX_FrontWheel": {
+   "tris": 2464,
+   "watertight": true,
+   "pivot_blender": [
+    0.0,
+    -0.7875,
+    0.3042
+   ],
+   "pivot_unity": [
+    -0.0,
+    0.3042,
+    0.7875
+   ],
+   "bounds_blender": [
+    [
+     -0.0745,
+     -1.0917,
+     0.0
+    ],
+    [
+     0.0745,
+     -0.4833,
+     0.6084
+    ]
+   ],
+   "material": "TMAX_Parts",
+   "radius_m": 0.3042
+  },
+  "TMAX_RearWheel": {
+   "tris": 2272,
+   "watertight": true,
+   "pivot_blender": [
+    0.0,
+    0.7875,
+    0.2537
+   ],
+   "pivot_unity": [
+    -0.0,
+    0.2537,
+    -0.7875
+   ],
+   "bounds_blender": [
+    [
+     -0.075,
+     0.5338,
+     0.0
+    ],
+    [
+     0.082,
+     1.0412,
+     0.5074
+    ]
+   ],
+   "material": "TMAX_Parts",
+   "radius_m": 0.2537
+  },
+  "TMAX_FrontForkAssembly": {
+   "tris": 1380,
+   "watertight": true,
+   "pivot_blender": [
+    0.0,
+    -0.5468,
+    0.72
+   ],
+   "pivot_unity": [
+    -0.0,
+    0.72,
+    0.5468
+   ],
+   "bounds_blender": [
+    [
+     -0.13,
+     -1.0047,
+     0.2377
+    ],
+    [
+     0.13,
+     -0.447,
+     0.8293
+    ]
+   ],
+   "material": "TMAX_Parts",
+   "local_up_is_steering_axis": "rake 25 deg (top leans back); in Unity rotate about local Y to steer"
+  },
+  "TMAX_Handlebar": {
+   "tris": 564,
+   "watertight": true,
+   "pivot_blender": [
+    0.0,
+    -0.13,
+    1.09
+   ],
+   "pivot_unity": [
+    -0.0,
+    1.09,
+    0.13
+   ],
+   "bounds_blender": [
+    [
+     -0.3945,
+     -0.185,
+     0.98
+    ],
+    [
+     0.3945,
+     -0.0737,
+     1.145
+    ]
+   ],
+   "material": "TMAX_Parts",
+   "local_up_is_steering_axis": "own pivot at the bar clamp, axis parallel to the rake; steer by the same angle as the fork"
+  }
+ },
+ "empties": {
+  "FootPeg_L": {
+   "blender": [
+    0.19,
+    -0.12,
+    0.47
+   ],
+   "unity": [
+    -0.19,
+    0.47,
+    0.12
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  },
+  "FootPeg_R": {
+   "blender": [
+    -0.19,
+    -0.12,
+    0.47
+   ],
+   "unity": [
+    0.19,
+    0.47,
+    0.12
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  },
+  "FrontAxle": {
+   "blender": [
+    0.0,
+    -0.7875,
+    0.3042
+   ],
+   "unity": [
+    -0.0,
+    0.3042,
+    0.7875
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  },
+  "GripLeft": {
+   "blender": [
+    0.31,
+    -0.103,
+    1.091
+   ],
+   "unity": [
+    -0.31,
+    1.091,
+    0.103
+   ],
+   "parent": "TMAX_Handlebar"
+  },
+  "GripRight": {
+   "blender": [
+    -0.31,
+    -0.103,
+    1.091
+   ],
+   "unity": [
+    0.31,
+    1.091,
+    0.103
+   ],
+   "parent": "TMAX_Handlebar"
+  },
+  "PillionHandle_L": {
+   "blender": [
+    0.17,
+    0.8,
+    0.82
+   ],
+   "unity": [
+    -0.17,
+    0.82,
+    -0.8
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  },
+  "PillionHandle_R": {
+   "blender": [
+    -0.17,
+    0.8,
+    0.82
+   ],
+   "unity": [
+    0.17,
+    0.82,
+    -0.8
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  },
+  "PillionPeg_L": {
+   "blender": [
+    0.27,
+    0.4,
+    0.34
+   ],
+   "unity": [
+    -0.27,
+    0.34,
+    -0.4
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  },
+  "PillionPeg_R": {
+   "blender": [
+    -0.27,
+    0.4,
+    0.34
+   ],
+   "unity": [
+    0.27,
+    0.34,
+    -0.4
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  },
+  "RearAxle": {
+   "blender": [
+    0.0,
+    0.7875,
+    0.2537
+   ],
+   "unity": [
+    -0.0,
+    0.2537,
+    -0.7875
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  },
+  "Seat_Driver": {
+   "blender": [
+    0.0,
+    0.4,
+    0.77
+   ],
+   "unity": [
+    -0.0,
+    0.77,
+    -0.4
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  },
+  "Seat_Pillion": {
+   "blender": [
+    0.0,
+    0.78,
+    0.852
+   ],
+   "unity": [
+    -0.0,
+    0.852,
+    -0.78
+   ],
+   "parent": "TMAX_560_Rebuilt"
+  }
+ },
+ "lod0_total_tris": 20888,
+ "lod1": {
+  "TMAX_Body_LOD1": 7000,
+  "TMAX_FrontWheel_LOD1": 1200,
+  "TMAX_RearWheel_LOD1": 1100,
+  "TMAX_FrontForkAssembly_LOD1": 700,
+  "TMAX_Handlebar_LOD1": 450
+ },
+ "lod1_total_tris": 10450
+}
