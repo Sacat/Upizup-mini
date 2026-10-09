@@ -30,13 +30,13 @@ public static partial class Mini166Repair {
    vertices=p.Select((v,i)=>new V{p=m.MultiplyPoint3x4(v),n=norm.MultiplyVector(n[i]).normalized,uv=uv.Length==p.Length?uv[i]:Vector2.zero,w=bw[i]}).ToArray();
    triangles=Enumerable.Range(0,mesh.subMeshCount).Select(mesh.GetTriangles).ToArray();bones=r.bones;binds=mesh.bindposes.Select(b=>b*m.inverse).ToArray();materials=r.sharedMaterials;
   }
-  public int Bone(string suffix){int i=Array.FindIndex(bones,b=>b&&b.name.EndsWith(":"+suffix));if(i<0)throw new Exception("Missing bone "+suffix);return i;}
+  public int Bone(string suffix){int i=Array.FindIndex(bones,b=>b&&b.name.EndsWith(":"+suffix));if(i<0){string cc=CcAlias(suffix);if(cc!=null)i=Array.FindIndex(bones,b=>b&&b.name==cc);}if(i<0)throw new Exception("Missing bone "+suffix);return i;}
   public Vector3 Rest(string suffix)=>binds[Bone(suffix)].inverse.MultiplyPoint3x4(Vector3.zero);
   public BoneWeight Weight(Vector3 p){float best=float.MaxValue;BoneWeight w=default;foreach(var v in vertices){float d=(v.p-p).sqrMagnitude;if(d<best){best=d;w=v.w;}}return w;}
   public IEnumerable<List<V>> Faces(int sub){var t=triangles[sub];for(int i=0;i<t.Length;i+=3)yield return new List<V>{vertices[t[i]],vertices[t[i+1]],vertices[t[i+2]]};}
  }
  static Surface Retarget(Surface from,Surface target){
-  var map=from.bones.Select(b=>Array.FindIndex(target.bones,t=>t&&t.name.Split(':').Last()==b.name.Split(':').Last())).ToArray();if(map.Any(i=>i<0))throw new Exception("Retarget bone missing");
+  var map=from.bones.Select(b=>FindTargetBone(target,b)).ToArray();if(map.Any(i=>i<0))throw new Exception("Retarget bone missing");
   var matrices=Enumerable.Range(0,map.Length).Select(i=>target.binds[map[i]].inverse*from.binds[i]).ToArray();
   var result=new Surface{root=target.root,bones=target.bones,binds=target.binds,triangles=from.triangles,materials=from.materials};
   result.vertices=from.vertices.Select(v=>{var w=v.w;var p=v.p;var n=v.n;v.p=matrices[w.boneIndex0].MultiplyPoint3x4(p)*w.weight0+matrices[w.boneIndex1].MultiplyPoint3x4(p)*w.weight1+matrices[w.boneIndex2].MultiplyPoint3x4(p)*w.weight2+matrices[w.boneIndex3].MultiplyPoint3x4(p)*w.weight3;v.n=(matrices[w.boneIndex0].MultiplyVector(n)*w.weight0+matrices[w.boneIndex1].MultiplyVector(n)*w.weight1+matrices[w.boneIndex2].MultiplyVector(n)*w.weight2+matrices[w.boneIndex3].MultiplyVector(n)*w.weight3).normalized;w.boneIndex0=map[w.boneIndex0];w.boneIndex1=map[w.boneIndex1];w.boneIndex2=map[w.boneIndex2];w.boneIndex3=map[w.boneIndex3];v.w=w;return v;}).ToArray();return result;

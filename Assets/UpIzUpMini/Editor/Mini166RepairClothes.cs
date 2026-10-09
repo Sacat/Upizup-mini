@@ -81,16 +81,17 @@ public static partial class Mini166Repair {
  }
  static Shape Shirt(Surface s,List<List<V>> faces,bool polo){
   var result=new Shape(s);var neck=s.Rest("Neck");float sleeve=Mathf.Lerp(Mathf.Abs(s.Rest("LeftArm").x),Mathf.Abs(s.Rest("LeftForeArm").x),.46f);
-  float opening=sacatBareTorso?neck.y-.012f:neck.y+.45f*(s.Rest("Head").y-neck.y);
+  float opening=(sacatBareTorso||bareRig)?neck.y-.012f:neck.y+.45f*(s.Rest("Head").y-neck.y);
   float[] origTop=new float[8];
   if(sacatBareTorso)foreach(var face in faces)foreach(var fv in face){float ax0=Mathf.Abs(fv.p.x);if(ax0>=.13f&&ax0<.29f){int bi=(int)((ax0-.13f)/.02f);origTop[bi]=Mathf.Max(origTop[bi],fv.p.y);}}
   foreach(var face in faces){if(face.Count<3)continue;
    if(sacatBareTorso){var cc=face.Aggregate(Vector3.zero,(a,b)=>a+b.p)/face.Count;if(Mathf.Abs(cc.x)<.14f&&cc.z<neck.z-.02f&&face.All(fv=>fv.p.y>1.30f))continue;}   // the hood is replaced by the clean yoke patch below
    var f=face.Select(v=>{
-    if(v.p.y>opening&&Mathf.Abs(v.p.x)<.15f&&new Vector2(v.p.x,v.p.z-neck.z).magnitude>.062f){var p=v.p;p.y=opening;v.p=p;}
-    if(!sacatOriginalTorso&&v.p.y<neck.y-.12f&&Mathf.Abs(v.p.x)<.205f){float t=Mathf.InverseLerp(s.Rest("Hips").y,neck.y-.12f,v.p.y);float rx=Mathf.Lerp(.151f,.20f,t),rz=Mathf.Lerp(.088f,.112f,t);float angle=Mathf.Atan2(v.p.x/rx,(v.p.z+.01f)/rz);v.p=new Vector3(Mathf.Sin(angle)*rx,v.p.y,Mathf.Cos(angle)*rz-.01f);v.n=new Vector3(Mathf.Sin(angle),0,Mathf.Cos(angle)).normalized;}
+    if(!bareRig&&v.p.y>opening&&Mathf.Abs(v.p.x)<.15f&&new Vector2(v.p.x,v.p.z-neck.z).magnitude>.062f){var p=v.p;p.y=opening;v.p=p;}
+    if(!sacatOriginalTorso&&!bareRig&&v.p.y<neck.y-.12f&&Mathf.Abs(v.p.x)<.205f){float t=Mathf.InverseLerp(s.Rest("Hips").y,neck.y-.12f,v.p.y);float rx=Mathf.Lerp(.151f,.20f,t),rz=Mathf.Lerp(.088f,.112f,t);float angle=Mathf.Atan2(v.p.x/rx,(v.p.z+.01f)/rz);v.p=new Vector3(Mathf.Sin(angle)*rx,v.p.y,Mathf.Cos(angle)*rz-.01f);v.n=new Vector3(Mathf.Sin(angle),0,Mathf.Cos(angle)).normalized;}
     // Restore a convex neck-to-deltoid transition after the legacy hood flatten.
     // Keep the neckline, sleeve ends, weights and topology intact.
+    if(bareRig)return v;
     if(sacatOriginalTorso){
      var p2=v.p;float ax=Mathf.Abs(p2.x);
      if(sacatBareTorso){
@@ -123,7 +124,7 @@ public static partial class Mini166Repair {
    // Only the neck opening exposes skin. A horizontal cut across the whole
    // shoulder made the tee look like an off-shoulder shirt.
    float NeckDistance(Vector3 p)=>Mathf.Min(p.y-opening,.075f-Mathf.Abs(p.x));
-   if(!sacatBareTorso)result.Poly(Clip(torso,NeckDistance,true),1);result.Poly(Clip(torso,NeckDistance,false),0);
+   if(bareRig)result.Poly(torso,0);else{if(!sacatBareTorso)result.Poly(Clip(torso,NeckDistance,true),1);result.Poly(Clip(torso,NeckDistance,false),0);}
   }
   if(sacatBareTorso){
    // MINI-199: clean upper-back yoke following the torso skin, up to the polo neckline

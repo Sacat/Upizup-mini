@@ -1,0 +1,9 @@
+# MINI-205: Bare bodies swapped into Sacat and Franki (new-map scene only)
+
+Swapped the MINI-204 imported bare bodies into the playable characters in `GrandBayProof_HouseEnhance.unity` (the live `GrandBayProof.unity` is untouched and keeps the old rig; its garment assets are untouched because all new assets are named `*Bare_*`).
+
+- Tool: `Mini166Repair.SwapBareBodies` (`Mini205BareWardrobe.cs`), with CC_Base bone aliases in `Mini205BoneAlias.cs` (Mixamo suffix to CC name, nearest aliased ancestor as fallback). Backup of the scene before the swap: `Backups/MINI-205-pre-bare/`. To redo: restore that backup over the scene, then run the tool.
+- The new body replaces `Visual` (Animator, controller, FirearmPose copied); old WardrobeBody/Arms/Torso/etc. renderers removed. Every serialized reference to the old Animator / skeleton in the scene was repointed through the Humanoid bone map (6 and 5 references, none unresolved).
+- Garments: shirts (tee, polo) and trousers (jeans, trousers, shorts) are offset shells of the bare body (skinned with the body's own weights); the polo collar/buttons reuse the old Shirt() code with a `bareRig` mode. Shoes (AM90/AM97) and the headphones are retargeted from the old rig; hat and the Mike 270 shoe are regenerated from the new bones.
+- Checks done (Play Mode renders, `Logs/Tasks/MINI-205`): both dressed, idle/walk/run with the game's controller, Sacat gun low-ready / aim / fire (flash, recoil) / reload on the new hands, TMAX ride with Sacat driving and Franki as pillion: straight, corners, wheelie, braking.
+- Known rough spots: trousers read slightly slim, a few hairline artefacts on sleeve hems and trouser seams, Mike 90/97 shoes not individually inspected, no Play-Mode check of the pillion look-ahead head IK or crash ragdoll on the new rig, no save/load round trip, Franki's hair cap only seen in still frames.
