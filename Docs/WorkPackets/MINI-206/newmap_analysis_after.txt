@@ -1,0 +1,95 @@
+1) HEIGHT ABOVE TERRAIN (road surface - terrain at the same XZ), sampled at triangle centroids
+  Bridge_00_user_lalay_inland_coastal_connector_Deck n=  10 above: median +0.12 max +0.13 | buried(<-0.05)    0% | >0.30m    0%
+  Bridge_01_way_22917921_Deck                   n=  10 above: median +0.23 max +0.36 | buried(<-0.05)    0% | >0.30m   30%
+  Bridge_02_way_22917921_Deck                   n=  10 above: median +0.13 max +0.20 | buried(<-0.05)    0% | >0.30m    0%
+  Bridge_03_user_highland_lalay_inroad_Deck     n=  10 above: median +0.14 max +0.20 | buried(<-0.05)    0% | >0.30m    0%
+  DogLifeJunction_MINI142                       n=  23 above: median +0.48 max +0.66 | buried(<-0.05)    0% | >0.30m   61%
+  ExpansionRoad_0                               n= 409 above: median +0.05 max +0.27 | buried(<-0.05)    0% | >0.30m    0%
+  ExpansionRoad_1                               n= 199 above: median +0.15 max +0.20 | buried(<-0.05)    0% | >0.30m    0%
+  ExpansionRoad_10                              n=  33 above: median +0.10 max +0.32 | buried(<-0.05)    0% | >0.30m    9%
+  ExpansionRoad_2                               n= 133 above: median +0.17 max +0.18 | buried(<-0.05)    0% | >0.30m    0%
+  ExpansionRoad_3                               n= 186 above: median +0.06 max +0.18 | buried(<-0.05)    0% | >0.30m    0%
+  ExpansionRoad_4                               n= 210 above: median +0.05 max +0.18 | buried(<-0.05)    0% | >0.30m    0%
+  ExpansionRoad_5                               n= 132 above: median +0.17 max +0.18 | buried(<-0.05)    0% | >0.30m    0%
+  ExpansionRoad_6                               n=  79 above: median +0.08 max +0.18 | buried(<-0.05)    0% | >0.30m    0%
+  ExpansionRoad_7                               n=   2 above: median +0.09 max +0.10 | buried(<-0.05)    0% | >0.30m    0%
+  ExpansionRoad_8                               n= 144 above: median +0.05 max +0.19 | buried(<-0.05)    0% | >0.30m    0%
+  ExpansionRoad_9                               n= 115 above: median +0.05 max +0.11 | buried(<-0.05)    0% | >0.30m    0%
+  ImportTrim_Road_way_22917921                  n= 275 above: median +0.05 max +0.17 | buried(<-0.05)    0% | >0.30m    0%
+  JunctionPatch_LalayConnector_23042701         n=   2 above: median +0.15 max +0.17 | buried(<-0.05)    0% | >0.30m    0%
+  RoadJunctionPatch_0                           n=  20 above: median +0.05 max +0.07 | buried(<-0.05)    0% | >0.30m    0%
+  RoadJunctionPatch_1                           n=  20 above: median +0.10 max +0.17 | buried(<-0.05)    0% | >0.30m    0%
+  RoadJunctionPatch_2                           n=  20 above: median +0.05 max +0.05 | buried(<-0.05)    0% | >0.30m    0%
+  Road_Connector_00_way_387239000_way_23042701  n=   1 above: median +0.05 max +0.05 | buried(<-0.05)    0% | >0.30m    0%
+  Road_user_highland_farm_spur                  n=  14 above: median +0.05 max +0.17 | buried(<-0.05)    0% | >0.30m    0%
+  Road_user_highland_lalay_inroad               n=  35 above: median +0.05 max +0.17 | buried(<-0.05)    0% | >0.30m    0%
+  Road_user_lalay_backstreet                    n= 112 above: median +0.05 max +0.12 | buried(<-0.05)    0% | >0.30m    0%
+  Road_user_lalay_inland_coastal_connector      n= 210 above: median +0.05 max +0.18 | buried(<-0.05)    0% | >0.30m    0%
+  Road_way_180962530                            n=  19 above: median +0.05 max +0.10 | buried(<-0.05)    0% | >0.30m    0%
+  Road_way_23042701                             n=  26 above: median +0.05 max +0.09 | buried(<-0.05)    0% | >0.30m    0%
+  Road_way_254679575                            n=  36 above: median +0.11 max +0.31 | buried(<-0.05)    0% | >0.30m    3%
+  Road_way_25802980                             n=  20 above: median +0.05 max +0.10 | buried(<-0.05)    0% | >0.30m    0%
+  Road_way_387239000                            n=  33 above: median +0.06 max +0.13 | buried(<-0.05)    0% | >0.30m    0%
+2) BUMPINESS along drive line: centre samples every 0.5 m from vertex pairs; max step per 0.5 m and grade change
+  Bridge_00_user_lalay_inland_coastal_connector_Deck len     14 m | max grade   1.7% | max grade change/0.5m   1.6% | crossfall max   0.0%
+  Bridge_01_way_22917921_Deck                   len     14 m | max grade   1.5% | max grade change/0.5m   0.0% | crossfall max   0.0%
+  Bridge_02_way_22917921_Deck                   len     14 m | max grade   1.5% | max grade change/0.5m   0.1% | crossfall max   0.0%
+  Bridge_03_user_highland_lalay_inroad_Deck     len     14 m | max grade   5.0% | max grade change/0.5m   0.6% | crossfall max   0.0%
+  DogLifeJunction_MINI142                       len     28 m | max grade   1.4% | max grade change/0.5m   0.6% | crossfall max   1.5%
+  ExpansionRoad_0                               len    347 m | max grade  10.8% | max grade change/0.5m   1.9% | crossfall max   0.6%
+  ExpansionRoad_1                               len    183 m | max grade   7.2% | max grade change/0.5m   0.8% | crossfall max   0.9%
+  ExpansionRoad_10                              len     32 m | max grade  13.3% | max grade change/0.5m   6.2% | crossfall max   2.1%
+  ExpansionRoad_2                               len    115 m | max grade   7.4% | max grade change/0.5m   0.6% | crossfall max   0.0%
+  ExpansionRoad_3                               len    148 m | max grade  10.3% | max grade change/0.5m   1.0% | crossfall max   0.8%
+  ExpansionRoad_4                               len    196 m | max grade   8.8% | max grade change/0.5m   1.6% | crossfall max   0.5%
+  ExpansionRoad_5                               len    107 m | max grade   5.9% | max grade change/0.5m   0.5% | crossfall max   0.9%
+  ExpansionRoad_6                               len     71 m | max grade   2.9% | max grade change/0.5m   0.3% | crossfall max   0.1%
+  ExpansionRoad_8                               len    142 m | max grade  15.2% | max grade change/0.5m   1.8% | crossfall max   0.1%
+  ExpansionRoad_9                               len     53 m | max grade   1.7% | max grade change/0.5m   0.5% | crossfall max   0.5%
+  ImportTrim_Road_way_22917921                  len    416 m | max grade   4.5% | max grade change/0.5m   2.1% | crossfall max   1.0%
+  RoadJunctionPatch_0                           len     21 m | max grade   0.1% | max grade change/0.5m   0.1% | crossfall max   0.2%
+  RoadJunctionPatch_1                           len     25 m | max grade   0.6% | max grade change/0.5m   0.5% | crossfall max   0.7%
+  RoadJunctionPatch_2                           len     27 m | max grade   0.0% | max grade change/0.5m   0.0% | crossfall max   0.0%
+  Road_Connector_00_way_387239000_way_23042701  len      7 m | max grade   1.1% | max grade change/0.5m   0.2% | crossfall max   0.4%
+  Road_user_highland_farm_spur                  len     23 m | max grade   3.5% | max grade change/0.5m   1.2% | crossfall max   0.8%
+  Road_user_highland_lalay_inroad               len     64 m | max grade   5.5% | max grade change/0.5m   2.7% | crossfall max   0.6%
+  Road_user_lalay_backstreet                    len    187 m | max grade  12.5% | max grade change/0.5m   2.8% | crossfall max   1.4%
+  Road_user_lalay_inland_coastal_connector      len    343 m | max grade   5.8% | max grade change/0.5m   1.7% | crossfall max   0.7%
+  Road_way_180962530                            len     30 m | max grade  10.5% | max grade change/0.5m   5.6% | crossfall max   1.1%
+  Road_way_23042701                             len     37 m | max grade   2.6% | max grade change/0.5m   1.1% | crossfall max   0.4%
+  Road_way_254679575                            len     46 m | max grade  12.5% | max grade change/0.5m   3.4% | crossfall max   1.2%
+  Road_way_25802980                             len     26 m | max grade   0.8% | max grade change/0.5m   0.3% | crossfall max   0.3%
+  Road_way_387239000                            len     42 m | max grade  11.4% | max grade change/0.5m   3.9% | crossfall max   0.9%
+3) JUNCTIONS: where two road surfaces cover the same XZ, height difference
+  Bridge_00_user_lalay_inland_coastal_connector_Deck x ExpansionRoad_0                          overlap tris    4 height diff median 0.020 max 0.022 m
+  Bridge_00_user_lalay_inland_coastal_connector_Deck x Road_user_lalay_inland_coastal_connector overlap tris    1 height diff median 0.018 max 0.018 m
+  Bridge_00_user_lalay_inland_coastal_connector_Deck x Road_way_23042701                        overlap tris    2 height diff median 0.034 max 0.036 m
+  Bridge_01_way_22917921_Deck              x ExpansionRoad_10                         overlap tris    5 height diff median 0.020 max 0.022 m
+  Bridge_02_way_22917921_Deck              x ImportTrim_Road_way_22917921             overlap tris    2 height diff median 0.018 max 0.026 m
+  Bridge_03_user_highland_lalay_inroad_Deck x Road_user_highland_lalay_inroad          overlap tris    3 height diff median 0.019 max 0.036 m
+  DogLifeJunction_MINI142                  x ImportTrim_Road_way_22917921             overlap tris    6 height diff median 0.005 max 0.006 m
+  DogLifeJunction_MINI142                  x Road_way_23042701                        overlap tris    5 height diff median 0.009 max 0.010 m
+  ExpansionRoad_0                          x ExpansionRoad_1                          overlap tris    2 height diff median 0.005 max 0.008 m
+  ExpansionRoad_0                          x ExpansionRoad_4                          overlap tris    2 height diff median 0.006 max 0.012 m
+  ExpansionRoad_0                          x ExpansionRoad_5                          overlap tris    4 height diff median 0.002 max 0.008 m
+  ExpansionRoad_0                          x Road_user_lalay_inland_coastal_connector overlap tris   23 height diff median 0.002 max 0.008 m
+  ExpansionRoad_1                          x Road_user_lalay_inland_coastal_connector overlap tris   52 height diff median 0.002 max 0.014 m
+  ExpansionRoad_10                         x ExpansionRoad_9                          overlap tris    4 height diff median 0.021 max 0.030 m
+  ExpansionRoad_2                          x RoadJunctionPatch_0                      overlap tris    1 height diff median 0.001 max 0.001 m
+  ExpansionRoad_3                          x ExpansionRoad_4                          overlap tris    1 height diff median 0.005 max 0.005 m
+  ExpansionRoad_3                          x RoadJunctionPatch_0                      overlap tris    2 height diff median 0.001 max 0.001 m
+  ExpansionRoad_4                          x ExpansionRoad_7                          overlap tris    2 height diff median 0.004 max 0.005 m
+  ExpansionRoad_4                          x RoadJunctionPatch_1                      overlap tris    2 height diff median 0.004 max 0.005 m
+  ExpansionRoad_8                          x ExpansionRoad_9                          overlap tris    5 height diff median 0.001 max 0.002 m
+  ExpansionRoad_8                          x RoadJunctionPatch_1                      overlap tris    2 height diff median 0.003 max 0.005 m
+  ExpansionRoad_9                          x RoadJunctionPatch_2                      overlap tris    8 height diff median 0.000 max 0.001 m
+  ImportTrim_Road_way_22917921             x Road_user_lalay_backstreet               overlap tris    4 height diff median 0.006 max 0.008 m
+  ImportTrim_Road_way_22917921             x Road_user_lalay_inland_coastal_connector overlap tris    2 height diff median 0.004 max 0.007 m
+  ImportTrim_Road_way_22917921             x Road_way_23042701                        overlap tris    1 height diff median 0.002 max 0.002 m
+  ImportTrim_Road_way_22917921             x Road_way_25802980                        overlap tris    3 height diff median 0.004 max 0.010 m
+  Road_Connector_00_way_387239000_way_23042701 x Road_way_23042701                        overlap tris    1 height diff median 0.001 max 0.001 m
+  Road_user_highland_farm_spur             x Road_user_highland_lalay_inroad          overlap tris    2 height diff median 0.003 max 0.004 m
+  Road_user_highland_lalay_inroad          x Road_user_lalay_inland_coastal_connector overlap tris    2 height diff median 0.001 max 0.002 m
+  Road_user_lalay_backstreet               x Road_way_254679575                       overlap tris   11 height diff median 0.009 max 0.029 m
+terrain above road at 15/17556 samples (0.09%); worst [(np.float64(0.16387831142054488), 'Road_way_387239000', np.float64(-85.9), np.float64(-130.6)), (np.float64(0.1598323810636959), 'Road_way_387239000', np.float64(-86.0), np.float64(-130.7)), (np.float64(0.15017615414234342), 'Road_way_387239000', np.float64(-85.8), np.float64(-130.7)), (np.float64(0.1039050545105038), 'ImportTrim_Road_way_22917921', np.float64(200.4), np.float64(-187.3)), (np.float64(0.09373071136716327), 'Road_way_387239000', np.float64(-85.8), np.float64(-130.6)), (np.float64(0.037070749249230595), 'Road_way_180962530', np.float64(200.3), np.float64(-187.5))]
+[('Road_way_387239000', 8), ('ImportTrim_Road_way_22917921', 5), ('Road_way_180962530', 2)]
